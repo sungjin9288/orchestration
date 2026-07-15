@@ -127,16 +127,17 @@ live-mutation approval. Reviewer/QA execution, source mutation, broader scheduli
 WorkOrders, commit, push, release, and connectors remain blocked.
 
 Phase 6 reviewed-delivery continuation planning is accepted by `DEC-092`, and its implementation
-decision handoff is recorded by `DEC-093` in
+decision handoff is recorded by `DEC-093`; the exact fielded implementation is accepted by
+`DEC-094` in
 `docs/62_ai-company-reviewed-delivery-planning-plan.md` and
-`docs/63_ai-company-reviewed-delivery-implementation-decision-handoff.md`. The planned minimum path
-starts only from one source-current schema-v7 plan whose Builder is waiting at the exact approved
-live-mutation gate, reuses the existing local-stub Builder and independent Reviewer, permits only
-shell-free allowlisted `node --check` QA against Builder-changed files, and ends with one
-response-only DeliveryPackage preview. This is planning evidence only: source mutation through the
-WorkOrder path, Reviewer/QA dispatch, QA evidence persistence, package composition, Mission done,
-scheduling expansion, provider-backed WorkOrders, memory/checkpoints, commit, push, and release
-remain blocked pending the complete fielded implementation decision.
+`docs/63_ai-company-reviewed-delivery-implementation-decision-handoff.md`. One explicit continue
+request starts only from a source-current schema-v7 plan whose Builder waits at the exact approved
+live-mutation gate. It reuses the bounded local-stub Builder and independent Reviewer, stops on
+changes requested, and runs only shell-free `process.execPath --check` QA against actual
+Builder-changed allowlisted files. QA persists one provenance-critical `qa-evidence` artifact; a
+delivery-ready plan recomputes one deeply frozen response-only DeliveryPackage preview. Mission done,
+durable package persistence, automatic rework, scheduling/provider/memory/checkpoint expansion,
+commit, push, release, and connectors remain blocked.
 
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
@@ -201,7 +202,7 @@ review-decision packet, accepted evidence-decision, and downstream authority dec
 evidence together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `194/194`, total `195/195`; UI QA is required `32/32`.
+`1/1`, informational `196/196`, total `197/197`; UI QA is required `33/33`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -262,7 +263,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `195/195`, UI QA `32/32`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `197/197`, UI QA `33/33`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -1666,6 +1667,8 @@ Observed result:
 | `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview schema-v7 plan bundle and pending approval. |
 | `GET` | `/api/execution-plans/:executionPlanId` | Inspect one durable plan, WorkOrders, handoffs, approval, and control task. |
 | `POST` | `/api/execution-plans/:executionPlanId/start-sequential` | Start only the approved local Builder preflight path and stop at live-mutation approval. |
+| `POST` | `/api/execution-plans/:executionPlanId/continue-reviewed-delivery` | Continue one exact approved local Builder gate through Reviewer and constrained syntax QA. |
+| `GET` | `/api/execution-plans/:executionPlanId/delivery-preview` | Recompute the response-only DeliveryPackage from delivery-ready evidence. |
 | `POST` | `/api/tasks` | Create a task under the active project. |
 | `POST` | `/api/tasks/:taskId/run-planner` | Run planner. |
 | `POST` | `/api/tasks/:taskId/run-architect` | Run architect. |
@@ -1696,9 +1699,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 873 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 875 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 654 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 655 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -1825,7 +1828,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `195/195`, UI QA `32/32`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `197/197`, UI QA `33/33`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2088,9 +2091,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `32/32`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `33/33`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `194/194`, total `195/195`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `196/196`, total `197/197`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2120,7 +2123,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `195/195`, UI QA `32/32`, and zero-open backlog are local source-backed checks.
+  aggregate `197/197`, UI QA `33/33`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
@@ -2131,10 +2134,11 @@ Playwright CLI:
   approval, and one local sequential Builder preflight dispatch. It stops at the existing Builder
   live-mutation approval; Reviewer/QA execution, parallel or autonomous scheduling, provider-backed
   WorkOrders, checkpoint expansion, source mutation, commit, push, and release remain blocked.
-- `DEC-092` and `DEC-093` record Phase 6 planning and a complete implementation decision handoff
-  only. No reviewed-delivery continuation, QA runner/evidence artifact, DeliveryPackage composer,
-  source mutation, Reviewer/QA execution, Mission done, commit, push, or release authority is
-  implemented by these documents.
+- `DEC-094` permits only the exact local-stub reviewed-delivery continuation from an approved
+  schema-v7 Builder gate through independent Reviewer and constrained syntax QA. The resulting
+  DeliveryPackage is response-only and Mission remains not done; durable package persistence,
+  automatic rework, scheduling/provider/memory/checkpoint expansion, commit, push, release, and
+  connectors remain blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

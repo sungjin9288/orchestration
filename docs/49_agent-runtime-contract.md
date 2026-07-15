@@ -431,11 +431,11 @@ three WorkOrders, three HandoffPackets, linked control task, task-owned plan app
 live-mutation approval에서 멈춘다. 현재 runtime은 schema v7이며 Reviewer/QA execution과 source mutation은 blocked다.
 
 Phase 6 reviewed-delivery planning은 `DEC-092`, implementation handoff는 `DEC-093`으로
-문서화됐다. Future minimum runtime은 source-current plan과 exact terminal approval을 다시 묶고,
-기존 Builder/Reviewer provenance를 durable WorkOrder에 reconcile하며, changed-file allowlist 안의
-shell-free `node --check`만 QA evidence로 허용하고, `DeliveryPackage`는 response-only preview로
-끝낸다. 현재는 QA runner, `qa-evidence` artifact, DeliveryPackage composer, reviewed-delivery
-continuation이 없으며 implementation과 source mutation authority는 blocked다.
+문서화됐고 exact implementation은 `DEC-094`로 accepted됐다. Runtime은 source-current plan,
+source digest, exact terminal approval, preflight artifact/run, control task, local-stub mode를 explicit
+continue 때 재검증한다. 기존 Builder/Reviewer provenance를 durable WorkOrder에 reconcile하고,
+changed-file allowlist 안의 shell-free `process.execPath --check`만 one `qa-evidence` artifact로
+허용한다. `DeliveryPackage`는 deeply frozen response-only preview이며 Mission은 `executing`에 남는다.
 
 ## Verification
 
@@ -455,11 +455,13 @@ node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
 node scripts/smoke-ai-company-workorder-persistence-execution.mjs
 node scripts/smoke-ui-slice-654.mjs
 node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
+node scripts/smoke-ai-company-reviewed-delivery.mjs
+node scripts/smoke-ui-slice-655.mjs
 node scripts/verification_status.mjs
 ```
 
 Focused runtime/API/UI smoke는 strict source load, independent request isolation, invalid rejection,
 conflict/synthesis, revision/stop/resume, snapshot compatibility, schema v7 migration/reload, legacy
 Council 보존, Phase 4 response-only compilation, Phase 5 durable Builder stop boundary, Phase 6
-planning contract를 검증한다. StaffingPlan, reviewed-delivery implementation, Reviewer/QA WorkOrder
-execution, memory, source mutation authority는 blocked다.
+exact-gated reviewed delivery를 검증한다. StaffingPlan, durable DeliveryPackage, Mission done,
+auto-rework, provider-backed WorkOrders, memory/checkpoint expansion, commit/push/release는 blocked다.

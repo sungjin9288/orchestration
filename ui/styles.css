@@ -4338,6 +4338,8 @@ h3 {
   --surface-control-fill: color-mix(in srgb, var(--surface-entry-tint) 62%, rgba(250, 252, 254, 0.92));
   --surface-control-glow: color-mix(in srgb, var(--surface-entry-accent) 16%, transparent);
   --surface-control-text: color-mix(in srgb, var(--surface-entry-accent) 72%, var(--text));
+  min-width: 0;
+  max-width: 100%;
   display: none;
 }
 
@@ -8733,7 +8735,8 @@ h3 {
 
 .mission-workorder-compile-form,
 .mission-workorder-preview,
-.mission-workorder-plan {
+.mission-workorder-plan,
+.delivery-package-preview {
   width: 100%;
   margin-top: 12px;
   padding-top: 12px;
@@ -8790,6 +8793,51 @@ h3 {
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.delivery-package-preview {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--surface-control-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.delivery-package-preview > .card-title-row {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.delivery-package-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.delivery-package-result {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--surface-control-border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-control-background);
+}
+
+.delivery-package-result > * {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.delivery-package-authority {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
 }
 
 .surface[data-surface="artifacts"] .guard-summary > .form-actions,
@@ -9298,6 +9346,10 @@ h3 {
 }
 
 @media (max-width: 720px) {
+  .delivery-package-results {
+    grid-template-columns: 1fr;
+  }
+
   .control-overview-detail-grid,
   .control-overview-queue-meta {
     grid-template-columns: 1fr;

@@ -307,15 +307,20 @@ prompts, packs, commit/release coordinators, and unrelated project source files 
 
 - Planning authority: accepted as `DEC-092`
 - Implementation decision handoff: documented as `DEC-093`
-- Runtime/API/UI/source implementation: blocked pending a complete fielded decision
-- DEC-091 schema-v7 durable Builder waiting-gate baseline: remains authoritative
+- Runtime/API/UI/source implementation: accepted as `DEC-094` from the complete fielded decision
+- DEC-091 schema-v7 durable Builder waiting-gate baseline: preserved as the required entry boundary
+- Implemented output: one provenance-critical `qa-evidence` artifact plus one response-only,
+  deeply frozen DeliveryPackage preview; schema remains v7 and Mission remains not done
 - Every exclusion and downstream authority: still blocked
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
+node scripts/smoke-ai-company-reviewed-delivery.mjs
+node scripts/smoke-ui-slice-655.mjs
 node scripts/smoke-ai-company-workorder-persistence-execution.mjs
 node scripts/smoke-ui-slice-654.mjs
+node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```

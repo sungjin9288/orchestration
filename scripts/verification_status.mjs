@@ -467,6 +467,16 @@ const informationalChecks = [
     purpose: 'AI Company Phase 6 planning source-checks one explicit local-stub continuation from the exact approved Builder live-mutation gate through existing Builder and independent Reviewer, shell-free allowlisted node syntax QA, one response-only DeliveryPackage preview, rollback and focused smoke requirements, while implementation source mutation durable package Mission done scheduling provider memory commit push release and connectors remain blocked',
   },
   {
+    id: 'ai-company-reviewed-delivery-implementation',
+    script: 'scripts/smoke-ai-company-reviewed-delivery.mjs',
+    purpose: 'AI Company Phase 6 runtime proves exact-gated local Builder mutation, independent review, constrained node syntax QA evidence, changes-requested stop, reload, and authority-closed response-only delivery',
+  },
+  {
+    id: 'ai-company-reviewed-delivery-ui-api',
+    script: 'scripts/smoke-ui-slice-655.mjs',
+    purpose: 'AI Company Phase 6 UI and API prove approval-gated continuation, reload-safe response-only DeliveryPackage rendering, idempotent replay, and blocked downstream controls',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

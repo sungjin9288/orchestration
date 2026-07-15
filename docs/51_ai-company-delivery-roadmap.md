@@ -287,12 +287,13 @@ targetAuthority=one local deterministic schema-v7 durable ExecutionPlan and Work
 ### Rollback
 
 DeliveryPackage composition을 disable하고 기존 artifacts/review/close-out surfaces를 유지한다.
-새 package record는 evidence-preserving quarantine 대상으로 둔다.
+Response-only preview는 폐기하고 durable plan/run/artifact/approval evidence는 유지한다. 이 phase는
+package record를 만들지 않으므로 quarantine할 DeliveryPackage record가 없다.
 
 ### Authority Gate
 
-Planning-only authority는 `DEC-092`, implementation decision handoff는 `DEC-093`으로 기록됐다.
-첫 implementation target은 general QA runner나 done gate가 아니라 one schema-v7 plan의 exact
+Planning-only authority는 `DEC-092`, implementation decision handoff는 `DEC-093`, exact
+implementation은 `DEC-094`로 기록됐다. Implemented target은 general QA runner나 done gate가 아니라 one schema-v7 plan의 exact
 approved Builder live-mutation gate에서 기존 local-stub Builder와 independent Reviewer를 순차
 재사용하고, shell-free allowlisted `node --check` QA evidence 뒤 response-only DeliveryPackage
 preview를 반환하는 one pass-path다. Changes requested는 auto-rework하지 않고 멈추며 durable
@@ -304,7 +305,7 @@ Accepted `DEC-092` planning provenance:
 targetAuthority=planning only for one explicit local-stub reviewed-delivery continuation from one schema-v7 ExecutionPlan whose Builder is waiting at the exact live-mutation approval
 ```
 
-Required implementation decision target:
+Accepted `DEC-094` implementation target:
 
 ```text
 targetAuthority=one explicit local-stub pass-path from one schema-v7 ExecutionPlan Builder waiting-gate through the exact approved live mutation, independent Reviewer, constrained node syntax QA, and one response-only DeliveryPackage preview
@@ -438,20 +439,19 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 5 exact implementation은 `DEC-091`로 accepted됐다. Phase 6 planning과 implementation
-handoff는 `DEC-092`, `DEC-093`으로 기록됐으며, 다음 architecture-sensitive decision은
-reviewed-delivery implementation을 complete fielded shape로 별도 승인하는 것이다.
+Phase 5 exact implementation은 `DEC-091`, Phase 6 exact implementation은 `DEC-094`로 accepted됐다.
+다음 architecture-sensitive target은 Phase 7 checkpoint/resume/recovery planning only다. Checkpoint
+schema나 autonomous resume 구현은 별도 complete fielded decision 전까지 열리지 않는다.
 
 ```text
 targetAuthority=one explicit local-stub pass-path from one schema-v7 ExecutionPlan Builder waiting-gate through the exact approved live mutation, independent Reviewer, constrained node syntax QA, and one response-only DeliveryPackage preview
 ```
 
-Any Phase 6 implementation must preserve schema v7 and the `DEC-091` waiting-gate baseline, bind the
-explicit continuation to exact terminal approval and source provenance, reuse only existing local-stub
-Builder/Reviewer gates, execute QA without a shell, and keep DeliveryPackage response-only. Current
-runtime has no reviewed-delivery continuation, QA runner/evidence artifact, or package composer.
-Mutation, Reviewer/QA execution, parallel scheduling, provider-backed WorkOrders, memory expansion,
-commit, push, release, and external connectors remain blocked until the exact implementation decision.
+Implemented Phase 6 preserves schema v7 and the `DEC-091` waiting-gate baseline, binds explicit
+continuation to exact terminal approval and source provenance, reuses only existing local-stub
+Builder/Reviewer gates, executes QA without a shell, and keeps DeliveryPackage response-only.
+Durable package persistence, Mission done, auto-rework, parallel scheduling, provider-backed
+WorkOrders, memory/checkpoint expansion, commit, push, release, and external connectors remain blocked.
 
 ## Verification
 
@@ -467,9 +467,11 @@ node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
 node scripts/smoke-ai-company-workorder-persistence-execution.mjs
 node scripts/smoke-ui-slice-654.mjs
 node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
+node scripts/smoke-ai-company-reviewed-delivery.mjs
+node scripts/smoke-ui-slice-655.mjs
 node scripts/verification_status.mjs
 ```
 
 Phase 0 verifier와 focused smokes는 implemented Phase 1-5 evidence, schema v7 migration, durable
-approval binding, Builder live-mutation stop gate와 Phase 6 planning-only authority boundary를
-확인한다.
+approval binding, Builder live-mutation stop gate와 Phase 6 exact-gated reviewed-delivery authority
+boundary를 확인한다.

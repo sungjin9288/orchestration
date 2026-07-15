@@ -88,7 +88,7 @@ assertAll(planText, [
   /missionDone = false/,
   /POST \/api\/execution-plans\/:id\/continue-reviewed-delivery/,
   /GET \/api\/execution-plans\/:id\/delivery-preview/,
-  /Runtime\/API\/UI\/source implementation: blocked pending a complete fielded decision/,
+  /Runtime\/API\/UI\/source implementation: accepted as `DEC-094`/,
 ]);
 
 assert.match(
@@ -119,6 +119,7 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-092$/m);
 assert.match(decisionLog, /^### DEC-093$/m);
+assert.match(decisionLog, /^### DEC-094$/m);
 assert.match(
   decisionLog,
   /Accept `operator-delegated-ai-company-reviewed-delivery-planning-001`/,
@@ -127,43 +128,46 @@ assert.match(
   decisionLog,
   /Define the AI Company reviewed-delivery implementation decision handoff as read-only input/,
 );
-assert.match(masterPlan, /Phase 6 reviewed-delivery continuation planning은 `DEC-092`/);
-assert.match(runtimeContract, /Phase 6 reviewed-delivery planning은 `DEC-092`/);
-assert.match(councilProtocol, /Phase 6 reviewed-delivery planning은 `DEC-092`/);
+assert.match(decisionLog, /approve-ai-company-reviewed-delivery-implementation-slice/);
+assert.match(masterPlan, /complete fielded implementation은 `DEC-094`/);
+assert.match(runtimeContract, /exact implementation은 `DEC-094`/);
+assert.match(councilProtocol, /exact implementation은 `DEC-094`/);
 assertAll(roadmapText, [
   /Planning-only authority는 `DEC-092`/,
   /targetAuthority=one explicit local-stub pass-path from one schema-v7 ExecutionPlan Builder waiting-gate/,
-  /Current runtime has no reviewed-delivery continuation, QA runner\/evidence artifact, or package composer/,
+  /Implemented Phase 6 preserves schema v7/,
 ]);
 assert.match(completionInventory, /AI Company reviewed-delivery planning \| pass/);
 assertAll(readmeText, [
   /Phase 6 reviewed-delivery continuation planning is accepted by `DEC-092`/,
-  /implementation decision handoff is recorded by `DEC-093`/,
-  /shell-free allowlisted `node --check`/,
-  /response-only DeliveryPackage preview/,
+  /exact fielded implementation is accepted by\s+`DEC-094`/,
+  /shell-free `process\.execPath --check`/,
+  /deeply frozen response-only DeliveryPackage preview/,
 ]);
-assert.match(taskLedger, /ai-company-reviewed-delivery-planning-post-m7-1948/);
+assert.match(taskLedger, /ai-company-reviewed-delivery-implementation-post-m7-1949/);
 assert.match(lessons, /A QA WorkOrder must not execute free-form verification commands through a shell/);
 assert.match(verification, /id: 'ai-company-reviewed-delivery-planning'/);
+assert.match(verification, /id: 'ai-company-reviewed-delivery-implementation'/);
+assert.match(verification, /id: 'ai-company-reviewed-delivery-ui-api'/);
 assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-reviewed-delivery-planning\.mjs'/,
 );
 
-// Pin both the reusable baseline and the currently absent implementation surface.
+// Pin both the reusable waiting-gate baseline and the consumed exact implementation surface.
 assert.match(contracts, /const STATE_SCHEMA_VERSION = 7/);
 assert.match(contracts, /WAITING_GATE: 'waiting-gate'/);
-assert.doesNotMatch(contracts, /QA_EVIDENCE:/);
-assert.doesNotMatch(contracts, /DELIVERY_READY:/);
+assert.match(contracts, /QA_EVIDENCE: 'qa-evidence'/);
+assert.match(contracts, /DELIVERY_READY: 'delivery-ready'/);
 assert.match(runtimeService, /function beginSequentialWorkOrderExecution\(input\)/);
 assert.match(runtimeService, /function finalizeSequentialWorkOrderExecution\(input\)/);
-assert.doesNotMatch(runtimeService, /function continueReviewedDelivery\(/);
-assert.doesNotMatch(runtimeService, /function composeDeliveryPackage\(/);
+assert.match(runtimeService, /function beginReviewedDeliveryContinuation\(input\)/);
+assert.match(runtimeService, /function previewExecutionPlanDelivery\(input\)/);
 assert.match(executionCoordinator, /async function runBuilderLiveMutation\(input\)/);
 assert.match(executionCoordinator, /async function runReviewer\(input\)/);
-assert.doesNotMatch(executionCoordinator, /function runQaNodeCheck\(/i);
-assert.doesNotMatch(server, /continue-reviewed-delivery/);
-assert.doesNotMatch(server, /delivery-preview/);
+assert.match(executionCoordinator, /async function runQaWorkOrder\(input\)/);
+assert.match(server, /continue-reviewed-delivery/);
+assert.match(server, /delivery-preview/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -173,7 +177,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-092',
         handoff: 'documented-dec-093',
-        implementation: 'blocked-fielded-decision-required',
+        implementation: 'accepted-dec-094',
       },
       plannedPath: {
         providerMode: 'local-stub-only',
@@ -185,15 +189,15 @@ process.stdout.write(
       currentRuntime: {
         schemaVersion: 7,
         builderWaitingGateImplemented: true,
-        reviewedDeliveryContinuation: false,
-        qaRunner: false,
-        deliveryPackageComposer: false,
+        reviewedDeliveryContinuation: true,
+        qaRunner: true,
+        deliveryPackageComposer: 'response-only',
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        sourceMutationAllowed: false,
-        reviewerQaExecutionAllowed: false,
+        implementationAllowed: true,
+        sourceMutationAllowedThroughExactBuilderGate: true,
+        reviewerQaExecutionAllowedThroughNamedPath: true,
         arbitraryCommandExecutionAllowed: false,
         durableDeliveryPackageAllowed: false,
         missionDoneAllowed: false,

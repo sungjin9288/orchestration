@@ -1626,6 +1626,170 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const executionPlanDeliveryPreviewMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/delivery-preview$/,
+  );
+  if (method === 'GET' && executionPlanDeliveryPreviewMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanDeliveryPreviewMatch[1]);
+      json(response, 200, {
+        deliveryPackagePreview: runtime.previewExecutionPlanDelivery({ executionPlanId }),
+        generatedAt: new Date().toISOString(),
+        runtimeRoot: options.runtimeRoot,
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'DeliveryPackage preview 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const executionPlanReviewedDeliveryMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
+  );
+  if (method === 'POST' && executionPlanReviewedDeliveryMatch) {
+    let startedBundle = null;
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanReviewedDeliveryMatch[1]);
+      const input = await readJsonBody(request);
+      startedBundle = runtime.beginReviewedDeliveryContinuation({
+        executionPlanId,
+        terminalGateApprovalId: input.terminalGateApprovalId,
+        sourceDigest: input.sourceDigest,
+      });
+
+      if (startedBundle.idempotent) {
+        const deliveryPackagePreview = runtime.previewExecutionPlanDelivery({
+          executionPlanId,
+          sourceDigest: input.sourceDigest,
+        });
+        json(
+          response,
+          200,
+          buildSnapshotResponse({
+            deliveryPackagePreview,
+            executionPlanBundle: runtime.getExecutionPlan(executionPlanId),
+            mutation: {
+              executionPlanId,
+              idempotent: true,
+              kind: 'continue-reviewed-delivery',
+              stoppedAt: 'response-only-delivery-package-preview',
+            },
+          }),
+        );
+        return;
+      }
+
+      const builderResult = await executionCoordinator.runBuilderLiveMutation({
+        taskId: startedBundle.controlTask.id,
+      });
+      let executionPlanBundle = runtime.completeReviewedDeliveryBuilder({
+        executionPlanId,
+        runId: builderResult.run.id,
+        changeSummaryArtifactId: builderResult.artifacts.changeSummary?.id,
+        patchArtifactId: builderResult.artifacts.patch?.id,
+        diffArtifactId: builderResult.artifacts.diff?.id,
+        changedFiles: builderResult.changedFiles,
+      });
+
+      runtime.beginReviewedDeliveryReviewer({ executionPlanId });
+      const reviewerResult = await executionCoordinator.runReviewer({
+        taskId: startedBundle.controlTask.id,
+      });
+      executionPlanBundle = runtime.completeReviewedDeliveryReviewer({
+        executionPlanId,
+        runId: reviewerResult.run.id,
+        reviewArtifactId: reviewerResult.artifact.id,
+        reviewStatus: reviewerResult.run.summary?.mappedReviewStatus,
+        decisionInboxItemId: reviewerResult.decisionInboxItem?.id || null,
+      });
+
+      if (executionPlanBundle.executionPlan.status === 'blocked') {
+        json(
+          response,
+          200,
+          buildSnapshotResponse({
+            deliveryPackagePreview: null,
+            executionPlanBundle,
+            mutation: {
+              executionPlanId,
+              idempotent: false,
+              kind: 'continue-reviewed-delivery',
+              stoppedAt: executionPlanBundle.executionPlan.stoppedAt,
+              stopReason: executionPlanBundle.executionPlan.stopReason,
+            },
+          }),
+        );
+        return;
+      }
+
+      executionPlanBundle = runtime.beginReviewedDeliveryQa({ executionPlanId });
+      const workOrdersByRole = Object.fromEntries(
+        executionPlanBundle.workOrders.map((workOrder) => [workOrder.role, workOrder]),
+      );
+      const qaResult = await executionCoordinator.runQaWorkOrder({
+        taskId: executionPlanBundle.controlTask.id,
+        executionPlanId,
+        workOrderId: workOrdersByRole.qa.id,
+        builderRunId: workOrdersByRole.builder.completionRunId,
+        reviewerRunId: workOrdersByRole.reviewer.completionRunId,
+        sourceDigest: executionPlanBundle.executionPlan.sourceDigest,
+        changedFiles: workOrdersByRole.builder.changedFiles,
+        targetPathAllowlist: workOrdersByRole.qa.targetPathAllowlist,
+        commands: workOrdersByRole.qa.verificationCommands,
+      });
+      executionPlanBundle = runtime.completeReviewedDeliveryQa({
+        executionPlanId,
+        runId: qaResult.run.id,
+        qaEvidenceArtifactId: qaResult.artifact.id,
+      });
+      const deliveryPackagePreview =
+        executionPlanBundle.executionPlan.status === 'delivery-ready'
+          ? runtime.previewExecutionPlanDelivery({
+              executionPlanId,
+              sourceDigest: input.sourceDigest,
+            })
+          : null;
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          deliveryPackagePreview,
+          executionPlanBundle,
+          mutation: {
+            executionPlanId,
+            idempotent: false,
+            kind: 'continue-reviewed-delivery',
+            qaEvidenceArtifactId: qaResult.artifact.id,
+            stoppedAt: executionPlanBundle.executionPlan.stoppedAt,
+            stopReason: executionPlanBundle.executionPlan.stopReason,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      if (startedBundle && !startedBundle.idempotent) {
+        try {
+          runtime.failReviewedDeliveryContinuation({
+            executionPlanId: startedBundle.executionPlan.id,
+            reason: error.message || 'reviewed-delivery-failed',
+          });
+        } catch (_finalizeError) {
+          // Preserve the original continuation failure for the API caller.
+        }
+      }
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || '검토 및 QA 연속 실행에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanStartMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/start-sequential$/,
   );

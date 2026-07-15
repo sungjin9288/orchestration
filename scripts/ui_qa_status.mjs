@@ -184,6 +184,12 @@ const smokeChecks = [
     purpose:
       'Durable WorkOrder UI and API preserve explicit persist approve and start actions, stale digest refusal, reload evidence, responsive controls, one Builder preflight dispatch, and the existing live-mutation stop gate',
   },
+  {
+    id: 'ai-company-reviewed-delivery-ui-api',
+    script: 'scripts/smoke-ui-slice-655.mjs',
+    purpose:
+      'Reviewed-delivery UI and API preserve exact approval-gated continuation, Builder Reviewer QA evidence, response-only package reload, safe replay, and blocked downstream controls',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

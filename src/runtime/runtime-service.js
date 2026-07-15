@@ -8,6 +8,7 @@ const {
   APPROVAL_STATUS,
   ARTIFACT_CATALOG,
   ARTIFACT_RETENTION_TIER,
+  ARTIFACT_TYPE,
   BUILDER_ACTION,
   COMMIT_ACTION,
   DECISION_INBOX_ALLOWED_KIND_BY_SOURCE_TYPE,
@@ -2056,6 +2057,9 @@ function createRuntimeService(options = {}) {
       workOrders,
       handoffPackets,
       approval: assertApproval(executionPlan.approvalId, state),
+      terminalGateApproval: executionPlan.terminalGateApprovalId
+        ? assertApproval(executionPlan.terminalGateApprovalId, state)
+        : null,
       controlTask: assertTask(executionPlan.controlTaskId, state),
       mission: assertMission(executionPlan.missionId, state),
       councilSession: assertCouncilSession(executionPlan.councilSessionId, state),
@@ -2064,6 +2068,524 @@ function createRuntimeService(options = {}) {
 
   function getExecutionPlan(executionPlanId) {
     return getExecutionPlanBundleFromState(store.loadState(), executionPlanId);
+  }
+
+  function getReviewedDeliveryRoleBundle(state, executionPlanId) {
+    const bundle = getExecutionPlanBundleFromState(state, executionPlanId);
+    const byRole = Object.fromEntries(bundle.workOrders.map((entry) => [entry.role, entry]));
+
+    if (
+      bundle.workOrders.length !== 3 ||
+      !byRole.builder ||
+      !byRole.reviewer ||
+      !byRole.qa
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlanId} must contain Builder, Reviewer, and QA`);
+    }
+
+    return { ...bundle, byRole };
+  }
+
+  function appendUniqueRefs(current, additions) {
+    return [...new Set([...(current || []), ...(additions || [])].filter(Boolean))];
+  }
+
+  function assertReviewedDeliverySourceCurrent(bundle, state) {
+    const project = assertProject(bundle.executionPlan.projectId, state);
+    assertRealCouncilSourceCurrent(bundle.councilSession, bundle.mission, project);
+
+    if (
+      project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+      project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB
+    ) {
+      throw conflict('Reviewed-delivery continuation supports local-stub only');
+    }
+
+    return project;
+  }
+
+  function assertReviewedDeliveryPlanApproval(bundle) {
+    const { approval, executionPlan } = bundle;
+
+    if (
+      approval.status !== APPROVAL_STATUS.APPROVED ||
+      approval.allowedNextAction !== WORK_ORDER_ACTION.START_SEQUENTIAL ||
+      approval.taskId !== executionPlan.controlTaskId ||
+      approval.metadata?.executionPlanId !== executionPlan.id ||
+      approval.metadata?.controlTaskId !== executionPlan.controlTaskId ||
+      approval.metadata?.previewId !== executionPlan.previewId ||
+      approval.metadata?.sourceDigest !== executionPlan.sourceDigest
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} does not have its exact plan approval`);
+    }
+  }
+
+  function beginReviewedDeliveryContinuation(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const { executionPlan, terminalGateApproval, byRole } = bundle;
+    const requestedApprovalId = String(input.terminalGateApprovalId || '').trim();
+    const requestedSourceDigest = String(input.sourceDigest || '').trim();
+
+    if (!requestedSourceDigest || requestedSourceDigest !== executionPlan.sourceDigest) {
+      throw conflict('Reviewed-delivery sourceDigest does not match the durable plan');
+    }
+    assertReviewedDeliveryPlanApproval(bundle);
+    assertReviewedDeliverySourceCurrent(bundle, state);
+
+    if (
+      !terminalGateApproval ||
+      requestedApprovalId !== terminalGateApproval.id ||
+      executionPlan.terminalGateApprovalId !== terminalGateApproval.id ||
+      terminalGateApproval.status !== APPROVAL_STATUS.APPROVED ||
+      terminalGateApproval.taskId !== executionPlan.controlTaskId ||
+      terminalGateApproval.allowedNextAction !== BUILDER_ACTION.LIVE_MUTATION
+    ) {
+      throw conflict('Reviewed-delivery continuation requires the exact approved terminal gate');
+    }
+
+    const targetArtifact = assertArtifact(terminalGateApproval.targetArtifactId, state);
+    const targetRun = assertRun(terminalGateApproval.targetRunId, state);
+    if (
+      targetArtifact.type !== ARTIFACT_TYPE.PREFLIGHT ||
+      targetArtifact.taskId !== executionPlan.controlTaskId ||
+      targetArtifact.runId !== targetRun.id ||
+      !byRole.builder.artifactRefs.includes(targetArtifact.id) ||
+      !byRole.builder.runRefs.includes(targetRun.id)
+    ) {
+      throw conflict('Terminal approval does not match the Builder preflight evidence');
+    }
+    if (listPendingBlockingDecisionItems(executionPlan.controlTaskId, state).length > 0) {
+      throw conflict('Reviewed-delivery continuation is blocked by an unresolved decision');
+    }
+    if (executionPlan.status === EXECUTION_PLAN_STATUS.DELIVERY_READY) {
+      return { ...bundle, idempotent: true };
+    }
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.ACTIVE ||
+      executionPlan.activeWorkOrderId !== byRole.builder.id ||
+      executionPlan.stoppedAt !== 'request-builder-live-mutation-approval' ||
+      byRole.builder.status !== WORK_ORDER_STATUS.WAITING_GATE
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} is not at the Builder waiting-gate`);
+    }
+
+    const now = new Date().toISOString();
+    byRole.builder.status = WORK_ORDER_STATUS.ACTIVE;
+    byRole.builder.updatedAt = now;
+    byRole.builder.continuedAt = now;
+    executionPlan.stopReason = null;
+    executionPlan.stoppedAt = null;
+    executionPlan.reviewedDeliveryDecisionRef = 'DEC-094';
+    executionPlan.nonGoals = [
+      'Persist a DeliveryPackage or mark the Mission done.',
+      'Automatically rework changes requested or retry failed WorkOrders.',
+      'Run parallel, dynamic, autonomous, checkpoint, or provider-backed scheduling.',
+      'Persist memory, mutate policy, commit, push, release, or call external connectors.',
+    ];
+    executionPlan.updatedAt = now;
+    store.saveState(state);
+    return { ...getExecutionPlanBundleFromState(state, executionPlan.id), idempotent: false };
+  }
+
+  function completeReviewedDeliveryBuilder(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const { executionPlan, terminalGateApproval, byRole } = bundle;
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.ACTIVE ||
+      executionPlan.activeWorkOrderId !== byRole.builder.id ||
+      byRole.builder.status !== WORK_ORDER_STATUS.ACTIVE
+    ) {
+      throw conflict(`Builder WorkOrder ${byRole.builder.id} is not active`);
+    }
+
+    const run = assertRun(input.runId, state);
+    const artifactInputs = [
+      [input.changeSummaryArtifactId, ARTIFACT_TYPE.CHANGE_SUMMARY, 'changeSummary'],
+      [input.patchArtifactId, ARTIFACT_TYPE.PATCH, 'patch'],
+      [input.diffArtifactId, ARTIFACT_TYPE.DIFF, 'diff'],
+    ];
+    const changedFiles = [...new Set((input.changedFiles || []).map((entry) => String(entry)))];
+    if (
+      run.taskId !== executionPlan.controlTaskId ||
+      run.role !== 'builder' ||
+      run.status !== RUN_STATUS.COMPLETED ||
+      run.summary?.executionMode !== 'live-mutation' ||
+      run.summary?.approvalId !== executionPlan.terminalGateApprovalId ||
+      terminalGateApproval?.metadata?.consumedByRunId !== run.id ||
+      terminalGateApproval?.metadata?.consumedPreflightArtifactId !==
+        terminalGateApproval?.targetArtifactId ||
+      terminalGateApproval?.metadata?.consumedPreflightRunId !== terminalGateApproval?.targetRunId ||
+      changedFiles.length === 0 ||
+      !sameExactStringArrays(run.summary?.changedFiles || [], changedFiles)
+    ) {
+      throw conflict('Builder completion does not match the approved live-mutation run');
+    }
+
+    const artifacts = artifactInputs.map(([artifactId, type, summaryKey]) => {
+      const artifact = assertArtifact(artifactId, state);
+      if (
+        artifact.type !== type ||
+        artifact.taskId !== executionPlan.controlTaskId ||
+        artifact.runId !== run.id ||
+        run.summary?.artifactIds?.[summaryKey] !== artifact.id
+      ) {
+        throw conflict(`Builder ${type} evidence does not match run ${run.id}`);
+      }
+      return artifact;
+    });
+
+    const now = new Date().toISOString();
+    byRole.builder.status = WORK_ORDER_STATUS.COMPLETED;
+    byRole.builder.runRefs = appendUniqueRefs(byRole.builder.runRefs, [run.id]);
+    byRole.builder.artifactRefs = appendUniqueRefs(
+      byRole.builder.artifactRefs,
+      artifacts.map((entry) => entry.id),
+    );
+    byRole.builder.changedFiles = changedFiles;
+    byRole.builder.completionRunId = run.id;
+    byRole.builder.completedAt = now;
+    byRole.builder.updatedAt = now;
+    byRole.reviewer.status = WORK_ORDER_STATUS.QUEUED;
+    byRole.reviewer.authority = { ...byRole.reviewer.authority, executeAllowed: true };
+    byRole.reviewer.updatedAt = now;
+    executionPlan.activeWorkOrderId = byRole.reviewer.id;
+    executionPlan.runRefs = appendUniqueRefs(executionPlan.runRefs, [run.id]);
+    executionPlan.artifactRefs = appendUniqueRefs(
+      executionPlan.artifactRefs,
+      artifacts.map((entry) => entry.id),
+    );
+    executionPlan.updatedAt = now;
+    store.saveState(state);
+    return getExecutionPlanBundleFromState(state, executionPlan.id);
+  }
+
+  function beginReviewedDeliveryReviewer(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const { executionPlan, byRole } = bundle;
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.ACTIVE ||
+      executionPlan.activeWorkOrderId !== byRole.reviewer.id ||
+      byRole.builder.status !== WORK_ORDER_STATUS.COMPLETED ||
+      byRole.reviewer.status !== WORK_ORDER_STATUS.QUEUED
+    ) {
+      throw conflict(`Reviewer WorkOrder ${byRole.reviewer.id} is not dependency-ready`);
+    }
+
+    const now = new Date().toISOString();
+    executionPlan.status = EXECUTION_PLAN_STATUS.REVIEWING;
+    executionPlan.updatedAt = now;
+    byRole.reviewer.status = WORK_ORDER_STATUS.ACTIVE;
+    byRole.reviewer.startedAt = now;
+    byRole.reviewer.updatedAt = now;
+    store.saveState(state);
+    return getExecutionPlanBundleFromState(state, executionPlan.id);
+  }
+
+  function completeReviewedDeliveryReviewer(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const { executionPlan, byRole } = bundle;
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.REVIEWING ||
+      executionPlan.activeWorkOrderId !== byRole.reviewer.id ||
+      byRole.reviewer.status !== WORK_ORDER_STATUS.ACTIVE
+    ) {
+      throw conflict(`Reviewer WorkOrder ${byRole.reviewer.id} is not active`);
+    }
+
+    const run = assertRun(input.runId, state);
+    const artifact = assertArtifact(input.reviewArtifactId, state);
+    const reviewStatus = String(input.reviewStatus || '').trim();
+    if (![REVIEW_STATUS.PASSED, REVIEW_STATUS.CHANGES_REQUESTED].includes(reviewStatus)) {
+      throw conflict(`Reviewer completion has an invalid review status: ${reviewStatus || 'empty'}`);
+    }
+    const decisionInboxItem = input.decisionInboxItemId
+      ? assertDecisionInboxItem(input.decisionInboxItemId, state)
+      : null;
+    if (
+      run.taskId !== executionPlan.controlTaskId ||
+      run.role !== 'reviewer' ||
+      run.status !== RUN_STATUS.COMPLETED ||
+      run.summary?.sourceRunId !== byRole.builder.completionRunId ||
+      run.summary?.mappedReviewStatus !== reviewStatus ||
+      run.summary?.reviewArtifactId !== artifact.id ||
+      artifact.type !== ARTIFACT_TYPE.REVIEW ||
+      artifact.taskId !== executionPlan.controlTaskId ||
+      artifact.runId !== run.id
+    ) {
+      throw conflict('Reviewer completion does not match the Builder evidence chain');
+    }
+    if (
+      decisionInboxItem &&
+      (decisionInboxItem.taskId !== executionPlan.controlTaskId ||
+        decisionInboxItem.sourceType !== DECISION_INBOX_SOURCE_TYPE.REVIEW ||
+        decisionInboxItem.sourceId !== artifact.id ||
+        decisionInboxItem.status !== DECISION_INBOX_STATUS.PENDING ||
+        decisionInboxItem.blocksTask !== true)
+    ) {
+      throw conflict('Reviewer decision does not match the review artifact evidence chain');
+    }
+
+    const now = new Date().toISOString();
+    byRole.reviewer.runRefs = appendUniqueRefs(byRole.reviewer.runRefs, [run.id]);
+    byRole.reviewer.artifactRefs = appendUniqueRefs(byRole.reviewer.artifactRefs, [artifact.id]);
+    byRole.reviewer.completionRunId = run.id;
+    byRole.reviewer.reviewArtifactId = artifact.id;
+    byRole.reviewer.completedAt = now;
+    byRole.reviewer.updatedAt = now;
+    executionPlan.runRefs = appendUniqueRefs(executionPlan.runRefs, [run.id]);
+    executionPlan.artifactRefs = appendUniqueRefs(executionPlan.artifactRefs, [artifact.id]);
+    executionPlan.updatedAt = now;
+
+    if (reviewStatus === REVIEW_STATUS.PASSED && !decisionInboxItem) {
+      byRole.reviewer.status = WORK_ORDER_STATUS.COMPLETED;
+      byRole.qa.status = WORK_ORDER_STATUS.QUEUED;
+      byRole.qa.authority = { ...byRole.qa.authority, executeAllowed: true };
+      byRole.qa.updatedAt = now;
+      executionPlan.activeWorkOrderId = byRole.qa.id;
+      executionPlan.stopReason = null;
+      executionPlan.stoppedAt = null;
+    } else {
+      byRole.reviewer.status = WORK_ORDER_STATUS.CHANGES_REQUESTED;
+      byRole.reviewer.inboxItemRefs = appendUniqueRefs(
+        byRole.reviewer.inboxItemRefs,
+        [decisionInboxItem?.id],
+      );
+      executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
+      executionPlan.activeWorkOrderId = null;
+      executionPlan.stopReason = 'reviewer-changes-requested';
+      executionPlan.stoppedAt = 'reviewer';
+    }
+
+    store.saveState(state);
+    return getExecutionPlanBundleFromState(state, executionPlan.id);
+  }
+
+  function beginReviewedDeliveryQa(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const { executionPlan, byRole } = bundle;
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.REVIEWING ||
+      executionPlan.activeWorkOrderId !== byRole.qa.id ||
+      byRole.reviewer.status !== WORK_ORDER_STATUS.COMPLETED ||
+      byRole.qa.status !== WORK_ORDER_STATUS.QUEUED
+    ) {
+      throw conflict(`QA WorkOrder ${byRole.qa.id} is not dependency-ready`);
+    }
+
+    const now = new Date().toISOString();
+    byRole.qa.status = WORK_ORDER_STATUS.ACTIVE;
+    byRole.qa.startedAt = now;
+    byRole.qa.updatedAt = now;
+    executionPlan.updatedAt = now;
+    store.saveState(state);
+    return getExecutionPlanBundleFromState(state, executionPlan.id);
+  }
+
+  function completeReviewedDeliveryQa(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const { executionPlan, byRole, mission } = bundle;
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.REVIEWING ||
+      executionPlan.activeWorkOrderId !== byRole.qa.id ||
+      byRole.qa.status !== WORK_ORDER_STATUS.ACTIVE
+    ) {
+      throw conflict(`QA WorkOrder ${byRole.qa.id} is not active`);
+    }
+
+    const run = assertRun(input.runId, state);
+    const artifact = assertArtifact(input.qaEvidenceArtifactId, state);
+    let evidence;
+    try {
+      evidence = JSON.parse(store.readArtifact(artifact.path));
+    } catch (_error) {
+      throw conflict(`QA evidence artifact ${artifact.id} is not valid JSON`);
+    }
+    if (
+      run.taskId !== executionPlan.controlTaskId ||
+      run.role !== 'qa' ||
+      run.status !== RUN_STATUS.COMPLETED ||
+      run.summary?.qaEvidenceArtifactId !== artifact.id ||
+      artifact.type !== ARTIFACT_TYPE.QA_EVIDENCE ||
+      artifact.taskId !== executionPlan.controlTaskId ||
+      artifact.runId !== run.id ||
+      evidence.executionPlanId !== executionPlan.id ||
+      evidence.workOrderId !== byRole.qa.id ||
+      evidence.builderRunId !== byRole.builder.completionRunId ||
+      evidence.reviewerRunId !== byRole.reviewer.completionRunId ||
+      evidence.sourceDigest !== executionPlan.sourceDigest ||
+      !sameExactStringArrays(evidence.changedFiles || [], byRole.builder.changedFiles || [])
+    ) {
+      throw conflict('QA completion does not match the reviewed Builder evidence chain');
+    }
+
+    const now = new Date().toISOString();
+    byRole.qa.runRefs = appendUniqueRefs(byRole.qa.runRefs, [run.id]);
+    byRole.qa.artifactRefs = appendUniqueRefs(byRole.qa.artifactRefs, [artifact.id]);
+    byRole.qa.completionRunId = run.id;
+    byRole.qa.qaEvidenceArtifactId = artifact.id;
+    byRole.qa.completedAt = now;
+    byRole.qa.updatedAt = now;
+    executionPlan.runRefs = appendUniqueRefs(executionPlan.runRefs, [run.id]);
+    executionPlan.artifactRefs = appendUniqueRefs(executionPlan.artifactRefs, [artifact.id]);
+    executionPlan.activeWorkOrderId = null;
+    executionPlan.updatedAt = now;
+
+    const passed =
+      evidence.verdict === 'passed' &&
+      evidence.mutationDetected === false &&
+      Array.isArray(evidence.checks) &&
+      evidence.checks.length > 0 &&
+      evidence.checks.every((check) => check.passed === true);
+    if (passed) {
+      byRole.qa.status = WORK_ORDER_STATUS.COMPLETED;
+      executionPlan.status = EXECUTION_PLAN_STATUS.DELIVERY_READY;
+      executionPlan.stopReason = null;
+      executionPlan.stoppedAt = 'response-only-delivery-package-preview';
+      executionPlan.deliveryReadyAt = now;
+    } else {
+      byRole.qa.status = WORK_ORDER_STATUS.FAILED;
+      executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
+      executionPlan.stopReason = 'qa-failed';
+      executionPlan.stoppedAt = 'qa';
+    }
+    mission.status = 'executing';
+    mission.updatedAt = now;
+
+    store.saveState(state);
+    return getExecutionPlanBundleFromState(state, executionPlan.id);
+  }
+
+  function failReviewedDeliveryContinuation(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const { executionPlan } = bundle;
+    if (executionPlan.status === EXECUTION_PLAN_STATUS.DELIVERY_READY) return bundle;
+
+    const active = executionPlan.activeWorkOrderId
+      ? assertWorkOrder(executionPlan.activeWorkOrderId, state)
+      : null;
+    const now = new Date().toISOString();
+    executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
+    executionPlan.activeWorkOrderId = null;
+    executionPlan.stopReason = String(input.reason || 'reviewed-delivery-failed');
+    executionPlan.stoppedAt = String(input.stoppedAt || active?.role || 'reviewed-delivery');
+    executionPlan.updatedAt = now;
+    if (
+      active &&
+      [WORK_ORDER_STATUS.ACTIVE, WORK_ORDER_STATUS.QUEUED].includes(active.status)
+    ) {
+      active.status = WORK_ORDER_STATUS.BLOCKED;
+      active.updatedAt = now;
+    }
+    store.saveState(state);
+    return getExecutionPlanBundleFromState(state, executionPlan.id);
+  }
+
+  function deepFreeze(value) {
+    if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+    for (const child of Object.values(value)) deepFreeze(child);
+    return Object.freeze(value);
+  }
+
+  function previewExecutionPlanDelivery(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const { executionPlan, byRole, mission } = bundle;
+    if (input.sourceDigest && input.sourceDigest !== executionPlan.sourceDigest) {
+      throw conflict('DeliveryPackage sourceDigest does not match the durable plan');
+    }
+    assertReviewedDeliveryPlanApproval(bundle);
+    assertReviewedDeliverySourceCurrent(bundle, state);
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.DELIVERY_READY ||
+      Object.values(byRole).some((workOrder) => workOrder.status !== WORK_ORDER_STATUS.COMPLETED)
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} is not delivery-ready`);
+    }
+    if (listPendingBlockingDecisionItems(executionPlan.controlTaskId, state).length > 0) {
+      throw conflict('DeliveryPackage is blocked by an unresolved decision');
+    }
+
+    const reviewerRun = assertRun(byRole.reviewer.completionRunId, state);
+    const reviewArtifact = assertArtifact(byRole.reviewer.reviewArtifactId, state);
+    const qaRun = assertRun(byRole.qa.completionRunId, state);
+    const qaArtifact = assertArtifact(byRole.qa.qaEvidenceArtifactId, state);
+    const terminalGateApproval = assertApproval(executionPlan.terminalGateApprovalId, state);
+    let qaEvidence;
+    try {
+      qaEvidence = JSON.parse(store.readArtifact(qaArtifact.path));
+    } catch (_error) {
+      throw conflict(`QA evidence artifact ${qaArtifact.id} is not valid JSON`);
+    }
+    if (
+      reviewerRun.summary?.mappedReviewStatus !== REVIEW_STATUS.PASSED ||
+      reviewerRun.summary?.reviewArtifactId !== reviewArtifact.id ||
+      reviewArtifact.type !== ARTIFACT_TYPE.REVIEW ||
+      reviewArtifact.runId !== reviewerRun.id ||
+      qaRun.summary?.qaEvidenceArtifactId !== qaArtifact.id ||
+      qaArtifact.type !== ARTIFACT_TYPE.QA_EVIDENCE ||
+      qaArtifact.runId !== qaRun.id ||
+      qaEvidence.verdict !== 'passed' ||
+      qaEvidence.mutationDetected !== false ||
+      terminalGateApproval.status !== APPROVAL_STATUS.APPROVED ||
+      terminalGateApproval.allowedNextAction !== BUILDER_ACTION.LIVE_MUTATION ||
+      terminalGateApproval.metadata?.consumedByRunId !== byRole.builder.completionRunId
+    ) {
+      throw conflict('DeliveryPackage evidence chain is incomplete or failed');
+    }
+
+    const deliveredArtifactRefs = appendUniqueRefs(
+      [],
+      bundle.workOrders.flatMap((workOrder) => workOrder.artifactRefs),
+    );
+    const idDigest = crypto
+      .createHash('sha256')
+      .update(JSON.stringify([executionPlan.id, executionPlan.sourceDigest, deliveredArtifactRefs]))
+      .digest('hex')
+      .slice(0, 16);
+    return deepFreeze({
+      id: `delivery-package-preview-${idDigest}`,
+      missionId: mission.id,
+      executionPlanId: executionPlan.id,
+      deliveredArtifactRefs,
+      workOrderResults: bundle.workOrders.map((workOrder) => ({
+        workOrderId: workOrder.id,
+        role: workOrder.role,
+        status: workOrder.status,
+        runRefs: [...workOrder.runRefs],
+        artifactRefs: [...workOrder.artifactRefs],
+      })),
+      reviewerEvidenceRef: reviewArtifact.id,
+      qaEvidenceRefs: [qaArtifact.id],
+      verificationSummary: {
+        kind: 'node-syntax-check',
+        verdict: qaEvidence.verdict,
+        checkCount: qaEvidence.checks.length,
+        passedCheckCount: qaEvidence.checks.filter((entry) => entry.passed).length,
+      },
+      acceptedRisks: ['QA evidence covers Node.js syntax only.'],
+      unresolvedItems: [],
+      authoritySummary: {
+        durablePersistenceAllowed: false,
+        missionDoneAllowed: false,
+        commitAllowed: false,
+        pushAllowed: false,
+        releaseAllowed: false,
+        memoryPersistenceAllowed: false,
+        schedulingAllowed: false,
+        providerExpansionAllowed: false,
+      },
+      sourceDigest: executionPlan.sourceDigest,
+      generatedAt: qaArtifact.createdAt,
+      persisted: false,
+      missionDone: false,
+    });
   }
 
   function persistMissionWorkOrderPlan(input) {
@@ -3744,6 +4266,12 @@ function createRuntimeService(options = {}) {
     assertTaskCanRunBuilderPreflight,
     assertTaskCanRunTaskBreaker,
     completeRun,
+    completeReviewedDeliveryBuilder,
+    completeReviewedDeliveryQa,
+    completeReviewedDeliveryReviewer,
+    beginReviewedDeliveryContinuation,
+    beginReviewedDeliveryQa,
+    beginReviewedDeliveryReviewer,
     beginSequentialWorkOrderExecution,
     createApprovalPlaceholder,
     createCouncilSessionForMission,
@@ -3761,6 +4289,7 @@ function createRuntimeService(options = {}) {
     ensureCommitActionAllowed,
     finalizeBuilderLiveMutationSuccess,
     failSequentialWorkOrderExecution,
+    failReviewedDeliveryContinuation,
     finalizeSequentialWorkOrderExecution,
     finishRunWithReviewPending,
     getArtifact,
@@ -3782,6 +4311,7 @@ function createRuntimeService(options = {}) {
     previewRetentionConsumer,
     preflightMissionWorkOrderPreview,
     previewMissionWorkOrders,
+    previewExecutionPlanDelivery,
     persistMissionWorkOrderPlan,
     listApprovals,
     listCouncilProviderReadinessSummaries,

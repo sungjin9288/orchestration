@@ -315,11 +315,12 @@ live-mutation approval에서 멈춘다. Source mutation, Reviewer/QA 실행, 병
 provider-backed WorkOrder dispatch는 여전히 blocked다.
 
 Phase 6 reviewed-delivery continuation planning은 `DEC-092`, implementation decision handoff는
-`DEC-093`으로 기록됐다. 다음 최소 pass-path는 exact approved Builder live-mutation gate를 다시
-검증하고 기존 local-stub Builder와 independent Reviewer를 순차 재사용한 뒤, shell-free allowlisted
-`node --check` QA evidence와 response-only `DeliveryPackage` preview를 만드는 범위다. Runtime,
-source mutation, Reviewer/QA dispatch, durable package, Mission done, commit/push/release authority는
-complete fielded implementation decision 전까지 blocked다.
+`DEC-093`으로 기록됐고 complete fielded implementation은 `DEC-094`로 accepted됐다. 구현 경로는
+exact approved Builder live-mutation gate와 explicit continue를 다시 검증하고 기존 local-stub
+Builder와 independent Reviewer를 순차 재사용한다. QA는 Builder-changed allowlist 안의 shell-free
+`process.execPath --check`만 실행하고 one `qa-evidence` artifact를 남긴다. DeliveryPackage는
+delivery-ready evidence에서 deterministic response-only preview로만 계산된다. Durable package,
+Mission done, auto-rework, scheduling/provider/memory expansion, commit/push/release authority는 blocked다.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -340,9 +341,11 @@ node scripts/smoke-ai-company-mission-workorder-compiler.mjs
 node scripts/smoke-ui-slice-653.mjs
 node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
 node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
+node scripts/smoke-ai-company-reviewed-delivery.mjs
+node scripts/smoke-ui-slice-655.mjs
 node scripts/verification_status.mjs
 ```
 
 이 검증은 source contract, local-stub Council, explicit provider opt-in, UI/API readiness gate와
-authority boundary, Phase 4 response-only compiler, Phase 5 durable Builder stop, Phase 6
-planning-only gate를 확인한다. Optional live-provider 결과는 별도 informational evidence다.
+authority boundary, Phase 4 response-only compiler, Phase 5 durable Builder stop, Phase 6 exact-gated
+reviewed-delivery와 response-only package를 확인한다. Optional live-provider 결과는 별도 informational evidence다.

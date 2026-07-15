@@ -86,6 +86,9 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
     .map((id) => snapshot.handoffPackets?.[id] || null)
     .filter(Boolean);
   const approval = snapshot.approvals?.[executionPlan.approvalId] || null;
+  const terminalGateApproval = executionPlan.terminalGateApprovalId
+    ? snapshot.approvals?.[executionPlan.terminalGateApprovalId] || null
+    : null;
   const controlTask = snapshot.tasks?.[executionPlan.controlTaskId] || null;
 
   if (
@@ -97,7 +100,36 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
     return null;
   }
 
-  return { executionPlan, workOrders, handoffPackets, approval, controlTask };
+  return {
+    executionPlan,
+    workOrders,
+    handoffPackets,
+    approval,
+    terminalGateApproval,
+    controlTask,
+  };
+}
+
+export function getMissionReviewedDeliverySummary(bundle) {
+  if (!bundle) return null;
+  const byRole = Object.fromEntries(bundle.workOrders.map((entry) => [entry.role, entry]));
+  const canContinue = Boolean(
+    bundle.executionPlan.status === 'active' &&
+      bundle.executionPlan.activeWorkOrderId === byRole.builder?.id &&
+      bundle.executionPlan.stoppedAt === 'request-builder-live-mutation-approval' &&
+      byRole.builder?.status === 'waiting-gate' &&
+      bundle.terminalGateApproval?.id === bundle.executionPlan.terminalGateApprovalId &&
+      bundle.terminalGateApproval?.status === 'approved' &&
+      bundle.terminalGateApproval?.allowedNextAction === 'builder-live-mutation',
+  );
+
+  return {
+    byRole,
+    canContinue,
+    deliveryReady: bundle.executionPlan.status === 'delivery-ready',
+    terminalGateApprovalId: bundle.terminalGateApproval?.id || null,
+    terminalGateApprovalStatus: bundle.terminalGateApproval?.status || null,
+  };
 }
 
 export function getCouncilCastEntry(role, councilSession) {

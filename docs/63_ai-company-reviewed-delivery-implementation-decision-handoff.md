@@ -4,17 +4,17 @@
 
 이 문서는 `docs/62_ai-company-reviewed-delivery-planning-plan.md`의 planning-only evidence를
 실제 source mutation, Reviewer/QA WorkOrder execution, API/UI continuation으로 넓힐지 operator가
-complete fielded shape로 결정할 수 있게 한다. 이 문서는 implementation approval이 아니며
-runtime, schema, source, provider, UI 또는 durable state를 변경하지 않는다.
+complete fielded shape로 결정할 수 있게 작성된 handoff다. 해당 complete fielded decision은
+`DEC-094`로 accepted됐으며, 이 문서는 consumed authority evidence로 유지된다.
 
 ## Current Gate
 
 - Planning-only decision: accepted as `DEC-092`
 - Implementation handoff: documented as `DEC-093`
-- Current runtime: schema v7 durable plan with Builder stopped at exact live-mutation approval
-- Implementation authority: blocked
-- Source mutation and Reviewer/QA dispatch: blocked
-- DeliveryPackage: documented contract only; no composer or record
+- Complete fielded implementation decision: accepted as `DEC-094`
+- Current runtime: schema v7 durable plan can explicitly continue from the exact approved Builder gate
+- Source mutation and Reviewer/QA dispatch: allowed only through the named local-stub continuation
+- DeliveryPackage: deterministic response-only composer; no durable package record
 
 General approval, continuation wording, delegated non-critical self-approval, or approval of the
 existing plan does not open this source-mutation and execution-sensitive implementation.
@@ -141,5 +141,6 @@ node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Until the complete fielded approval is accepted, only the planning smoke exists and implementation
-smokes/routes/controls remain blocked.
+The complete fielded approval is consumed by `DEC-094`. Focused implementation and UI/API smokes,
+UI QA, and aggregate verification now pin the implemented boundary; every downstream authority in
+the accepted decision remains blocked.

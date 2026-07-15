@@ -138,6 +138,7 @@ import {
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
   getMissionExecutionPlanBundle,
+  getMissionReviewedDeliverySummary,
   getMissionWorkOrderPreviewSummary,
   isRealCouncilMode,
   parseMissionWorkOrderCompileList,
@@ -341,6 +342,7 @@ const state = {
     stopConditions: '',
   },
   missionWorkOrderPreview: null,
+  missionDeliveryPackagePreview: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -4690,6 +4692,9 @@ function applySnapshotPayload(payload) {
     runtimeRoot: payload.runtimeRoot,
     snapshot: payload.snapshot,
   };
+  if (Object.prototype.hasOwnProperty.call(payload, 'deliveryPackagePreview')) {
+    state.missionDeliveryPackagePreview = payload.deliveryPackagePreview || null;
+  }
 
   const snapshot = payload.snapshot || {};
   const activeProject = snapshot.activeProjectId
@@ -4734,6 +4739,14 @@ async function hydrateSelectedDetails() {
   const artifactId = state.selectedArtifactId;
   const data = getDerived();
   const selectedTask = data.taskMap.get(state.selectedTaskId) || null;
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || null;
+  const selectedCouncilSession = selectedMission?.councilSessionId
+    ? data.councilSessionMap.get(selectedMission.councilSessionId) || null
+    : null;
+  const executionPlanBundle = getMissionExecutionPlanBundle(
+    data.snapshot,
+    selectedCouncilSession?.id,
+  );
   const latestBreakdownArtifact = selectedTask
     ? getLatestTaskArtifact(selectedTask, data, 'breakdown')
     : null;
@@ -4745,6 +4758,7 @@ async function hydrateSelectedDetails() {
   state.selectedArtifact = null;
   state.selectedTaskBreakdownArtifact = null;
   state.selectedTaskPreflightArtifact = null;
+  state.missionDeliveryPackagePreview = null;
   let selectedArtifactDetail = null;
 
   await Promise.all([
@@ -4783,6 +4797,13 @@ async function hydrateSelectedDetails() {
 
       state.selectedTaskPreflightArtifact = preflightPayload.artifact;
     }
+  }
+
+  if (executionPlanBundle?.executionPlan.status === 'delivery-ready') {
+    const deliveryPayload = await fetchJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/delivery-preview`,
+    );
+    state.missionDeliveryPackagePreview = deliveryPayload.deliveryPackagePreview || null;
   }
 }
 
@@ -5735,6 +5756,44 @@ async function submitSequentialWorkOrderPlan(executionPlanId) {
     state.surface = 'council';
     render();
     elements.refreshStatus.textContent = `Builder WorkOrder가 ${payload.mutation.autoChain.stoppedAt}에서 멈췄습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitReviewedDeliveryContinuation(executionPlanId) {
+  const data = getDerived();
+  const executionPlan = data.snapshot.executionPlans?.[executionPlanId] || null;
+  if (!executionPlan) throw new Error(`ExecutionPlan ${executionPlanId}을 찾을 수 없습니다.`);
+  const councilSession = data.councilSessionMap.get(executionPlan.councilSessionId) || null;
+  const bundle = getMissionExecutionPlanBundle(data.snapshot, councilSession?.id);
+  const summary = getMissionReviewedDeliverySummary(bundle);
+  if (!summary?.canContinue) {
+    throw new Error('정확히 승인된 Builder terminal gate가 있어야 검토와 QA를 이어갈 수 있습니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `ExecutionPlan ${executionPlanId}의 검토·QA를 실행하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanId)}/continue-reviewed-delivery`,
+      {
+        terminalGateApprovalId: summary.terminalGateApprovalId,
+        sourceDigest: executionPlan.sourceDigest,
+      },
+    );
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = payload.deliveryPackagePreview ? 'deliverables' : 'council';
+    render();
+    elements.refreshStatus.textContent = payload.deliveryPackagePreview
+      ? `${payload.deliveryPackagePreview.id}를 response-only로 준비했습니다`
+      : `ExecutionPlan이 ${payload.mutation.stoppedAt || 'reviewer'}에서 멈췄습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -10101,7 +10160,8 @@ function renderMissionWorkOrderPreview(preview, councilSession, persistedBundle 
 
 function renderMissionExecutionPlan(bundle) {
   if (!bundle) return '';
-  const { executionPlan, workOrders, approval } = bundle;
+  const { executionPlan, workOrders, approval, terminalGateApproval } = bundle;
+  const deliverySummary = getMissionReviewedDeliverySummary(bundle);
   const startAllowed =
     executionPlan.status === 'approved' && approval.status === 'approved';
   const workOrderRows = workOrders
@@ -10111,7 +10171,16 @@ function renderMissionExecutionPlan(bundle) {
           <div class="card-title-row card-title-row-tight">
             <strong>${workOrder.position}. ${escapeHtml(workOrder.title)}</strong>
             ${createToken(workOrder.role, workOrder.role === 'builder' ? 'accent' : 'neutral')}
-            ${createToken(workOrder.status, workOrder.status === 'waiting-gate' ? 'warning' : 'neutral')}
+            ${createToken(
+              workOrder.status,
+              workOrder.status === 'completed'
+                ? 'success'
+                : ['failed', 'blocked', 'changes-requested'].includes(workOrder.status)
+                  ? 'danger'
+                  : workOrder.status === 'waiting-gate'
+                    ? 'warning'
+                    : 'neutral',
+            )}
           </div>
           <div class="token-row token-row-compact">
             ${createToken(
@@ -10138,7 +10207,15 @@ function renderMissionExecutionPlan(bundle) {
       <div class="token-row token-row-compact">
         ${createToken(executionPlan.id, 'accent')}
         ${createToken(`digest:${executionPlan.sourceDigest.slice(0, 12)}`, 'neutral')}
-        ${executionPlan.terminalGateApprovalId ? createToken('builder mutation gate', 'warning') : ''}
+        ${
+          terminalGateApproval
+            ? createToken(
+                `builder mutation gate:${terminalGateApproval.status}`,
+                terminalGateApproval.status === 'approved' ? 'success' : 'warning',
+              )
+            : ''
+        }
+        ${deliverySummary?.deliveryReady ? createToken('delivery:ready', 'success') : ''}
       </div>
       <div class="mission-workorder-list">${workOrderRows}</div>
       <div class="relation-button-row mission-workorder-actions">
@@ -10151,15 +10228,69 @@ function renderMissionExecutionPlan(bundle) {
         >
           Builder 순차 시작
         </button>
+        <button
+          class="primary-button"
+          type="button"
+          data-action="continue-reviewed-delivery"
+          data-id="${escapeHtml(executionPlan.id)}"
+          ${state.loading || state.mutating || !deliverySummary?.canContinue ? 'disabled' : ''}
+        >
+          검토·QA 이어서 실행
+        </button>
         <p class="form-help">${escapeHtml(
           executionPlan.status === 'pending-approval'
             ? 'Decision Inbox에서 digest-bound 계획 승인이 필요합니다.'
             : executionPlan.status === 'approved'
               ? '별도 시작 명령은 Builder preflight 뒤 live-mutation 승인에서 멈춥니다.'
-              : executionPlan.status === 'active' && executionPlan.terminalGateApprovalId
-                ? `Builder live-mutation 승인 ${executionPlan.terminalGateApprovalId}에서 대기 중입니다.`
+              : deliverySummary?.canContinue
+                ? `Builder live-mutation 승인 ${deliverySummary.terminalGateApprovalId}이 확인됐습니다.`
+                : executionPlan.status === 'active' && executionPlan.terminalGateApprovalId
+                  ? `Builder live-mutation 승인 ${executionPlan.terminalGateApprovalId}에서 대기 중입니다.`
+                  : deliverySummary?.deliveryReady
+                    ? 'Reviewer와 node syntax QA가 통과했고 response-only 패킷이 준비됐습니다.'
                 : `현재 계획 상태: ${executionPlan.status}`,
         )}</p>
+      </div>
+    </section>
+  `;
+}
+
+function renderDeliveryPackagePreview(preview, bundle) {
+  if (!preview || preview.executionPlanId !== bundle?.executionPlan.id) return '';
+  const resultRows = (preview.workOrderResults || [])
+    .map(
+      (result) => `
+        <div class="delivery-package-result">
+          <strong>${escapeHtml(result.role)}</strong>
+          ${createToken(result.status, result.status === 'completed' ? 'success' : 'danger')}
+          ${createToken(`runs:${result.runRefs.length}`, 'neutral')}
+          ${createToken(`artifacts:${result.artifactRefs.length}`, 'neutral')}
+        </div>
+      `,
+    )
+    .join('');
+
+  return `
+    <section class="delivery-package-preview" aria-label="Response-only DeliveryPackage preview">
+      <div class="card-title-row card-title-row-tight">
+        <strong>DeliveryPackage Preview</strong>
+        ${createToken('response-only', 'accent')}
+        ${createToken('mission:not-done', 'warning')}
+        ${createToken(`verification:${preview.verificationSummary.verdict}`, 'success')}
+      </div>
+      <div class="token-row token-row-compact">
+        ${createToken(preview.id, 'neutral')}
+        ${createToken(`review:${preview.reviewerEvidenceRef}`, 'success')}
+        ${createToken(`qa:${preview.qaEvidenceRefs.join(', ')}`, 'success')}
+        ${createToken(`checks:${preview.verificationSummary.passedCheckCount}/${preview.verificationSummary.checkCount}`, 'neutral')}
+      </div>
+      <div class="delivery-package-results">${resultRows}</div>
+      <div class="delivery-package-authority" aria-label="Blocked downstream authority">
+        ${createToken('persist:blocked', 'neutral')}
+        ${createToken('mission done:blocked', 'warning')}
+        ${createToken('commit:blocked', 'neutral')}
+        ${createToken('push:blocked', 'neutral')}
+        ${createToken('release:blocked', 'neutral')}
       </div>
     </section>
   `;
@@ -11548,6 +11679,10 @@ function renderDeliverables(data) {
   const latestCloseOutArtifact = getLatestTaskArtifact(linkedTask, data, 'close-out');
   const latestApproval = taskApprovals[0] || null;
   const selectedCouncilSession = getMissionCouncilPreview(selectedMission, data).councilSession;
+  const missionExecutionPlanBundle = getMissionExecutionPlanBundle(
+    data.snapshot,
+    selectedCouncilSession?.id,
+  );
   const approvalBridge = getTaskApprovalBridge(linkedTask, data);
   const reviewerState = getReviewerAvailability(linkedTask, data, state.loading || state.mutating);
   const commitPackageState = getCommitPackageAvailability(linkedTask, data, state.loading || state.mutating);
@@ -11734,6 +11869,7 @@ function renderDeliverables(data) {
     <div class="stack">
       ${deliverablesDeck}
       ${renderDeliverablesCompletionSummary(deliverablesCompletionSummary)}
+      ${renderDeliveryPackagePreview(state.missionDeliveryPackagePreview, missionExecutionPlanBundle)}
       ${renderHarnessBriefRegister(harnessBrief)}
       <div class="surface-grid">
       <section class="surface-panel">
@@ -15237,6 +15373,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'run-builder-live-mutation') {
         await runBuilderLiveMutation(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'continue-reviewed-delivery') {
+        await submitReviewedDeliveryContinuation(actionButton.dataset.id);
         return;
       }
 

@@ -85,7 +85,20 @@ function validateDurableWorkOrderRecords(state) {
     for (const field of ['dependencyIds', 'runRefs', 'artifactRefs']) {
       assertStringArrayField(workOrder, field, label);
     }
+    for (const field of ['approvalRefs', 'changedFiles', 'inboxItemRefs']) {
+      if (workOrder[field] !== undefined) assertStringArrayField(workOrder, field, label);
+    }
     if (!workOrderStatuses.has(workOrder.status)) throw new Error(`${label} has invalid status`);
+    if (
+      [
+        WORK_ORDER_STATUS.COMPLETED,
+        WORK_ORDER_STATUS.CHANGES_REQUESTED,
+        WORK_ORDER_STATUS.FAILED,
+      ].includes(workOrder.status) &&
+      (workOrder.runRefs.length === 0 || workOrder.artifactRefs.length === 0)
+    ) {
+      throw new Error(`${label} terminal evidence refs are required`);
+    }
     const plan = state.executionPlans[workOrder.executionPlanId];
     if (!plan || !plan.workOrderIds.includes(workOrder.id)) {
       throw new Error(`${label} has an invalid ExecutionPlan reference`);

@@ -56,6 +56,7 @@ const {
   renderReleasePackageArtifact,
 } = require('./coordinator/artifact-content');
 const { executeWithAdapter } = require('./provider-adapter');
+const { runQaNodeChecks } = require('./qa-node-check-runner');
 const {
   createOpenAIResponsesProviderAdapter,
 } = require('./providers/openai-responses-adapter');
@@ -826,6 +827,7 @@ function createExecutionCoordinator(options = {}) {
     options.architectCodeContextPaths || DEFAULT_ARCHITECT_CODE_CONTEXT_PATHS;
   const builderPreflightCodeContextPaths =
     options.builderPreflightCodeContextPaths || DEFAULT_BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS;
+  const qaNodeCheckRunner = options.qaNodeCheckRunner || runQaNodeChecks;
 
   function resolveSourceOfTruthPaths(project) {
     if (sourceOfTruthPathOverride) {
@@ -3740,6 +3742,104 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runQaWorkOrder(input) {
+    if (!input?.taskId || !input.executionPlanId || !input.workOrderId) {
+      throw new Error('taskId, executionPlanId, and workOrderId are required');
+    }
+
+    const task = runtime.getTask(input.taskId);
+    const project = runtime.getProject(task.projectId);
+    if (
+      project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+      project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB
+    ) {
+      throw new Error('QA WorkOrder supports local-stub projects only');
+    }
+
+    const run = runtime.startRun({
+      taskId: task.id,
+      kind: 'verification',
+      role: 'qa',
+      metadata: {
+        executionMode: 'shell-free-node-check',
+        executionPlanId: input.executionPlanId,
+        workOrderId: input.workOrderId,
+        builderRunId: input.builderRunId,
+        reviewerRunId: input.reviewerRunId,
+        sourceDigest: input.sourceDigest,
+      },
+    });
+
+    runtime.appendLog({
+      runId: run.id,
+      message: `QA node-check run started for WorkOrder ${input.workOrderId}`,
+    });
+
+    try {
+      const result = await qaNodeCheckRunner({
+        projectRoot: project.projectPath,
+        changedFiles: input.changedFiles,
+        targetPathAllowlist: input.targetPathAllowlist,
+        commands: input.commands,
+      });
+      const evidence = {
+        schemaVersion: 1,
+        executionPlanId: input.executionPlanId,
+        workOrderId: input.workOrderId,
+        builderRunId: input.builderRunId,
+        reviewerRunId: input.reviewerRunId,
+        sourceDigest: input.sourceDigest,
+        changedFiles: result.changedFiles,
+        checks: result.checks,
+        mutationDetected: result.mutationDetected,
+        reasons: result.reasons,
+        verdict: result.verdict,
+        createdAt: new Date().toISOString(),
+      };
+      const artifact = runtime.recordArtifact({
+        taskId: task.id,
+        runId: run.id,
+        type: 'qa-evidence',
+        extension: 'json',
+        content: `${JSON.stringify(evidence, null, 2)}\n`,
+      });
+      const completedRun = runtime.completeRun({
+        runId: run.id,
+        summary: {
+          executionMode: 'shell-free-node-check',
+          executionPlanId: input.executionPlanId,
+          workOrderId: input.workOrderId,
+          builderRunId: input.builderRunId,
+          reviewerRunId: input.reviewerRunId,
+          qaEvidenceArtifactId: artifact.id,
+          checkCount: evidence.checks.length,
+          mutationDetected: evidence.mutationDetected,
+          verdict: evidence.verdict,
+          terminal: true,
+        },
+      });
+
+      return { artifact, evidence, run: completedRun };
+    } catch (error) {
+      runtime.appendLog({
+        runId: run.id,
+        level: 'error',
+        message: `QA node-check execution failed: ${error.message}`,
+      });
+      runtime.completeRun({
+        runId: run.id,
+        summary: {
+          executionMode: 'shell-free-node-check',
+          executionPlanId: input.executionPlanId,
+          workOrderId: input.workOrderId,
+          error: error.message,
+          terminal: true,
+        },
+      });
+      throw error;
+    }
+  }
+
   async function runCommitPackage(input) {
     const readyContext = assertCommitPackageReady(input);
     const task = readyContext.task;
@@ -4596,6 +4696,7 @@ function createExecutionCoordinator(options = {}) {
     runLocalCommit,
     runReleasePackage,
     runPlanner,
+    runQaWorkOrder,
     runReviewer,
     runTaskBreaker,
   };
