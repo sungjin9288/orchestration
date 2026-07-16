@@ -44,8 +44,17 @@ function assertDeliveryPackage(deliveryPackageId, state) {
   return deliveryPackage;
 }
 
+function assertDeliveryPackageAcceptance(deliveryPackageAcceptanceId, state) {
+  const acceptance = state.deliveryPackageAcceptances[deliveryPackageAcceptanceId];
+  if (!acceptance) {
+    throw new Error(`DeliveryPackageAcceptance not found: ${deliveryPackageAcceptanceId}`);
+  }
+  return acceptance;
+}
+
 module.exports = {
   assertDeliveryPackage,
+  assertDeliveryPackageAcceptance,
   assertExecutionPlan,
   assertHandoffPacket,
   assertRun,

@@ -214,7 +214,7 @@ function postJson(pathname, body = {}) {
 }
 
 async function waitForServer() {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
       const response = await fetch(`${baseUrl}/api/snapshot`);
       if (response.ok) return;
@@ -269,7 +269,7 @@ async function main() {
     assert.doesNotMatch(appSource, /data-action="auto-resume-workflow"/);
     assert.doesNotMatch(appSource, /data-action="replay-builder-workorder"/);
     assert.match(appSource, /data-action="persist-delivery-package"/);
-    assert.doesNotMatch(appSource, /data-action="accept-delivery-package"/);
+    assert.match(appSource, /data-action="accept-delivery-package"/);
     assert.match(signalSource, /getMissionWorkflowCheckpointSummary/);
     assert.match(stylesSource, /\.workflow-checkpoint-register/);
     assert.match(stylesSource, /\.workflow-checkpoint-grid \{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);

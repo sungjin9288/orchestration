@@ -202,6 +202,12 @@ const smokeChecks = [
     purpose:
       'Durable DeliveryPackage UI and API preserve read-only hydration, exact preview source package and terminal checkpoint tuple gating, one review-required record, safe stale failures, idempotent replay, responsive evidence rendering, and blocked downstream authority',
   },
+  {
+    id: 'ai-company-delivery-package-acceptance-ui-api',
+    script: 'scripts/smoke-ui-slice-658.mjs',
+    purpose:
+      'DeliveryPackage acceptance UI and API preserve exact tuple-gated append-only acceptance, immutable package evidence, safe stale and malformed failures, idempotent replay, read-only accepted rendering, responsive fit, and blocked Mission task close-out or downstream authority',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

@@ -147,7 +147,7 @@ assert.match(
 );
 
 // Keep planning provenance while pinning the exact implementation boundary it authorized.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 9/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 10/);
 assert.match(contracts, /deliveryPackage/);
 assert.match(fileStore, /validateDeliveryPackageRecords/);
 assert.match(runtimeService, /function previewExecutionPlanDelivery\(input\)/);
@@ -156,7 +156,8 @@ assert.match(runtimeService, /missionDone: false/);
 assert.match(runtimeService, /function persistExecutionPlanDeliveryPackage\(/);
 assert.match(server, /persist-delivery-package/);
 assert.match(ui, /data-action="persist-delivery-package"/);
-assert.doesNotMatch(ui, /data-action="accept-delivery-package"/);
+assert.match(ui, /data-action="accept-delivery-package"/);
+assert.doesNotMatch(ui, /data-action="complete-mission-from-delivery-package"/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -181,7 +182,7 @@ process.stdout.write(
         explicitOperatorRequestRequired: true,
       },
       currentRuntime: {
-        schemaVersion: 9,
+        schemaVersion: 10,
         responseOnlyPreview: true,
         durableDeliveryPackageRecords: true,
         persistenceRoutes: true,
@@ -192,7 +193,7 @@ process.stdout.write(
         implementationAllowed: true,
         schemaMigrationAllowed: true,
         durableRecordAllowed: true,
-        packageAcceptanceAllowed: false,
+        packageAcceptanceAllowed: true,
         missionDoneAllowed: false,
         learningAllowed: false,
         runtimeAgentCommitAllowed: false,

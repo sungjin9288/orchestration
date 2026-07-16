@@ -343,9 +343,9 @@ Current path는 이 evidence를 모두 exact digest로 재검증한 separate ope
 one immutable `review-required` record에서 멈춘다.
 
 DeliveryPackage acceptance planning은 `DEC-101`, implementation handoff는 `DEC-102`로 기록됐다.
-Council 또는 execution evidence만으로 acceptance가 열리지 않는다. Future acceptance는 current
-schema-v9 package와 exact digest tuple plus `decision=accept`를 요구하고 append-only evidence에서
-멈춰야 한다. Mission/task close-out과 done은 계속 별도 decision이다.
+Exact implementation은 `DEC-103`으로 accepted됐다. Council 또는 execution evidence만으로
+acceptance가 열리지 않으며 current package와 exact digest tuple plus `decision=accept`를 요구하고
+append-only evidence에서 멈춘다. Mission/task close-out과 done은 계속 별도 decision이다.
 
 ## Verification
 
@@ -371,6 +371,8 @@ node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
 node scripts/smoke-ai-company-durable-delivery-package.mjs
 node scripts/smoke-ui-slice-657.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
+node scripts/smoke-ai-company-delivery-package-acceptance.mjs
+node scripts/smoke-ui-slice-658.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -380,4 +382,5 @@ downstream authority를 검증한다. Phase 5 implementation smoke는 durable Bu
 Phase 6 runtime/UI smokes는 exact approval, Reviewer stop, constrained QA, response-only delivery를
 고정한다. Phase 7 planning smoke는 consumed fielded gate를 고정하고 runtime/UI smokes는 exact
 resume, next-boundary stop, cancellation, stale refusal, active-stage quarantine를 고정한다. Durable
-DeliveryPackage planning smoke는 schema-v9 persistence가 fielded decision 전까지 absent임을 고정한다.
+DeliveryPackage planning smoke는 consumed schema-v9 persistence boundary를 고정하고 acceptance
+runtime/UI smokes는 exact schema-v10 event와 blocked Mission/task close-out를 고정한다.

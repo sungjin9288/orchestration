@@ -5,7 +5,9 @@ const path = require('path');
 
 const {
   ARTIFACT_TYPE,
+  DELIVERY_PACKAGE_ACCEPTANCE_DECISION,
   DELIVERY_PACKAGE_STATUS,
+  DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
   EXECUTION_PLAN_STATUS,
   LEGACY_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
@@ -20,6 +22,10 @@ const {
   WORKFLOW_TYPE,
   createEmptyState,
 } = require('./contracts');
+const {
+  ACCEPTANCE_AUTHORITY_SUMMARY,
+  computeDeliveryPackageAcceptanceDigest,
+} = require('./delivery-package-acceptances');
 const { computeDeliveryPackageDigest } = require('./delivery-packages');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 
@@ -367,6 +373,114 @@ function validateDeliveryPackageRecords(state) {
   }
 }
 
+function validateDeliveryPackageAcceptanceRecords(state) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const acceptedPackageIds = new Set();
+
+  for (const [key, acceptance] of Object.entries(state.deliveryPackageAcceptances)) {
+    const label = `DeliveryPackageAcceptance ${key}`;
+    if (
+      !acceptance ||
+      typeof acceptance !== 'object' ||
+      Array.isArray(acceptance) ||
+      acceptance.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      acceptance,
+      [
+        'id',
+        'projectId',
+        'missionId',
+        'executionPlanId',
+        'deliveryPackageId',
+        'previewId',
+        'sourceDigest',
+        'packageDigest',
+        'terminalCheckpointId',
+        'terminalCheckpointDigest',
+        'decision',
+        'authoritySummary',
+        'acceptanceDigest',
+        'createdAt',
+      ],
+      label,
+    );
+    for (const field of [
+      'projectId',
+      'missionId',
+      'executionPlanId',
+      'deliveryPackageId',
+      'previewId',
+      'sourceDigest',
+      'packageDigest',
+      'terminalCheckpointId',
+      'terminalCheckpointDigest',
+      'decision',
+      'acceptanceDigest',
+      'createdAt',
+    ]) {
+      assertStringField(acceptance, field, label);
+    }
+    if (acceptance.decision !== DELIVERY_PACKAGE_ACCEPTANCE_DECISION.ACCEPTED) {
+      throw new Error(`${label} has invalid decision`);
+    }
+    for (const field of [
+      'sourceDigest',
+      'packageDigest',
+      'terminalCheckpointDigest',
+      'acceptanceDigest',
+    ]) {
+      if (!digestPattern.test(acceptance[field])) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      Number.isNaN(Date.parse(acceptance.createdAt)) ||
+      new Date(acceptance.createdAt).toISOString() !== acceptance.createdAt
+    ) {
+      throw new Error(`${label} has invalid createdAt`);
+    }
+    if (
+      !acceptance.authoritySummary ||
+      typeof acceptance.authoritySummary !== 'object' ||
+      Array.isArray(acceptance.authoritySummary) ||
+      Object.keys(acceptance.authoritySummary).length !==
+        Object.keys(ACCEPTANCE_AUTHORITY_SUMMARY).length ||
+      Object.keys(ACCEPTANCE_AUTHORITY_SUMMARY).some(
+        (field) => acceptance.authoritySummary[field] !== ACCEPTANCE_AUTHORITY_SUMMARY[field],
+      )
+    ) {
+      throw new Error(`${label} has invalid authoritySummary`);
+    }
+
+    const deliveryPackage = state.deliveryPackages[acceptance.deliveryPackageId];
+    if (
+      !deliveryPackage ||
+      deliveryPackage.status !== DELIVERY_PACKAGE_STATUS.REVIEW_REQUIRED ||
+      deliveryPackage.projectId !== acceptance.projectId ||
+      deliveryPackage.missionId !== acceptance.missionId ||
+      deliveryPackage.executionPlanId !== acceptance.executionPlanId ||
+      deliveryPackage.previewId !== acceptance.previewId ||
+      deliveryPackage.sourceDigest !== acceptance.sourceDigest ||
+      deliveryPackage.packageDigest !== acceptance.packageDigest ||
+      deliveryPackage.terminalCheckpointId !== acceptance.terminalCheckpointId ||
+      deliveryPackage.terminalCheckpointDigest !== acceptance.terminalCheckpointDigest ||
+      deliveryPackage.unresolvedItems.length !== 0
+    ) {
+      throw new Error(`${label} has invalid DeliveryPackage binding`);
+    }
+    if (acceptedPackageIds.has(acceptance.deliveryPackageId)) {
+      throw new Error(`${label} duplicates DeliveryPackage acceptance`);
+    }
+    acceptedPackageIds.add(acceptance.deliveryPackageId);
+    if (computeDeliveryPackageAcceptanceDigest(acceptance) !== acceptance.acceptanceDigest) {
+      throw new Error(`${label} acceptanceDigest does not match its immutable payload`);
+    }
+  }
+}
+
 function validateDurableWorkOrderRecords(state) {
   const planStatuses = new Set(Object.values(EXECUTION_PLAN_STATUS));
   const workOrderStatuses = new Set(Object.values(WORK_ORDER_STATUS));
@@ -559,6 +673,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== LEGACY_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MIGRATABLE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== DELIVERY_PACKAGE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -598,7 +713,7 @@ function createFileStore(options = {}) {
       }
     }
 
-    if (sourceSchemaVersion === STATE_SCHEMA_VERSION) {
+    if (sourceSchemaVersion >= DELIVERY_PACKAGE_STATE_SCHEMA_VERSION) {
       if (
         !Number.isInteger(state.sequences?.deliveryPackage) ||
         !state.deliveryPackages ||
@@ -610,7 +725,22 @@ function createFileStore(options = {}) {
             !Object.prototype.hasOwnProperty.call(plan, 'latestDeliveryPackageId'),
         )
       ) {
-        throw new Error('Runtime state schemaVersion 9 is missing DeliveryPackage fields');
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing DeliveryPackage fields`,
+        );
+      }
+    }
+
+    if (sourceSchemaVersion === STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.deliveryPackageAcceptance) ||
+        !state.deliveryPackageAcceptances ||
+        typeof state.deliveryPackageAcceptances !== 'object' ||
+        Array.isArray(state.deliveryPackageAcceptances)
+      ) {
+        throw new Error(
+          'Runtime state schemaVersion 10 is missing DeliveryPackageAcceptance fields',
+        );
       }
     }
 
@@ -638,6 +768,7 @@ function createFileStore(options = {}) {
       handoffPackets: state.handoffPackets || {},
       workflowCheckpoints: state.workflowCheckpoints || {},
       deliveryPackages: state.deliveryPackages || {},
+      deliveryPackageAcceptances: state.deliveryPackageAcceptances || {},
     };
 
     if (sourceSchemaVersion < WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION) {
@@ -647,7 +778,7 @@ function createFileStore(options = {}) {
       }
     }
 
-    if (sourceSchemaVersion < STATE_SCHEMA_VERSION) {
+    if (sourceSchemaVersion < DELIVERY_PACKAGE_STATE_SCHEMA_VERSION) {
       for (const executionPlan of Object.values(normalizedState.executionPlans)) {
         executionPlan.deliveryPackageRefs = [];
         executionPlan.latestDeliveryPackageId = null;
@@ -902,6 +1033,7 @@ function createFileStore(options = {}) {
     }
     validateWorkflowCheckpointRecords(normalizedState);
     validateDeliveryPackageRecords(normalizedState);
+    validateDeliveryPackageAcceptanceRecords(normalizedState);
     return normalizedState;
   }
 

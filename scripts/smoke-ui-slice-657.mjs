@@ -99,9 +99,8 @@ async function main() {
     assert.match(appSource, /DeliveryPackage 기록/);
     assert.match(appSource, /DeliveryPackage Record/);
     assert.match(appSource, /review-required/);
-    assert.match(appSource, /acceptance:blocked/);
     assert.match(appSource, /data-action="persist-delivery-package"/);
-    assert.doesNotMatch(appSource, /data-action="accept-delivery-package"/);
+    assert.match(appSource, /data-action="accept-delivery-package"/);
     assert.doesNotMatch(appSource, /data-action="complete-mission-from-delivery-package"/);
     assert.match(signalSource, /getMissionDeliveryPackagePersistenceSummary/);
     assert.match(signalSource, /durablePersistenceAllowed === true/);
@@ -160,7 +159,8 @@ async function main() {
     assert.equal(persisted.response.status, 201);
     assert.equal(persisted.payload.durableDeliveryPackage.status, 'review-required');
     assert.equal(persisted.payload.durableDeliveryPackage.packageDigest, preview.packageDigest);
-    assert.equal(persisted.payload.snapshot.schemaVersion, 9);
+    assert.equal(persisted.payload.snapshot.schemaVersion, 10);
+    assert.deepEqual(persisted.payload.snapshot.deliveryPackageAcceptances, {});
     assert.equal(persisted.payload.executionPlanBundle.mission.status, 'executing');
     assert.equal(persisted.payload.executionPlanBundle.executionPlan.status, 'delivery-ready');
     assert.equal(persisted.payload.mutation.stoppedAt, 'delivery-package-review-required');
@@ -180,6 +180,11 @@ async function main() {
       durableAfter.payload.deliveryPackage,
       persisted.payload.durableDeliveryPackage,
     );
+    const acceptanceBefore = await fetchJson(
+      `/api/delivery-packages/${encodeURIComponent(persisted.payload.durableDeliveryPackage.id)}/acceptance`,
+    );
+    assert.equal(acceptanceBefore.response.status, 200);
+    assert.equal(acceptanceBefore.payload.acceptance, null);
     assert.equal(fs.readFileSync(sourcePath, 'utf8'), sourceBeforeServer);
 
     process.stdout.write(`${JSON.stringify({
@@ -195,7 +200,7 @@ async function main() {
       ui: {
         persistenceCommandGated: true,
         durableEvidenceRendered: true,
-        downstreamControlsAbsent: true,
+        missionAndCloseOutControlsAbsent: true,
         desktopColumns: 3,
         mobileColumns: 1,
       },

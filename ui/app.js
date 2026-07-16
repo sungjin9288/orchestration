@@ -139,6 +139,7 @@ import {
   getLatestRealCouncilPositions,
   getMissionExecutionPlanBundle,
   getMissionDeliveryPackagePersistenceSummary,
+  getMissionDeliveryPackageAcceptanceSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -346,6 +347,7 @@ const state = {
   missionWorkOrderPreview: null,
   missionDeliveryPackagePreview: null,
   missionDurableDeliveryPackage: null,
+  missionDeliveryPackageAcceptance: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4702,6 +4704,9 @@ function applySnapshotPayload(payload) {
   if (Object.prototype.hasOwnProperty.call(payload, 'durableDeliveryPackage')) {
     state.missionDurableDeliveryPackage = payload.durableDeliveryPackage || null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'deliveryPackageAcceptance')) {
+    state.missionDeliveryPackageAcceptance = payload.deliveryPackageAcceptance || null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
   }
@@ -4770,6 +4775,7 @@ async function hydrateSelectedDetails() {
   state.selectedTaskPreflightArtifact = null;
   state.missionDeliveryPackagePreview = null;
   state.missionDurableDeliveryPackage = null;
+  state.missionDeliveryPackageAcceptance = null;
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
 
@@ -4819,6 +4825,12 @@ async function hydrateSelectedDetails() {
     ]);
     state.missionDeliveryPackagePreview = deliveryPayload.deliveryPackagePreview || null;
     state.missionDurableDeliveryPackage = durablePayload.deliveryPackage || null;
+    if (state.missionDurableDeliveryPackage) {
+      const acceptancePayload = await fetchJson(
+        `/api/delivery-packages/${encodeURIComponent(state.missionDurableDeliveryPackage.id)}/acceptance`,
+      );
+      state.missionDeliveryPackageAcceptance = acceptancePayload.acceptance || null;
+    }
   }
   if (executionPlanBundle) {
     const recoveryPayload = await fetchJson(
@@ -5860,6 +5872,56 @@ async function persistDeliveryPackage(executionPlanId) {
     state.surface = 'deliverables';
     render();
     elements.refreshStatus.textContent = `${payload.durableDeliveryPackage.id}를 review-required로 기록했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function acceptDeliveryPackage(deliveryPackageId) {
+  const data = getDerived();
+  const deliveryPackage = state.missionDurableDeliveryPackage;
+  const executionPlan = deliveryPackage
+    ? data.snapshot.executionPlans?.[deliveryPackage.executionPlanId] || null
+    : null;
+  const councilSession = executionPlan
+    ? data.councilSessionMap.get(executionPlan.councilSessionId) || null
+    : null;
+  const bundle = getMissionExecutionPlanBundle(data.snapshot, councilSession?.id);
+  const preview = state.missionDeliveryPackagePreview;
+  const summary = getMissionDeliveryPackageAcceptanceSummary(
+    preview,
+    bundle,
+    deliveryPackage,
+    state.missionDeliveryPackageAcceptance,
+  );
+  if (!summary?.canAccept || deliveryPackage?.id !== deliveryPackageId) {
+    throw new Error('현재 package와 terminal checkpoint의 exact tuple만 승인할 수 있습니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${deliveryPackage.id} 승인 evidence를 기록하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/delivery-packages/${encodeURIComponent(deliveryPackage.id)}/accept`,
+      {
+        previewId: deliveryPackage.previewId,
+        sourceDigest: deliveryPackage.sourceDigest,
+        packageDigest: deliveryPackage.packageDigest,
+        checkpointId: deliveryPackage.terminalCheckpointId,
+        checkpointDigest: deliveryPackage.terminalCheckpointDigest,
+        decision: 'accept',
+      },
+    );
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent = `${payload.deliveryPackageAcceptance.id} 승인 evidence를 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -10522,6 +10584,13 @@ function renderDeliveryPackagePreview(preview, bundle) {
 
 function renderDurableDeliveryPackage(deliveryPackage, bundle) {
   if (!deliveryPackage || deliveryPackage.executionPlanId !== bundle?.executionPlan.id) return '';
+  const acceptance = state.missionDeliveryPackageAcceptance;
+  const acceptanceSummary = getMissionDeliveryPackageAcceptanceSummary(
+    state.missionDeliveryPackagePreview,
+    bundle,
+    deliveryPackage,
+    acceptance,
+  );
   const resultRows = deliveryPackage.workOrderResults
     .map(
       (result) => `
@@ -10539,6 +10608,7 @@ function renderDurableDeliveryPackage(deliveryPackage, bundle) {
       <div class="card-title-row card-title-row-tight">
         <strong>DeliveryPackage Record</strong>
         ${createToken(deliveryPackage.status, 'warning')}
+        ${createToken(`review:${acceptanceSummary?.reviewStatus || 'review-required'}`, acceptanceSummary?.accepted ? 'success' : 'warning')}
         ${createToken('mission:not-done', 'warning')}
       </div>
       <div class="token-row token-row-compact delivery-package-digests">
@@ -10555,13 +10625,47 @@ function renderDurableDeliveryPackage(deliveryPackage, bundle) {
         <p><strong>Unresolved items</strong> ${escapeHtml(deliveryPackage.unresolvedItems.join(' · ') || 'none')}</p>
       </div>
       <div class="delivery-package-authority" aria-label="Blocked downstream authority">
-        ${createToken('acceptance:blocked', 'neutral')}
+        ${createToken(acceptanceSummary?.accepted ? 'acceptance:accepted' : acceptanceSummary?.canAccept ? 'acceptance:ready' : 'acceptance:blocked', acceptanceSummary?.accepted ? 'success' : acceptanceSummary?.canAccept ? 'accent' : 'neutral')}
         ${createToken('mission done:blocked', 'warning')}
         ${createToken('task close-out:blocked', 'neutral')}
         ${createToken('commit:blocked', 'neutral')}
         ${createToken('push:blocked', 'neutral')}
         ${createToken('release:blocked', 'neutral')}
         ${createToken('learning:blocked', 'neutral')}
+      </div>
+      <div class="delivery-package-acceptance" aria-label="DeliveryPackage acceptance evidence">
+        ${
+          acceptanceSummary?.accepted
+            ? `
+              <div class="card-title-row card-title-row-tight">
+                <strong>Acceptance Evidence</strong>
+                ${createToken(acceptance.decision, 'success')}
+                ${createToken('append-only', 'neutral')}
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(acceptance.id, 'accent')}
+                ${createToken(`acceptance:${acceptance.acceptanceDigest}`, 'neutral')}
+                ${createToken(`package:${acceptance.packageDigest}`, 'neutral')}
+                ${createToken(`checkpoint:${acceptance.terminalCheckpointDigest}`, 'neutral')}
+                ${createToken(acceptance.createdAt, 'neutral')}
+              </div>
+              <p>Mission/task close-out은 별도 승인 전까지 차단됩니다.</p>
+            `
+            : `
+              <p>현재 package tuple을 승인 evidence로 기록할 수 있습니다. Mission과 task 상태는 변경되지 않습니다.</p>
+            `
+        }
+      </div>
+      <div class="relation-button-row delivery-package-actions">
+        <button
+          class="primary-button"
+          type="button"
+          data-action="accept-delivery-package"
+          data-id="${escapeHtml(deliveryPackage.id)}"
+          ${state.loading || state.mutating || !acceptanceSummary?.canAccept ? 'disabled' : ''}
+        >
+          패키지 승인
+        </button>
       </div>
     </section>
   `;
@@ -15655,6 +15759,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'persist-delivery-package') {
         await persistDeliveryPackage(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'accept-delivery-package') {
+        await acceptDeliveryPackage(actionButton.dataset.id);
         return;
       }
 

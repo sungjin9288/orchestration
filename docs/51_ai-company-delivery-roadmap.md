@@ -444,9 +444,9 @@ Phase 7 planning-only authority는 `DEC-095`, implementation decision handoff는
 schema-v8 implementation은 `DEC-097`로 accepted됐다. Durable DeliveryPackage persistence planning은
 `DEC-098`, implementation handoff는 `DEC-099`, exact implementation은 `DEC-100`으로 accepted됐다.
 DeliveryPackage acceptance planning은 `DEC-101`, complete fielded implementation handoff는
-`DEC-102`로 기록됐다. 다음 architecture-sensitive decision은 schema-v10 append-only package
-acceptance implementation이며 별도 complete fielded decision 전까지 해당 runtime authority와
-Mission/task close-out은 blocked다.
+`DEC-102`, exact implementation은 `DEC-103`으로 accepted됐다. 다음 architecture-sensitive
+decision은 Mission/task close-out이며 별도 complete fielded decision 전까지 해당 runtime authority는
+blocked다.
 
 ```text
 targetAuthority=one deterministic local schema-v9 durable DeliveryPackage review-required record from one exact source-current schema-v8 delivery-ready ExecutionPlan and terminal WorkflowCheckpoint
@@ -463,8 +463,8 @@ Planned next target:
 targetAuthority=one deterministic local schema-v10 append-only DeliveryPackageAcceptance record from one exact source-current schema-v9 review-required DeliveryPackage
 ```
 
-The plan preserves the package as immutable evidence and records only an exact `decision=accept`
-event. Rejection/changes-requested, Mission/task close-out, done, commit/push/release, learning/memory,
+The implemented schema-v10 path preserves the package as immutable evidence and records only an exact
+`decision=accept` event. Rejection/changes-requested, Mission/task close-out, done, commit/push/release, learning/memory,
 scheduling/providers, policy mutation, approval bypass, and external connectors remain blocked.
 
 ## Verification
@@ -490,6 +490,8 @@ node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
 node scripts/smoke-ai-company-durable-delivery-package.mjs
 node scripts/smoke-ui-slice-657.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
+node scripts/smoke-ai-company-delivery-package-acceptance.mjs
+node scripts/smoke-ui-slice-658.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -500,3 +502,5 @@ Durable DeliveryPackage evidence는 schema-v8 migration, schema-v9 exact durable
 preview compatibility, and blocked downstream authority를 확인한다.
 DeliveryPackage acceptance planning evidence는 schema-v9 immutable package, future schema-v10
 append-only acceptance, exact decision binding, and blocked Mission/task close-out를 확인한다.
+Focused implementation evidence는 accepted event reload, idempotency, stale no-write, package digest
+stability, and absent downstream authority를 확인한다.

@@ -89,6 +89,7 @@ assertAll(planText, [
   /Mission\/task close-out, done, commit\/push\/release/,
   /Planning-only authority: accepted as `DEC-101`/,
   /Complete fielded implementation handoff: documented as `DEC-102`/,
+  /Schema\/runtime\/API\/UI implementation: accepted as `DEC-103`/,
 ]);
 
 assert.match(
@@ -117,6 +118,7 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-101$/m);
 assert.match(decisionLog, /^### DEC-102$/m);
+assert.match(decisionLog, /^### DEC-103$/m);
 assert.match(masterPlan, /DeliveryPackage acceptance planning은 `DEC-101`/);
 assert.match(runtimeContract, /DeliveryPackage acceptance planning은 `DEC-101`/);
 assert.match(councilProtocol, /DeliveryPackage acceptance planning은 `DEC-101`/);
@@ -131,9 +133,10 @@ assert.match(
 assertAll(readmeText, [
   /DeliveryPackage acceptance planning is accepted by `DEC-101`/,
   /complete fielded implementation handoff is recorded by `DEC-102`/,
-  /current runtime remains schema v9/,
+  /exact implementation is accepted by `DEC-103`/,
 ]);
 assert.match(taskLedger, /ai-company-delivery-package-acceptance-planning-post-m7-1954/);
+assert.match(taskLedger, /ai-company-delivery-package-acceptance-implementation-post-m7-1955/);
 assert.match(
   lessons,
   /Package acceptance should be an append-only fact instead of a rewrite of immutable delivery evidence/,
@@ -143,15 +146,19 @@ assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-delivery-package-acceptance-planning\.mjs'/,
 );
+assert.match(verification, /id: 'ai-company-delivery-package-acceptance-implementation'/);
+assert.match(verification, /id: 'ai-company-delivery-package-acceptance-ui-api'/);
 
-// Pin current negative evidence until a complete fielded implementation decision is accepted.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 9/);
+// Preserve planning provenance while pinning the exact implementation boundary it authorized.
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 10/);
 assert.match(contracts, /const DELIVERY_PACKAGE_STATUS = \{\s+REVIEW_REQUIRED: 'review-required'/);
-assert.doesNotMatch(contracts, /deliveryPackageAcceptance/);
-assert.doesNotMatch(fileStore, /validateDeliveryPackageAcceptanceRecords/);
-assert.doesNotMatch(runtimeService, /function acceptDeliveryPackage\(/);
-assert.doesNotMatch(server, /delivery-packages\/:deliveryPackageId\/accept/);
-assert.doesNotMatch(ui, /data-action="accept-delivery-package"/);
+assert.match(contracts, /deliveryPackageAcceptance/);
+assert.match(fileStore, /validateDeliveryPackageAcceptanceRecords/);
+assert.match(runtimeService, /function acceptDeliveryPackage\(/);
+assert.match(runtimeService, /function getDeliveryPackageAcceptance\(/);
+assert.match(server, /deliveryPackageAcceptMatch/);
+assert.match(ui, /data-action="accept-delivery-package"/);
+assert.doesNotMatch(ui, /data-action="complete-mission-from-delivery-package"/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -161,10 +168,10 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-101',
         handoff: 'documented-dec-102',
-        implementation: 'blocked-complete-fielded-decision-required',
+        implementation: 'accepted-dec-103',
       },
       plannedPath: {
-        currentSchemaVersion: 9,
+        currentSchemaVersion: 10,
         plannedSchemaVersion: 10,
         sourcePackageImmutable: true,
         recordType: 'DeliveryPackageAcceptance',
@@ -180,16 +187,16 @@ process.stdout.write(
         ],
       },
       currentRuntime: {
-        schemaVersion: 9,
-        acceptanceRecords: false,
-        acceptanceRoutes: false,
-        acceptanceUiAction: false,
+        schemaVersion: 10,
+        acceptanceRecords: true,
+        acceptanceRoutes: true,
+        acceptanceUiAction: true,
         missionDone: false,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        packageAcceptanceAllowed: false,
+        implementationAllowed: true,
+        packageAcceptanceAllowed: true,
         packageRejectionAllowed: false,
         missionDoneAllowed: false,
         taskCloseOutAllowed: false,

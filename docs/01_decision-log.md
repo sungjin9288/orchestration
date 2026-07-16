@@ -634,6 +634,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/69_ai-company-delivery-package-acceptance-implementation-decision-handoff.md` defines valid approval/evidence-request/rejection/deferral outcomes, invalid shortcuts, acceptance criteria, stop conditions, target files, migration/runtime/API/UI paths, focused smokes, and still-blocked authority. It records no runtime acceptance and opens no package rejection/changes-requested, Mission/task close-out, commit/push/release, learning/memory, scheduling/provider, policy, bypass, or connector authority.
 - Needed Before: The operator must supply the complete fielded implementation decision. This general approval, delegated planning approval, DEC-100, or the handoff document itself does not authorize schema-v10 or runtime/UI implementation.
 
+### DEC-103
+- Status: `Accepted`
+- Decision: Accept `operator-decision-ai-company-delivery-package-acceptance-implementation-001` with `decisionStatus=approve-ai-company-delivery-package-acceptance-implementation-slice` for one deterministic local schema-v10 append-only DeliveryPackageAcceptance record from one exact source-current schema-v9 `review-required` DeliveryPackage.
+- Why: The complete fielded decision fixes additive migration, immutable source-package retention, exact preview/source/package/checkpoint tuple plus `decision=accept`, strict stale/malformed no-write behavior, idempotency, rollback retention, focused runtime/UI evidence, and every still-blocked downstream authority. A separate acceptance fact preserves the package digest and prevents acceptance from implying Mission/task completion.
+- Impact: Valid schema-v9 state migrates atomically to schema v10 with an empty acceptance sequence/map and no acceptance bootstrap. One explicit exact request may append one immutable `accepted` record; exact replay is idempotent and read-only API/UI evidence survives reload. The source package remains `review-required` and byte-stable, while the read model derives `reviewStatus=accepted`. Package rejection/changes-requested/supersession/deletion, Mission/task close-out or done, commit/push/release, learning/memory, retry/rework, scheduling/provider expansion, policy mutation, approval bypass, and connectors remain blocked.
+- Needed Before: Mission/task close-out or any other package lifecycle action requires a separate complete fielded decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

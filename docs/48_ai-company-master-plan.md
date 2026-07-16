@@ -339,11 +339,12 @@ record를 만들지 않고 exact replay는 idempotent다. Package acceptance, Mi
 done, commit/push/release, learning/memory authority는 계속 blocked다.
 
 DeliveryPackage acceptance planning은 `DEC-101`, complete fielded implementation handoff는
-`DEC-102`로 기록됐다. 계획은 schema-v9 package를 수정하지 않고 exact preview/source/package/
-checkpoint tuple과 `decision=accept`에 결속된 one append-only DeliveryPackageAcceptance record를
-future schema v10에 추가한다. Current runtime은 schema v9이며 acceptance record/route/UI action은
-없다. Package rejection/changes-requested, Mission/task close-out, done, commit/push/release,
-learning/memory, scheduling/provider/policy authority는 계속 blocked다.
+`DEC-102`, exact implementation은 `DEC-103`으로 기록됐다. Schema-v9 package를 수정하지 않고
+exact preview/source/package/checkpoint tuple과 `decision=accept`에 결속된 one append-only
+DeliveryPackageAcceptance record를 schema v10에 추가한다. Read model만 `accepted`를 표시하고
+source package는 `review-required`와 digest를 유지한다. Package rejection/changes-requested,
+Mission/task close-out, done, commit/push/release, learning/memory, scheduling/provider/policy
+authority는 계속 blocked다.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -373,6 +374,8 @@ node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
 node scripts/smoke-ai-company-durable-delivery-package.mjs
 node scripts/smoke-ui-slice-657.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
+node scripts/smoke-ai-company-delivery-package-acceptance.mjs
+node scripts/smoke-ui-slice-658.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -381,5 +384,5 @@ authority boundary, Phase 4 response-only compiler, Phase 5 durable Builder stop
 reviewed-delivery와 response-only package, Phase 7 schema-v8 safe recovery boundary를 확인한다.
 Durable DeliveryPackage smokes는 schema-v9 exact persistence와 blocked downstream authority를 확인한다.
 DeliveryPackage acceptance planning smoke는 immutable package와 append-only acceptance 분리,
-schema-v10 negative evidence, and still-blocked Mission/task close-out authority를 확인한다.
+schema-v10 exact implementation, and still-blocked Mission/task close-out authority를 확인한다.
 Optional live-provider 결과는 별도 informational evidence다.

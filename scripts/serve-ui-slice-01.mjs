@@ -1890,6 +1890,84 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const deliveryPackageAcceptanceMatch = url.pathname.match(
+    /^\/api\/delivery-packages\/([^/]+)\/acceptance$/,
+  );
+  if (method === 'GET' && deliveryPackageAcceptanceMatch) {
+    try {
+      const deliveryPackageId = decodeURIComponent(deliveryPackageAcceptanceMatch[1]);
+      const result = runtime.getDeliveryPackageAcceptance(deliveryPackageId);
+      json(response, 200, {
+        ...result,
+        generatedAt: new Date().toISOString(),
+        runtimeRoot: options.runtimeRoot,
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'DeliveryPackage 승인 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const deliveryPackageAcceptMatch = url.pathname.match(
+    /^\/api\/delivery-packages\/([^/]+)\/accept$/,
+  );
+  if (method === 'POST' && deliveryPackageAcceptMatch) {
+    try {
+      const deliveryPackageId = decodeURIComponent(deliveryPackageAcceptMatch[1]);
+      const input = await readJsonBody(request);
+      const expectedFields = [
+        'previewId',
+        'sourceDigest',
+        'packageDigest',
+        'checkpointId',
+        'checkpointDigest',
+        'decision',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error('DeliveryPackage acceptance body has unexpected or missing fields');
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.acceptDeliveryPackage({
+        deliveryPackageId,
+        ...input,
+      });
+      json(
+        response,
+        result.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          durableDeliveryPackage: result.deliveryPackage,
+          deliveryPackageAcceptance: result.deliveryPackageAcceptance,
+          deliveryPackageReviewStatus: result.reviewStatus,
+          executionPlanBundle: result,
+          mutation: {
+            deliveryPackageAcceptanceId: result.deliveryPackageAcceptance.id,
+            deliveryPackageId,
+            executionPlanId: result.executionPlan.id,
+            idempotent: result.idempotent,
+            kind: 'accept-delivery-package',
+            stoppedAt: 'delivery-package-accepted-review-evidence',
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'DeliveryPackage 승인에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );

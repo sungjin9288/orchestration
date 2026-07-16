@@ -193,6 +193,7 @@ assert.match(decisionLog, /^### DEC-099$/m);
 assert.match(decisionLog, /^### DEC-100$/m);
 assert.match(decisionLog, /^### DEC-101$/m);
 assert.match(decisionLog, /^### DEC-102$/m);
+assert.match(decisionLog, /^### DEC-103$/m);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -206,7 +207,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 9/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 10/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -254,9 +255,10 @@ process.stdout.write(
         'DEC-100',
         'DEC-101',
         'DEC-102',
+        'DEC-103',
       ],
       currentRuntime: {
-        schemaVersion: 9,
+        schemaVersion: 10,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -264,7 +266,7 @@ process.stdout.write(
         reviewedDelivery: 'exact-gated-local-reviewed-delivery-response-only-package',
         checkpointRecovery: 'schema-v8-exact-local-reviewer-or-qa-resume',
         durableDeliveryPackage: 'schema-v9-exact-review-required-record',
-        deliveryPackageAcceptance: 'planning-only-schema-v10-append-only-record',
+        deliveryPackageAcceptance: 'schema-v10-exact-append-only-accepted-record',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -281,7 +283,7 @@ process.stdout.write(
         durableDeliveryPackagePlanningAllowed: true,
         durableDeliveryPackagePersistenceAllowed: true,
         deliveryPackageAcceptancePlanningAllowed: true,
-        deliveryPackageAcceptanceAllowed: false,
+        deliveryPackageAcceptanceAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -290,7 +292,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded schema-v10 DeliveryPackage acceptance implementation decision required',
+      nextGate: 'Complete fielded Mission and task close-out decision required',
     },
     null,
     2,

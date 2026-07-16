@@ -15,6 +15,7 @@ const {
   DECISION_INBOX_KIND,
   DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
+  DELIVERY_PACKAGE_ACCEPTANCE_DECISION,
   DELIVERY_PACKAGE_STATUS,
   EXECUTION_PLAN_STATUS,
   PACKS,
@@ -103,6 +104,7 @@ const {
 } = require('./task-gates');
 const {
   assertDeliveryPackage,
+  assertDeliveryPackageAcceptance,
   assertExecutionPlan,
   assertHandoffPacket,
   assertRun,
@@ -122,6 +124,9 @@ const {
   computeDeliveryPackageDigest,
   createDeliveryPackage,
 } = require('./delivery-packages');
+const {
+  createDeliveryPackageAcceptance,
+} = require('./delivery-package-acceptances');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -166,6 +171,13 @@ function createRuntimeService(options = {}) {
   function nextDeliveryPackageId(state) {
     state.sequences.deliveryPackage += 1;
     return `delivery-package-${String(state.sequences.deliveryPackage).padStart(4, '0')}`;
+  }
+
+  function nextDeliveryPackageAcceptanceId(state) {
+    state.sequences.deliveryPackageAcceptance += 1;
+    return `delivery-package-acceptance-${String(
+      state.sequences.deliveryPackageAcceptance,
+    ).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -2079,6 +2091,9 @@ function createRuntimeService(options = {}) {
       assertWorkflowCheckpoint(id, state));
     const deliveryPackages = executionPlan.deliveryPackageRefs.map((id) =>
       assertDeliveryPackage(id, state));
+    const deliveryPackageAcceptances = Object.values(state.deliveryPackageAcceptances).filter(
+      (acceptance) => deliveryPackages.some((deliveryPackage) => deliveryPackage.id === acceptance.deliveryPackageId),
+    );
 
     return {
       executionPlan,
@@ -2086,11 +2101,17 @@ function createRuntimeService(options = {}) {
       handoffPackets,
       workflowCheckpoints,
       deliveryPackages,
+      deliveryPackageAcceptances,
       latestCheckpoint: executionPlan.latestCheckpointId
         ? assertWorkflowCheckpoint(executionPlan.latestCheckpointId, state)
         : null,
       latestDeliveryPackage: executionPlan.latestDeliveryPackageId
         ? assertDeliveryPackage(executionPlan.latestDeliveryPackageId, state)
+        : null,
+      latestDeliveryPackageAcceptance: executionPlan.latestDeliveryPackageId
+        ? deliveryPackageAcceptances.find(
+            (acceptance) => acceptance.deliveryPackageId === executionPlan.latestDeliveryPackageId,
+          ) || null
         : null,
       approval: assertApproval(executionPlan.approvalId, state),
       terminalGateApproval: executionPlan.terminalGateApprovalId
@@ -2980,6 +3001,126 @@ function createRuntimeService(options = {}) {
       executionPlanId,
       deliveryPackage: bundle.latestDeliveryPackage,
       deliveryPackageRefs: [...bundle.executionPlan.deliveryPackageRefs],
+    };
+  }
+
+  function findDeliveryPackageAcceptance(state, deliveryPackageId) {
+    return (
+      Object.values(state.deliveryPackageAcceptances).find(
+        (acceptance) => acceptance.deliveryPackageId === deliveryPackageId,
+      ) || null
+    );
+  }
+
+  function getDeliveryPackageAcceptance(deliveryPackageId) {
+    const state = store.loadState();
+    const deliveryPackage = assertDeliveryPackage(deliveryPackageId, state);
+    const acceptance = findDeliveryPackageAcceptance(state, deliveryPackageId);
+    return {
+      deliveryPackageId,
+      deliveryPackage,
+      acceptance,
+      reviewStatus: acceptance
+        ? DELIVERY_PACKAGE_ACCEPTANCE_DECISION.ACCEPTED
+        : DELIVERY_PACKAGE_STATUS.REVIEW_REQUIRED,
+    };
+  }
+
+  function assertExactDeliveryPackageAcceptanceInput(input) {
+    const expectedFields = [
+      'deliveryPackageId',
+      'previewId',
+      'sourceDigest',
+      'packageDigest',
+      'checkpointId',
+      'checkpointDigest',
+      'decision',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('DeliveryPackage acceptance request has unexpected or missing fields');
+    }
+    if (String(input.decision || '').trim() !== 'accept') {
+      throw conflict('DeliveryPackage acceptance decision must be accept');
+    }
+  }
+
+  function assertExactDeliveryPackageAcceptanceTuple(input, deliveryPackage, preview) {
+    const exactFields = [
+      ['deliveryPackageId', deliveryPackage.id],
+      ['previewId', preview.id],
+      ['sourceDigest', preview.sourceDigest],
+      ['packageDigest', preview.packageDigest],
+      ['checkpointId', preview.terminalCheckpointId],
+      ['checkpointDigest', preview.terminalCheckpointDigest],
+    ];
+    for (const [field, expected] of exactFields) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`DeliveryPackage acceptance ${field} does not match current evidence`);
+      }
+    }
+    if (
+      deliveryPackage.previewId !== preview.id ||
+      deliveryPackage.sourceDigest !== preview.sourceDigest ||
+      deliveryPackage.packageDigest !== preview.packageDigest ||
+      deliveryPackage.terminalCheckpointId !== preview.terminalCheckpointId ||
+      deliveryPackage.terminalCheckpointDigest !== preview.terminalCheckpointDigest ||
+      deliveryPackage.status !== DELIVERY_PACKAGE_STATUS.REVIEW_REQUIRED ||
+      deliveryPackage.unresolvedItems.length !== 0
+    ) {
+      throw conflict(`DeliveryPackage ${deliveryPackage.id} is not acceptance-ready`);
+    }
+  }
+
+  function acceptDeliveryPackage(input) {
+    assertExactDeliveryPackageAcceptanceInput(input);
+    const state = store.loadState();
+    const deliveryPackage = assertDeliveryPackage(input.deliveryPackageId, state);
+    const preview = buildExecutionPlanDeliveryPreviewFromState(state, {
+      executionPlanId: deliveryPackage.executionPlanId,
+      sourceDigest: input.sourceDigest,
+    });
+    assertExactDeliveryPackageAcceptanceTuple(input, deliveryPackage, preview);
+
+    const existing = findDeliveryPackageAcceptance(state, deliveryPackage.id);
+    if (existing) {
+      for (const [field, expected] of [
+        ['previewId', deliveryPackage.previewId],
+        ['sourceDigest', deliveryPackage.sourceDigest],
+        ['packageDigest', deliveryPackage.packageDigest],
+        ['terminalCheckpointId', deliveryPackage.terminalCheckpointId],
+        ['terminalCheckpointDigest', deliveryPackage.terminalCheckpointDigest],
+      ]) {
+        if (existing[field] !== expected) {
+          throw conflict(`DeliveryPackage ${deliveryPackage.id} already has a different acceptance`);
+        }
+      }
+      return {
+        ...getExecutionPlanBundleFromState(state, deliveryPackage.executionPlanId),
+        deliveryPackage,
+        deliveryPackageAcceptance: assertDeliveryPackageAcceptance(existing.id, state),
+        reviewStatus: DELIVERY_PACKAGE_ACCEPTANCE_DECISION.ACCEPTED,
+        idempotent: true,
+      };
+    }
+
+    const acceptance = createDeliveryPackageAcceptance({
+      id: nextDeliveryPackageAcceptanceId(state),
+      deliveryPackage,
+      createdAt: new Date().toISOString(),
+    });
+    state.deliveryPackageAcceptances[acceptance.id] = acceptance;
+    store.saveState(state);
+
+    return {
+      ...getExecutionPlanBundleFromState(state, deliveryPackage.executionPlanId),
+      deliveryPackage,
+      deliveryPackageAcceptance: acceptance,
+      reviewStatus: DELIVERY_PACKAGE_ACCEPTANCE_DECISION.ACCEPTED,
+      idempotent: false,
     };
   }
 
@@ -4729,6 +4870,7 @@ function createRuntimeService(options = {}) {
 
   return {
     appendLog,
+    acceptDeliveryPackage,
     approveCouncilRecommendation,
     assertTaskCanRunBuilderLiveMutation,
     assertTaskCanRunBuilderPreflight,
@@ -4766,6 +4908,7 @@ function createRuntimeService(options = {}) {
     getCouncilSession,
     getCouncilProviderReadiness,
     getDecisionInboxItem,
+    getDeliveryPackageAcceptance,
     getExecutionPlan,
     getExecutionPlanDeliveryPackage,
     getExecutionPlanRecovery,

@@ -8737,7 +8737,8 @@ h3 {
 .mission-workorder-preview,
 .mission-workorder-plan,
 .delivery-package-preview,
-.delivery-package-record {
+.delivery-package-record,
+.delivery-package-acceptance {
   width: 100%;
   margin-top: 12px;
   padding-top: 12px;
@@ -8863,6 +8864,7 @@ h3 {
 
 .delivery-package-preview .token-row .token,
 .delivery-package-record .token-row .token,
+.delivery-package-acceptance .token-row .token,
 .delivery-package-result .token {
   max-width: 100%;
   white-space: normal;
@@ -8873,6 +8875,24 @@ h3 {
 .delivery-package-actions,
 .delivery-package-register {
   margin-top: 12px;
+}
+
+.delivery-package-acceptance {
+  min-width: 0;
+  margin-top: 12px;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--surface-control-border);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.delivery-package-acceptance > .card-title-row {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.delivery-package-acceptance p {
+  margin: 8px 0 0;
 }
 
 .delivery-package-register {

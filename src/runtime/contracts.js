@@ -205,13 +205,18 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 9;
+const STATE_SCHEMA_VERSION = 10;
+const DELIVERY_PACKAGE_STATE_SCHEMA_VERSION = 9;
 const WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION = 8;
 const MIGRATABLE_STATE_SCHEMA_VERSION = 7;
 const LEGACY_STATE_SCHEMA_VERSION = 6;
 
 const DELIVERY_PACKAGE_STATUS = {
   REVIEW_REQUIRED: 'review-required',
+};
+
+const DELIVERY_PACKAGE_ACCEPTANCE_DECISION = {
+  ACCEPTED: 'accepted',
 };
 
 const EXECUTION_PLAN_STATUS = {
@@ -369,6 +374,7 @@ function createEmptyState() {
       handoffPacket: 0,
       workflowCheckpoint: 0,
       deliveryPackage: 0,
+      deliveryPackageAcceptance: 0,
     },
     missions: {},
     councilSessions: {},
@@ -386,6 +392,7 @@ function createEmptyState() {
     handoffPackets: {},
     workflowCheckpoints: {},
     deliveryPackages: {},
+    deliveryPackageAcceptances: {},
   };
 }
 
@@ -401,7 +408,9 @@ module.exports = {
   DECISION_INBOX_KIND,
   DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
+  DELIVERY_PACKAGE_ACCEPTANCE_DECISION,
   DELIVERY_PACKAGE_STATUS,
+  DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
   PACKS,
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,

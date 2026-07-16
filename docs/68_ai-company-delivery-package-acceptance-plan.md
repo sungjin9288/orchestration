@@ -26,15 +26,16 @@ checkpoint digest에 결속된 append-only acceptance evidence 하나다. 기존
 
 ## Current Baseline Evidence
 
-- Runtime state is schema v9 with one strict `deliveryPackage` sequence/map and per-plan package refs.
+- Current runtime state is schema v10; the immutable `deliveryPackage` sequence/map and per-plan refs
+  introduced in schema v9 remain unchanged.
 - A package can exist only for a source-current `delivery-ready` ExecutionPlan and its latest terminal
   `delivery-ready` WorkflowCheckpoint.
 - The package digest covers normalized WorkOrder results, Reviewer/QA evidence, accepted risks,
   unresolved items, and the closed authority summary.
 - Package creation is explicit, stale-safe, idempotent, reload-safe, and read-only after append.
 - `DELIVERY_PACKAGE_STATUS` currently allows only `review-required`.
-- No acceptance record, acceptance route, acceptance action, derived accepted status, Mission done, or
-  task close-out linkage exists.
+- `DEC-103` adds one exact acceptance record/get/action path and a derived accepted status. Mission
+  done and task close-out linkage do not exist.
 
 ## Architecture Choice
 
@@ -266,13 +267,15 @@ scripts/ui_qa_status.mjs
 
 - Planning-only authority: accepted as `DEC-101`.
 - Complete fielded implementation handoff: documented as `DEC-102`.
-- Schema/runtime/API/UI implementation: blocked pending that complete fielded decision.
+- Schema/runtime/API/UI implementation: accepted as `DEC-103` and verified on current schema v10.
 - Package acceptance is intentionally separate from Mission/task close-out.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
+node scripts/smoke-ai-company-delivery-package-acceptance.mjs
+node scripts/smoke-ui-slice-658.mjs
 node scripts/smoke-ai-company-durable-delivery-package.mjs
 node scripts/smoke-ui-slice-657.mjs
 node scripts/smoke-readme-scope-evidence.mjs
@@ -281,5 +284,6 @@ node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Until a complete fielded approval is supplied, schema v9 remains current and no acceptance record,
-route, UI action, Mission transition, commit, release, or learning authority exists.
+Current schema v10 permits only the exact append-only acceptance path accepted by `DEC-103`. Package
+rejection/changes-requested, Mission/task close-out, done, commit/push/release, learning/memory, and
+every broader authority remain blocked.

@@ -96,6 +96,11 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
   const deliveryPackages = (executionPlan.deliveryPackageRefs || [])
     .map((id) => snapshot.deliveryPackages?.[id] || null)
     .filter(Boolean);
+  const deliveryPackageAcceptances = Object.values(snapshot.deliveryPackageAcceptances || {}).filter(
+    (acceptance) => deliveryPackages.some(
+      (deliveryPackage) => deliveryPackage.id === acceptance.deliveryPackageId,
+    ),
+  );
 
   if (
     workOrders.length !== executionPlan.workOrderIds.length ||
@@ -115,12 +120,63 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
     controlTask,
     workflowCheckpoints,
     deliveryPackages,
+    deliveryPackageAcceptances,
     latestCheckpoint: executionPlan.latestCheckpointId
       ? snapshot.workflowCheckpoints?.[executionPlan.latestCheckpointId] || null
       : null,
     latestDeliveryPackage: executionPlan.latestDeliveryPackageId
       ? snapshot.deliveryPackages?.[executionPlan.latestDeliveryPackageId] || null
       : null,
+    latestDeliveryPackageAcceptance: executionPlan.latestDeliveryPackageId
+      ? deliveryPackageAcceptances.find(
+          (acceptance) => acceptance.deliveryPackageId === executionPlan.latestDeliveryPackageId,
+        ) || null
+      : null,
+  };
+}
+
+export function getMissionDeliveryPackageAcceptanceSummary(
+  preview,
+  bundle,
+  durablePackage,
+  acceptance,
+) {
+  if (
+    !preview ||
+    !durablePackage ||
+    preview.executionPlanId !== bundle?.executionPlan.id ||
+    durablePackage.executionPlanId !== bundle.executionPlan.id
+  ) {
+    return null;
+  }
+  const checkpoint = bundle.latestCheckpoint || null;
+  const tupleCurrent = Boolean(
+    checkpoint &&
+      durablePackage.status === 'review-required' &&
+      Array.isArray(durablePackage.unresolvedItems) &&
+      durablePackage.unresolvedItems.length === 0 &&
+      durablePackage.previewId === preview.id &&
+      durablePackage.sourceDigest === preview.sourceDigest &&
+      durablePackage.packageDigest === preview.packageDigest &&
+      durablePackage.terminalCheckpointId === preview.terminalCheckpointId &&
+      durablePackage.terminalCheckpointDigest === preview.terminalCheckpointDigest &&
+      checkpoint.id === durablePackage.terminalCheckpointId &&
+      checkpoint.checkpointDigest === durablePackage.terminalCheckpointDigest &&
+      checkpoint.stage === 'delivery-ready' &&
+      checkpoint.status === 'terminal' &&
+      bundle.executionPlan.status === 'delivery-ready',
+  );
+  const accepted = Boolean(
+    acceptance &&
+      acceptance.deliveryPackageId === durablePackage.id &&
+      acceptance.packageDigest === durablePackage.packageDigest &&
+      acceptance.decision === 'accepted',
+  );
+  return {
+    accepted,
+    canAccept: tupleCurrent && !acceptance,
+    reviewStatus: accepted ? 'accepted' : 'review-required',
+    tupleCurrent,
   };
 }
 

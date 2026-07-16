@@ -293,7 +293,7 @@ async function main() {
     assert.match(appSource, /push:blocked/);
     assert.match(appSource, /release:blocked/);
     assert.match(appSource, /data-action="persist-delivery-package"/);
-    assert.doesNotMatch(appSource, /data-action="accept-delivery-package"/);
+    assert.match(appSource, /data-action="accept-delivery-package"/);
     assert.doesNotMatch(appSource, /data-action="mark-mission-done"/);
     assert.match(signalSource, /getMissionReviewedDeliverySummary/);
     assert.match(signalSource, /terminalGateApproval/);

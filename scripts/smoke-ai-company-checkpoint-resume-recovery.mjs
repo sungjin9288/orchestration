@@ -274,12 +274,12 @@ async function main() {
     delete v7.workflowCheckpoints;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(v7));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 9);
+    assert.equal(migrated.schemaVersion, 10);
     assert.equal(migrated.sequences.workflowCheckpoint, 0);
     assert.deepEqual(migrated.workflowCheckpoints, {});
     assert.equal(
       JSON.parse(fs.readFileSync(path.join(migrationRoot, 'state.json'), 'utf8')).schemaVersion,
-      9,
+      10,
     );
 
     const populatedMigration = createContext('populated-migration');
@@ -289,7 +289,7 @@ async function main() {
     const populatedMigrated = createFileStore({
       runtimeRoot: populatedMigration.runtimeRoot,
     }).loadState();
-    assert.equal(populatedMigrated.schemaVersion, 9);
+    assert.equal(populatedMigrated.schemaVersion, 10);
     assert.deepEqual(asSchemaV7(populatedMigrated), populatedV7);
     assert.deepEqual(
       JSON.parse(fs.readFileSync(populatedStatePath, 'utf8')),
@@ -302,7 +302,7 @@ async function main() {
         delete value.workflowCheckpoints;
         return value;
       })(), /missing WorkflowCheckpoint fields/],
-      ['future-v10', { ...createEmptyState(), schemaVersion: 10 }, /Unsupported runtime state/],
+      ['future-v11', { ...createEmptyState(), schemaVersion: 11 }, /Unsupported runtime state/],
     ]) {
       const root = path.join(tempRoot, name);
       fs.mkdirSync(root, { recursive: true });
@@ -539,7 +539,7 @@ async function main() {
     const persistedState = JSON.parse(
       fs.readFileSync(path.join(success.runtimeRoot, 'state.json'), 'utf8'),
     );
-    assert.equal(persistedState.schemaVersion, 9);
+    assert.equal(persistedState.schemaVersion, 10);
     assert.equal(Object.keys(persistedState.workflowCheckpoints).length, 4);
     assert.equal(persistedState.executionPlans[executionPlanId].checkpointRefs.length, 4);
     assert.deepEqual(persistedState.deliveryPackages, {});
@@ -550,7 +550,7 @@ async function main() {
       ok: true,
       mode: MODE,
       schema: {
-        version: 9,
+        version: 10,
         v7Migration: true,
         partialAndFutureRejected: true,
         rollbackRetention: true,
@@ -564,7 +564,7 @@ async function main() {
         duplicateRuns: false,
         attemptHistory: persistedState.executionPlans[executionPlanId].checkpointRefs.length,
       },
-      blocked: ['builder-replay', 'auto-retry', 'provider-workorders', 'durable-delivery-package', 'mission-done', 'commit', 'push', 'release'],
+      blocked: ['builder-replay', 'auto-retry', 'provider-workorders', 'delivery-package-rejection', 'mission-done', 'commit', 'push', 'release'],
     }, null, 2)}\n`);
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
