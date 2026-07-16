@@ -460,6 +460,13 @@ DeliveryPackageAcceptance record로 보존한다. Source package status와 diges
 model만 accepted evidence를 파생한다. Package rejection/changes-requested, Mission/task close-out,
 done, commit/push/release, LearningCandidate, memory, scheduling/provider/policy authority는 blocked다.
 
+Mission/task close-out planning은 `DEC-104`, implementation handoff는 `DEC-105`로 문서화됐다.
+Future schema-v11 candidate는 one MissionCloseOut record append와 linked control task
+`Review -> Done`, Mission `executing -> completed`를 one atomic state save에 묶는다. Exact accepted
+package/acceptance/plan/checkpoint tuple, completed WorkOrders, passed review, and no active task gate가
+모두 current여야 한다. Current schema v10은 이 record와 transition을 구현하지 않으며 standalone
+task close-out, commit/push/release, learning, scheduling/provider/policy authority도 계속 blocked다.
+
 ## Verification
 
 ```bash
@@ -489,6 +496,7 @@ node scripts/smoke-ui-slice-657.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance.mjs
 node scripts/smoke-ui-slice-658.mjs
+node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -496,6 +504,6 @@ Focused runtime/API/UI smoke는 strict source load, independent request isolatio
 conflict/synthesis, revision/stop/resume, snapshot compatibility, schema v7 migration/reload, legacy
 Council 보존, Phase 4 response-only compilation, Phase 5 durable Builder stop boundary, Phase 6
 exact-gated reviewed delivery, Phase 7 schema-v8 safe recovery, schema-v9 durable DeliveryPackage,
-and append-only acceptance implementation boundary를 검증한다. StaffingPlan, Builder replay,
-Mission done, auto-rework, provider-backed WorkOrders, memory expansion,
+append-only acceptance implementation boundary, and planning-only Mission/task close-out boundary를
+검증한다. StaffingPlan, Builder replay, Mission done implementation, auto-rework, provider-backed WorkOrders, memory expansion,
 commit/push/release는 blocked다.

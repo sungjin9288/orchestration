@@ -194,6 +194,8 @@ assert.match(decisionLog, /^### DEC-100$/m);
 assert.match(decisionLog, /^### DEC-101$/m);
 assert.match(decisionLog, /^### DEC-102$/m);
 assert.match(decisionLog, /^### DEC-103$/m);
+assert.match(decisionLog, /^### DEC-104$/m);
+assert.match(decisionLog, /^### DEC-105$/m);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -256,6 +258,8 @@ process.stdout.write(
         'DEC-101',
         'DEC-102',
         'DEC-103',
+        'DEC-104',
+        'DEC-105',
       ],
       currentRuntime: {
         schemaVersion: 10,
@@ -267,6 +271,7 @@ process.stdout.write(
         checkpointRecovery: 'schema-v8-exact-local-reviewer-or-qa-resume',
         durableDeliveryPackage: 'schema-v9-exact-review-required-record',
         deliveryPackageAcceptance: 'schema-v10-exact-append-only-accepted-record',
+        missionTaskCloseOut: 'schema-v11-planning-only-fielded-decision-required',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -284,6 +289,8 @@ process.stdout.write(
         durableDeliveryPackagePersistenceAllowed: true,
         deliveryPackageAcceptancePlanningAllowed: true,
         deliveryPackageAcceptanceAllowed: true,
+        missionTaskCloseOutPlanningAllowed: true,
+        missionTaskCloseOutAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -292,7 +299,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded Mission and task close-out decision required',
+      nextGate: 'Complete fielded schema-v11 Mission and task close-out implementation decision required',
     },
     null,
     2,

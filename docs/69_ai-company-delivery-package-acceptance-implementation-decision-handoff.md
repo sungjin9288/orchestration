@@ -13,7 +13,8 @@ append-only acceptance record와 API/UI action으로 넓힐지 operator가 compl
 - Current runtime is schema v10 with one exact append-only acceptance path.
 - Durable DeliveryPackage records remain immutable and `review-required`.
 - Acceptance sequence/map, canonical digest, exact get/accept routes, and read-only UI evidence exist.
-- Mission/task close-out, done, commit/push/release, and learning remain separately blocked.
+- Mission/task close-out planning and its fielded handoff are recorded separately by `DEC-104` and
+  `DEC-105`; implementation, done, commit/push/release, and learning remain blocked.
 
 ## Minimum Required Decision Fields
 
@@ -128,5 +129,5 @@ node scripts/verification_status.mjs
 ```
 
 The implementation decision is consumed by `DEC-103`; focused runtime/API/UI and aggregate evidence
-must remain green. Mission/task close-out, commit/push/release, learning, and every authority outside
-the exact acceptance path remain blocked.
+must remain green. Mission/task close-out implementation, commit/push/release, learning, and every
+authority outside the exact acceptance path remain blocked.

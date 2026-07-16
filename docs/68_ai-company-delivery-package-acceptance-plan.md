@@ -268,7 +268,9 @@ scripts/ui_qa_status.mjs
 - Planning-only authority: accepted as `DEC-101`.
 - Complete fielded implementation handoff: documented as `DEC-102`.
 - Schema/runtime/API/UI implementation: accepted as `DEC-103` and verified on current schema v10.
-- Package acceptance is intentionally separate from Mission/task close-out.
+- Package acceptance is intentionally separate from Mission/task close-out. That next planning-only
+  boundary is now recorded by `DEC-104`/`DEC-105` in `docs/70_ai-company-mission-task-close-out-plan.md`
+  and its implementation remains blocked.
 
 ## Verification
 
@@ -285,5 +287,5 @@ node scripts/verification_status.mjs
 ```
 
 Current schema v10 permits only the exact append-only acceptance path accepted by `DEC-103`. Package
-rejection/changes-requested, Mission/task close-out, done, commit/push/release, learning/memory, and
-every broader authority remain blocked.
+rejection/changes-requested, Mission/task close-out implementation, done, commit/push/release,
+learning/memory, and every broader authority remain blocked.

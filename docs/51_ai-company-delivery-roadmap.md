@@ -444,9 +444,10 @@ Phase 7 planning-only authority는 `DEC-095`, implementation decision handoff는
 schema-v8 implementation은 `DEC-097`로 accepted됐다. Durable DeliveryPackage persistence planning은
 `DEC-098`, implementation handoff는 `DEC-099`, exact implementation은 `DEC-100`으로 accepted됐다.
 DeliveryPackage acceptance planning은 `DEC-101`, complete fielded implementation handoff는
-`DEC-102`, exact implementation은 `DEC-103`으로 accepted됐다. 다음 architecture-sensitive
-decision은 Mission/task close-out이며 별도 complete fielded decision 전까지 해당 runtime authority는
-blocked다.
+`DEC-102`, exact implementation은 `DEC-103`으로 accepted됐다. Mission/task close-out planning-only
+authority는 `DEC-104`, complete fielded implementation handoff는 `DEC-105`로 accepted됐다. 다음
+architecture-sensitive decision은 schema-v11 exact implementation이며 별도 complete fielded
+decision 전까지 Mission/task terminal runtime authority는 blocked다.
 
 ```text
 targetAuthority=one deterministic local schema-v9 durable DeliveryPackage review-required record from one exact source-current schema-v8 delivery-ready ExecutionPlan and terminal WorkflowCheckpoint
@@ -457,7 +458,7 @@ explicit operator request, and appends only one immutable `review-required` reco
 Package acceptance, Mission/task close-out, done, commit, push, release, LearningCandidate, memory,
 scheduling, providers, policy mutation, approval bypass, and external connectors remain blocked.
 
-Planned next target:
+Implemented acceptance target:
 
 ```text
 targetAuthority=one deterministic local schema-v10 append-only DeliveryPackageAcceptance record from one exact source-current schema-v9 review-required DeliveryPackage
@@ -466,6 +467,18 @@ targetAuthority=one deterministic local schema-v10 append-only DeliveryPackageAc
 The implemented schema-v10 path preserves the package as immutable evidence and records only an exact
 `decision=accept` event. Rejection/changes-requested, Mission/task close-out, done, commit/push/release, learning/memory,
 scheduling/providers, policy mutation, approval bypass, and external connectors remain blocked.
+
+Planned next target:
+
+```text
+targetAuthority=one deterministic local schema-v11 atomic Mission and linked control-task close-out from one exact source-current schema-v10 accepted DeliveryPackage evidence tuple
+```
+
+The planning-only path requires completed Builder/Reviewer/QA WorkOrders, passed linked-task review,
+no active gates, and exact package/acceptance/plan/checkpoint digests. A future explicit
+`decision=close-out` may append one MissionCloseOut record plus task `Review -> Done` and Mission
+`executing -> completed` in one state save. Current schema v10 performs neither transition and does not
+invoke standalone commit/release close-out, Git, learning, scheduling, providers, policy, or connectors.
 
 ## Verification
 
@@ -492,6 +505,7 @@ node scripts/smoke-ui-slice-657.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance.mjs
 node scripts/smoke-ui-slice-658.mjs
+node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -504,3 +518,5 @@ DeliveryPackage acceptance planning evidence는 schema-v9 immutable package, fut
 append-only acceptance, exact decision binding, and blocked Mission/task close-out를 확인한다.
 Focused implementation evidence는 accepted event reload, idempotency, stale no-write, package digest
 stability, and absent downstream authority를 확인한다.
+Mission/task close-out planning evidence는 future schema-v11 atomic record/lifecycle contract,
+standalone close-out compatibility, exact terminal gate, and current implementation absence를 확인한다.

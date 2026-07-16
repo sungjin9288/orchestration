@@ -522,6 +522,11 @@ const informationalChecks = [
     purpose: 'AI Company DeliveryPackage acceptance UI and API prove read-only hydration, exact tuple-gated explicit acceptance, append-only accepted evidence rendering, safe stale and malformed failures, idempotent replay, responsive fit, and absent rejection changes-requested Mission task close-out done commit push release or learning actions',
   },
   {
+    id: 'ai-company-mission-task-close-out-planning',
+    script: 'scripts/smoke-ai-company-mission-task-close-out-planning.mjs',
+    purpose: 'AI Company Mission and linked control-task close-out planning pins DEC-104 and DEC-105, one future additive schema v11 MissionCloseOut event from exact current accepted package evidence, completed WorkOrders, passed review, and no active gates, one atomic task Review-to-Done plus Mission executing-to-completed transaction, standalone close-out isolation, rollback retention, and current negative evidence with implementation commit push release learning scheduling providers policy next-Mission and connectors still blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',
