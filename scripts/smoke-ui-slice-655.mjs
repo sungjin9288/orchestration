@@ -292,7 +292,8 @@ async function main() {
     assert.match(appSource, /commit:blocked/);
     assert.match(appSource, /push:blocked/);
     assert.match(appSource, /release:blocked/);
-    assert.doesNotMatch(appSource, /data-action="persist-delivery-package"/);
+    assert.match(appSource, /data-action="persist-delivery-package"/);
+    assert.doesNotMatch(appSource, /data-action="accept-delivery-package"/);
     assert.doesNotMatch(appSource, /data-action="mark-mission-done"/);
     assert.match(signalSource, /getMissionReviewedDeliverySummary/);
     assert.match(signalSource, /terminalGateApproval/);
@@ -325,10 +326,14 @@ async function main() {
     assert.equal(previewResult.response.status, 200);
     assert.equal(previewResult.payload.deliveryPackagePreview.persisted, false);
     assert.equal(previewResult.payload.deliveryPackagePreview.missionDone, false);
+    assert.equal(
+      previewResult.payload.deliveryPackagePreview.authoritySummary.durablePersistenceAllowed,
+      true,
+    );
     assert.ok(
-      Object.values(previewResult.payload.deliveryPackagePreview.authoritySummary).every(
-        (value) => value === false,
-      ),
+      Object.entries(previewResult.payload.deliveryPackagePreview.authoritySummary)
+        .filter(([key]) => key !== 'durablePersistenceAllowed')
+        .every(([, value]) => value === false),
     );
 
     const repeated = await postJson(

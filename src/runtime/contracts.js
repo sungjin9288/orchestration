@@ -205,9 +205,14 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 8;
+const STATE_SCHEMA_VERSION = 9;
+const WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION = 8;
 const MIGRATABLE_STATE_SCHEMA_VERSION = 7;
 const LEGACY_STATE_SCHEMA_VERSION = 6;
+
+const DELIVERY_PACKAGE_STATUS = {
+  REVIEW_REQUIRED: 'review-required',
+};
 
 const EXECUTION_PLAN_STATUS = {
   PENDING_APPROVAL: 'pending-approval',
@@ -363,6 +368,7 @@ function createEmptyState() {
       workOrder: 0,
       handoffPacket: 0,
       workflowCheckpoint: 0,
+      deliveryPackage: 0,
     },
     missions: {},
     councilSessions: {},
@@ -379,6 +385,7 @@ function createEmptyState() {
     workOrders: {},
     handoffPackets: {},
     workflowCheckpoints: {},
+    deliveryPackages: {},
   };
 }
 
@@ -394,6 +401,7 @@ module.exports = {
   DECISION_INBOX_KIND,
   DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
+  DELIVERY_PACKAGE_STATUS,
   PACKS,
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
@@ -423,6 +431,7 @@ module.exports = {
   WORKFLOW_CHECKPOINT_ACTION,
   WORKFLOW_CHECKPOINT_STAGE,
   WORKFLOW_CHECKPOINT_STATUS,
+  WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION,
   WORKFLOW_TYPE,
   createEmptyState,
 };

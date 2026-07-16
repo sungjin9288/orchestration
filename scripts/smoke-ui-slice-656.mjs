@@ -268,7 +268,8 @@ async function main() {
     assert.match(appSource, /data-action="cancel-workflow-checkpoint"/);
     assert.doesNotMatch(appSource, /data-action="auto-resume-workflow"/);
     assert.doesNotMatch(appSource, /data-action="replay-builder-workorder"/);
-    assert.doesNotMatch(appSource, /data-action="persist-delivery-package"/);
+    assert.match(appSource, /data-action="persist-delivery-package"/);
+    assert.doesNotMatch(appSource, /data-action="accept-delivery-package"/);
     assert.match(signalSource, /getMissionWorkflowCheckpointSummary/);
     assert.match(stylesSource, /\.workflow-checkpoint-register/);
     assert.match(stylesSource, /\.workflow-checkpoint-grid \{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);

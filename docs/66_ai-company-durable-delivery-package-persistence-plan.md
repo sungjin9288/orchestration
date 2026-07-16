@@ -286,8 +286,8 @@ project source, commit/release runtime, and unrelated files remain out of scope.
 
 - Planning authority: accepted as `DEC-098`
 - Implementation decision handoff: documented as `DEC-099`
-- Schema/runtime/API/UI implementation: blocked pending one complete fielded decision
-- Current runtime: schema v8, response-only DeliveryPackage, no durable package records
+- Schema/runtime/API/UI implementation: accepted as `DEC-100`
+- Current runtime: schema v9 with one exact durable `review-required` DeliveryPackage path
 - Package acceptance, Mission close-out/done, commit/push/release, learning, and every downstream
   authority: still blocked
 
@@ -295,9 +295,11 @@ project source, commit/release runtime, and unrelated files remain out of scope.
 
 ```bash
 node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
+node scripts/smoke-ai-company-durable-delivery-package.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ai-company-reviewed-delivery.mjs
 node scripts/smoke-ui-slice-656.mjs
+node scripts/smoke-ui-slice-657.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```

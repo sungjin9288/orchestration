@@ -428,7 +428,12 @@ async function main() {
     assert.equal(preview.missionDone, false);
     assert.equal(preview.verificationSummary.verdict, 'passed');
     assert.equal(Object.isFrozen(preview), true);
-    assert.ok(Object.values(preview.authoritySummary).every((value) => value === false));
+    assert.equal(preview.authoritySummary.durablePersistenceAllowed, true);
+    assert.ok(
+      Object.entries(preview.authoritySummary)
+        .filter(([key]) => key !== 'durablePersistenceAllowed')
+        .every(([, value]) => value === false),
+    );
     const countsBeforeRepeat = success.runtime.getSnapshot().sequences;
     assert.throws(
       () => success.runtime.beginReviewedDeliveryContinuation({
@@ -457,7 +462,7 @@ async function main() {
       companyBlueprintPath: blueprintPath,
       companyRepoRoot: repoRoot,
     });
-    assert.equal(reloaded.getSnapshot().schemaVersion, 8);
+    assert.equal(reloaded.getSnapshot().schemaVersion, 9);
     assert.deepEqual(
       reloaded.previewExecutionPlanDelivery({
         executionPlanId: success.persisted.executionPlan.id,
@@ -511,7 +516,7 @@ async function main() {
       ok: true,
       mode: MODE,
       runtime: {
-        schemaVersion: 8,
+        schemaVersion: 9,
         sequence: ['builder-live-mutation', 'reviewer', 'node-check-qa'],
         finalPlanStatus: 'delivery-ready',
         missionDone: false,

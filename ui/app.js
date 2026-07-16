@@ -138,6 +138,7 @@ import {
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
   getMissionExecutionPlanBundle,
+  getMissionDeliveryPackagePersistenceSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -344,6 +345,7 @@ const state = {
   },
   missionWorkOrderPreview: null,
   missionDeliveryPackagePreview: null,
+  missionDurableDeliveryPackage: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4697,6 +4699,9 @@ function applySnapshotPayload(payload) {
   if (Object.prototype.hasOwnProperty.call(payload, 'deliveryPackagePreview')) {
     state.missionDeliveryPackagePreview = payload.deliveryPackagePreview || null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'durableDeliveryPackage')) {
+    state.missionDurableDeliveryPackage = payload.durableDeliveryPackage || null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
   }
@@ -4764,6 +4769,7 @@ async function hydrateSelectedDetails() {
   state.selectedTaskBreakdownArtifact = null;
   state.selectedTaskPreflightArtifact = null;
   state.missionDeliveryPackagePreview = null;
+  state.missionDurableDeliveryPackage = null;
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
 
@@ -4806,10 +4812,13 @@ async function hydrateSelectedDetails() {
   }
 
   if (executionPlanBundle?.executionPlan.status === 'delivery-ready') {
-    const deliveryPayload = await fetchJson(
-      `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/delivery-preview`,
-    );
+    const encodedExecutionPlanId = encodeURIComponent(executionPlanBundle.executionPlan.id);
+    const [deliveryPayload, durablePayload] = await Promise.all([
+      fetchJson(`/api/execution-plans/${encodedExecutionPlanId}/delivery-preview`),
+      fetchJson(`/api/execution-plans/${encodedExecutionPlanId}/delivery-package`),
+    ]);
     state.missionDeliveryPackagePreview = deliveryPayload.deliveryPackagePreview || null;
+    state.missionDurableDeliveryPackage = durablePayload.deliveryPackage || null;
   }
   if (executionPlanBundle) {
     const recoveryPayload = await fetchJson(
@@ -5806,6 +5815,51 @@ async function submitReviewedDeliveryContinuation(executionPlanId) {
     elements.refreshStatus.textContent = payload.deliveryPackagePreview
       ? `${payload.deliveryPackagePreview.id}를 response-only로 준비했습니다`
       : `ExecutionPlan이 ${payload.mutation.stoppedAt || 'reviewer'}에서 멈췄습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function persistDeliveryPackage(executionPlanId) {
+  const data = getDerived();
+  const executionPlan = data.snapshot.executionPlans?.[executionPlanId] || null;
+  const councilSession = executionPlan
+    ? data.councilSessionMap.get(executionPlan.councilSessionId) || null
+    : null;
+  const bundle = getMissionExecutionPlanBundle(data.snapshot, councilSession?.id);
+  const preview = state.missionDeliveryPackagePreview;
+  const summary = getMissionDeliveryPackagePersistenceSummary(
+    preview,
+    bundle,
+    state.missionDurableDeliveryPackage,
+  );
+  if (!summary?.canPersist) {
+    throw new Error('현재 preview와 terminal checkpoint의 exact tuple만 기록할 수 있습니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${preview.id}를 durable record로 기록하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanId)}/persist-delivery-package`,
+      {
+        previewId: preview.id,
+        sourceDigest: preview.sourceDigest,
+        packageDigest: preview.packageDigest,
+        checkpointId: preview.terminalCheckpointId,
+        checkpointDigest: preview.terminalCheckpointDigest,
+      },
+    );
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent = `${payload.durableDeliveryPackage.id}를 review-required로 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -10408,6 +10462,11 @@ function renderMissionExecutionPlan(bundle, recovery) {
 
 function renderDeliveryPackagePreview(preview, bundle) {
   if (!preview || preview.executionPlanId !== bundle?.executionPlan.id) return '';
+  const persistence = getMissionDeliveryPackagePersistenceSummary(
+    preview,
+    bundle,
+    state.missionDurableDeliveryPackage,
+  );
   const resultRows = (preview.workOrderResults || [])
     .map(
       (result) => `
@@ -10431,17 +10490,78 @@ function renderDeliveryPackagePreview(preview, bundle) {
       </div>
       <div class="token-row token-row-compact">
         ${createToken(preview.id, 'neutral')}
+        ${createToken(`package:${preview.packageDigest}`, 'neutral')}
+        ${createToken(`checkpoint:${preview.terminalCheckpointId}`, 'neutral')}
         ${createToken(`review:${preview.reviewerEvidenceRef}`, 'success')}
         ${createToken(`qa:${preview.qaEvidenceRefs.join(', ')}`, 'success')}
         ${createToken(`checks:${preview.verificationSummary.passedCheckCount}/${preview.verificationSummary.checkCount}`, 'neutral')}
       </div>
       <div class="delivery-package-results">${resultRows}</div>
       <div class="delivery-package-authority" aria-label="Blocked downstream authority">
-        ${createToken('persist:blocked', 'neutral')}
+        ${createToken(persistence?.persisted ? 'persist:recorded' : persistence?.canPersist ? 'persist:ready' : 'persist:blocked', persistence?.canPersist ? 'accent' : 'neutral')}
+        ${createToken('acceptance:blocked', 'neutral')}
         ${createToken('mission done:blocked', 'warning')}
         ${createToken('commit:blocked', 'neutral')}
         ${createToken('push:blocked', 'neutral')}
         ${createToken('release:blocked', 'neutral')}
+      </div>
+      <div class="relation-button-row delivery-package-actions">
+        <button
+          class="primary-button"
+          type="button"
+          data-action="persist-delivery-package"
+          data-id="${escapeHtml(preview.executionPlanId)}"
+          ${state.loading || state.mutating || !persistence?.canPersist ? 'disabled' : ''}
+        >
+          DeliveryPackage 기록
+        </button>
+      </div>
+    </section>
+  `;
+}
+
+function renderDurableDeliveryPackage(deliveryPackage, bundle) {
+  if (!deliveryPackage || deliveryPackage.executionPlanId !== bundle?.executionPlan.id) return '';
+  const resultRows = deliveryPackage.workOrderResults
+    .map(
+      (result) => `
+        <div class="delivery-package-result">
+          <strong>${escapeHtml(result.role)}</strong>
+          ${createToken(result.status, 'success')}
+          ${createToken(`runs:${result.runRefs.join(',')}`, 'neutral')}
+          ${createToken(`artifacts:${result.artifactRefs.join(',')}`, 'neutral')}
+        </div>
+      `,
+    )
+    .join('');
+  return `
+    <section class="delivery-package-record" aria-label="Durable DeliveryPackage evidence">
+      <div class="card-title-row card-title-row-tight">
+        <strong>DeliveryPackage Record</strong>
+        ${createToken(deliveryPackage.status, 'warning')}
+        ${createToken('mission:not-done', 'warning')}
+      </div>
+      <div class="token-row token-row-compact delivery-package-digests">
+        ${createToken(deliveryPackage.id, 'accent')}
+        ${createToken(`source:${deliveryPackage.sourceDigest}`, 'neutral')}
+        ${createToken(`package:${deliveryPackage.packageDigest}`, 'neutral')}
+        ${createToken(`checkpoint:${deliveryPackage.terminalCheckpointDigest}`, 'neutral')}
+        ${createToken(`review:${deliveryPackage.reviewerEvidenceRef}`, 'success')}
+        ${createToken(`qa:${deliveryPackage.qaEvidenceRefs.join(',')}`, 'success')}
+      </div>
+      <div class="delivery-package-results">${resultRows}</div>
+      <div class="delivery-package-register">
+        <p><strong>Accepted risks</strong> ${escapeHtml(deliveryPackage.acceptedRisks.join(' · ') || 'none')}</p>
+        <p><strong>Unresolved items</strong> ${escapeHtml(deliveryPackage.unresolvedItems.join(' · ') || 'none')}</p>
+      </div>
+      <div class="delivery-package-authority" aria-label="Blocked downstream authority">
+        ${createToken('acceptance:blocked', 'neutral')}
+        ${createToken('mission done:blocked', 'warning')}
+        ${createToken('task close-out:blocked', 'neutral')}
+        ${createToken('commit:blocked', 'neutral')}
+        ${createToken('push:blocked', 'neutral')}
+        ${createToken('release:blocked', 'neutral')}
+        ${createToken('learning:blocked', 'neutral')}
       </div>
     </section>
   `;
@@ -12021,6 +12141,7 @@ function renderDeliverables(data) {
       ${deliverablesDeck}
       ${renderDeliverablesCompletionSummary(deliverablesCompletionSummary)}
       ${renderDeliveryPackagePreview(state.missionDeliveryPackagePreview, missionExecutionPlanBundle)}
+      ${renderDurableDeliveryPackage(state.missionDurableDeliveryPackage, missionExecutionPlanBundle)}
       ${renderHarnessBriefRegister(harnessBrief)}
       <div class="surface-grid">
       <section class="surface-panel">
@@ -15529,6 +15650,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'continue-reviewed-delivery') {
         await submitReviewedDeliveryContinuation(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'persist-delivery-package') {
+        await persistDeliveryPackage(actionButton.dataset.id);
         return;
       }
 

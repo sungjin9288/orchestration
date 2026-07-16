@@ -196,6 +196,12 @@ const smokeChecks = [
     purpose:
       'Workflow recovery UI and API preserve read-only checkpoint inspection, exact digest-gated Reviewer or QA resume, explicit cancellation, stale and quarantine evidence, next-boundary stops, responsive controls, and blocked Builder replay or downstream authority',
   },
+  {
+    id: 'ai-company-durable-delivery-package-ui-api',
+    script: 'scripts/smoke-ui-slice-657.mjs',
+    purpose:
+      'Durable DeliveryPackage UI and API preserve read-only hydration, exact preview source package and terminal checkpoint tuple gating, one review-required record, safe stale failures, idempotent replay, responsive evidence rendering, and blocked downstream authority',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

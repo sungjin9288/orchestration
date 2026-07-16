@@ -86,7 +86,7 @@ assertAll(planText, [
   /GET \/api\/execution-plans\/:executionPlanId\/delivery-package/,
   /POST \/api\/execution-plans\/:executionPlanId\/persist-delivery-package/,
   /Package acceptance, Mission done, commit, push, release, learning/,
-  /Schema\/runtime\/API\/UI implementation: blocked pending one complete fielded decision/,
+  /Schema\/runtime\/API\/UI implementation: accepted as `DEC-100`/,
 ]);
 
 assert.match(
@@ -111,18 +111,19 @@ assertAll(handoffText, [
   /create no package during migration/,
   /stillBlockedAuthorities=DeliveryPackage acceptance rejection changes-requested/,
   /approval approved continue do everything approve all self approve use your judgment/,
-  /Complete fielded implementation decision: not supplied/,
+  /Complete fielded implementation decision: accepted as `DEC-100`/,
 ]);
 
 assert.match(decisionLog, /^### DEC-098$/m);
 assert.match(decisionLog, /^### DEC-099$/m);
+assert.match(decisionLog, /^### DEC-100$/m);
 assert.match(masterPlan, /Durable DeliveryPackage persistence planning은 `DEC-098`/);
 assert.match(runtimeContract, /Durable DeliveryPackage persistence planning은 `DEC-098`/);
 assert.match(councilProtocol, /Durable DeliveryPackage persistence planning은 `DEC-098`/);
 assertAll(roadmapText, [
   /Durable DeliveryPackage persistence planning은 `DEC-098`/,
   /implementation handoff는 `DEC-099`/,
-  /Current runtime remains schema v8 and creates no durable package/,
+  /exact implementation은 `DEC-100`/,
 ]);
 assert.match(
   completionInventory,
@@ -131,7 +132,7 @@ assert.match(
 assertAll(readmeText, [
   /Durable DeliveryPackage persistence planning is accepted by `DEC-098`/,
   /complete fielded implementation handoff is recorded by `DEC-099`/,
-  /runtime remains schema v8/,
+  /exact implementation is accepted by `DEC-100`/,
   /preview remains `persisted=false` and `missionDone=false`/,
 ]);
 assert.match(taskLedger, /ai-company-durable-delivery-package-planning-post-m7-1952/);
@@ -145,16 +146,17 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-delivery-package-planning\.mjs'/,
 );
 
-// Pin the current negative evidence so planning cannot be mistaken for implementation.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 8/);
-assert.doesNotMatch(contracts, /deliveryPackage/);
-assert.doesNotMatch(fileStore, /deliveryPackages/);
+// Keep planning provenance while pinning the exact implementation boundary it authorized.
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 9/);
+assert.match(contracts, /deliveryPackage/);
+assert.match(fileStore, /validateDeliveryPackageRecords/);
 assert.match(runtimeService, /function previewExecutionPlanDelivery\(input\)/);
 assert.match(runtimeService, /persisted: false/);
 assert.match(runtimeService, /missionDone: false/);
-assert.doesNotMatch(runtimeService, /function persistExecutionPlanDeliveryPackage\(/);
-assert.doesNotMatch(server, /persist-delivery-package/);
-assert.doesNotMatch(ui, /data-action="persist-delivery-package"/);
+assert.match(runtimeService, /function persistExecutionPlanDeliveryPackage\(/);
+assert.match(server, /persist-delivery-package/);
+assert.match(ui, /data-action="persist-delivery-package"/);
+assert.doesNotMatch(ui, /data-action="accept-delivery-package"/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -164,7 +166,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-098',
         handoff: 'documented-dec-099',
-        implementation: 'blocked-complete-fielded-decision-required',
+        implementation: 'accepted-dec-100',
       },
       plannedPath: {
         schemaVersion: 9,
@@ -179,17 +181,17 @@ process.stdout.write(
         explicitOperatorRequestRequired: true,
       },
       currentRuntime: {
-        schemaVersion: 8,
+        schemaVersion: 9,
         responseOnlyPreview: true,
-        durableDeliveryPackageRecords: false,
-        persistenceRoutes: false,
+        durableDeliveryPackageRecords: true,
+        persistenceRoutes: true,
         missionDone: false,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        schemaMigrationAllowed: false,
-        durableRecordAllowed: false,
+        implementationAllowed: true,
+        schemaMigrationAllowed: true,
+        durableRecordAllowed: true,
         packageAcceptanceAllowed: false,
         missionDoneAllowed: false,
         learningAllowed: false,

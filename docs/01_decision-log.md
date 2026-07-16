@@ -613,6 +613,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/67_ai-company-durable-delivery-package-implementation-decision-handoff.md` defines valid approval/evidence-request/rejection/deferral outcomes, invalid shortcuts, minimum acceptance criteria, stop conditions, migration/runtime/API/UI targets, focused smokes, and still-blocked authority. It records no implementation outcome and opens no durable record, package acceptance, Mission/task close-out, commit, push, release, learning, provider, memory, or connector authority.
 - Needed Before: The operator must supply the complete fielded implementation decision. General approval, `approve all`, delegated self-approval, prior checkpoint/plan approval, or this planning decision do not cover durable package implementation.
 
+### DEC-100
+- Status: `Accepted`
+- Decision: Accept `operator-decision-ai-company-durable-delivery-package-implementation-001` with `decisionStatus=approve-ai-company-durable-delivery-package-implementation-slice` for one deterministic local schema-v9 durable DeliveryPackage `review-required` record from one exact source-current schema-v8 delivery-ready ExecutionPlan and terminal WorkflowCheckpoint.
+- Why: The complete fielded decision names the exact migration, preview/source/package/checkpoint digest tuple, explicit persist command, immutable record boundary, rollback retention, focused smokes, and every still-blocked downstream authority. This is the smallest durable promotion that preserves the response-only preview while making reviewed evidence restart-safe and inspectable.
+- Impact: Valid schema-v8 state migrates atomically to schema v9 without losing WorkflowCheckpoint history or creating a package. One explicit exact-tuple request may append one immutable `review-required` record and per-plan refs; stale input fails without a write and exact replay is idempotent. Read-only API/UI surfaces expose durable evidence. Package acceptance/rejection/changes-requested, Mission/task close-out or done, commit, push, release, learning, memory, retry/rework, scheduling, provider expansion, policy mutation, approval bypass, and connectors remain blocked.
+- Needed Before: Any package lifecycle decision or Mission/task close-out requires a separate complete fielded decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

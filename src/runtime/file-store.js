@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 
 const {
+  ARTIFACT_TYPE,
+  DELIVERY_PACKAGE_STATUS,
   EXECUTION_PLAN_STATUS,
   LEGACY_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
@@ -14,9 +16,11 @@ const {
   WORKFLOW_CHECKPOINT_ACTION,
   WORKFLOW_CHECKPOINT_STAGE,
   WORKFLOW_CHECKPOINT_STATUS,
+  WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION,
   WORKFLOW_TYPE,
   createEmptyState,
 } = require('./contracts');
+const { computeDeliveryPackageDigest } = require('./delivery-packages');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 
 function assertStringField(record, field, label) {
@@ -145,6 +149,221 @@ function assertStringArrayField(record, field, label) {
     record[field].some((value) => typeof value !== 'string')
   ) {
     throw new Error(`${label} has invalid ${field}`);
+  }
+}
+
+function sameStringArrays(left, right) {
+  return (
+    left.length === right.length && left.every((value, index) => value === right[index])
+  );
+}
+
+function assertExactObjectKeys(record, expectedKeys, label) {
+  const actualKeys = Object.keys(record).sort();
+  const normalizedExpected = [...expectedKeys].sort();
+  if (!sameStringArrays(actualKeys, normalizedExpected)) {
+    throw new Error(`${label} has unexpected or missing fields`);
+  }
+}
+
+function validateDeliveryPackageRecords(state) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const requiredAuthority = {
+    durablePersistenceAllowed: true,
+    packageAcceptanceAllowed: false,
+    missionDoneAllowed: false,
+    taskCloseOutAllowed: false,
+    commitAllowed: false,
+    pushAllowed: false,
+    releaseAllowed: false,
+    memoryPersistenceAllowed: false,
+    learningAllowed: false,
+    schedulingAllowed: false,
+    providerExpansionAllowed: false,
+    profilePolicyMutationAllowed: false,
+  };
+
+  for (const [key, deliveryPackage] of Object.entries(state.deliveryPackages)) {
+    const label = `DeliveryPackage ${key}`;
+    if (
+      !deliveryPackage ||
+      typeof deliveryPackage !== 'object' ||
+      Array.isArray(deliveryPackage) ||
+      deliveryPackage.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      deliveryPackage,
+      [
+        'id',
+        'projectId',
+        'missionId',
+        'executionPlanId',
+        'terminalCheckpointId',
+        'terminalCheckpointDigest',
+        'previewId',
+        'sourceDigest',
+        'packageDigest',
+        'status',
+        'deliveredArtifactRefs',
+        'workOrderResults',
+        'reviewerEvidenceRef',
+        'qaEvidenceRefs',
+        'verificationSummary',
+        'acceptedRisks',
+        'unresolvedItems',
+        'authoritySummary',
+        'createdAt',
+        'updatedAt',
+      ],
+      label,
+    );
+    for (const field of [
+      'projectId',
+      'missionId',
+      'executionPlanId',
+      'terminalCheckpointId',
+      'terminalCheckpointDigest',
+      'previewId',
+      'sourceDigest',
+      'packageDigest',
+      'status',
+      'reviewerEvidenceRef',
+      'createdAt',
+      'updatedAt',
+    ]) {
+      assertStringField(deliveryPackage, field, label);
+    }
+    for (const field of [
+      'deliveredArtifactRefs',
+      'qaEvidenceRefs',
+      'acceptedRisks',
+      'unresolvedItems',
+    ]) {
+      assertStringArrayField(deliveryPackage, field, label);
+    }
+    if (deliveryPackage.status !== DELIVERY_PACKAGE_STATUS.REVIEW_REQUIRED) {
+      throw new Error(`${label} has invalid status`);
+    }
+    if (deliveryPackage.updatedAt !== deliveryPackage.createdAt) {
+      throw new Error(`${label} must remain immutable while review-required`);
+    }
+    for (const field of ['terminalCheckpointDigest', 'sourceDigest', 'packageDigest']) {
+      if (!digestPattern.test(deliveryPackage[field])) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+
+    const plan = state.executionPlans[deliveryPackage.executionPlanId];
+    const checkpoint = state.workflowCheckpoints[deliveryPackage.terminalCheckpointId];
+    if (
+      !plan ||
+      plan.projectId !== deliveryPackage.projectId ||
+      plan.missionId !== deliveryPackage.missionId ||
+      plan.sourceDigest !== deliveryPackage.sourceDigest ||
+      !plan.deliveryPackageRefs.includes(deliveryPackage.id) ||
+      plan.latestDeliveryPackageId !== deliveryPackage.id
+    ) {
+      throw new Error(`${label} has invalid ExecutionPlan references`);
+    }
+    if (
+      plan.status !== EXECUTION_PLAN_STATUS.DELIVERY_READY ||
+      !checkpoint ||
+      checkpoint.executionPlanId !== plan.id ||
+      plan.latestCheckpointId !== checkpoint.id ||
+      checkpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY ||
+      checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.TERMINAL ||
+      checkpoint.checkpointDigest !== deliveryPackage.terminalCheckpointDigest
+    ) {
+      throw new Error(`${label} has invalid terminal WorkflowCheckpoint binding`);
+    }
+    if (
+      deliveryPackage.deliveredArtifactRefs.some((id) => !state.artifacts[id]) ||
+      state.artifacts[deliveryPackage.reviewerEvidenceRef]?.type !== ARTIFACT_TYPE.REVIEW ||
+      deliveryPackage.qaEvidenceRefs.length === 0 ||
+      deliveryPackage.qaEvidenceRefs.some(
+        (id) => state.artifacts[id]?.type !== ARTIFACT_TYPE.QA_EVIDENCE,
+      )
+    ) {
+      throw new Error(`${label} has invalid evidence references`);
+    }
+    const workOrders = plan.workOrderIds.map((id) => state.workOrders[id]);
+    const expectedDeliveredArtifactRefs = [
+      ...new Set(workOrders.flatMap((workOrder) => workOrder.artifactRefs)),
+    ];
+    if (!sameStringArrays(deliveryPackage.deliveredArtifactRefs, expectedDeliveredArtifactRefs)) {
+      throw new Error(`${label} deliveredArtifactRefs do not match its WorkOrders`);
+    }
+    if (
+      !Array.isArray(deliveryPackage.workOrderResults) ||
+      deliveryPackage.workOrderResults.length !== plan.workOrderIds.length
+    ) {
+      throw new Error(`${label} has invalid workOrderResults`);
+    }
+    deliveryPackage.workOrderResults.forEach((result, index) => {
+      const workOrder = workOrders[index];
+      assertExactObjectKeys(
+        result,
+        ['workOrderId', 'role', 'status', 'runRefs', 'artifactRefs'],
+        `${label} WorkOrder result ${index + 1}`,
+      );
+      if (
+        !workOrder ||
+        result.workOrderId !== workOrder.id ||
+        result.role !== workOrder.role ||
+        result.status !== WORK_ORDER_STATUS.COMPLETED ||
+        !Array.isArray(result.runRefs) ||
+        !Array.isArray(result.artifactRefs) ||
+        !sameStringArrays(result.runRefs, workOrder.runRefs) ||
+        !sameStringArrays(result.artifactRefs, workOrder.artifactRefs)
+      ) {
+        throw new Error(`${label} has a WorkOrder result mismatch`);
+      }
+    });
+    const resultByRole = Object.fromEntries(
+      deliveryPackage.workOrderResults.map((result) => [result.role, result]),
+    );
+    if (
+      !resultByRole.reviewer?.artifactRefs.includes(deliveryPackage.reviewerEvidenceRef) ||
+      deliveryPackage.qaEvidenceRefs.some(
+        (artifactId) => !resultByRole.qa?.artifactRefs.includes(artifactId),
+      )
+    ) {
+      throw new Error(`${label} reviewer or QA evidence is not bound to its WorkOrder`);
+    }
+    const summary = deliveryPackage.verificationSummary;
+    if (summary && typeof summary === 'object' && !Array.isArray(summary)) {
+      assertExactObjectKeys(
+        summary,
+        ['kind', 'verdict', 'checkCount', 'passedCheckCount'],
+        `${label} verificationSummary`,
+      );
+    }
+    if (
+      !summary ||
+      summary.kind !== 'node-syntax-check' ||
+      summary.verdict !== 'passed' ||
+      !Number.isInteger(summary.checkCount) ||
+      summary.checkCount < 1 ||
+      summary.passedCheckCount !== summary.checkCount
+    ) {
+      throw new Error(`${label} has invalid verificationSummary`);
+    }
+    if (
+      !deliveryPackage.authoritySummary ||
+      typeof deliveryPackage.authoritySummary !== 'object' ||
+      Array.isArray(deliveryPackage.authoritySummary) ||
+      Object.keys(deliveryPackage.authoritySummary).length !== Object.keys(requiredAuthority).length ||
+      Object.keys(requiredAuthority).some(
+        (field) => deliveryPackage.authoritySummary[field] !== requiredAuthority[field],
+      )
+    ) {
+      throw new Error(`${label} has invalid authoritySummary`);
+    }
+    if (computeDeliveryPackageDigest(deliveryPackage) !== deliveryPackage.packageDigest) {
+      throw new Error(`${label} packageDigest does not match its immutable payload`);
+    }
   }
 }
 
@@ -339,6 +558,7 @@ function createFileStore(options = {}) {
     if (
       sourceSchemaVersion !== LEGACY_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MIGRATABLE_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -360,7 +580,7 @@ function createFileStore(options = {}) {
       }
     }
 
-    if (sourceSchemaVersion === STATE_SCHEMA_VERSION) {
+    if (sourceSchemaVersion >= WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION) {
       if (
         !Number.isInteger(state.sequences?.workflowCheckpoint) ||
         !state.workflowCheckpoints ||
@@ -372,7 +592,25 @@ function createFileStore(options = {}) {
             !Object.prototype.hasOwnProperty.call(plan, 'latestCheckpointId'),
         )
       ) {
-        throw new Error('Runtime state schemaVersion 8 is missing WorkflowCheckpoint fields');
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing WorkflowCheckpoint fields`,
+        );
+      }
+    }
+
+    if (sourceSchemaVersion === STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.deliveryPackage) ||
+        !state.deliveryPackages ||
+        typeof state.deliveryPackages !== 'object' ||
+        Array.isArray(state.deliveryPackages) ||
+        Object.values(state.executionPlans).some(
+          (plan) =>
+            !Array.isArray(plan.deliveryPackageRefs) ||
+            !Object.prototype.hasOwnProperty.call(plan, 'latestDeliveryPackageId'),
+        )
+      ) {
+        throw new Error('Runtime state schemaVersion 9 is missing DeliveryPackage fields');
       }
     }
 
@@ -399,12 +637,20 @@ function createFileStore(options = {}) {
       workOrders: state.workOrders || {},
       handoffPackets: state.handoffPackets || {},
       workflowCheckpoints: state.workflowCheckpoints || {},
+      deliveryPackages: state.deliveryPackages || {},
     };
 
-    if (sourceSchemaVersion < STATE_SCHEMA_VERSION) {
+    if (sourceSchemaVersion < WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION) {
       for (const executionPlan of Object.values(normalizedState.executionPlans)) {
         executionPlan.checkpointRefs = [];
         executionPlan.latestCheckpointId = null;
+      }
+    }
+
+    if (sourceSchemaVersion < STATE_SCHEMA_VERSION) {
+      for (const executionPlan of Object.values(normalizedState.executionPlans)) {
+        executionPlan.deliveryPackageRefs = [];
+        executionPlan.latestDeliveryPackageId = null;
       }
     }
 
@@ -636,8 +882,26 @@ function createFileStore(options = {}) {
           throw new Error(`${label} has invalid WorkflowCheckpoint attempt history`);
         }
       });
+      assertStringArrayField(plan, 'deliveryPackageRefs', label);
+      if (
+        plan.deliveryPackageRefs.length > 1 ||
+        new Set(plan.deliveryPackageRefs).size !== plan.deliveryPackageRefs.length
+      ) {
+        throw new Error(`${label} has invalid DeliveryPackage references`);
+      }
+      if (
+        plan.latestDeliveryPackageId !== null &&
+        (typeof plan.latestDeliveryPackageId !== 'string' ||
+          plan.latestDeliveryPackageId !== plan.deliveryPackageRefs.at(-1))
+      ) {
+        throw new Error(`${label} has invalid latestDeliveryPackageId`);
+      }
+      if (plan.deliveryPackageRefs.some((id) => !normalizedState.deliveryPackages[id])) {
+        throw new Error(`${label} has missing DeliveryPackage references`);
+      }
     }
     validateWorkflowCheckpointRecords(normalizedState);
+    validateDeliveryPackageRecords(normalizedState);
     return normalizedState;
   }
 

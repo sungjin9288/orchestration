@@ -274,12 +274,12 @@ async function main() {
     delete v7.workflowCheckpoints;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(v7));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 8);
+    assert.equal(migrated.schemaVersion, 9);
     assert.equal(migrated.sequences.workflowCheckpoint, 0);
     assert.deepEqual(migrated.workflowCheckpoints, {});
     assert.equal(
       JSON.parse(fs.readFileSync(path.join(migrationRoot, 'state.json'), 'utf8')).schemaVersion,
-      8,
+      9,
     );
 
     const populatedMigration = createContext('populated-migration');
@@ -289,7 +289,7 @@ async function main() {
     const populatedMigrated = createFileStore({
       runtimeRoot: populatedMigration.runtimeRoot,
     }).loadState();
-    assert.equal(populatedMigrated.schemaVersion, 8);
+    assert.equal(populatedMigrated.schemaVersion, 9);
     assert.deepEqual(asSchemaV7(populatedMigrated), populatedV7);
     assert.deepEqual(
       JSON.parse(fs.readFileSync(populatedStatePath, 'utf8')),
@@ -302,7 +302,7 @@ async function main() {
         delete value.workflowCheckpoints;
         return value;
       })(), /missing WorkflowCheckpoint fields/],
-      ['future-v9', { ...createEmptyState(), schemaVersion: 9 }, /Unsupported runtime state/],
+      ['future-v10', { ...createEmptyState(), schemaVersion: 10 }, /Unsupported runtime state/],
     ]) {
       const root = path.join(tempRoot, name);
       fs.mkdirSync(root, { recursive: true });
@@ -539,16 +539,18 @@ async function main() {
     const persistedState = JSON.parse(
       fs.readFileSync(path.join(success.runtimeRoot, 'state.json'), 'utf8'),
     );
-    assert.equal(persistedState.schemaVersion, 8);
+    assert.equal(persistedState.schemaVersion, 9);
     assert.equal(Object.keys(persistedState.workflowCheckpoints).length, 4);
     assert.equal(persistedState.executionPlans[executionPlanId].checkpointRefs.length, 4);
-    assert.equal(persistedState.deliveryPackages, undefined);
+    assert.deepEqual(persistedState.deliveryPackages, {});
+    assert.deepEqual(persistedState.executionPlans[executionPlanId].deliveryPackageRefs, []);
+    assert.equal(persistedState.executionPlans[executionPlanId].latestDeliveryPackageId, null);
 
     process.stdout.write(`${JSON.stringify({
       ok: true,
       mode: MODE,
       schema: {
-        version: 8,
+        version: 9,
         v7Migration: true,
         partialAndFutureRejected: true,
         rollbackRetention: true,

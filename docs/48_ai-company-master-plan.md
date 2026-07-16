@@ -331,11 +331,12 @@ active Builder/Reviewer/QA는 replay하지 않고 quarantine한다. Automatic re
 provider/scheduling expansion, durable package, Mission done, commit/push/release는 blocked다.
 
 Durable DeliveryPackage persistence planning은 `DEC-098`, complete fielded implementation handoff는
-`DEC-099`로 기록됐다. Planned minimum은 source-current schema-v8 delivery-ready plan, terminal
-WorkflowCheckpoint, deterministic response-only preview의 exact preview/source/package/checkpoint
-digest를 one explicit operator request에서 재검증하고 one schema-v9 `review-required` record만
-append하는 경로다. Current runtime은 여전히 schema v8이며 package persistence, package acceptance,
-Mission/task close-out, done, commit/push/release, learning/memory authority는 blocked다.
+`DEC-099`, exact implementation은 `DEC-100`으로 기록됐다. Source-current schema-v8 delivery-ready
+plan은 terminal WorkflowCheckpoint history를 보존한 채 schema v9로 migrate한다. Deterministic
+response-only preview의 exact preview/source/package/checkpoint digest를 one explicit operator
+request에서 재검증하고 one immutable `review-required` record만 append한다. Read와 preview는
+record를 만들지 않고 exact replay는 idempotent다. Package acceptance, Mission/task close-out,
+done, commit/push/release, learning/memory authority는 계속 blocked다.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -362,11 +363,13 @@ node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ui-slice-656.mjs
 node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
+node scripts/smoke-ai-company-durable-delivery-package.mjs
+node scripts/smoke-ui-slice-657.mjs
 node scripts/verification_status.mjs
 ```
 
 이 검증은 source contract, local-stub Council, explicit provider opt-in, UI/API readiness gate와
 authority boundary, Phase 4 response-only compiler, Phase 5 durable Builder stop, Phase 6 exact-gated
 reviewed-delivery와 response-only package, Phase 7 schema-v8 safe recovery boundary를 확인한다.
-Durable DeliveryPackage planning smoke는 schema-v9 implementation이 아직 absent임을 source-check한다.
+Durable DeliveryPackage smokes는 schema-v9 exact persistence와 blocked downstream authority를 확인한다.
 Optional live-provider 결과는 별도 informational evidence다.

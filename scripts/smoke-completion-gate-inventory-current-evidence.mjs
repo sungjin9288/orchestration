@@ -38,8 +38,8 @@ function assertReadmeHas(pattern) {
 const inventoryGateRows = [
   /Recent evidence refresh head checked before this document update: `10301cd`/,
   /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current aggregate count is source-checked by this inventory smoke\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| `ok=true`; required `34\/34`; snapshot reachability informational skipped when the local UI server is not running \| Treat snapshot reachability as optional unless a UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate registration, UI QA `34\/34`, zero-open backlog, post-completion router, proposal-record lifecycle review alias boundaries, proposal generation evidence, AI Company Phase 5-7 evidence, and durable DeliveryPackage planning evidence \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| `ok=true`; required `35\/35`; snapshot reachability informational skipped when the local UI server is not running \| Treat snapshot reachability as optional unless a UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate registration, UI QA `35\/35`, zero-open backlog, post-completion router, proposal-record lifecycle review alias boundaries, proposal generation evidence, AI Company Phase 5-7 evidence, and durable DeliveryPackage implementation evidence \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -61,6 +61,7 @@ const inventoryGateRows = [
   /\| AI Company reviewed-delivery implementation \| pass \| `DEC-094`, `src\/execution\/qa-node-check-runner\.js`, `node scripts\/smoke-ai-company-reviewed-delivery\.mjs`, `node scripts\/smoke-ui-slice-655\.mjs` \|/,
   /\| AI Company checkpoint resume and recovery implementation \| pass \| `DEC-097`, `docs\/64_ai-company-checkpoint-resume-recovery-plan\.md`, `node scripts\/smoke-ai-company-checkpoint-resume-recovery\.mjs`, `node scripts\/smoke-ui-slice-656\.mjs` \|/,
   /\| AI Company durable DeliveryPackage persistence planning \| pass \| `docs\/66_ai-company-durable-delivery-package-persistence-plan\.md`, `docs\/67_ai-company-durable-delivery-package-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-durable-delivery-package-planning\.mjs` \|/,
+  /\| AI Company durable DeliveryPackage persistence implementation \| pass \| `DEC-100`, `node scripts\/smoke-ai-company-durable-delivery-package\.mjs`, `node scripts\/smoke-ui-slice-657\.mjs` \|/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -90,7 +91,7 @@ for (const pattern of staleInventoryEvidence) {
 
 assertReadmeHas(new RegExp(`${smokeFileCount} smoke files`));
 assertReadmeHas(new RegExp(`${uiSmokeFileCount} UI smoke files`));
-assertReadmeHas(/total `201\/201`/);
+assertReadmeHas(/total `203\/203`/);
 assert.match(verificationStatus, /completion-gate-inventory-current-evidence/);
 assert.match(verificationStatus, /smoke-completion-gate-inventory-current-evidence\.mjs/);
 assert.match(verificationStatus, /ai-company-workorder-persistence-execution-planning/);
@@ -102,12 +103,15 @@ assert.match(verificationStatus, /ai-company-checkpoint-resume-recovery-planning
 assert.match(verificationStatus, /ai-company-checkpoint-resume-recovery-implementation/);
 assert.match(verificationStatus, /ai-company-checkpoint-resume-recovery-ui-api/);
 assert.match(verificationStatus, /ai-company-durable-delivery-package-planning/);
+assert.match(verificationStatus, /ai-company-durable-delivery-package-implementation/);
+assert.match(verificationStatus, /ai-company-durable-delivery-package-ui-api/);
 assert.match(uiQaStatus, /smoke-ui-slice-651\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-652\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-653\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-654\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-655\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-656\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-657\.mjs/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -118,8 +122,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '200/200',
-        total: '201/201',
+        informational: '202/202',
+        total: '203/203',
       },
     },
     null,

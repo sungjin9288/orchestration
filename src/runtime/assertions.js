@@ -36,7 +36,16 @@ function assertWorkflowCheckpoint(workflowCheckpointId, state) {
   return workflowCheckpoint;
 }
 
+function assertDeliveryPackage(deliveryPackageId, state) {
+  const deliveryPackage = state.deliveryPackages[deliveryPackageId];
+  if (!deliveryPackage) {
+    throw new Error(`DeliveryPackage not found: ${deliveryPackageId}`);
+  }
+  return deliveryPackage;
+}
+
 module.exports = {
+  assertDeliveryPackage,
   assertExecutionPlan,
   assertHandoffPacket,
   assertRun,

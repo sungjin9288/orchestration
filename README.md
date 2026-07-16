@@ -82,7 +82,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v8 after the additive Phase 7 migration, while `companyRuntime` remains an
+execution state is schema v9 after the additive DeliveryPackage migration, while `companyRuntime` remains an
 additive read-only snapshot on the configured local server path. The editable company roster remains
 browser presentation only.
 
@@ -139,9 +139,9 @@ request starts only from a source-current schema-v7 plan whose Builder waits at 
 live-mutation gate. It reuses the bounded local-stub Builder and independent Reviewer, stops on
 changes requested, and runs only shell-free `process.execPath --check` QA against actual
 Builder-changed allowlisted files. QA persists one provenance-critical `qa-evidence` artifact; a
-delivery-ready plan recomputes one deeply frozen response-only DeliveryPackage preview. Mission done,
-durable package persistence, automatic rework, scheduling/provider/memory/checkpoint expansion,
-commit, push, release, and connectors remain blocked.
+delivery-ready plan recomputes one deeply frozen response-only DeliveryPackage preview. Durable
+persistence is available only through the exact package path below; Mission done, automatic rework,
+scheduling/provider/memory expansion, commit, push, release, and connectors remain blocked.
 
 Phase 7 checkpoint, resume, and recovery planning is accepted by `DEC-095`, its implementation
 decision handoff is recorded by `DEC-096`, and the exact implementation is accepted by `DEC-097` in
@@ -149,23 +149,23 @@ decision handoff is recorded by `DEC-096`, and the exact implementation is accep
 `docs/65_ai-company-checkpoint-resume-recovery-implementation-decision-handoff.md`. Only durable
 `reviewer-ready` or `qa-ready` boundaries are resumable, with exact input, authority, and checkpoint
 digest binding plus an explicit operator action. Active or ambiguous Builder, Reviewer, and QA stages
-are quarantine-only and cannot be replayed automatically. The current runtime is schema v8 with an
+are quarantine-only and cannot be replayed automatically. Phase 7 introduced schema v8 with an
 additive WorkflowCheckpoint map, read-only recovery classification, and exact resume/cancel routes.
 Migration atomically bootstraps one checkpoint when valid schema-v7 evidence is already at an exact
 durable boundary; non-boundary domain values remain unchanged. Each valid resume runs only the
 existing local-stub Reviewer or constrained QA and stops at the next durable boundary. Builder
-replay, automatic retry, scheduling, provider-backed WorkOrders, durable
-DeliveryPackage, Mission done, memory expansion, commit, push, release, and connectors remain blocked.
+replay, automatic retry, scheduling, provider-backed WorkOrders, Mission done, memory expansion,
+commit, push, release, and connectors remain blocked.
 
-Durable DeliveryPackage persistence planning is accepted by `DEC-098`, and its complete fielded
-implementation handoff is recorded by `DEC-099` in
+Durable DeliveryPackage persistence planning is accepted by `DEC-098`, its complete fielded
+implementation handoff is recorded by `DEC-099`, and exact implementation is accepted by `DEC-100` in
 `docs/66_ai-company-durable-delivery-package-persistence-plan.md` and
-`docs/67_ai-company-durable-delivery-package-implementation-decision-handoff.md`. The planned slice
-would migrate valid state additively to schema v9 and persist one exact `review-required` package from
-the current delivery-ready plan, terminal checkpoint, and response-only preview. No implementation is
-approved yet: the runtime remains schema v8, the preview remains `persisted=false` and
-`missionDone=false`, and package acceptance, Mission/task close-out, commit, push, release, learning,
-memory, scheduling, provider expansion, and connectors remain blocked.
+`docs/67_ai-company-durable-delivery-package-implementation-decision-handoff.md`. Valid schema-v8
+state migrates additively to schema v9 without creating a package or losing checkpoint history. One
+explicit exact preview/source/package/checkpoint tuple can append one immutable `review-required`
+record; stale requests do not write and exact replay is idempotent. The preview remains
+`persisted=false` and `missionDone=false`; package acceptance, Mission/task close-out, commit, push,
+release, learning, memory, scheduling, provider expansion, and connectors remain blocked.
 
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
@@ -227,10 +227,10 @@ The close-out evidence remains source-backed:
 registration, UI QA registration, zero-open backlog, post-completion router, proposal-record
 lifecycle review alias evidence, proposal generation planning, implementation, pending human-review,
 review-decision packet, accepted evidence-decision, and downstream authority decision-packet
-evidence plus AI Company durable DeliveryPackage planning together, and
+evidence plus AI Company durable DeliveryPackage implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `200/200`, total `201/201`; UI QA is required `34/34`.
+`1/1`, informational `202/202`, total `203/203`; UI QA is required `35/35`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -291,14 +291,14 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `201/201`, UI QA `34/34`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `203/203`, UI QA `35/35`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
-- Durable DeliveryPackage planning: `docs/66_ai-company-durable-delivery-package-persistence-plan.md`,
+- Durable DeliveryPackage persistence: `docs/66_ai-company-durable-delivery-package-persistence-plan.md`,
   `docs/67_ai-company-durable-delivery-package-implementation-decision-handoff.md`, and
-  `scripts/smoke-ai-company-durable-delivery-package-planning.mjs` pin the future exact schema-v9
-  `review-required` record while proving current schema-v8 persistence routes and records remain absent.
+  `scripts/smoke-ai-company-durable-delivery-package.mjs`, and `scripts/smoke-ui-slice-657.mjs` prove
+  the exact schema-v9 `review-required` record while package acceptance and Mission done remain absent.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
   draft planning target, the full operator decision fields, rollback and focused smoke requirements,
@@ -1696,7 +1696,7 @@ Observed result:
 | `POST` | `/api/council-sessions/:sessionId/resume` | Resume a failed position or synthesis attempt. |
 | `POST` | `/api/council-sessions/:sessionId/decision` | Approve, request a targeted revision, or stop a Real Council session. |
 | `POST` | `/api/council-sessions/:sessionId/work-order-preview` | Recompute one response-only source-current WorkOrder preview. |
-| `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview plan bundle and pending approval in current schema v8 state. |
+| `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview plan bundle and pending approval in current schema v9 state. |
 | `GET` | `/api/execution-plans/:executionPlanId` | Inspect one durable plan, WorkOrders, handoffs, approval, and control task. |
 | `POST` | `/api/execution-plans/:executionPlanId/start-sequential` | Start only the approved local Builder preflight path and stop at live-mutation approval. |
 | `POST` | `/api/execution-plans/:executionPlanId/continue-reviewed-delivery` | Continue one exact approved local Builder gate through Reviewer and constrained syntax QA. |
@@ -1704,6 +1704,8 @@ Observed result:
 | `POST` | `/api/execution-plans/:executionPlanId/resume-from-checkpoint` | Resume one exact current Reviewer-ready or QA-ready checkpoint and stop at the next boundary. |
 | `POST` | `/api/execution-plans/:executionPlanId/cancel-checkpoint` | Record cancellation for one exact current checkpoint without deleting evidence. |
 | `GET` | `/api/execution-plans/:executionPlanId/delivery-preview` | Recompute the response-only DeliveryPackage from delivery-ready evidence. |
+| `GET` | `/api/execution-plans/:executionPlanId/delivery-package` | Read the current durable `review-required` DeliveryPackage record, if present. |
+| `POST` | `/api/execution-plans/:executionPlanId/persist-delivery-package` | Persist one exact preview/source/package/checkpoint tuple as a durable review-required record. |
 | `POST` | `/api/tasks` | Create a task under the active project. |
 | `POST` | `/api/tasks/:taskId/run-planner` | Run planner. |
 | `POST` | `/api/tasks/:taskId/run-architect` | Run architect. |
@@ -1734,9 +1736,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 879 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 881 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 656 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 657 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -1859,6 +1861,8 @@ node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ui-slice-656.mjs
 node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
+node scripts/smoke-ai-company-durable-delivery-package.mjs
+node scripts/smoke-ui-slice-657.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -1867,13 +1871,14 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `201/201`, UI QA `34/34`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `203/203`, UI QA `35/35`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
-- `node scripts/smoke-ai-company-durable-delivery-package-planning.mjs`: `DEC-098`/`DEC-099`, exact
-  future digest tuple, current schema-v8 response-only boundary, absent persistence authority, and
-  still-blocked package acceptance, Mission done, commit, push, release, learning, and memory stay aligned.
+- `node scripts/smoke-ai-company-durable-delivery-package.mjs` and
+  `node scripts/smoke-ui-slice-657.mjs`: `DEC-098`/`DEC-099`/`DEC-100`, exact schema-v8 migration,
+  schema-v9 digest tuple persistence, read-only hydration, idempotency, and still-blocked package
+  acceptance, Mission done, commit, push, release, learning, and memory stay aligned.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
   reports `ok=true`, read-only lifecycle-close status readiness, blocked
   source mutation and remediation execution, and the next lifecycle-close-review command.
@@ -2133,9 +2138,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `34/34`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `35/35`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `200/200`, total `201/201`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `202/202`, total `203/203`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2144,7 +2149,7 @@ Current verification evidence from this README and completion close-out refresh:
   proposal application implementation decision handoff, proposal application attempt creation smoke,
   proposal application implementation status, source mutation decision packet, source mutation
   operator handoff, source mutation planning plan checks, and the proposal-record lifecycle review
-  status/smoke checks plus AI Company durable DeliveryPackage planning evidence.
+  status/smoke checks plus AI Company durable DeliveryPackage planning and implementation evidence.
 Recent local visual QA evidence for the refreshed shell was captured with the local UI server and
 Playwright CLI:
 
@@ -2165,7 +2170,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `201/201`, UI QA `34/34`, and zero-open backlog are local source-backed checks.
+  aggregate `203/203`, UI QA `35/35`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
@@ -2178,14 +2183,18 @@ Playwright CLI:
   WorkOrders, checkpoint expansion, source mutation, commit, push, and release remain blocked.
 - `DEC-094` permits only the exact local-stub reviewed-delivery continuation from an approved
   schema-v7 Builder gate through independent Reviewer and constrained syntax QA. The resulting
-  DeliveryPackage is response-only and Mission remains not done; durable package persistence,
-  automatic rework, scheduling/provider/memory/checkpoint expansion, commit, push, release, and
-  connectors remain blocked.
+  DeliveryPackage preview is response-only and Mission remains not done; durable promotion requires
+  the separate exact `DEC-100` path. Automatic rework, scheduling/provider/memory expansion, commit,
+  push, release, and connectors remain blocked.
 - `DEC-097` permits additive schema-v8 WorkflowCheckpoint persistence, read-only recovery, and one
   exact local-stub Reviewer or constrained QA resume/cancel path. Any active or ambiguous Builder,
   Reviewer, or QA interruption remains quarantine-only. Builder replay, automatic retry/rework,
-  scheduling, provider-backed WorkOrders, durable DeliveryPackage, Mission done, memory expansion,
+  scheduling, provider-backed WorkOrders, Mission done, memory expansion,
   commit, push, release, and connectors remain blocked.
+- `DEC-100` permits additive schema-v9 migration and one explicit exact-tuple durable
+  `review-required` DeliveryPackage record. It does not permit package acceptance/rejection,
+  Mission/task close-out or done, commit, push, release, learning, memory, retry/rework, scheduling,
+  provider expansion, policy mutation, approval bypass, or connectors.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

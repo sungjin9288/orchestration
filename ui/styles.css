@@ -8736,7 +8736,8 @@ h3 {
 .mission-workorder-compile-form,
 .mission-workorder-preview,
 .mission-workorder-plan,
-.delivery-package-preview {
+.delivery-package-preview,
+.delivery-package-record {
   width: 100%;
   margin-top: 12px;
   padding-top: 12px;
@@ -8841,7 +8842,8 @@ h3 {
   margin-top: 10px;
 }
 
-.delivery-package-preview {
+.delivery-package-preview,
+.delivery-package-record {
   min-width: 0;
   padding: 14px;
   border: 1px solid var(--surface-control-border);
@@ -8849,9 +8851,35 @@ h3 {
   background: rgba(255, 255, 255, 0.94);
 }
 
-.delivery-package-preview > .card-title-row {
+.delivery-package-preview > .card-title-row,
+.delivery-package-record > .card-title-row {
   align-items: center;
   flex-wrap: wrap;
+}
+
+.delivery-package-record {
+  border-color: color-mix(in srgb, var(--success) 35%, var(--surface-control-border));
+}
+
+.delivery-package-preview .token-row .token,
+.delivery-package-record .token-row .token,
+.delivery-package-result .token {
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.delivery-package-actions,
+.delivery-package-register {
+  margin-top: 12px;
+}
+
+.delivery-package-register {
+  display: grid;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
 }
 
 .delivery-package-results {

@@ -497,6 +497,16 @@ const informationalChecks = [
     purpose: 'AI Company durable DeliveryPackage planning pins DEC-098 and DEC-099, one future additive schema v9 review-required record from exact delivery-ready preview and terminal checkpoint digests, explicit operator persistence, strict no-write and idempotency requirements, rollback retention, and current negative evidence with package acceptance Mission close-out done commit push release learning memory scheduling providers policy mutation and connectors still blocked',
   },
   {
+    id: 'ai-company-durable-delivery-package-implementation',
+    script: 'scripts/smoke-ai-company-durable-delivery-package.mjs',
+    purpose: 'AI Company durable DeliveryPackage runtime proves additive schema v9 migration with schema v8 checkpoint preservation, exact preview source package and terminal checkpoint digest binding, one immutable review-required record, strict stale no-write behavior, idempotent replay, reload retention, and blocked package acceptance Mission task close-out commit push release learning providers scheduling and connectors',
+  },
+  {
+    id: 'ai-company-durable-delivery-package-ui-api',
+    script: 'scripts/smoke-ui-slice-657.mjs',
+    purpose: 'AI Company durable DeliveryPackage UI and API prove read-only hydration, exact tuple-gated explicit persistence, durable review-required evidence rendering, stale failure safety, idempotent replay, responsive controls, and absent package acceptance Mission done task close-out commit push release or learning actions',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

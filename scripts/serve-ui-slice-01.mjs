@@ -1825,6 +1825,71 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const executionPlanDeliveryPackageMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/delivery-package$/,
+  );
+  if (method === 'GET' && executionPlanDeliveryPackageMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanDeliveryPackageMatch[1]);
+      const result = runtime.getExecutionPlanDeliveryPackage(executionPlanId);
+      json(response, 200, {
+        deliveryPackage: result.deliveryPackage,
+        deliveryPackageRefs: result.deliveryPackageRefs,
+        executionPlanId,
+        generatedAt: new Date().toISOString(),
+        runtimeRoot: options.runtimeRoot,
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Durable DeliveryPackage 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const executionPlanPersistDeliveryPackageMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/persist-delivery-package$/,
+  );
+  if (method === 'POST' && executionPlanPersistDeliveryPackageMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanPersistDeliveryPackageMatch[1]);
+      const input = await readJsonBody(request);
+      const result = runtime.persistExecutionPlanDeliveryPackage({
+        executionPlanId,
+        previewId: input.previewId,
+        sourceDigest: input.sourceDigest,
+        packageDigest: input.packageDigest,
+        checkpointId: input.checkpointId,
+        checkpointDigest: input.checkpointDigest,
+      });
+      json(
+        response,
+        result.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          deliveryPackagePreview: result.deliveryPackagePreview,
+          durableDeliveryPackage: result.deliveryPackage,
+          executionPlanBundle: result,
+          mutation: {
+            deliveryPackageId: result.deliveryPackage.id,
+            executionPlanId,
+            idempotent: result.idempotent,
+            kind: 'persist-delivery-package',
+            stoppedAt: 'delivery-package-review-required',
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'DeliveryPackage 기록에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );

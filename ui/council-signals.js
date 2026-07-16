@@ -93,6 +93,9 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
   const workflowCheckpoints = (executionPlan.checkpointRefs || [])
     .map((id) => snapshot.workflowCheckpoints?.[id] || null)
     .filter(Boolean);
+  const deliveryPackages = (executionPlan.deliveryPackageRefs || [])
+    .map((id) => snapshot.deliveryPackages?.[id] || null)
+    .filter(Boolean);
 
   if (
     workOrders.length !== executionPlan.workOrderIds.length ||
@@ -111,9 +114,36 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
     terminalGateApproval,
     controlTask,
     workflowCheckpoints,
+    deliveryPackages,
     latestCheckpoint: executionPlan.latestCheckpointId
       ? snapshot.workflowCheckpoints?.[executionPlan.latestCheckpointId] || null
       : null,
+    latestDeliveryPackage: executionPlan.latestDeliveryPackageId
+      ? snapshot.deliveryPackages?.[executionPlan.latestDeliveryPackageId] || null
+      : null,
+  };
+}
+
+export function getMissionDeliveryPackagePersistenceSummary(preview, bundle, durablePackage) {
+  if (!preview || preview.executionPlanId !== bundle?.executionPlan.id) return null;
+  const checkpoint = bundle.latestCheckpoint || null;
+  const tupleCurrent = Boolean(
+    checkpoint &&
+      checkpoint.id === preview.terminalCheckpointId &&
+      checkpoint.checkpointDigest === preview.terminalCheckpointDigest &&
+      checkpoint.stage === 'delivery-ready' &&
+      checkpoint.status === 'terminal' &&
+      bundle.executionPlan.sourceDigest === preview.sourceDigest,
+  );
+  return {
+    canPersist: Boolean(
+      tupleCurrent &&
+        !durablePackage &&
+        preview.packageDigest &&
+        preview.authoritySummary?.durablePersistenceAllowed === true,
+    ),
+    persisted: Boolean(durablePackage),
+    tupleCurrent,
   };
 }
 

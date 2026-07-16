@@ -11,11 +11,11 @@ task, provider, source, commit, push, release, 또는 learning authority를 열�
 
 - Planning-only decision: accepted as `DEC-098`
 - Implementation handoff: documented as `DEC-099`
-- Complete fielded implementation decision: not supplied
-- Current runtime: schema v8 with deterministic response-only DeliveryPackage preview
-- Current durable package records: none
+- Complete fielded implementation decision: accepted as `DEC-100`
+- Current runtime: schema v9 with deterministic response-only preview and exact persistence path
+- Current durable package records: zero or one immutable `review-required` record per ExecutionPlan
 - Current Mission status after delivery: `executing`
-- Safe future target: one exact local `review-required` record only
+- Implemented target: one exact local `review-required` record only
 
 General approval, continuation wording, delegated non-critical self-approval, or a prior plan/checkpoint
 approval does not open this schema- and persistence-sensitive implementation.

@@ -15,6 +15,7 @@ const {
   DECISION_INBOX_KIND,
   DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
+  DELIVERY_PACKAGE_STATUS,
   EXECUTION_PLAN_STATUS,
   PACKS,
   PROVIDER_ADAPTER_ID,
@@ -101,6 +102,7 @@ const {
   uniqueReasons,
 } = require('./task-gates');
 const {
+  assertDeliveryPackage,
   assertExecutionPlan,
   assertHandoffPacket,
   assertRun,
@@ -116,6 +118,10 @@ const {
   createWorkflowCheckpoint,
   recomputeWorkflowCheckpoint,
 } = require('./workflow-checkpoints');
+const {
+  computeDeliveryPackageDigest,
+  createDeliveryPackage,
+} = require('./delivery-packages');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -155,6 +161,11 @@ function createRuntimeService(options = {}) {
   function nextWorkflowCheckpointId(state) {
     state.sequences.workflowCheckpoint += 1;
     return `workflow-checkpoint-${String(state.sequences.workflowCheckpoint).padStart(4, '0')}`;
+  }
+
+  function nextDeliveryPackageId(state) {
+    state.sequences.deliveryPackage += 1;
+    return `delivery-package-${String(state.sequences.deliveryPackage).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -2066,14 +2077,20 @@ function createRuntimeService(options = {}) {
       assertHandoffPacket(id, state));
     const workflowCheckpoints = executionPlan.checkpointRefs.map((id) =>
       assertWorkflowCheckpoint(id, state));
+    const deliveryPackages = executionPlan.deliveryPackageRefs.map((id) =>
+      assertDeliveryPackage(id, state));
 
     return {
       executionPlan,
       workOrders,
       handoffPackets,
       workflowCheckpoints,
+      deliveryPackages,
       latestCheckpoint: executionPlan.latestCheckpointId
         ? assertWorkflowCheckpoint(executionPlan.latestCheckpointId, state)
+        : null,
+      latestDeliveryPackage: executionPlan.latestDeliveryPackageId
+        ? assertDeliveryPackage(executionPlan.latestDeliveryPackageId, state)
         : null,
       approval: assertApproval(executionPlan.approvalId, state),
       terminalGateApproval: executionPlan.terminalGateApprovalId
@@ -2838,8 +2855,7 @@ function createRuntimeService(options = {}) {
     return Object.freeze(value);
   }
 
-  function previewExecutionPlanDelivery(input) {
-    const state = store.loadState();
+  function buildExecutionPlanDeliveryPreviewFromState(state, input) {
     const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
     const { executionPlan, byRole, mission } = bundle;
     if (input.sourceDigest && input.sourceDigest !== executionPlan.sourceDigest) {
@@ -2855,6 +2871,18 @@ function createRuntimeService(options = {}) {
     }
     if (listPendingBlockingDecisionItems(executionPlan.controlTaskId, state).length > 0) {
       throw conflict('DeliveryPackage is blocked by an unresolved decision');
+    }
+    const recovery = buildExecutionPlanRecoveryFromState(state, executionPlan.id);
+    const terminalCheckpoint = bundle.latestCheckpoint;
+    if (
+      !terminalCheckpoint ||
+      terminalCheckpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY ||
+      terminalCheckpoint.status !== WORKFLOW_CHECKPOINT_STATUS.TERMINAL ||
+      recovery.classification !== WORKFLOW_CHECKPOINT_STATUS.TERMINAL ||
+      !recovery.current ||
+      recovery.currentDigests?.checkpointDigest !== terminalCheckpoint.checkpointDigest
+    ) {
+      throw conflict('DeliveryPackage requires the exact current terminal WorkflowCheckpoint');
     }
 
     const reviewerRun = assertRun(byRole.reviewer.completionRunId, state);
@@ -2894,10 +2922,13 @@ function createRuntimeService(options = {}) {
       .update(JSON.stringify([executionPlan.id, executionPlan.sourceDigest, deliveredArtifactRefs]))
       .digest('hex')
       .slice(0, 16);
-    return deepFreeze({
+    const preview = {
       id: `delivery-package-preview-${idDigest}`,
+      projectId: executionPlan.projectId,
       missionId: mission.id,
       executionPlanId: executionPlan.id,
+      terminalCheckpointId: terminalCheckpoint.id,
+      terminalCheckpointDigest: terminalCheckpoint.checkpointDigest,
       deliveredArtifactRefs,
       workOrderResults: bundle.workOrders.map((workOrder) => ({
         workOrderId: workOrder.id,
@@ -2917,20 +2948,99 @@ function createRuntimeService(options = {}) {
       acceptedRisks: ['QA evidence covers Node.js syntax only.'],
       unresolvedItems: [],
       authoritySummary: {
-        durablePersistenceAllowed: false,
+        durablePersistenceAllowed: true,
+        packageAcceptanceAllowed: false,
         missionDoneAllowed: false,
+        taskCloseOutAllowed: false,
         commitAllowed: false,
         pushAllowed: false,
         releaseAllowed: false,
         memoryPersistenceAllowed: false,
+        learningAllowed: false,
         schedulingAllowed: false,
         providerExpansionAllowed: false,
+        profilePolicyMutationAllowed: false,
       },
       sourceDigest: executionPlan.sourceDigest,
       generatedAt: qaArtifact.createdAt,
       persisted: false,
       missionDone: false,
+    };
+    preview.packageDigest = computeDeliveryPackageDigest(preview);
+    return deepFreeze(preview);
+  }
+
+  function previewExecutionPlanDelivery(input) {
+    return buildExecutionPlanDeliveryPreviewFromState(store.loadState(), input);
+  }
+
+  function getExecutionPlanDeliveryPackage(executionPlanId) {
+    const bundle = getExecutionPlanBundleFromState(store.loadState(), executionPlanId);
+    return {
+      executionPlanId,
+      deliveryPackage: bundle.latestDeliveryPackage,
+      deliveryPackageRefs: [...bundle.executionPlan.deliveryPackageRefs],
+    };
+  }
+
+  function assertExactDeliveryPackageTuple(input, preview) {
+    const exactFields = [
+      ['previewId', preview.id],
+      ['sourceDigest', preview.sourceDigest],
+      ['packageDigest', preview.packageDigest],
+      ['checkpointId', preview.terminalCheckpointId],
+      ['checkpointDigest', preview.terminalCheckpointDigest],
+    ];
+    for (const [field, expected] of exactFields) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`DeliveryPackage ${field} does not match the current preview`);
+      }
+    }
+  }
+
+  function persistExecutionPlanDeliveryPackage(input) {
+    const state = store.loadState();
+    const preview = buildExecutionPlanDeliveryPreviewFromState(state, input);
+    assertExactDeliveryPackageTuple(input, preview);
+    const bundle = getExecutionPlanBundleFromState(state, input.executionPlanId);
+
+    if (bundle.latestDeliveryPackage) {
+      const existing = bundle.latestDeliveryPackage;
+      if (
+        existing.previewId !== preview.id ||
+        existing.sourceDigest !== preview.sourceDigest ||
+        existing.packageDigest !== preview.packageDigest ||
+        existing.terminalCheckpointId !== preview.terminalCheckpointId ||
+        existing.terminalCheckpointDigest !== preview.terminalCheckpointDigest ||
+        existing.status !== DELIVERY_PACKAGE_STATUS.REVIEW_REQUIRED
+      ) {
+        throw conflict(`ExecutionPlan ${bundle.executionPlan.id} already has a different package`);
+      }
+      return {
+        ...bundle,
+        deliveryPackage: existing,
+        deliveryPackagePreview: preview,
+        idempotent: true,
+      };
+    }
+
+    const now = new Date().toISOString();
+    const deliveryPackage = createDeliveryPackage({
+      id: nextDeliveryPackageId(state),
+      preview,
+      createdAt: now,
     });
+    state.deliveryPackages[deliveryPackage.id] = deliveryPackage;
+    bundle.executionPlan.deliveryPackageRefs.push(deliveryPackage.id);
+    bundle.executionPlan.latestDeliveryPackageId = deliveryPackage.id;
+    store.saveState(state);
+
+    return {
+      ...getExecutionPlanBundleFromState(state, bundle.executionPlan.id),
+      deliveryPackage,
+      deliveryPackagePreview: preview,
+      idempotent: false,
+    };
   }
 
   function persistMissionWorkOrderPlan(input) {
@@ -3043,6 +3153,8 @@ function createRuntimeService(options = {}) {
       artifactRefs: [],
       checkpointRefs: [],
       latestCheckpointId: null,
+      deliveryPackageRefs: [],
+      latestDeliveryPackageId: null,
       createdAt: now,
       updatedAt: now,
     };
@@ -4655,6 +4767,7 @@ function createRuntimeService(options = {}) {
     getCouncilProviderReadiness,
     getDecisionInboxItem,
     getExecutionPlan,
+    getExecutionPlanDeliveryPackage,
     getExecutionPlanRecovery,
     getLogs,
     getMission,
@@ -4670,6 +4783,7 @@ function createRuntimeService(options = {}) {
     preflightMissionWorkOrderPreview,
     previewMissionWorkOrders,
     previewExecutionPlanDelivery,
+    persistExecutionPlanDeliveryPackage,
     persistMissionWorkOrderPlan,
     listApprovals,
     listCouncilProviderReadinessSummaries,
