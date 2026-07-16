@@ -67,6 +67,8 @@ Planning source files:
 - `docs/63_ai-company-reviewed-delivery-implementation-decision-handoff.md`
 - `docs/64_ai-company-checkpoint-resume-recovery-plan.md`
 - `docs/65_ai-company-checkpoint-resume-recovery-implementation-decision-handoff.md`
+- `docs/66_ai-company-durable-delivery-package-persistence-plan.md`
+- `docs/67_ai-company-durable-delivery-package-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -155,6 +157,16 @@ existing local-stub Reviewer or constrained QA and stops at the next durable bou
 replay, automatic retry, scheduling, provider-backed WorkOrders, durable
 DeliveryPackage, Mission done, memory expansion, commit, push, release, and connectors remain blocked.
 
+Durable DeliveryPackage persistence planning is accepted by `DEC-098`, and its complete fielded
+implementation handoff is recorded by `DEC-099` in
+`docs/66_ai-company-durable-delivery-package-persistence-plan.md` and
+`docs/67_ai-company-durable-delivery-package-implementation-decision-handoff.md`. The planned slice
+would migrate valid state additively to schema v9 and persist one exact `review-required` package from
+the current delivery-ready plan, terminal checkpoint, and response-only preview. No implementation is
+approved yet: the runtime remains schema v8, the preview remains `persisted=false` and
+`missionDone=false`, and package acceptance, Mission/task close-out, commit, push, release, learning,
+memory, scheduling, provider expansion, and connectors remain blocked.
+
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
 `scripts/loop-readiness-status.mjs` verifies that a proposed loop names a goal, boundary,
@@ -215,10 +227,10 @@ The close-out evidence remains source-backed:
 registration, UI QA registration, zero-open backlog, post-completion router, proposal-record
 lifecycle review alias evidence, proposal generation planning, implementation, pending human-review,
 review-decision packet, accepted evidence-decision, and downstream authority decision-packet
-evidence together, and
+evidence plus AI Company durable DeliveryPackage planning together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `199/199`, total `200/200`; UI QA is required `34/34`.
+`1/1`, informational `200/200`, total `201/201`; UI QA is required `34/34`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -279,10 +291,14 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `200/200`, UI QA `34/34`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `201/201`, UI QA `34/34`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
+- Durable DeliveryPackage planning: `docs/66_ai-company-durable-delivery-package-persistence-plan.md`,
+  `docs/67_ai-company-durable-delivery-package-implementation-decision-handoff.md`, and
+  `scripts/smoke-ai-company-durable-delivery-package-planning.mjs` pin the future exact schema-v9
+  `review-required` record while proving current schema-v8 persistence routes and records remain absent.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
   draft planning target, the full operator decision fields, rollback and focused smoke requirements,
@@ -1718,7 +1734,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 878 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 879 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 656 UI smoke files
 ```
@@ -1842,6 +1858,7 @@ node scripts/smoke-completion-gate-inventory-current-evidence.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ui-slice-656.mjs
+node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -1850,10 +1867,13 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `200/200`, UI QA `34/34`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `201/201`, UI QA `34/34`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
+- `node scripts/smoke-ai-company-durable-delivery-package-planning.mjs`: `DEC-098`/`DEC-099`, exact
+  future digest tuple, current schema-v8 response-only boundary, absent persistence authority, and
+  still-blocked package acceptance, Mission done, commit, push, release, learning, and memory stay aligned.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
   reports `ok=true`, read-only lifecycle-close status readiness, blocked
   source mutation and remediation execution, and the next lifecycle-close-review command.
@@ -2115,7 +2135,7 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `34/34`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `199/199`, total `200/200`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `200/200`, total `201/201`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2124,7 +2144,7 @@ Current verification evidence from this README and completion close-out refresh:
   proposal application implementation decision handoff, proposal application attempt creation smoke,
   proposal application implementation status, source mutation decision packet, source mutation
   operator handoff, source mutation planning plan checks, and the proposal-record lifecycle review
-  status/smoke checks.
+  status/smoke checks plus AI Company durable DeliveryPackage planning evidence.
 Recent local visual QA evidence for the refreshed shell was captured with the local UI server and
 Playwright CLI:
 
@@ -2145,7 +2165,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `200/200`, UI QA `34/34`, and zero-open backlog are local source-backed checks.
+  aggregate `201/201`, UI QA `34/34`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,

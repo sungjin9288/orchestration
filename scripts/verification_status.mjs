@@ -492,6 +492,11 @@ const informationalChecks = [
     purpose: 'AI Company Phase 7 UI and API prove read-only recovery inspection, exact tuple-gated Reviewer resume and checkpoint cancel, qa-ready stop, stale failure safety, repeated request idempotency, durable reload evidence, quarantine presentation, responsive controls, and blocked downstream authority',
   },
   {
+    id: 'ai-company-durable-delivery-package-planning',
+    script: 'scripts/smoke-ai-company-durable-delivery-package-planning.mjs',
+    purpose: 'AI Company durable DeliveryPackage planning pins DEC-098 and DEC-099, one future additive schema v9 review-required record from exact delivery-ready preview and terminal checkpoint digests, explicit operator persistence, strict no-write and idempotency requirements, rollback retention, and current negative evidence with package acceptance Mission close-out done commit push release learning memory scheduling providers policy mutation and connectors still blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

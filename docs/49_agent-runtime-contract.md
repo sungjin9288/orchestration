@@ -446,6 +446,13 @@ Builder/Reviewer/QA와 stale digest는 quarantine 또는 stale inspection으로 
 evidence는 loader에서 fail closed한다. 현재 runtime은 schema v8이며 read-only recovery와 exact
 resume/cancel routes를 제공한다.
 
+Durable DeliveryPackage persistence planning은 `DEC-098`, implementation handoff는 `DEC-099`로
+문서화됐다. Future record creation은 current delivery-ready ExecutionPlan, terminal WorkflowCheckpoint,
+response-only preview를 exact preview/source/package/checkpoint digest로 다시 묶고 explicit operator
+request에서만 one `review-required` record를 append해야 한다. Planning authority는 schema-v9
+migration, durable record, package acceptance, Mission/task close-out, done, commit/push/release,
+LearningCandidate 또는 memory authority가 아니다. Current runtime과 persisted state는 schema v8이다.
+
 ## Verification
 
 ```bash
@@ -469,6 +476,7 @@ node scripts/smoke-ui-slice-655.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ui-slice-656.mjs
+node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -476,5 +484,5 @@ Focused runtime/API/UI smoke는 strict source load, independent request isolatio
 conflict/synthesis, revision/stop/resume, snapshot compatibility, schema v7 migration/reload, legacy
 Council 보존, Phase 4 response-only compilation, Phase 5 durable Builder stop boundary, Phase 6
 exact-gated reviewed delivery, Phase 7 schema-v8 safe recovery contract를 검증한다. StaffingPlan,
-Builder replay, durable DeliveryPackage, Mission done, auto-rework, provider-backed WorkOrders,
+Builder replay, durable DeliveryPackage implementation, Mission done, auto-rework, provider-backed WorkOrders,
 memory expansion, commit/push/release는 blocked다.

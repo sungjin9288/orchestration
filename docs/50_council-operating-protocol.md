@@ -336,6 +336,12 @@ authority를 다시 증명한 `reviewer-ready`/`qa-ready` checkpoint plus explic
 Active or ambiguous Builder/Reviewer/QA는 자동 retry하지 않고 quarantine하며 새 reconciliation
 decision 전까지 실행 authority가 없다.
 
+Durable DeliveryPackage persistence planning은 `DEC-098`, implementation handoff는 `DEC-099`로
+기록됐다. Council alignment, plan approval, Builder approval, Reviewer pass, QA pass, terminal
+checkpoint 중 어느 하나도 durable package authority가 아니다. Future implementation은 이 evidence를
+모두 exact digest로 재검증한 separate operator persist request만 받을 수 있고 `review-required`
+record에서 멈춰야 한다. Package acceptance와 Mission done은 계속 별도 decision이다.
+
 ## Verification
 
 ```bash
@@ -356,6 +362,7 @@ node scripts/smoke-ui-slice-655.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ui-slice-656.mjs
+node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -364,4 +371,5 @@ exact boundary evidence로 유지하고 implementation smokes는 response-only c
 downstream authority를 검증한다. Phase 5 implementation smoke는 durable Builder stop을 고정하고,
 Phase 6 runtime/UI smokes는 exact approval, Reviewer stop, constrained QA, response-only delivery를
 고정한다. Phase 7 planning smoke는 consumed fielded gate를 고정하고 runtime/UI smokes는 exact
-resume, next-boundary stop, cancellation, stale refusal, active-stage quarantine를 고정한다.
+resume, next-boundary stop, cancellation, stale refusal, active-stage quarantine를 고정한다. Durable
+DeliveryPackage planning smoke는 schema-v9 persistence가 fielded decision 전까지 absent임을 고정한다.
