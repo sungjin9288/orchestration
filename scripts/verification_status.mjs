@@ -479,7 +479,17 @@ const informationalChecks = [
   {
     id: 'ai-company-checkpoint-resume-recovery-planning',
     script: 'scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs',
-    purpose: 'AI Company Phase 7 planning pins a future additive schema v8 checkpoint contract, exact digest-bound reviewer-ready or qa-ready resume boundaries, explicit operator resume or cancel, active-stage quarantine without replay, rollback retention, current schema v7 negative evidence, and still-blocked implementation scheduling provider Mission done commit push release and connectors',
+    purpose: 'AI Company Phase 7 planning remains consumed provenance for DEC-097 and pins the accepted additive schema v8 checkpoint contract, exact digest-bound reviewer-ready or qa-ready resume boundaries, explicit operator resume or cancel, active-stage quarantine without replay, rollback retention, and still-blocked scheduling provider Mission done commit push release and connectors',
+  },
+  {
+    id: 'ai-company-checkpoint-resume-recovery-implementation',
+    script: 'scripts/smoke-ai-company-checkpoint-resume-recovery.mjs',
+    purpose: 'AI Company Phase 7 runtime proves additive schema v8 migration, deterministic checkpoint digests, restart-safe Reviewer and QA resume, next-boundary stop, idempotent replay, stale and authority mismatch refusal, cancellation retention, active-stage quarantine, and blocked Builder replay scheduling provider durable package Mission done commit push release and connectors',
+  },
+  {
+    id: 'ai-company-checkpoint-resume-recovery-ui-api',
+    script: 'scripts/smoke-ui-slice-656.mjs',
+    purpose: 'AI Company Phase 7 UI and API prove read-only recovery inspection, exact tuple-gated Reviewer resume and checkpoint cancel, qa-ready stop, stale failure safety, repeated request idempotency, durable reload evidence, quarantine presentation, responsive controls, and blocked downstream authority',
   },
   {
     id: 'coordinator-path-containment-smoke',

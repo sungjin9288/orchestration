@@ -80,7 +80,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v7 after the additive Phase 5 migration, while `companyRuntime` remains an
+execution state is schema v8 after the additive Phase 7 migration, while `companyRuntime` remains an
 additive read-only snapshot on the configured local server path. The editable company roster remains
 browser presentation only.
 
@@ -141,16 +141,19 @@ delivery-ready plan recomputes one deeply frozen response-only DeliveryPackage p
 durable package persistence, automatic rework, scheduling/provider/memory/checkpoint expansion,
 commit, push, release, and connectors remain blocked.
 
-Phase 7 checkpoint, resume, and recovery planning is accepted by `DEC-095`, and its implementation
-decision handoff is recorded by `DEC-096` in
+Phase 7 checkpoint, resume, and recovery planning is accepted by `DEC-095`, its implementation
+decision handoff is recorded by `DEC-096`, and the exact implementation is accepted by `DEC-097` in
 `docs/64_ai-company-checkpoint-resume-recovery-plan.md` and
 `docs/65_ai-company-checkpoint-resume-recovery-implementation-decision-handoff.md`. Only durable
-`reviewer-ready` or `qa-ready` boundaries are planned as resumable, with exact input, authority, and
-checkpoint digest binding plus an explicit operator action. Active or ambiguous Builder, Reviewer,
-and QA stages are quarantine-only and cannot be replayed automatically. The current runtime remains
-schema v7; schema-v8 migration, WorkflowCheckpoint persistence, recovery routes, resume/cancel
-execution, retry scheduling, and every downstream authority remain blocked until a complete fielded
-implementation decision is supplied.
+`reviewer-ready` or `qa-ready` boundaries are resumable, with exact input, authority, and checkpoint
+digest binding plus an explicit operator action. Active or ambiguous Builder, Reviewer, and QA stages
+are quarantine-only and cannot be replayed automatically. The current runtime is schema v8 with an
+additive WorkflowCheckpoint map, read-only recovery classification, and exact resume/cancel routes.
+Migration atomically bootstraps one checkpoint when valid schema-v7 evidence is already at an exact
+durable boundary; non-boundary domain values remain unchanged. Each valid resume runs only the
+existing local-stub Reviewer or constrained QA and stops at the next durable boundary. Builder
+replay, automatic retry, scheduling, provider-backed WorkOrders, durable
+DeliveryPackage, Mission done, memory expansion, commit, push, release, and connectors remain blocked.
 
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
@@ -215,7 +218,7 @@ review-decision packet, accepted evidence-decision, and downstream authority dec
 evidence together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `197/197`, total `198/198`; UI QA is required `33/33`.
+`1/1`, informational `199/199`, total `200/200`; UI QA is required `34/34`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -276,7 +279,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `198/198`, UI QA `33/33`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `200/200`, UI QA `34/34`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -1677,10 +1680,13 @@ Observed result:
 | `POST` | `/api/council-sessions/:sessionId/resume` | Resume a failed position or synthesis attempt. |
 | `POST` | `/api/council-sessions/:sessionId/decision` | Approve, request a targeted revision, or stop a Real Council session. |
 | `POST` | `/api/council-sessions/:sessionId/work-order-preview` | Recompute one response-only source-current WorkOrder preview. |
-| `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview schema-v7 plan bundle and pending approval. |
+| `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview plan bundle and pending approval in current schema v8 state. |
 | `GET` | `/api/execution-plans/:executionPlanId` | Inspect one durable plan, WorkOrders, handoffs, approval, and control task. |
 | `POST` | `/api/execution-plans/:executionPlanId/start-sequential` | Start only the approved local Builder preflight path and stop at live-mutation approval. |
 | `POST` | `/api/execution-plans/:executionPlanId/continue-reviewed-delivery` | Continue one exact approved local Builder gate through Reviewer and constrained syntax QA. |
+| `GET` | `/api/execution-plans/:executionPlanId/recovery` | Recompute one read-only schema-v8 checkpoint recovery classification. |
+| `POST` | `/api/execution-plans/:executionPlanId/resume-from-checkpoint` | Resume one exact current Reviewer-ready or QA-ready checkpoint and stop at the next boundary. |
+| `POST` | `/api/execution-plans/:executionPlanId/cancel-checkpoint` | Record cancellation for one exact current checkpoint without deleting evidence. |
 | `GET` | `/api/execution-plans/:executionPlanId/delivery-preview` | Recompute the response-only DeliveryPackage from delivery-ready evidence. |
 | `POST` | `/api/tasks` | Create a task under the active project. |
 | `POST` | `/api/tasks/:taskId/run-planner` | Run planner. |
@@ -1712,9 +1718,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 876 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 878 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 655 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 656 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -1834,6 +1840,8 @@ node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/smoke-completion-gate-inventory-current-evidence.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
+node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
+node scripts/smoke-ui-slice-656.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -1842,7 +1850,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `198/198`, UI QA `33/33`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `200/200`, UI QA `34/34`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2105,9 +2113,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `33/33`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `34/34`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `197/197`, total `198/198`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `199/199`, total `200/200`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2137,7 +2145,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `198/198`, UI QA `33/33`, and zero-open backlog are local source-backed checks.
+  aggregate `200/200`, UI QA `34/34`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
@@ -2153,10 +2161,11 @@ Playwright CLI:
   DeliveryPackage is response-only and Mission remains not done; durable package persistence,
   automatic rework, scheduling/provider/memory/checkpoint expansion, commit, push, release, and
   connectors remain blocked.
-- `DEC-095` and `DEC-096` approve Phase 7 planning and its implementation handoff only. The current
-  runtime has no schema-v8 migration, WorkflowCheckpoint record, recovery classifier, or
-  resume/cancel route. Any active or ambiguous Builder, Reviewer, or QA interruption remains
-  quarantine-only until a complete fielded implementation decision opens that exact slice.
+- `DEC-097` permits additive schema-v8 WorkflowCheckpoint persistence, read-only recovery, and one
+  exact local-stub Reviewer or constrained QA resume/cancel path. Any active or ambiguous Builder,
+  Reviewer, or QA interruption remains quarantine-only. Builder replay, automatic retry/rework,
+  scheduling, provider-backed WorkOrders, durable DeliveryPackage, Mission done, memory expansion,
+  commit, push, release, and connectors remain blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

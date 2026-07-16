@@ -205,8 +205,9 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 7;
-const MIGRATABLE_STATE_SCHEMA_VERSION = 6;
+const STATE_SCHEMA_VERSION = 8;
+const MIGRATABLE_STATE_SCHEMA_VERSION = 7;
+const LEGACY_STATE_SCHEMA_VERSION = 6;
 
 const EXECUTION_PLAN_STATUS = {
   PENDING_APPROVAL: 'pending-approval',
@@ -234,6 +235,31 @@ const WORK_ORDER_STATUS = {
 
 const WORK_ORDER_ACTION = {
   START_SEQUENTIAL: 'start-workorder-sequential-execution',
+};
+
+const WORKFLOW_CHECKPOINT_STAGE = {
+  BUILDER_WAITING_GATE: 'builder-waiting-gate',
+  REVIEWER_READY: 'reviewer-ready',
+  QA_READY: 'qa-ready',
+  DELIVERY_READY: 'delivery-ready',
+};
+
+const WORKFLOW_CHECKPOINT_STATUS = {
+  READY: 'ready',
+  CONSUMED: 'consumed',
+  STALE: 'stale',
+  CANCELLED: 'cancelled',
+  QUARANTINED: 'quarantined',
+  TERMINAL: 'terminal',
+};
+
+const WORKFLOW_CHECKPOINT_ACTION = {
+  RESUME_REVIEWER: 'resume-reviewer',
+  RESUME_QA: 'resume-qa',
+};
+
+const WORKFLOW_TYPE = {
+  REVIEWED_DELIVERY: 'reviewed-delivery',
 };
 
 const BUILDER_ACTION = {
@@ -336,6 +362,7 @@ function createEmptyState() {
       executionPlan: 0,
       workOrder: 0,
       handoffPacket: 0,
+      workflowCheckpoint: 0,
     },
     missions: {},
     councilSessions: {},
@@ -351,6 +378,7 @@ function createEmptyState() {
     executionPlans: {},
     workOrders: {},
     handoffPackets: {},
+    workflowCheckpoints: {},
   };
 }
 
@@ -386,10 +414,15 @@ module.exports = {
   REVIEW_STATUS,
   RUN_STATUS,
   EXECUTION_PLAN_STATUS,
+  LEGACY_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,
   TASK_LIFECYCLE,
   WORK_ORDER_ACTION,
   WORK_ORDER_STATUS,
+  WORKFLOW_CHECKPOINT_ACTION,
+  WORKFLOW_CHECKPOINT_STAGE,
+  WORKFLOW_CHECKPOINT_STATUS,
+  WORKFLOW_TYPE,
   createEmptyState,
 };

@@ -438,10 +438,13 @@ changed-file allowlist 안의 shell-free `process.execPath --check`만 one `qa-e
 허용한다. `DeliveryPackage`는 deeply frozen response-only preview이며 Mission은 `executing`에 남는다.
 
 Phase 7 safe-boundary recovery planning은 `DEC-095`, implementation handoff는 `DEC-096`으로
-문서화됐다. Planned schema-v8 checkpoint는 exact input/authority/checkpoint digest와 attempt evidence를
-보존하고 `reviewer-ready` 또는 `qa-ready`에서만 explicit local-stub resume을 허용한다. Restart 뒤
-active Builder/Reviewer/QA, stale digest, partial/corrupt evidence는 quarantine or stale inspection으로
-멈춘다. 현재 runtime은 schema v7이며 WorkflowCheckpoint persistence와 recovery routes는 없다.
+문서화됐고 exact implementation은 `DEC-097`로 accepted됐다. Schema-v8 checkpoint는 exact
+input/authority/checkpoint digest와 append-only attempt evidence를
+보존하고 `reviewer-ready` 또는 `qa-ready`에서만 explicit local-stub resume/cancel을 허용한다. Valid
+schema-v7 safe boundary는 atomic migration 중 one bootstrap checkpoint로 보존된다. Restart 뒤 active
+Builder/Reviewer/QA와 stale digest는 quarantine 또는 stale inspection으로 멈추며 partial/corrupt v8
+evidence는 loader에서 fail closed한다. 현재 runtime은 schema v8이며 read-only recovery와 exact
+resume/cancel routes를 제공한다.
 
 ## Verification
 
@@ -464,12 +467,14 @@ node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
 node scripts/smoke-ai-company-reviewed-delivery.mjs
 node scripts/smoke-ui-slice-655.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
+node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
+node scripts/smoke-ui-slice-656.mjs
 node scripts/verification_status.mjs
 ```
 
 Focused runtime/API/UI smoke는 strict source load, independent request isolation, invalid rejection,
 conflict/synthesis, revision/stop/resume, snapshot compatibility, schema v7 migration/reload, legacy
 Council 보존, Phase 4 response-only compilation, Phase 5 durable Builder stop boundary, Phase 6
-exact-gated reviewed delivery, Phase 7 planning-only safe recovery contract를 검증한다. StaffingPlan,
-schema-v8 implementation, durable DeliveryPackage, Mission done, auto-rework, provider-backed
-WorkOrders, memory/checkpoint expansion, commit/push/release는 blocked다.
+exact-gated reviewed delivery, Phase 7 schema-v8 safe recovery contract를 검증한다. StaffingPlan,
+Builder replay, durable DeliveryPackage, Mission done, auto-rework, provider-backed WorkOrders,
+memory expansion, commit/push/release는 blocked다.

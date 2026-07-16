@@ -167,7 +167,7 @@ assert.match(
 );
 
 // Consumed planning must remain truthful about the current schema-v7 implementation boundary.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 7/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 8/);
 assert.match(contracts, /executionPlans: \{\}/);
 assert.match(contracts, /workOrders: \{\}/);
 assert.match(fileStore, /executionPlans: state\.executionPlans \|\| \{\}/);
@@ -189,14 +189,14 @@ process.stdout.write(
         implementation: 'accepted-dec-091',
       },
       plannedPath: {
-        schemaVersion: 7,
+        schemaVersion: 8,
         records: ['executionPlan', 'workOrder', 'handoffPacket'],
         approval: 'digest-bound-task-owned',
         dispatch: 'local-sequential-builder-only',
         stop: 'existing-builder-live-mutation-approval',
       },
       currentBaseline: {
-        schemaVersion: 7,
+        schemaVersion: 8,
         preview: 'response-only-compatible',
         durableWorkOrderRecords: true,
         workOrderExecution: 'builder-preflight-only',

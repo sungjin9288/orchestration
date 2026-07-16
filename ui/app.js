@@ -139,6 +139,7 @@ import {
   getLatestRealCouncilPositions,
   getMissionExecutionPlanBundle,
   getMissionReviewedDeliverySummary,
+  getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
   isRealCouncilMode,
   parseMissionWorkOrderCompileList,
@@ -343,6 +344,7 @@ const state = {
   },
   missionWorkOrderPreview: null,
   missionDeliveryPackagePreview: null,
+  missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -4695,6 +4697,9 @@ function applySnapshotPayload(payload) {
   if (Object.prototype.hasOwnProperty.call(payload, 'deliveryPackagePreview')) {
     state.missionDeliveryPackagePreview = payload.deliveryPackagePreview || null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
+    state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
+  }
 
   const snapshot = payload.snapshot || {};
   const activeProject = snapshot.activeProjectId
@@ -4759,6 +4764,7 @@ async function hydrateSelectedDetails() {
   state.selectedTaskBreakdownArtifact = null;
   state.selectedTaskPreflightArtifact = null;
   state.missionDeliveryPackagePreview = null;
+  state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
 
   await Promise.all([
@@ -4804,6 +4810,12 @@ async function hydrateSelectedDetails() {
       `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/delivery-preview`,
     );
     state.missionDeliveryPackagePreview = deliveryPayload.deliveryPackagePreview || null;
+  }
+  if (executionPlanBundle) {
+    const recoveryPayload = await fetchJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/recovery`,
+    );
+    state.missionExecutionPlanRecovery = recoveryPayload.executionPlanRecovery || null;
   }
 }
 
@@ -5794,6 +5806,55 @@ async function submitReviewedDeliveryContinuation(executionPlanId) {
     elements.refreshStatus.textContent = payload.deliveryPackagePreview
       ? `${payload.deliveryPackagePreview.id}를 response-only로 준비했습니다`
       : `ExecutionPlan이 ${payload.mutation.stoppedAt || 'reviewer'}에서 멈췄습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitWorkflowCheckpointAction(executionPlanId, action) {
+  const recovery = state.missionExecutionPlanRecovery;
+  const summary = getMissionWorkflowCheckpointSummary(recovery, executionPlanId);
+  if (!summary?.checkpoint) {
+    throw new Error('현재 ExecutionPlan의 WorkflowCheckpoint를 찾을 수 없습니다.');
+  }
+  if (action === 'cancel' ? !summary.canCancel : !summary.canResume || summary.action !== action) {
+    throw new Error('현재 source와 authority에 맞는 checkpoint action만 실행할 수 있습니다.');
+  }
+
+  const checkpoint = summary.checkpoint;
+  const body = {
+    checkpointId: checkpoint.id,
+    checkpointDigest: checkpoint.checkpointDigest,
+    inputDigest: checkpoint.inputDigest,
+    authorityDigest: checkpoint.authorityDigest,
+  };
+  const endpoint =
+    action === 'cancel'
+      ? `/api/execution-plans/${encodeURIComponent(executionPlanId)}/cancel-checkpoint`
+      : `/api/execution-plans/${encodeURIComponent(executionPlanId)}/resume-from-checkpoint`;
+  if (action !== 'cancel') body.action = action;
+  if (action === 'cancel') body.reason = `operator-cancelled:${checkpoint.id}`;
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent =
+    action === 'cancel'
+      ? `${checkpoint.id} 취소를 기록하는 중…`
+      : `${checkpoint.id}에서 ${action} 실행 중…`;
+  render();
+
+  try {
+    const payload = await postJson(endpoint, body);
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = payload.deliveryPackagePreview ? 'deliverables' : 'council';
+    render();
+    elements.refreshStatus.textContent =
+      action === 'cancel'
+        ? `${checkpoint.id} 취소 이력을 보존했습니다`
+        : `${payload.mutation.resumedStage || action} 실행 후 ${payload.mutation.stoppedAt}에서 멈췄습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -10158,7 +10219,96 @@ function renderMissionWorkOrderPreview(preview, councilSession, persistedBundle 
   `;
 }
 
-function renderMissionExecutionPlan(bundle) {
+function renderWorkflowCheckpointRecovery(recovery, executionPlan) {
+  const summary = getMissionWorkflowCheckpointSummary(recovery, executionPlan.id);
+  if (!summary) return '';
+  const checkpoint = summary.checkpoint;
+  const classificationLabel = {
+    ready: '재개 준비',
+    consumed: '소비됨',
+    stale: '오래됨',
+    cancelled: '취소됨',
+    quarantined: '격리됨',
+    terminal: '종료',
+    unavailable: '기록 없음',
+  }[summary.classification] || summary.classification;
+  const tone =
+    summary.classification === 'ready'
+      ? 'success'
+      : ['stale', 'quarantined'].includes(summary.classification)
+        ? 'danger'
+        : summary.classification === 'cancelled'
+          ? 'warning'
+          : 'neutral';
+  if (!checkpoint) {
+    return `
+      <div class="workflow-checkpoint-register" aria-label="Workflow checkpoint recovery">
+        <div class="card-title-row card-title-row-tight">
+          <strong>Workflow recovery</strong>
+          ${createToken(classificationLabel, tone)}
+        </div>
+        <p class="form-help">${escapeHtml(summary.stopReason || 'checkpoint 기록이 없습니다.')}</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="workflow-checkpoint-register" aria-label="Workflow checkpoint recovery">
+      <div class="card-title-row card-title-row-tight">
+        <strong>Workflow recovery</strong>
+        ${createToken(classificationLabel, tone)}
+        ${createToken(checkpoint.stage, checkpoint.stage === 'delivery-ready' ? 'success' : 'accent')}
+        ${createToken(`attempt:${checkpoint.attempt}`, 'neutral')}
+      </div>
+      <div class="workflow-checkpoint-grid">
+        <div>
+          <span>Checkpoint</span>
+          <strong>${escapeHtml(checkpoint.id)}</strong>
+        </div>
+        <div>
+          <span>Completed</span>
+          <strong>${checkpoint.completedUnitRefs.length}</strong>
+        </div>
+        <div>
+          <span>Pending</span>
+          <strong>${checkpoint.pendingUnitRefs.length}</strong>
+        </div>
+        <div>
+          <span>Digest</span>
+          <strong>${escapeHtml(checkpoint.checkpointDigest.slice(0, 12))}</strong>
+        </div>
+      </div>
+      <p class="form-help">${escapeHtml(summary.stopReason || 'durable boundary evidence current')}</p>
+      <div class="relation-button-row workflow-checkpoint-actions">
+        <button
+          class="primary-button"
+          type="button"
+          data-action="resume-workflow-checkpoint"
+          data-checkpoint-action="${escapeHtml(summary.action || '')}"
+          data-id="${escapeHtml(executionPlan.id)}"
+          ${state.loading || state.mutating || !summary.canResume ? 'disabled' : ''}
+        >
+          ${checkpoint.stage === 'qa-ready'
+            ? 'QA 재개'
+            : checkpoint.stage === 'reviewer-ready'
+              ? 'Reviewer 재개'
+              : '재개 불가'}
+        </button>
+        <button
+          class="secondary-button"
+          type="button"
+          data-action="cancel-workflow-checkpoint"
+          data-id="${escapeHtml(executionPlan.id)}"
+          ${state.loading || state.mutating || !summary.canCancel ? 'disabled' : ''}
+        >
+          Checkpoint 취소
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderMissionExecutionPlan(bundle, recovery) {
   if (!bundle) return '';
   const { executionPlan, workOrders, approval, terminalGateApproval } = bundle;
   const deliverySummary = getMissionReviewedDeliverySummary(bundle);
@@ -10218,6 +10368,7 @@ function renderMissionExecutionPlan(bundle) {
         ${deliverySummary?.deliveryReady ? createToken('delivery:ready', 'success') : ''}
       </div>
       <div class="mission-workorder-list">${workOrderRows}</div>
+      ${renderWorkflowCheckpointRecovery(recovery, executionPlan)}
       <div class="relation-button-row mission-workorder-actions">
         <button
           class="primary-button"
@@ -10799,7 +10950,7 @@ function renderCouncil(data) {
                         <div class="field">
                           ${renderRealCouncilAlignmentControls(selectedCouncilSession)}
                           ${renderMissionWorkOrderPreview(state.missionWorkOrderPreview, selectedCouncilSession, missionExecutionPlanBundle)}
-                          ${renderMissionExecutionPlan(missionExecutionPlanBundle)}
+                          ${renderMissionExecutionPlan(missionExecutionPlanBundle, state.missionExecutionPlanRecovery)}
                           <div class="relation-button-row">
                             <button
                               class="secondary-button"
@@ -15378,6 +15529,19 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'continue-reviewed-delivery') {
         await submitReviewedDeliveryContinuation(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'resume-workflow-checkpoint') {
+        await submitWorkflowCheckpointAction(
+          actionButton.dataset.id,
+          actionButton.dataset.checkpointAction,
+        );
+        return;
+      }
+
+      if (actionButton.dataset.action === 'cancel-workflow-checkpoint') {
+        await submitWorkflowCheckpointAction(actionButton.dataset.id, 'cancel');
         return;
       }
 

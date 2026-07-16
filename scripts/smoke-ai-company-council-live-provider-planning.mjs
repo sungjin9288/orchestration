@@ -201,7 +201,7 @@ process.stdout.write(
         normalizedSchema: 'unchanged-from-real-local-stub',
       },
       compatibility: {
-        schemaVersion: 7,
+        schemaVersion: 8,
         localStubAuthoritative: true,
         legacyRoutesPreserved: true,
         existingSynchronousRuntimePreserved: true,

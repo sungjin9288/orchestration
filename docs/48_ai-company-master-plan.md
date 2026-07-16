@@ -323,12 +323,12 @@ delivery-ready evidence에서 deterministic response-only preview로만 계산�
 Mission done, auto-rework, scheduling/provider/memory expansion, commit/push/release authority는 blocked다.
 
 Phase 7 checkpoint/resume/recovery planning은 `DEC-095`, implementation decision handoff는
-`DEC-096`으로 기록됐다. Future minimum은 schema-v8 WorkflowCheckpoint를 durable
-`reviewer-ready`/`qa-ready` boundary에만 append하고 exact input/authority/checkpoint digest와 explicit
+`DEC-096`, exact implementation은 `DEC-097`로 accepted됐다. Valid schema-v7 safe boundary에는 migration
+중 one bootstrap checkpoint를 만들고, 새 transition의 Builder waiting/Reviewer-ready/QA-ready/delivery-ready
+boundary에 Schema-v8 WorkflowCheckpoint를 append한다. Exact input/authority/checkpoint digest와 explicit
 operator action으로 기존 local-stub Reviewer 또는 QA를 한 stage만 재개하는 경로다. Interrupted
-active Builder/Reviewer/QA는 replay하지 않고 quarantine한다. Schema migration, checkpoint
-persistence, resume/cancel execution, automatic retry, provider/scheduling expansion은 complete fielded
-implementation decision 전까지 blocked다.
+active Builder/Reviewer/QA는 replay하지 않고 quarantine한다. Automatic retry, Builder replay,
+provider/scheduling expansion, durable package, Mission done, commit/push/release는 blocked다.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -352,10 +352,12 @@ node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
 node scripts/smoke-ai-company-reviewed-delivery.mjs
 node scripts/smoke-ui-slice-655.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
+node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
+node scripts/smoke-ui-slice-656.mjs
 node scripts/verification_status.mjs
 ```
 
 이 검증은 source contract, local-stub Council, explicit provider opt-in, UI/API readiness gate와
 authority boundary, Phase 4 response-only compiler, Phase 5 durable Builder stop, Phase 6 exact-gated
-reviewed-delivery와 response-only package, Phase 7 planning-only safe recovery boundary를 확인한다.
+reviewed-delivery와 response-only package, Phase 7 schema-v8 safe recovery boundary를 확인한다.
 Optional live-provider 결과는 별도 informational evidence다.

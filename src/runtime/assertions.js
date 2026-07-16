@@ -28,9 +28,18 @@ function assertHandoffPacket(handoffPacketId, state) {
   return handoffPacket;
 }
 
+function assertWorkflowCheckpoint(workflowCheckpointId, state) {
+  const workflowCheckpoint = state.workflowCheckpoints[workflowCheckpointId];
+  if (!workflowCheckpoint) {
+    throw new Error(`WorkflowCheckpoint not found: ${workflowCheckpointId}`);
+  }
+  return workflowCheckpoint;
+}
+
 module.exports = {
   assertExecutionPlan,
   assertHandoffPacket,
   assertRun,
   assertWorkOrder,
+  assertWorkflowCheckpoint,
 };

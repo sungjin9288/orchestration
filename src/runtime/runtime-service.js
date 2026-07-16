@@ -34,6 +34,9 @@ const {
   TASK_LIFECYCLE,
   WORK_ORDER_ACTION,
   WORK_ORDER_STATUS,
+  WORKFLOW_CHECKPOINT_ACTION,
+  WORKFLOW_CHECKPOINT_STAGE,
+  WORKFLOW_CHECKPOINT_STATUS,
 } = require('./contracts');
 const { createFileStore } = require('./file-store');
 const { readCompanyBlueprintStatus } = require('./company-blueprint');
@@ -102,12 +105,17 @@ const {
   assertHandoffPacket,
   assertRun,
   assertWorkOrder,
+  assertWorkflowCheckpoint,
 } = require('./assertions');
 const {
   compileMissionWorkOrderPreview,
   normalizeCompileSpec,
   preflightMissionWorkOrderCandidate,
 } = require('./mission-workorder-compiler');
+const {
+  createWorkflowCheckpoint,
+  recomputeWorkflowCheckpoint,
+} = require('./workflow-checkpoints');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -142,6 +150,11 @@ function createRuntimeService(options = {}) {
   function nextId(state, entity) {
     state.sequences[entity] += 1;
     return `${entity}-${String(state.sequences[entity]).padStart(4, '0')}`;
+  }
+
+  function nextWorkflowCheckpointId(state) {
+    state.sequences.workflowCheckpoint += 1;
+    return `workflow-checkpoint-${String(state.sequences.workflowCheckpoint).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -2051,11 +2064,17 @@ function createRuntimeService(options = {}) {
     const workOrders = executionPlan.workOrderIds.map((id) => assertWorkOrder(id, state));
     const handoffPackets = executionPlan.handoffPacketIds.map((id) =>
       assertHandoffPacket(id, state));
+    const workflowCheckpoints = executionPlan.checkpointRefs.map((id) =>
+      assertWorkflowCheckpoint(id, state));
 
     return {
       executionPlan,
       workOrders,
       handoffPackets,
+      workflowCheckpoints,
+      latestCheckpoint: executionPlan.latestCheckpointId
+        ? assertWorkflowCheckpoint(executionPlan.latestCheckpointId, state)
+        : null,
       approval: assertApproval(executionPlan.approvalId, state),
       terminalGateApproval: executionPlan.terminalGateApprovalId
         ? assertApproval(executionPlan.terminalGateApprovalId, state)
@@ -2090,6 +2109,48 @@ function createRuntimeService(options = {}) {
     return [...new Set([...(current || []), ...(additions || [])].filter(Boolean))];
   }
 
+  function getWorkflowCheckpointContext(state, bundle) {
+    const project = assertProject(bundle.executionPlan.projectId, state);
+    return {
+      executionPlan: bundle.executionPlan,
+      workOrders: bundle.workOrders,
+      projectProvider: project.provider,
+    };
+  }
+
+  function appendWorkflowCheckpoint(state, bundle, stage, options = {}) {
+    const executionPlan = bundle.executionPlan;
+    const createdAt = options.createdAt || new Date().toISOString();
+    const checkpoint = createWorkflowCheckpoint({
+      ...getWorkflowCheckpointContext(state, bundle),
+      id: nextWorkflowCheckpointId(state),
+      stage,
+      attempt: executionPlan.checkpointRefs.length + 1,
+      resumedFromCheckpointId: options.resumedFromCheckpointId || null,
+      stopReason: options.stopReason || null,
+      createdAt,
+    });
+    state.workflowCheckpoints[checkpoint.id] = checkpoint;
+    executionPlan.checkpointRefs.push(checkpoint.id);
+    executionPlan.latestCheckpointId = checkpoint.id;
+    return checkpoint;
+  }
+
+  function consumeLatestCheckpoint(state, executionPlan, stage, stopReason) {
+    if (!executionPlan.latestCheckpointId) return null;
+    const checkpoint = assertWorkflowCheckpoint(executionPlan.latestCheckpointId, state);
+    if (
+      checkpoint.stage !== stage ||
+      checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.READY
+    ) {
+      return null;
+    }
+    checkpoint.status = WORKFLOW_CHECKPOINT_STATUS.CONSUMED;
+    checkpoint.stopReason = stopReason;
+    checkpoint.updatedAt = new Date().toISOString();
+    return checkpoint;
+  }
+
   function assertReviewedDeliverySourceCurrent(bundle, state) {
     const project = assertProject(bundle.executionPlan.projectId, state);
     assertRealCouncilSourceCurrent(bundle.councilSession, bundle.mission, project);
@@ -2118,6 +2179,231 @@ function createRuntimeService(options = {}) {
     ) {
       throw conflict(`ExecutionPlan ${executionPlan.id} does not have its exact plan approval`);
     }
+  }
+
+  function buildExecutionPlanRecoveryFromState(state, executionPlanId) {
+    const bundle = getReviewedDeliveryRoleBundle(state, executionPlanId);
+    const { executionPlan, latestCheckpoint } = bundle;
+    const activeWorkOrder = executionPlan.activeWorkOrderId
+      ? assertWorkOrder(executionPlan.activeWorkOrderId, state)
+      : null;
+
+    if (activeWorkOrder?.status === WORK_ORDER_STATUS.ACTIVE) {
+      return deepFreeze({
+        executionPlanId,
+        checkpoint: latestCheckpoint ? cloneJsonValue(latestCheckpoint) : null,
+        classification: WORKFLOW_CHECKPOINT_STATUS.QUARANTINED,
+        current: false,
+        nextAllowedActions: [],
+        stopReason: `active-${activeWorkOrder.role}-stage-is-ambiguous`,
+      });
+    }
+    if (!latestCheckpoint) {
+      return deepFreeze({
+        executionPlanId,
+        checkpoint: null,
+        classification: 'unavailable',
+        current: false,
+        nextAllowedActions: [],
+        stopReason: 'no-workflow-checkpoint',
+      });
+    }
+
+    const currentBindings = recomputeWorkflowCheckpoint(
+      latestCheckpoint,
+      getWorkflowCheckpointContext(state, bundle),
+    );
+    let sourceCurrent = true;
+    try {
+      assertReviewedDeliverySourceCurrent(bundle, state);
+    } catch (_error) {
+      sourceCurrent = false;
+    }
+    const current = currentBindings.current && sourceCurrent;
+    let classification = latestCheckpoint.status;
+    let stopReason = latestCheckpoint.stopReason;
+
+    if (
+      executionPlan.status === EXECUTION_PLAN_STATUS.DELIVERY_READY ||
+      latestCheckpoint.stage === WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY
+    ) {
+      classification = WORKFLOW_CHECKPOINT_STATUS.TERMINAL;
+    } else if (
+      latestCheckpoint.status === WORKFLOW_CHECKPOINT_STATUS.READY &&
+      !current
+    ) {
+      classification = WORKFLOW_CHECKPOINT_STATUS.STALE;
+      stopReason = 'checkpoint-input-authority-or-source-drift';
+    }
+
+    return deepFreeze({
+      executionPlanId,
+      checkpoint: cloneJsonValue(latestCheckpoint),
+      classification,
+      current,
+      currentDigests: {
+        sourceDigest: currentBindings.sourceDigest,
+        inputDigest: currentBindings.inputDigest,
+        authorityDigest: currentBindings.authorityDigest,
+        checkpointDigest: currentBindings.checkpointDigest,
+      },
+      nextAllowedActions:
+        classification === WORKFLOW_CHECKPOINT_STATUS.READY && current
+          ? latestCheckpoint.nextAllowedActions
+          : [],
+      stopReason: stopReason || null,
+    });
+  }
+
+  function getExecutionPlanRecovery(executionPlanId) {
+    return buildExecutionPlanRecoveryFromState(store.loadState(), executionPlanId);
+  }
+
+  function assertExactCheckpointTuple(input, checkpoint) {
+    for (const field of ['checkpointDigest', 'inputDigest', 'authorityDigest']) {
+      const requested = String(input[field] || '').trim();
+      if (!requested || requested !== checkpoint[field]) {
+        throw conflict(`WorkflowCheckpoint ${field} does not match`);
+      }
+    }
+  }
+
+  function resumeExecutionPlanFromCheckpoint(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const checkpoint = assertWorkflowCheckpoint(input.checkpointId, state);
+    if (checkpoint.executionPlanId !== bundle.executionPlan.id) {
+      throw conflict('WorkflowCheckpoint does not belong to the requested ExecutionPlan');
+    }
+    assertExactCheckpointTuple(input, checkpoint);
+    const action = String(input.action || '').trim();
+    if (!checkpoint.nextAllowedActions.includes(action)) {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} does not allow action ${action || 'empty'}`);
+    }
+
+    if (checkpoint.status === WORKFLOW_CHECKPOINT_STATUS.CONSUMED) {
+      const linkedCheckpoint = bundle.workflowCheckpoints.find(
+        (entry) => entry.resumedFromCheckpointId === checkpoint.id,
+      ) || null;
+      return {
+        ...bundle,
+        checkpoint,
+        linkedCheckpoint,
+        recovery: buildExecutionPlanRecoveryFromState(state, bundle.executionPlan.id),
+        resumeStage: null,
+        idempotent: true,
+      };
+    }
+    if (
+      checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.READY ||
+      bundle.executionPlan.latestCheckpointId !== checkpoint.id
+    ) {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} is not the current ready checkpoint`);
+    }
+
+    const recovery = buildExecutionPlanRecoveryFromState(state, bundle.executionPlan.id);
+    if (
+      recovery.classification !== WORKFLOW_CHECKPOINT_STATUS.READY ||
+      !recovery.current ||
+      !recovery.nextAllowedActions.includes(action)
+    ) {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} is stale or not resumable`);
+    }
+    assertReviewedDeliveryPlanApproval(bundle);
+    assertReviewedDeliverySourceCurrent(bundle, state);
+    if (listPendingBlockingDecisionItems(bundle.executionPlan.controlTaskId, state).length > 0) {
+      throw conflict('Checkpoint resume is blocked by an unresolved decision');
+    }
+
+    const now = new Date().toISOString();
+    let resumeStage;
+    if (
+      checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY &&
+      action === WORKFLOW_CHECKPOINT_ACTION.RESUME_REVIEWER &&
+      bundle.executionPlan.status === EXECUTION_PLAN_STATUS.ACTIVE &&
+      bundle.executionPlan.activeWorkOrderId === bundle.byRole.reviewer.id &&
+      bundle.byRole.builder.status === WORK_ORDER_STATUS.COMPLETED &&
+      bundle.byRole.reviewer.status === WORK_ORDER_STATUS.QUEUED
+    ) {
+      resumeStage = 'reviewer';
+      bundle.executionPlan.status = EXECUTION_PLAN_STATUS.REVIEWING;
+      bundle.byRole.reviewer.status = WORK_ORDER_STATUS.ACTIVE;
+      bundle.byRole.reviewer.startedAt = now;
+      bundle.byRole.reviewer.updatedAt = now;
+    } else if (
+      checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.QA_READY &&
+      action === WORKFLOW_CHECKPOINT_ACTION.RESUME_QA &&
+      bundle.executionPlan.status === EXECUTION_PLAN_STATUS.REVIEWING &&
+      bundle.executionPlan.activeWorkOrderId === bundle.byRole.qa.id &&
+      bundle.byRole.reviewer.status === WORK_ORDER_STATUS.COMPLETED &&
+      bundle.byRole.qa.status === WORK_ORDER_STATUS.QUEUED
+    ) {
+      resumeStage = 'qa';
+      bundle.byRole.qa.status = WORK_ORDER_STATUS.ACTIVE;
+      bundle.byRole.qa.startedAt = now;
+      bundle.byRole.qa.updatedAt = now;
+    } else {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} no longer matches its durable boundary`);
+    }
+
+    checkpoint.status = WORKFLOW_CHECKPOINT_STATUS.CONSUMED;
+    checkpoint.stopReason = `operator-${action}`;
+    checkpoint.updatedAt = now;
+    bundle.executionPlan.updatedAt = now;
+    store.saveState(state);
+    return {
+      ...getExecutionPlanBundleFromState(state, bundle.executionPlan.id),
+      checkpoint,
+      linkedCheckpoint: null,
+      recovery: buildExecutionPlanRecoveryFromState(state, bundle.executionPlan.id),
+      resumeStage,
+      idempotent: false,
+    };
+  }
+
+  function cancelExecutionPlanCheckpoint(input) {
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const checkpoint = assertWorkflowCheckpoint(input.checkpointId, state);
+    if (checkpoint.executionPlanId !== bundle.executionPlan.id) {
+      throw conflict('WorkflowCheckpoint does not belong to the requested ExecutionPlan');
+    }
+    assertExactCheckpointTuple(input, checkpoint);
+    if (
+      ![
+        WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY,
+        WORKFLOW_CHECKPOINT_STAGE.QA_READY,
+      ].includes(checkpoint.stage)
+    ) {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} stage is not cancellable`);
+    }
+    if (checkpoint.status === WORKFLOW_CHECKPOINT_STATUS.CANCELLED) {
+      return {
+        ...bundle,
+        checkpoint,
+        recovery: buildExecutionPlanRecoveryFromState(state, bundle.executionPlan.id),
+        idempotent: true,
+      };
+    }
+    const recovery = buildExecutionPlanRecoveryFromState(state, bundle.executionPlan.id);
+    if (
+      checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.READY ||
+      bundle.executionPlan.latestCheckpointId !== checkpoint.id ||
+      recovery.classification !== WORKFLOW_CHECKPOINT_STATUS.READY ||
+      !recovery.current
+    ) {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} is stale or not cancellable`);
+    }
+    checkpoint.status = WORKFLOW_CHECKPOINT_STATUS.CANCELLED;
+    checkpoint.stopReason = String(input.reason || '').trim() || 'operator-cancelled';
+    checkpoint.updatedAt = new Date().toISOString();
+    store.saveState(state);
+    return {
+      ...getExecutionPlanBundleFromState(state, bundle.executionPlan.id),
+      checkpoint,
+      recovery: buildExecutionPlanRecoveryFromState(state, bundle.executionPlan.id),
+      idempotent: false,
+    };
   }
 
   function beginReviewedDeliveryContinuation(input) {
@@ -2171,6 +2457,12 @@ function createRuntimeService(options = {}) {
     }
 
     const now = new Date().toISOString();
+    consumeLatestCheckpoint(
+      state,
+      executionPlan,
+      WORKFLOW_CHECKPOINT_STAGE.BUILDER_WAITING_GATE,
+      'continued-by-dec-094',
+    );
     byRole.builder.status = WORK_ORDER_STATUS.ACTIVE;
     byRole.builder.updatedAt = now;
     byRole.builder.continuedAt = now;
@@ -2257,6 +2549,17 @@ function createRuntimeService(options = {}) {
       artifacts.map((entry) => entry.id),
     );
     executionPlan.updatedAt = now;
+    const resumedFromCheckpointId = executionPlan.latestCheckpointId;
+    appendWorkflowCheckpoint(
+      state,
+      bundle,
+      WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY,
+      {
+        createdAt: now,
+        resumedFromCheckpointId,
+        stopReason: 'builder-completed-reviewer-ready',
+      },
+    );
     store.saveState(state);
     return getExecutionPlanBundleFromState(state, executionPlan.id);
   }
@@ -2274,7 +2577,23 @@ function createRuntimeService(options = {}) {
       throw conflict(`Reviewer WorkOrder ${byRole.reviewer.id} is not dependency-ready`);
     }
 
+    if (executionPlan.latestCheckpointId) {
+      const recovery = buildExecutionPlanRecoveryFromState(state, executionPlan.id);
+      if (
+        recovery.checkpoint?.stage === WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY &&
+        (recovery.classification !== WORKFLOW_CHECKPOINT_STATUS.READY || !recovery.current)
+      ) {
+        throw conflict(`Reviewer checkpoint ${recovery.checkpoint.id} is not current`);
+      }
+    }
+
     const now = new Date().toISOString();
+    consumeLatestCheckpoint(
+      state,
+      executionPlan,
+      WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY,
+      'continued-by-dec-094',
+    );
     executionPlan.status = EXECUTION_PLAN_STATUS.REVIEWING;
     executionPlan.updatedAt = now;
     byRole.reviewer.status = WORK_ORDER_STATUS.ACTIVE;
@@ -2348,6 +2667,11 @@ function createRuntimeService(options = {}) {
       executionPlan.activeWorkOrderId = byRole.qa.id;
       executionPlan.stopReason = null;
       executionPlan.stoppedAt = null;
+      appendWorkflowCheckpoint(state, bundle, WORKFLOW_CHECKPOINT_STAGE.QA_READY, {
+        createdAt: now,
+        resumedFromCheckpointId: executionPlan.latestCheckpointId,
+        stopReason: 'reviewer-passed-qa-ready',
+      });
     } else {
       byRole.reviewer.status = WORK_ORDER_STATUS.CHANGES_REQUESTED;
       byRole.reviewer.inboxItemRefs = appendUniqueRefs(
@@ -2377,7 +2701,23 @@ function createRuntimeService(options = {}) {
       throw conflict(`QA WorkOrder ${byRole.qa.id} is not dependency-ready`);
     }
 
+    if (executionPlan.latestCheckpointId) {
+      const recovery = buildExecutionPlanRecoveryFromState(state, executionPlan.id);
+      if (
+        recovery.checkpoint?.stage === WORKFLOW_CHECKPOINT_STAGE.QA_READY &&
+        (recovery.classification !== WORKFLOW_CHECKPOINT_STATUS.READY || !recovery.current)
+      ) {
+        throw conflict(`QA checkpoint ${recovery.checkpoint.id} is not current`);
+      }
+    }
+
     const now = new Date().toISOString();
+    consumeLatestCheckpoint(
+      state,
+      executionPlan,
+      WORKFLOW_CHECKPOINT_STAGE.QA_READY,
+      'continued-by-dec-094',
+    );
     byRole.qa.status = WORK_ORDER_STATUS.ACTIVE;
     byRole.qa.startedAt = now;
     byRole.qa.updatedAt = now;
@@ -2448,6 +2788,11 @@ function createRuntimeService(options = {}) {
       executionPlan.stopReason = null;
       executionPlan.stoppedAt = 'response-only-delivery-package-preview';
       executionPlan.deliveryReadyAt = now;
+      appendWorkflowCheckpoint(state, bundle, WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY, {
+        createdAt: now,
+        resumedFromCheckpointId: executionPlan.latestCheckpointId,
+        stopReason: 'reviewed-delivery-completed',
+      });
     } else {
       byRole.qa.status = WORK_ORDER_STATUS.FAILED;
       executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
@@ -2676,7 +3021,7 @@ function createRuntimeService(options = {}) {
       nonGoals: [
         'Execute Reviewer or QA WorkOrders.',
         'Run parallel, dynamic, autonomous, retry, or provider-backed scheduling.',
-        'Mutate source, persist memory or checkpoints, commit, push, or release.',
+        'Persist memory, commit, push, release, or use external connectors.',
       ],
       authorityBoundary: {
         ...preview.executionPlan.authorityBoundary,
@@ -2696,6 +3041,8 @@ function createRuntimeService(options = {}) {
       activeWorkOrderId: null,
       runRefs: [],
       artifactRefs: [],
+      checkpointRefs: [],
+      latestCheckpointId: null,
       createdAt: now,
       updatedAt: now,
     };
@@ -2885,6 +3232,15 @@ function createRuntimeService(options = {}) {
         throw conflict('Builder terminal gate approval does not match the control task');
       }
       workOrder.status = WORK_ORDER_STATUS.WAITING_GATE;
+      appendWorkflowCheckpoint(
+        state,
+        getReviewedDeliveryRoleBundle(state, executionPlan.id),
+        WORKFLOW_CHECKPOINT_STAGE.BUILDER_WAITING_GATE,
+        {
+          createdAt: now,
+          stopReason: 'builder-waiting-for-live-mutation-approval',
+        },
+      );
     } else {
       executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
       workOrder.status = WORK_ORDER_STATUS.BLOCKED;
@@ -4269,6 +4625,7 @@ function createRuntimeService(options = {}) {
     completeReviewedDeliveryBuilder,
     completeReviewedDeliveryQa,
     completeReviewedDeliveryReviewer,
+    cancelExecutionPlanCheckpoint,
     beginReviewedDeliveryContinuation,
     beginReviewedDeliveryQa,
     beginReviewedDeliveryReviewer,
@@ -4298,6 +4655,7 @@ function createRuntimeService(options = {}) {
     getCouncilProviderReadiness,
     getDecisionInboxItem,
     getExecutionPlan,
+    getExecutionPlanRecovery,
     getLogs,
     getMission,
     getProposalApplicationAttempt,
@@ -4340,6 +4698,7 @@ function createRuntimeService(options = {}) {
     startPlaceholderRun,
     resumeRealCouncilSession,
     resumeProviderCouncilSession,
+    resumeExecutionPlanFromCheckpoint,
     syncMissionExecutionStateFromTask,
     transitionTaskLifecycle,
   };

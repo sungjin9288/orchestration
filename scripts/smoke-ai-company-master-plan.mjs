@@ -112,7 +112,7 @@ assert.match(runtimeContractText, /company\/blueprint\.json/);
 assert.match(runtimeContractText, /solo \| council \| parallel-specialists/);
 assert.match(runtimeContractText, /canCommit.*canPush/);
 assert.match(runtimeContractText, /Raw chain-of-thought를 저장하거나 전달하지 않는다/);
-assert.match(runtimeContractText, /현재 runtime은 schema v7이며 WorkflowCheckpoint persistence와 recovery routes는 없다/);
+assert.match(runtimeContractText, /현재 runtime은 schema v8이며 read-only recovery와 exact resume\/cancel routes를 제공한다/);
 assert.match(runtimeContractText, /company policy는 `state\.json`에 저장되지 않는다/);
 
 assert.match(councilProtocol, /^# Council Operating Protocol$/m);
@@ -187,6 +187,7 @@ assert.match(decisionLog, /^### DEC-093$/m);
 assert.match(decisionLog, /^### DEC-094$/m);
 assert.match(decisionLog, /^### DEC-095$/m);
 assert.match(decisionLog, /^### DEC-096$/m);
+assert.match(decisionLog, /^### DEC-097$/m);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -200,7 +201,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 7/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 8/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -242,15 +243,16 @@ process.stdout.write(
         'DEC-094',
         'DEC-095',
         'DEC-096',
+        'DEC-097',
       ],
       currentRuntime: {
-        schemaVersion: 7,
+        schemaVersion: 8,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
         workOrderExecution: 'local-stub-sequential-builder-to-live-mutation-approval-gate',
         reviewedDelivery: 'exact-gated-local-reviewed-delivery-response-only-package',
-        checkpointRecovery: 'planning-only-schema-v8-implementation-blocked',
+        checkpointRecovery: 'schema-v8-exact-local-reviewer-or-qa-resume',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -263,7 +265,7 @@ process.stdout.write(
         reviewedDeliverySourceMutationAllowed: true,
         reviewerOrQaExecutionAllowed: true,
         checkpointRecoveryPlanningAllowed: true,
-        checkpointPersistenceAllowed: false,
+        checkpointPersistenceAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -272,7 +274,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded Phase 7 checkpoint resume and recovery implementation decision required',
+      nextGate: 'Complete fielded durable DeliveryPackage or Mission close-out planning decision required',
     },
     null,
     2,

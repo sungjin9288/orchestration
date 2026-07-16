@@ -12,13 +12,13 @@ runtime, API, UI, execution, provider, source mutation, commit, push, 또는 rel
 
 - Planning-only decision: accepted as `DEC-095`
 - Implementation handoff: documented as `DEC-096`
-- Complete fielded implementation decision: not supplied
-- Current runtime: schema v7; no WorkflowCheckpoint map, recovery classifier, or resume/cancel route
-- Safe future resume target: local-stub `reviewer-ready` or `qa-ready` checkpoint only
+- Complete fielded implementation decision: supplied and accepted as `DEC-097`
+- Current runtime: schema v8 with WorkflowCheckpoint records, read-only recovery, and explicit resume/cancel routes
+- Safe resume target: exact current local-stub `reviewer-ready` or `qa-ready` checkpoint only
 - Active/ambiguous stages: quarantine only; no replay
 
-General approval, `approve all`, continuation wording, or delegated self-approval does not open this
-schema- and execution-sensitive implementation.
+This handoff is consumed provenance. It does not widen the implemented target or open any downstream
+authority beyond the exact `DEC-097` decision.
 
 ## Minimum Required Decision Fields
 
@@ -138,7 +138,7 @@ Stop and do not implement when:
   commit, push, release, or connectors are bundled into the slice;
 - focused migration/restart/runtime/API/UI or aggregate verification fails.
 
-## Verification After A Later Decision
+## Verification After The Accepted Decision
 
 ```bash
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
@@ -150,5 +150,6 @@ node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Until a complete fielded approval is supplied, only the planning smoke and existing Phase 6
-compatibility evidence may pass; schema/runtime/API/UI implementation remains blocked.
+The accepted Phase 7 implementation must keep all commands above green. Builder replay, scheduling,
+provider-backed WorkOrders, durable DeliveryPackage, Mission done, memory, commit, push, release, and
+external connectors remain blocked.

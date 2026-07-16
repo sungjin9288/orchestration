@@ -1626,6 +1626,184 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const executionPlanRecoveryMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/recovery$/,
+  );
+  if (method === 'GET' && executionPlanRecoveryMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanRecoveryMatch[1]);
+      json(response, 200, {
+        executionPlanRecovery: runtime.getExecutionPlanRecovery(executionPlanId),
+        generatedAt: new Date().toISOString(),
+        runtimeRoot: options.runtimeRoot,
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'ExecutionPlan recovery 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const executionPlanResumeMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/resume-from-checkpoint$/,
+  );
+  if (method === 'POST' && executionPlanResumeMatch) {
+    let resumedBundle = null;
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanResumeMatch[1]);
+      const input = await readJsonBody(request);
+      resumedBundle = runtime.resumeExecutionPlanFromCheckpoint({
+        executionPlanId,
+        checkpointId: input.checkpointId,
+        checkpointDigest: input.checkpointDigest,
+        inputDigest: input.inputDigest,
+        authorityDigest: input.authorityDigest,
+        action: input.action,
+      });
+
+      if (resumedBundle.idempotent) {
+        json(
+          response,
+          200,
+          buildSnapshotResponse({
+            executionPlanBundle: runtime.getExecutionPlan(executionPlanId),
+            executionPlanRecovery: runtime.getExecutionPlanRecovery(executionPlanId),
+            mutation: {
+              checkpointId: input.checkpointId,
+              executionPlanId,
+              idempotent: true,
+              kind: 'resume-execution-plan-checkpoint',
+              stoppedAt: 'existing-checkpoint-result',
+            },
+          }),
+        );
+        return;
+      }
+
+      let executionPlanBundle;
+      let deliveryPackagePreview = null;
+      if (resumedBundle.resumeStage === 'reviewer') {
+        const reviewerResult = await executionCoordinator.runReviewer({
+          taskId: resumedBundle.controlTask.id,
+        });
+        executionPlanBundle = runtime.completeReviewedDeliveryReviewer({
+          executionPlanId,
+          runId: reviewerResult.run.id,
+          reviewArtifactId: reviewerResult.artifact.id,
+          reviewStatus: reviewerResult.run.summary?.mappedReviewStatus,
+          decisionInboxItemId: reviewerResult.decisionInboxItem?.id || null,
+        });
+      } else if (resumedBundle.resumeStage === 'qa') {
+        const workOrdersByRole = Object.fromEntries(
+          resumedBundle.workOrders.map((workOrder) => [workOrder.role, workOrder]),
+        );
+        const qaResult = await executionCoordinator.runQaWorkOrder({
+          taskId: resumedBundle.controlTask.id,
+          executionPlanId,
+          workOrderId: workOrdersByRole.qa.id,
+          builderRunId: workOrdersByRole.builder.completionRunId,
+          reviewerRunId: workOrdersByRole.reviewer.completionRunId,
+          sourceDigest: resumedBundle.executionPlan.sourceDigest,
+          changedFiles: workOrdersByRole.builder.changedFiles,
+          targetPathAllowlist: workOrdersByRole.qa.targetPathAllowlist,
+          commands: workOrdersByRole.qa.verificationCommands,
+        });
+        executionPlanBundle = runtime.completeReviewedDeliveryQa({
+          executionPlanId,
+          runId: qaResult.run.id,
+          qaEvidenceArtifactId: qaResult.artifact.id,
+        });
+        if (executionPlanBundle.executionPlan.status === 'delivery-ready') {
+          deliveryPackagePreview = runtime.previewExecutionPlanDelivery({
+            executionPlanId,
+            sourceDigest: executionPlanBundle.executionPlan.sourceDigest,
+          });
+        }
+      } else {
+        throw new Error('Checkpoint resume returned no bounded stage');
+      }
+
+      const executionPlanRecovery = runtime.getExecutionPlanRecovery(executionPlanId);
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          deliveryPackagePreview,
+          executionPlanBundle,
+          executionPlanRecovery,
+          mutation: {
+            checkpointId: input.checkpointId,
+            executionPlanId,
+            idempotent: false,
+            kind: 'resume-execution-plan-checkpoint',
+            resumedStage: resumedBundle.resumeStage,
+            stoppedAt: executionPlanRecovery.checkpoint?.stage || executionPlanBundle.executionPlan.stoppedAt,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      if (resumedBundle && !resumedBundle.idempotent) {
+        try {
+          runtime.failReviewedDeliveryContinuation({
+            executionPlanId: resumedBundle.executionPlan.id,
+            reason: error.message || 'checkpoint-resume-failed',
+            stoppedAt: resumedBundle.resumeStage,
+          });
+        } catch (_finalizeError) {
+          // Preserve the original recovery failure for the API caller.
+        }
+      }
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'WorkflowCheckpoint 재개에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const executionPlanCancelCheckpointMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/cancel-checkpoint$/,
+  );
+  if (method === 'POST' && executionPlanCancelCheckpointMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanCancelCheckpointMatch[1]);
+      const input = await readJsonBody(request);
+      const executionPlanBundle = runtime.cancelExecutionPlanCheckpoint({
+        executionPlanId,
+        checkpointId: input.checkpointId,
+        checkpointDigest: input.checkpointDigest,
+        inputDigest: input.inputDigest,
+        authorityDigest: input.authorityDigest,
+        reason: input.reason,
+      });
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          executionPlanBundle,
+          executionPlanRecovery: executionPlanBundle.recovery,
+          mutation: {
+            checkpointId: input.checkpointId,
+            executionPlanId,
+            idempotent: executionPlanBundle.idempotent,
+            kind: 'cancel-execution-plan-checkpoint',
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'WorkflowCheckpoint 취소에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanDeliveryPreviewMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/delivery-preview$/,
   );

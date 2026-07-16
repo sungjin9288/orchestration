@@ -41,7 +41,7 @@ const durableProposalRecordImplementationStatusSources = readRepoFiles(
 
 const durableProposalRecordImplementationStatusSourceEvidence = {
   contracts: [
-    /const STATE_SCHEMA_VERSION = 7/,
+    /const STATE_SCHEMA_VERSION = 8/,
     /proposalRecord: 0/,
     /proposalRecords: \{\}/,
     /PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS/,

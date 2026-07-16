@@ -188,7 +188,7 @@ process.stdout.write(
         execution: false,
       },
       compatibility: {
-        schemaVersion: 7,
+        schemaVersion: 8,
         fileStoreMigrationPlanned: false,
         defaultLinkedTaskAutoChainPreserved: true,
         providerCallsDuringCompile: false,

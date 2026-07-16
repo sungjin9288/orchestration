@@ -190,6 +190,12 @@ const smokeChecks = [
     purpose:
       'Reviewed-delivery UI and API preserve exact approval-gated continuation, Builder Reviewer QA evidence, response-only package reload, safe replay, and blocked downstream controls',
   },
+  {
+    id: 'ai-company-checkpoint-resume-recovery-ui-api',
+    script: 'scripts/smoke-ui-slice-656.mjs',
+    purpose:
+      'Workflow recovery UI and API preserve read-only checkpoint inspection, exact digest-gated Reviewer or QA resume, explicit cancellation, stale and quarantine evidence, next-boundary stops, responsive controls, and blocked Builder replay or downstream authority',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

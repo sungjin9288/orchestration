@@ -8795,6 +8795,52 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+.workflow-checkpoint-register {
+  min-width: 0;
+  margin-top: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--surface-control-border);
+  border-bottom: 1px solid var(--surface-control-border);
+}
+
+.workflow-checkpoint-register > .card-title-row {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.workflow-checkpoint-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.workflow-checkpoint-grid > div {
+  min-width: 0;
+  padding: 8px;
+  border-left: 2px solid var(--surface-control-border);
+}
+
+.workflow-checkpoint-grid span,
+.workflow-checkpoint-grid strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.workflow-checkpoint-grid span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.workflow-checkpoint-grid strong {
+  margin-top: 3px;
+  font-size: 0.78rem;
+}
+
+.workflow-checkpoint-actions {
+  margin-top: 10px;
+}
+
 .delivery-package-preview {
   min-width: 0;
   padding: 14px;
@@ -9346,6 +9392,10 @@ h3 {
 }
 
 @media (max-width: 720px) {
+  .workflow-checkpoint-grid {
+    grid-template-columns: 1fr;
+  }
+
   .delivery-package-results {
     grid-template-columns: 1fr;
   }

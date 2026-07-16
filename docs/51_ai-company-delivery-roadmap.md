@@ -440,17 +440,19 @@ approvalStatement=
 ## Immediate Next Decision
 
 Phase 5 exact implementation은 `DEC-091`, Phase 6 exact implementation은 `DEC-094`로 accepted됐다.
-Phase 7 planning-only authority는 `DEC-095`, implementation decision handoff는 `DEC-096`으로
-기록됐다. 다음 architecture-sensitive target은 complete fielded Phase 7 implementation decision이다.
-Schema-v8 implementation은 complete fielded decision 전까지 blocked다.
+Phase 7 planning-only authority는 `DEC-095`, implementation decision handoff는 `DEC-096`, exact
+schema-v8 implementation은 `DEC-097`로 accepted됐다. 다음 architecture-sensitive target은
+durable DeliveryPackage 또는 Mission close-out planning이며 complete fielded decision 전까지 blocked다.
 
 ```text
 targetAuthority=one local deterministic schema-v8 WorkflowCheckpoint path and one explicit operator resume or cancel path for a source-current schema-v7 reviewed-delivery ExecutionPlan at reviewer-ready or qa-ready only
 ```
 
-The planned path migrates valid schema v7 evidence additively, appends digest-bound checkpoints only
-at durable boundaries, resumes existing local-stub Reviewer or QA only after explicit operator input,
-and quarantines every active or ambiguous interruption. No Phase 7 runtime code is implemented yet.
+The implemented path atomically migrates valid schema v7 evidence additively, bootstraps one
+deterministic checkpoint when that evidence is already at an exact durable boundary, appends
+digest-bound checkpoints on new durable transitions, and resumes or cancels only current
+`reviewer-ready` or `qa-ready` checkpoints after explicit operator input. Every active or ambiguous
+interruption is quarantined, Recovery GET is read-only, and every resume stops at the next boundary.
 Builder replay, automatic retry, durable package, Mission done, provider/scheduling/memory expansion,
 commit, push, release, and external connectors remain blocked.
 
@@ -471,9 +473,11 @@ node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
 node scripts/smoke-ai-company-reviewed-delivery.mjs
 node scripts/smoke-ui-slice-655.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
+node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
+node scripts/smoke-ui-slice-656.mjs
 node scripts/verification_status.mjs
 ```
 
 Phase 0 verifier와 focused smokes는 implemented Phase 1-5 evidence, schema v7 migration, durable
 approval binding, Builder live-mutation stop gate와 Phase 6 exact-gated reviewed-delivery authority
-boundary, Phase 7 planning-only checkpoint/recovery gate를 확인한다.
+boundary, Phase 7 schema-v8 checkpoint/recovery gate를 확인한다.

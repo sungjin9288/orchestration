@@ -4,8 +4,9 @@
 
 이 문서는 `DEC-094`의 schema-v7 reviewed-delivery pass-path가 process restart 사이에도 증거를
 잃거나 mutation을 중복 실행하지 않도록, one local-stub ExecutionPlan에 durable checkpoint와
-operator-triggered safe resume을 추가하는 Phase 7 최소 vertical slice를 정의한다. 이 planning-only
-문서는 runtime, schema, API, UI, provider behavior 또는 project source를 변경하지 않는다.
+operator-triggered safe resume을 추가하는 Phase 7 최소 vertical slice를 정의한다. `DEC-097`이
+승인한 구현은 이 계약을 schema v8 runtime, API, UI, focused evidence에 적용하며 provider contract와
+project source authority는 넓히지 않는다.
 
 ## Accepted Planning-Only Decision
 
@@ -23,6 +24,17 @@ operator-triggered safe resume을 추가하는 Phase 7 최소 vertical slice를 
 | `aggregateVerificationRef` | `node scripts/verification_status.mjs` |
 | `stillBlockedAuthorities` | schema-v8 implementation, checkpoint persistence, resume or cancel execution, automatic replay/retry/rework, active Builder mutation reconciliation, parallel/dynamic/autonomous scheduling, provider-backed WorkOrders, provider expansion, durable DeliveryPackage, Mission done, memory/profile/policy mutation, approval bypass, runtime-agent commit/push/release, external connectors |
 | `approvalStatement` | The operator approves planning only for one durable safe-boundary checkpoint and explicit local-stub resume path. Implementation, schema migration, replay, scheduling, and every downstream authority require a later complete fielded decision. |
+
+## Accepted Implementation Decision
+
+| Field | Accepted value |
+| --- | --- |
+| `decisionId` | `operator-decision-ai-company-checkpoint-resume-recovery-implementation-001` |
+| `decisionStatus` | `approve-ai-company-checkpoint-resume-recovery-implementation-slice` |
+| `targetAuthority` | one local deterministic schema-v8 WorkflowCheckpoint path and one explicit operator resume or cancel path for a source-current reviewed-delivery ExecutionPlan at reviewer-ready or qa-ready only |
+| `runtimePath` | migrate valid schema v7 evidence additively, append digest-bound durable boundaries, classify recovery read-only, and execute only one exact local-stub Reviewer or constrained QA resume before the next checkpoint |
+| `focusedSmokeRefs` | `scripts/smoke-ai-company-checkpoint-resume-recovery.mjs`, `scripts/smoke-ui-slice-656.mjs` |
+| `stillBlockedAuthorities` | Builder replay, automatic retry/rework, scheduling, provider-backed WorkOrders, durable DeliveryPackage, Mission done, memory/profile/policy mutation, approval bypass, runtime-agent commit/push/release, and external connectors |
 
 ## Current Baseline Evidence
 
@@ -43,8 +55,7 @@ operator-triggered safe resume을 추가하는 Phase 7 최소 vertical slice를 
 
 ## Architecture Choice
 
-The first Phase 7 implementation is a safe-boundary recovery path, not a scheduler or crash replay
-engine.
+The Phase 7 implementation is a safe-boundary recovery path, not a scheduler or crash replay engine.
 
 ```text
 schema-v7 reviewed-delivery evidence
@@ -63,7 +74,7 @@ or timeout. The runtime must prefer a false-negative stop over duplicate mutatio
 
 ## Safe Checkpoint Boundaries
 
-The future implementation may create checkpoints only at these source-backed boundaries:
+The implementation creates checkpoints only at these source-backed boundaries:
 
 | Stage | Required durable evidence | Allowed action |
 | --- | --- | --- |
@@ -83,9 +94,9 @@ These states are never resumable in the first slice:
 An interrupted `active` stage is `quarantined`, not retried. The UI must direct the operator to
 inspect runs, artifacts, source state, and approvals before a later reconciliation decision.
 
-## Planned State Schema v8
+## State Schema v8
 
-The later implementation decision may authorize one additive migration from schema v7 to schema v8:
+`DEC-097` authorizes one additive migration from schema v7 to schema v8:
 
 ```text
 sequences.workflowCheckpoint
@@ -96,8 +107,9 @@ executionPlans[*].latestCheckpointId
 
 Migration requirements:
 
-- Valid schema-v7 state gains the sequence/map and empty plan refs without rewriting existing domain
-  values.
+- Valid schema-v7 state gains the sequence/map without rewriting existing domain values. Plans outside
+  an exact durable boundary gain empty refs; an exact Builder waiting, Reviewer-ready, QA-ready, or
+  delivery-ready boundary gains one deterministic bootstrap checkpoint.
 - Existing Mission, Council, plan, WorkOrder, handoff, task, run, artifact, inbox, approval, proposal,
   and source evidence remains value-equivalent except for additive checkpoint defaults.
 - Unknown future schemas and partial schema-v8 checkpoint records fail closed.
@@ -133,8 +145,9 @@ updatedAt
 ```
 
 - Identity, stage, digests, refs, attempt number, and creation time are immutable after append.
-- Consuming, cancelling, staling, or quarantining a checkpoint records a terminal disposition and
-  creates no hidden replacement work.
+- Consuming or cancelling a checkpoint records a durable terminal disposition and creates no hidden
+  replacement work. Stale and quarantined are read-only recovery classifications and do not rewrite
+  checkpoint evidence.
 - A resume appends a new attempt checkpoint; it does not erase or rewrite the parent evidence.
 - Raw provider output, source content, environment values, credentials, or chain-of-thought are
   excluded.
@@ -167,7 +180,7 @@ updatedAt
 
 ## Runtime And API Plan
 
-The later complete fielded decision may open only:
+The accepted implementation opens only:
 
 ```text
 GET  /api/execution-plans/:executionPlanId/recovery
@@ -200,7 +213,7 @@ and Phase 6 continue/delivery-preview routes remain unchanged.
 
 ## Focused Verification Plan
 
-Future `scripts/smoke-ai-company-checkpoint-resume-recovery.mjs` must prove:
+`scripts/smoke-ai-company-checkpoint-resume-recovery.mjs` proves:
 
 - atomic v7-to-v8 migration, valid reload, partial/future-schema rejection, and rollback retention;
 - deterministic checkpoint and digest generation at every allowed boundary;
@@ -213,7 +226,7 @@ Future `scripts/smoke-ai-company-checkpoint-resume-recovery.mjs` must prove:
 - no durable DeliveryPackage, Mission done, memory, autonomous scheduling, commit, push, release, or
   connectors.
 
-Future `scripts/smoke-ui-slice-656.mjs` must prove read-only recovery status, exact-gated resume/cancel,
+`scripts/smoke-ui-slice-656.mjs` proves read-only recovery status, exact-gated resume/cancel,
 stale/quarantine rendering, safe API errors, reload evidence, blocked downstream controls, and
 desktop/mobile fit. Aggregate verification remains `node scripts/verification_status.mjs`.
 
@@ -229,7 +242,7 @@ desktop/mobile fit. Aggregate verification remains `node scripts/verification_st
 
 ## Implementation Target Surface
 
-The later complete fielded decision may open only:
+The accepted implementation opens only:
 
 ```text
 src/runtime/contracts.js
@@ -276,7 +289,6 @@ coordinators, and project source files remain out of scope.
 
 ## Exclusions
 
-- implementation of schema v8, checkpoint persistence, resume, stale, cancel, or recovery UI
 - Builder live-mutation replay or uncertain source reconciliation
 - automatic retry/rework, process boot resume, background worker, or scheduler
 - parallel, dynamic, autonomous, or provider-backed WorkOrder execution
@@ -284,20 +296,23 @@ coordinators, and project source files remain out of scope.
 - memory/checkpoint promotion into organizational learning
 - profile/policy mutation, approval bypass, external connectors, or multi-user coordination
 
-## Planning Status
+## Implementation Status
 
 - Planning authority: accepted as `DEC-095`
 - Implementation decision handoff: documented as `DEC-096`
-- Schema/runtime/API/UI implementation: blocked pending one complete fielded decision
-- Current runtime: schema v7 with no WorkflowCheckpoint records or recovery entrypoints
-- Every exclusion and downstream authority: still blocked
+- Schema/runtime/API/UI implementation: accepted and implemented as `DEC-097`
+- Current runtime: schema v8 with additive WorkflowCheckpoint records and explicit recovery entrypoints
+- Only current `reviewer-ready` or `qa-ready` checkpoints can resume; active stages remain quarantined
+- Every listed exclusion and downstream authority remains blocked
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
+node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ai-company-reviewed-delivery.mjs
 node scripts/smoke-ui-slice-655.mjs
+node scripts/smoke-ui-slice-656.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```

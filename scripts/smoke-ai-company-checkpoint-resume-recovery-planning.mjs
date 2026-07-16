@@ -54,10 +54,11 @@ assert.match(plan, /^# AI Company Checkpoint Resume And Recovery Plan$/m);
 assertSections(plan, [
   'Purpose',
   'Accepted Planning-Only Decision',
+  'Accepted Implementation Decision',
   'Current Baseline Evidence',
   'Architecture Choice',
   'Safe Checkpoint Boundaries',
-  'Planned State Schema v8',
+  'State Schema v8',
   'WorkflowCheckpoint Contract',
   'Digest And Authority Binding',
   'Resume Stale And Cancel Rules',
@@ -70,7 +71,7 @@ assertSections(plan, [
   'Implementation Sequence',
   'Acceptance Criteria',
   'Exclusions',
-  'Planning Status',
+  'Implementation Status',
 ]);
 assertAll(planText, [
   /operator-delegated-ai-company-checkpoint-resume-recovery-planning-001/,
@@ -82,7 +83,7 @@ assertAll(planText, [
   /GET \/api\/execution-plans\/:executionPlanId\/recovery/,
   /POST \/api\/execution-plans\/:executionPlanId\/resume-from-checkpoint/,
   /POST \/api\/execution-plans\/:executionPlanId\/cancel-checkpoint/,
-  /Schema\/runtime\/API\/UI implementation: blocked pending one complete fielded decision/,
+  /Schema\/runtime\/API\/UI implementation: accepted and implemented as `DEC-097`/,
 ]);
 
 assert.match(
@@ -98,7 +99,7 @@ assertSections(handoff, [
   'Invalid Shortcuts',
   'Minimum Acceptance Criteria',
   'Stop Conditions',
-  'Verification After A Later Decision',
+  'Verification After The Accepted Decision',
 ]);
 assertAll(handoffText, [
   /operator-decision-ai-company-checkpoint-resume-recovery-implementation-001/,
@@ -112,22 +113,25 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-095$/m);
 assert.match(decisionLog, /^### DEC-096$/m);
-assert.match(masterPlan, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
-assert.match(runtimeContract, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
-assert.match(councilProtocol, /Phase 7 recovery planning은 `DEC-095`/);
+assert.match(decisionLog, /^### DEC-097$/m);
+assert.match(masterPlan, /exact implementation은 `DEC-097`/);
+assert.match(runtimeContract, /exact implementation은 `DEC-097`/);
+assert.match(councilProtocol, /exact implementation은\s+`DEC-097`/);
 assertAll(roadmapText, [
   /Phase 7 planning-only authority는 `DEC-095`/,
   /implementation decision handoff는 `DEC-096`/,
-  /Schema-v8 implementation은 complete fielded decision 전까지 blocked/,
+  /exact schema-v8 implementation은 `DEC-097`/,
 ]);
-assert.match(completionInventory, /AI Company checkpoint resume and recovery planning \| pass/);
+assert.match(completionInventory, /AI Company checkpoint resume and recovery implementation \| pass/);
 assertAll(readmeText, [
   /Phase 7 checkpoint, resume, and recovery planning is accepted by `DEC-095`/,
   /implementation decision handoff is recorded by `DEC-096`/,
-  /Only durable `reviewer-ready` or `qa-ready` boundaries are planned as resumable/,
+  /exact implementation is accepted by `DEC-097`/,
+  /Only durable `reviewer-ready` or `qa-ready` boundaries are resumable/,
   /Active or ambiguous Builder, Reviewer, and QA stages are quarantine-only/,
 ]);
 assert.match(taskLedger, /ai-company-checkpoint-resume-recovery-planning-post-m7-1950/);
+assert.match(taskLedger, /ai-company-checkpoint-resume-recovery-implementation-post-m7-1951/);
 assert.match(lessons, /A restart boundary must never infer that an active mutation did not happen/);
 assert.match(verification, /id: 'ai-company-checkpoint-resume-recovery-planning'/);
 assert.match(
@@ -135,13 +139,13 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-checkpoint-resume-recovery-planning\.mjs'/,
 );
 
-// Pin the current negative evidence: planning must not smuggle schema-v8 runtime authority.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 7/);
-assert.doesNotMatch(contracts, /WORKFLOW_CHECKPOINT/);
-assert.doesNotMatch(fileStore, /workflowCheckpoints/);
-assert.doesNotMatch(runtimeService, /function resumeExecutionPlanFromCheckpoint\(/);
-assert.doesNotMatch(server, /resume-from-checkpoint/);
-assert.doesNotMatch(server, /cancel-checkpoint/);
+// Pin the consumed decision chain to the exact accepted implementation boundary.
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 8/);
+assert.match(contracts, /WORKFLOW_CHECKPOINT_STAGE/);
+assert.match(fileStore, /workflowCheckpoints/);
+assert.match(runtimeService, /function resumeExecutionPlanFromCheckpoint\(/);
+assert.match(server, /resume-from-checkpoint/);
+assert.match(server, /cancel-checkpoint/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -151,7 +155,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-095',
         handoff: 'documented-dec-096',
-        implementation: 'blocked-complete-fielded-decision-required',
+        implementation: 'accepted-dec-097',
       },
       plannedPath: {
         schemaVersion: 8,
@@ -161,17 +165,17 @@ process.stdout.write(
         operatorActionRequired: true,
       },
       currentRuntime: {
-        schemaVersion: 7,
-        workflowCheckpointRecords: false,
-        recoveryRoutes: false,
+        schemaVersion: 8,
+        workflowCheckpointRecords: true,
+        recoveryRoutes: true,
         responseOnlyDeliveryPreserved: true,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        schemaMigrationAllowed: false,
-        checkpointPersistenceAllowed: false,
-        resumeOrCancelAllowed: false,
+        implementationAllowed: true,
+        schemaMigrationAllowed: true,
+        checkpointPersistenceAllowed: true,
+        resumeOrCancelAllowed: true,
         automaticReplayAllowed: false,
         providerExpansionAllowed: false,
         runtimeAgentCommitAllowed: false,

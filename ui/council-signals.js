@@ -90,6 +90,9 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
     ? snapshot.approvals?.[executionPlan.terminalGateApprovalId] || null
     : null;
   const controlTask = snapshot.tasks?.[executionPlan.controlTaskId] || null;
+  const workflowCheckpoints = (executionPlan.checkpointRefs || [])
+    .map((id) => snapshot.workflowCheckpoints?.[id] || null)
+    .filter(Boolean);
 
   if (
     workOrders.length !== executionPlan.workOrderIds.length ||
@@ -107,6 +110,35 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
     approval,
     terminalGateApproval,
     controlTask,
+    workflowCheckpoints,
+    latestCheckpoint: executionPlan.latestCheckpointId
+      ? snapshot.workflowCheckpoints?.[executionPlan.latestCheckpointId] || null
+      : null,
+  };
+}
+
+export function getMissionWorkflowCheckpointSummary(recovery, executionPlanId) {
+  if (!recovery || recovery.executionPlanId !== executionPlanId) return null;
+  const checkpoint = recovery.checkpoint || null;
+  const action = recovery.nextAllowedActions?.[0] || null;
+  return {
+    checkpoint,
+    action,
+    canCancel: Boolean(
+      checkpoint &&
+        recovery.classification === 'ready' &&
+        recovery.current &&
+        ['resume-reviewer', 'resume-qa'].includes(action),
+    ),
+    canResume: Boolean(
+      checkpoint &&
+        recovery.classification === 'ready' &&
+        recovery.current &&
+        ['resume-reviewer', 'resume-qa'].includes(action),
+    ),
+    classification: recovery.classification,
+    current: recovery.current === true,
+    stopReason: recovery.stopReason || null,
   };
 }
 

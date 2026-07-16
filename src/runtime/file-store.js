@@ -5,17 +5,137 @@ const path = require('path');
 
 const {
   EXECUTION_PLAN_STATUS,
+  LEGACY_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
   RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
   STATE_SCHEMA_VERSION,
   WORK_ORDER_STATUS,
+  WORKFLOW_CHECKPOINT_ACTION,
+  WORKFLOW_CHECKPOINT_STAGE,
+  WORKFLOW_CHECKPOINT_STATUS,
+  WORKFLOW_TYPE,
   createEmptyState,
 } = require('./contracts');
+const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 
 function assertStringField(record, field, label) {
   if (typeof record[field] !== 'string' || !record[field]) {
     throw new Error(`${label} is missing ${field}`);
+  }
+}
+
+function validateWorkflowCheckpointRecords(state) {
+  const stages = new Set(Object.values(WORKFLOW_CHECKPOINT_STAGE));
+  const statuses = new Set(Object.values(WORKFLOW_CHECKPOINT_STATUS));
+  const actions = new Set(Object.values(WORKFLOW_CHECKPOINT_ACTION));
+  const digestPattern = /^[a-f0-9]{64}$/;
+
+  for (const [key, checkpoint] of Object.entries(state.workflowCheckpoints)) {
+    const label = `WorkflowCheckpoint ${key}`;
+    if (
+      !checkpoint ||
+      typeof checkpoint !== 'object' ||
+      Array.isArray(checkpoint) ||
+      checkpoint.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    for (const field of [
+      'projectId',
+      'missionId',
+      'executionPlanId',
+      'workflowType',
+      'stage',
+      'status',
+      'sourceDigest',
+      'inputDigest',
+      'authorityDigest',
+      'checkpointDigest',
+      'createdAt',
+      'updatedAt',
+    ]) {
+      assertStringField(checkpoint, field, label);
+    }
+    for (const field of [
+      'completedUnitRefs',
+      'pendingUnitRefs',
+      'failedUnitRefs',
+      'runRefs',
+      'artifactRefs',
+      'approvalRefs',
+      'nextAllowedActions',
+    ]) {
+      assertStringArrayField(checkpoint, field, label);
+    }
+    if (!Number.isInteger(checkpoint.attempt) || checkpoint.attempt < 1) {
+      throw new Error(`${label} has invalid attempt`);
+    }
+    if (checkpoint.workflowType !== WORKFLOW_TYPE.REVIEWED_DELIVERY) {
+      throw new Error(`${label} has invalid workflowType`);
+    }
+    if (!stages.has(checkpoint.stage) || !statuses.has(checkpoint.status)) {
+      throw new Error(`${label} has invalid stage or status`);
+    }
+    if (checkpoint.nextAllowedActions.some((action) => !actions.has(action))) {
+      throw new Error(`${label} has invalid nextAllowedActions`);
+    }
+    const expectedActions =
+      checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY
+        ? [WORKFLOW_CHECKPOINT_ACTION.RESUME_REVIEWER]
+        : checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.QA_READY
+          ? [WORKFLOW_CHECKPOINT_ACTION.RESUME_QA]
+          : [];
+    if (
+      checkpoint.nextAllowedActions.length !== expectedActions.length ||
+      checkpoint.nextAllowedActions.some((action, index) => action !== expectedActions[index])
+    ) {
+      throw new Error(`${label} has actions that do not match its stage`);
+    }
+    if (
+      (checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY) !==
+      (checkpoint.status === WORKFLOW_CHECKPOINT_STATUS.TERMINAL)
+    ) {
+      throw new Error(`${label} has an invalid terminal disposition`);
+    }
+    for (const field of ['sourceDigest', 'inputDigest', 'authorityDigest', 'checkpointDigest']) {
+      if (!digestPattern.test(checkpoint[field])) throw new Error(`${label} has invalid ${field}`);
+    }
+    const plan = state.executionPlans[checkpoint.executionPlanId];
+    if (
+      !plan ||
+      checkpoint.projectId !== plan.projectId ||
+      checkpoint.missionId !== plan.missionId ||
+      !plan.checkpointRefs.includes(checkpoint.id)
+    ) {
+      throw new Error(`${label} has invalid ExecutionPlan references`);
+    }
+    const unitRefs = [
+      ...checkpoint.completedUnitRefs,
+      ...checkpoint.pendingUnitRefs,
+      ...checkpoint.failedUnitRefs,
+    ];
+    if (unitRefs.some((id) => !plan.workOrderIds.includes(id))) {
+      throw new Error(`${label} has invalid WorkOrder references`);
+    }
+    if (
+      checkpoint.runRefs.some((id) => !state.runs[id]) ||
+      checkpoint.artifactRefs.some((id) => !state.artifacts[id]) ||
+      checkpoint.approvalRefs.some((id) => !state.approvals[id])
+    ) {
+      throw new Error(`${label} has missing evidence references`);
+    }
+    if (
+      checkpoint.resumedFromCheckpointId !== null &&
+      (typeof checkpoint.resumedFromCheckpointId !== 'string' ||
+        !state.workflowCheckpoints[checkpoint.resumedFromCheckpointId] ||
+        state.workflowCheckpoints[checkpoint.resumedFromCheckpointId].executionPlanId !== plan.id)
+    ) {
+      throw new Error(`${label} has invalid resumedFromCheckpointId`);
+    }
+    if (checkpoint.stopReason !== null && typeof checkpoint.stopReason !== 'string') {
+      throw new Error(`${label} has invalid stopReason`);
+    }
   }
 }
 
@@ -129,6 +249,70 @@ function validateDurableWorkOrderRecords(state) {
   }
 }
 
+function inferMigratedWorkflowCheckpointStage(executionPlan, workOrders) {
+  const byRole = Object.fromEntries(workOrders.map((workOrder) => [workOrder.role, workOrder]));
+  if (workOrders.length !== 3 || !byRole.builder || !byRole.reviewer || !byRole.qa) return null;
+
+  if (
+    executionPlan.status === EXECUTION_PLAN_STATUS.ACTIVE &&
+    executionPlan.activeWorkOrderId === byRole.builder.id &&
+    executionPlan.stoppedAt === 'request-builder-live-mutation-approval' &&
+    byRole.builder.status === WORK_ORDER_STATUS.WAITING_GATE
+  ) {
+    return WORKFLOW_CHECKPOINT_STAGE.BUILDER_WAITING_GATE;
+  }
+  if (
+    executionPlan.status === EXECUTION_PLAN_STATUS.ACTIVE &&
+    executionPlan.activeWorkOrderId === byRole.reviewer.id &&
+    byRole.builder.status === WORK_ORDER_STATUS.COMPLETED &&
+    byRole.reviewer.status === WORK_ORDER_STATUS.QUEUED
+  ) {
+    return WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY;
+  }
+  if (
+    executionPlan.status === EXECUTION_PLAN_STATUS.REVIEWING &&
+    executionPlan.activeWorkOrderId === byRole.qa.id &&
+    byRole.reviewer.status === WORK_ORDER_STATUS.COMPLETED &&
+    byRole.qa.status === WORK_ORDER_STATUS.QUEUED
+  ) {
+    return WORKFLOW_CHECKPOINT_STAGE.QA_READY;
+  }
+  if (
+    executionPlan.status === EXECUTION_PLAN_STATUS.DELIVERY_READY &&
+    executionPlan.activeWorkOrderId === null &&
+    workOrders.every((workOrder) => workOrder.status === WORK_ORDER_STATUS.COMPLETED)
+  ) {
+    return WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY;
+  }
+  return null;
+}
+
+function bootstrapMigratedWorkflowCheckpoints(state) {
+  for (const executionPlan of Object.values(state.executionPlans)) {
+    const workOrders = executionPlan.workOrderIds.map((id) => state.workOrders[id]).filter(Boolean);
+    const stage = inferMigratedWorkflowCheckpointStage(executionPlan, workOrders);
+    if (!stage) continue;
+
+    state.sequences.workflowCheckpoint += 1;
+    const checkpoint = createWorkflowCheckpoint({
+      id: `workflow-checkpoint-${String(state.sequences.workflowCheckpoint).padStart(4, '0')}`,
+      executionPlan,
+      workOrders,
+      projectProvider: state.projects[executionPlan.projectId]?.provider,
+      stage,
+      attempt: 1,
+      resumedFromCheckpointId: null,
+      stopReason:
+        executionPlan.stopReason || `schema-v7-migration-${stage}`,
+      createdAt:
+        executionPlan.updatedAt || executionPlan.createdAt || '1970-01-01T00:00:00.000Z',
+    });
+    state.workflowCheckpoints[checkpoint.id] = checkpoint;
+    executionPlan.checkpointRefs.push(checkpoint.id);
+    executionPlan.latestCheckpointId = checkpoint.id;
+  }
+}
+
 function createFileStore(options = {}) {
   const runtimeRoot = options.runtimeRoot || path.join(process.cwd(), 'var', 'runtime');
   const statePath = path.join(runtimeRoot, 'state.json');
@@ -153,13 +337,14 @@ function createFileStore(options = {}) {
 
     const sourceSchemaVersion = state.schemaVersion;
     if (
+      sourceSchemaVersion !== LEGACY_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MIGRATABLE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
     }
 
-    if (sourceSchemaVersion === STATE_SCHEMA_VERSION) {
+    if (sourceSchemaVersion >= MIGRATABLE_STATE_SCHEMA_VERSION) {
       const requiredSequences = ['executionPlan', 'workOrder', 'handoffPacket'];
       const requiredMaps = ['executionPlans', 'workOrders', 'handoffPackets'];
       if (
@@ -169,7 +354,25 @@ function createFileStore(options = {}) {
           (key) => !state[key] || typeof state[key] !== 'object' || Array.isArray(state[key]),
         )
       ) {
-        throw new Error('Runtime state schemaVersion 7 is missing durable WorkOrder fields');
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing durable WorkOrder fields`,
+        );
+      }
+    }
+
+    if (sourceSchemaVersion === STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.workflowCheckpoint) ||
+        !state.workflowCheckpoints ||
+        typeof state.workflowCheckpoints !== 'object' ||
+        Array.isArray(state.workflowCheckpoints) ||
+        Object.values(state.executionPlans).some(
+          (plan) =>
+            !Array.isArray(plan.checkpointRefs) ||
+            !Object.prototype.hasOwnProperty.call(plan, 'latestCheckpointId'),
+        )
+      ) {
+        throw new Error('Runtime state schemaVersion 8 is missing WorkflowCheckpoint fields');
       }
     }
 
@@ -195,7 +398,15 @@ function createFileStore(options = {}) {
       executionPlans: state.executionPlans || {},
       workOrders: state.workOrders || {},
       handoffPackets: state.handoffPackets || {},
+      workflowCheckpoints: state.workflowCheckpoints || {},
     };
+
+    if (sourceSchemaVersion < STATE_SCHEMA_VERSION) {
+      for (const executionPlan of Object.values(normalizedState.executionPlans)) {
+        executionPlan.checkpointRefs = [];
+        executionPlan.latestCheckpointId = null;
+      }
+    }
 
     for (const mission of Object.values(normalizedState.missions)) {
       mission.goal = mission.goal || '';
@@ -393,8 +604,40 @@ function createFileStore(options = {}) {
       proposalSourceMutation.pushAllowed = false;
     }
 
+    if (sourceSchemaVersion === MIGRATABLE_STATE_SCHEMA_VERSION) {
+      bootstrapMigratedWorkflowCheckpoints(normalizedState);
+    }
+
     normalizedState.schemaVersion = STATE_SCHEMA_VERSION;
     validateDurableWorkOrderRecords(normalizedState);
+    for (const [key, plan] of Object.entries(normalizedState.executionPlans)) {
+      const label = `ExecutionPlan ${key}`;
+      assertStringArrayField(plan, 'checkpointRefs', label);
+      if (new Set(plan.checkpointRefs).size !== plan.checkpointRefs.length) {
+        throw new Error(`${label} has duplicate WorkflowCheckpoint references`);
+      }
+      if (
+        plan.latestCheckpointId !== null &&
+        (typeof plan.latestCheckpointId !== 'string' ||
+          plan.latestCheckpointId !== plan.checkpointRefs.at(-1))
+      ) {
+        throw new Error(`${label} has invalid latestCheckpointId`);
+      }
+      if (plan.checkpointRefs.some((id) => !normalizedState.workflowCheckpoints[id])) {
+        throw new Error(`${label} has missing WorkflowCheckpoint references`);
+      }
+      plan.checkpointRefs.forEach((id, index) => {
+        const checkpoint = normalizedState.workflowCheckpoints[id];
+        const expectedParentId = index === 0 ? null : plan.checkpointRefs[index - 1];
+        if (
+          checkpoint.attempt !== index + 1 ||
+          checkpoint.resumedFromCheckpointId !== expectedParentId
+        ) {
+          throw new Error(`${label} has invalid WorkflowCheckpoint attempt history`);
+        }
+      });
+    }
+    validateWorkflowCheckpointRecords(normalizedState);
     return normalizedState;
   }
 
@@ -415,14 +658,23 @@ function createFileStore(options = {}) {
 
   function loadState() {
     ensureStateFile();
-    return normalizeState(JSON.parse(fs.readFileSync(statePath, 'utf8')));
+    const sourceState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    const normalizedState = normalizeState(sourceState);
+    if (sourceState.schemaVersion !== STATE_SCHEMA_VERSION) {
+      writeStateAtomically(normalizedState);
+    }
+    return normalizedState;
+  }
+
+  function writeStateAtomically(state) {
+    ensureDirs();
+    const temporaryStatePath = `${statePath}.tmp-${process.pid}`;
+    fs.writeFileSync(temporaryStatePath, `${JSON.stringify(state, null, 2)}\n`);
+    fs.renameSync(temporaryStatePath, statePath);
   }
 
   function saveState(state) {
-    ensureDirs();
-    const temporaryStatePath = `${statePath}.tmp-${process.pid}`;
-    fs.writeFileSync(temporaryStatePath, `${JSON.stringify(normalizeState(state), null, 2)}\n`);
-    fs.renameSync(temporaryStatePath, statePath);
+    writeStateAtomically(normalizeState(state));
   }
 
   function appendLogRecord(runId, record) {
