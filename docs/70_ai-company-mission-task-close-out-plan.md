@@ -37,7 +37,9 @@ local commit, push, release, learning 또는 다음 Mission 자동 생성은 열
   `executing` because package acceptance deliberately opened no lifecycle transition.
 - `transitionTaskLifecycle` already enforces review and active-gate closure before `Done`, while
   `syncMissionExecutionStateFromTask` derives `completed` from a reviewed Done task. Neither method is
-  currently bound to accepted package evidence or one atomic Mission close-out command.
+  currently bound to accepted package evidence or one atomic Mission close-out command. A direct
+  runtime consumer could therefore terminalize the linked control task and then synchronize the
+  Mission without creating MissionCloseOut evidence unless the future implementation adds a guard.
 - The standalone `executionCoordinator.runCloseOut` path requires a commit package, local commit,
   release package, release-ready approval, clean dedicated worktree, run, and close-out artifact. It is
   a separate v1 task delivery path and must remain unchanged.
@@ -83,6 +85,11 @@ Future close-out must require all of the following in one loaded state:
 
 Any mismatch fails before write. Migration, boot, read, preview, hydration, and rendering never create
 close-out evidence or change Mission/task lifecycle.
+
+Before applying these pre-close-out gates, the runtime must check for an existing MissionCloseOut by
+Mission id. An exact request against a strict existing record and already-terminal Mission/task state
+returns idempotently. A divergent request conflicts. This terminal replay branch is evaluated before
+the `executing`/`Review` preconditions because those source states no longer exist after success.
 
 ## Planned State Schema v11
 
@@ -170,6 +177,8 @@ decision=close-out
 ```
 
 - Exact replay returns the existing terminal record with `idempotent=true` and performs no write.
+- Replay validates the record and current `completed`/`Done` state before evaluating pre-close-out
+  status requirements; otherwise a successful first transition would make every replay fail.
 - Any divergent tuple for a closed Mission conflicts without mutation.
 - If a close-out record and terminal lifecycle state ever diverge, strict load fails closed rather than
   synthesizing, deleting, reopening, or repeating the transition.
@@ -196,6 +205,19 @@ in one `saveState` call. It does not call `executionCoordinator.runCloseOut`, cr
 approval/inbox record, inspect or mutate Git, or invoke provider, commit, push, release, learning,
 scheduler, memory, policy, or connector code.
 
+The specialized method mutates the already-loaded in-memory state directly after all gates pass; it
+does not call public `transitionTaskLifecycle` or `syncMissionExecutionStateFromTask`, which each load
+and save independently. The future implementation must also guard those two generic methods: when a
+task is the `controlTaskId` of a durable AI Company ExecutionPlan, direct transition to `Done` and
+derived Mission `completed` are rejected unless a matching strict MissionCloseOut record already
+exists. This closes the direct-consumer bypass without changing standalone task behavior.
+
+Atomicity in this slice means one `saveState(normalizeState(...))` for record plus both transitions,
+using the existing same-filesystem temporary-file rename. Migration from v10 to v11 is its own prior
+atomic normalization write. Cross-process compare-and-swap and fsync durability are not claimed; the
+supported authority remains the single-process local server/runtime, and concurrent exact HTTP
+requests must serialize into one creation plus one idempotent result.
+
 ## UI Boundary
 
 - Add one explicit `미션 종료` command only when the exact accepted package tuple is current and every
@@ -216,6 +238,8 @@ scheduler, memory, policy, or connector code.
   `review-required`, and acceptance `accepted`; terminal state is added only to Mission/control task.
 - Preserve standalone task lifecycle, commit-package, local-commit, release-package, and
   `executionCoordinator.runCloseOut` behavior outside the new Mission route.
+- Guard only durable AI Company `controlTaskId` terminalization through generic lifecycle/sync methods;
+  direct tasks and legacy Mission/task consumers without such a plan keep existing behavior.
 - Preserve legacy Council and direct task consumers with no MissionCloseOut record.
 - Create no approval or Decision Inbox item; the exact close-out request is the operator decision.
 
@@ -229,6 +253,8 @@ Future implementation smoke must prove:
 - source-current plan, terminal checkpoint, completed WorkOrders, accepted package, passed task review,
   and no-active-gate requirements before write;
 - one immutable MissionCloseOut, canonical digest, exact idempotent replay, and reload retention;
+- terminal-state replay is checked before pre-close-out statuses, concurrent exact HTTP requests yield
+  one record, and divergent terminal replay performs no write;
 - one atomic `Review -> Done` plus `executing -> completed` transition with matching timestamps;
 - stale, malformed, extra-field, missing-evidence, active-gate, divergent, duplicate, partial-v11, and
   corrupt-record refusal with unchanged bytes;
@@ -236,6 +262,8 @@ Future implementation smoke must prove:
   remain unchanged;
 - no standalone close-out run/artifact, Git inspection/mutation, commit package, local commit, push,
   release package, release, learning, memory, scheduling, provider, policy, or connector effect;
+- generic lifecycle and Mission sync methods reject a durable control-task terminal bypass while
+  preserving standalone task and legacy Mission behavior;
 - DEC-091/094/097/100/103 and standalone task/Council compatibility;
 - read-only UI hydration, exact-gated command, safe stale failure, idempotent replay, terminal reload
   evidence, absent downstream controls, and responsive desktop/mobile fit.
@@ -274,11 +302,12 @@ scripts/ui_qa_status.mjs
 1. Add schema-v11 constants and additive empty MissionCloseOut sequence/map migration.
 2. Add strict exact-field, identity, transition, reference, digest, uniqueness, and terminal-state validation.
 3. Implement canonical close-out digest and one atomic exact-tuple record plus lifecycle transaction.
-4. Add read-only GET and explicit close-out POST routes with transport and runtime key allowlists.
-5. Add exact-gated Deliverables command and durable terminal evidence.
-6. Add focused migration/runtime/API/UI smokes and compatibility checks.
-7. Synchronize docs, README, inventory, task ledger, UI QA, and aggregate verification.
-8. Perform adversarial lifecycle/atomicity review before operator-side commit and push.
+4. Add terminal-record-first replay and durable control-task guards to generic lifecycle/sync methods.
+5. Add read-only GET and explicit close-out POST routes with transport and runtime key allowlists.
+6. Add exact-gated Deliverables command and durable terminal evidence.
+7. Add focused migration/runtime/API/UI smokes and compatibility checks.
+8. Synchronize docs, README, inventory, task ledger, UI QA, and aggregate verification.
+9. Perform adversarial lifecycle/atomicity review before operator-side commit and push.
 
 ## Acceptance Criteria
 
