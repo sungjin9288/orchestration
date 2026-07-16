@@ -18,6 +18,7 @@ const {
   DELIVERY_PACKAGE_ACCEPTANCE_DECISION,
   DELIVERY_PACKAGE_STATUS,
   EXECUTION_PLAN_STATUS,
+  MISSION_CLOSE_OUT_DECISION,
   PACKS,
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
@@ -107,6 +108,7 @@ const {
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,
   assertHandoffPacket,
+  assertMissionCloseOut,
   assertRun,
   assertWorkOrder,
   assertWorkflowCheckpoint,
@@ -127,6 +129,9 @@ const {
 const {
   createDeliveryPackageAcceptance,
 } = require('./delivery-package-acceptances');
+const {
+  createMissionCloseOut,
+} = require('./mission-close-outs');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -178,6 +183,11 @@ function createRuntimeService(options = {}) {
     return `delivery-package-acceptance-${String(
       state.sequences.deliveryPackageAcceptance,
     ).padStart(4, '0')}`;
+  }
+
+  function nextMissionCloseOutId(state) {
+    state.sequences.missionCloseOut += 1;
+    return `mission-close-out-${String(state.sequences.missionCloseOut).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -2094,6 +2104,9 @@ function createRuntimeService(options = {}) {
     const deliveryPackageAcceptances = Object.values(state.deliveryPackageAcceptances).filter(
       (acceptance) => deliveryPackages.some((deliveryPackage) => deliveryPackage.id === acceptance.deliveryPackageId),
     );
+    const missionCloseOuts = Object.values(state.missionCloseOuts).filter(
+      (closeOut) => closeOut.executionPlanId === executionPlan.id,
+    );
 
     return {
       executionPlan,
@@ -2102,6 +2115,7 @@ function createRuntimeService(options = {}) {
       workflowCheckpoints,
       deliveryPackages,
       deliveryPackageAcceptances,
+      missionCloseOuts,
       latestCheckpoint: executionPlan.latestCheckpointId
         ? assertWorkflowCheckpoint(executionPlan.latestCheckpointId, state)
         : null,
@@ -2113,6 +2127,7 @@ function createRuntimeService(options = {}) {
             (acceptance) => acceptance.deliveryPackageId === executionPlan.latestDeliveryPackageId,
           ) || null
         : null,
+      latestMissionCloseOut: missionCloseOuts.at(-1) || null,
       approval: assertApproval(executionPlan.approvalId, state),
       terminalGateApproval: executionPlan.terminalGateApprovalId
         ? assertApproval(executionPlan.terminalGateApprovalId, state)
@@ -3124,6 +3139,226 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  function findMissionCloseOut(state, missionId) {
+    return (
+      Object.values(state.missionCloseOuts).find(
+        (missionCloseOut) => missionCloseOut.missionId === missionId,
+      ) || null
+    );
+  }
+
+  function findExecutionPlanForMissionControlTask(state, mission, task) {
+    return (
+      Object.values(state.executionPlans).find(
+        (executionPlan) =>
+          executionPlan.missionId === mission.id && executionPlan.controlTaskId === task.id,
+      ) || null
+    );
+  }
+
+  function buildMissionCloseOutEnvelopeFromState(state, missionId) {
+    const mission = assertMission(missionId, state);
+    const linkedTask = mission.linkedTaskId ? assertTask(mission.linkedTaskId, state) : null;
+    if (!linkedTask || linkedTask.missionId !== mission.id) {
+      throw conflict(`Mission ${mission.id} does not have a valid linked control task`);
+    }
+    const executionPlan = findExecutionPlanForMissionControlTask(state, mission, linkedTask);
+    if (!executionPlan) {
+      throw conflict(`Mission ${mission.id} does not have a durable ExecutionPlan control task`);
+    }
+    const bundle = getExecutionPlanBundleFromState(state, executionPlan.id);
+    const deliveryPackage = bundle.latestDeliveryPackage;
+    const deliveryPackageAcceptance = bundle.latestDeliveryPackageAcceptance;
+    if (!deliveryPackage || !deliveryPackageAcceptance) {
+      throw conflict(`Mission ${mission.id} does not have accepted DeliveryPackage evidence`);
+    }
+    const missionCloseOut = findMissionCloseOut(state, mission.id);
+    return {
+      missionId: mission.id,
+      mission,
+      linkedTask,
+      executionPlanBundle: bundle,
+      deliveryPackage,
+      deliveryPackageAcceptance,
+      missionCloseOut,
+      closeOutStatus: missionCloseOut
+        ? MISSION_CLOSE_OUT_DECISION.CLOSED_OUT
+        : 'ready-for-close-out-review',
+    };
+  }
+
+  function getMissionCloseOut(missionId) {
+    return buildMissionCloseOutEnvelopeFromState(store.loadState(), missionId);
+  }
+
+  function assertExactMissionCloseOutInput(input) {
+    const expectedFields = [
+      'missionId',
+      'linkedTaskId',
+      'executionPlanId',
+      'deliveryPackageId',
+      'deliveryPackageAcceptanceId',
+      'previewId',
+      'sourceDigest',
+      'packageDigest',
+      'acceptanceDigest',
+      'checkpointId',
+      'checkpointDigest',
+      'decision',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('Mission close-out request has unexpected or missing fields');
+    }
+    if (String(input.decision || '').trim() !== 'close-out') {
+      throw conflict('Mission close-out decision must be close-out');
+    }
+  }
+
+  function assertExactMissionCloseOutRecordInput(input, missionCloseOut) {
+    for (const [field, expected] of [
+      ['missionId', missionCloseOut.missionId],
+      ['linkedTaskId', missionCloseOut.linkedTaskId],
+      ['executionPlanId', missionCloseOut.executionPlanId],
+      ['deliveryPackageId', missionCloseOut.deliveryPackageId],
+      ['deliveryPackageAcceptanceId', missionCloseOut.deliveryPackageAcceptanceId],
+      ['previewId', missionCloseOut.previewId],
+      ['sourceDigest', missionCloseOut.sourceDigest],
+      ['packageDigest', missionCloseOut.packageDigest],
+      ['acceptanceDigest', missionCloseOut.acceptanceDigest],
+      ['checkpointId', missionCloseOut.terminalCheckpointId],
+      ['checkpointDigest', missionCloseOut.terminalCheckpointDigest],
+    ]) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`Mission close-out ${field} does not match terminal evidence`);
+      }
+    }
+  }
+
+  function assertMissionCloseOutReady(state, input, envelope) {
+    const {
+      mission,
+      linkedTask,
+      executionPlanBundle,
+      deliveryPackage,
+      deliveryPackageAcceptance,
+    } = envelope;
+    const { executionPlan, workOrders, latestCheckpoint } = executionPlanBundle;
+    const gateState = computeTaskGateState(linkedTask, state);
+    const activeGates = listActiveTaskGates(gateState);
+    if (mission.status !== 'executing') {
+      throw conflict(`Mission ${mission.id} must be executing before close-out`);
+    }
+    if (
+      linkedTask.lifecycleState !== TASK_LIFECYCLE.REVIEW ||
+      linkedTask.review?.required !== true ||
+      linkedTask.review?.status !== REVIEW_STATUS.PASSED
+    ) {
+      throw conflict(`Task ${linkedTask.id} must have passed review in Review before close-out`);
+    }
+    if (activeGates.length > 0) {
+      throw conflict(
+        `Task ${linkedTask.id} cannot close out while gates remain active: ${activeGates.join(', ')}`,
+      );
+    }
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.DELIVERY_READY ||
+      executionPlan.activeWorkOrderId !== null ||
+      workOrders.length !== 3 ||
+      workOrders.some((workOrder) => workOrder.status !== WORK_ORDER_STATUS.COMPLETED)
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} is not delivery-ready for close-out`);
+    }
+    const preview = buildExecutionPlanDeliveryPreviewFromState(state, {
+      executionPlanId: executionPlan.id,
+      sourceDigest: input.sourceDigest,
+    });
+    for (const [field, expected] of [
+      ['missionId', mission.id],
+      ['linkedTaskId', linkedTask.id],
+      ['executionPlanId', executionPlan.id],
+      ['deliveryPackageId', deliveryPackage.id],
+      ['deliveryPackageAcceptanceId', deliveryPackageAcceptance.id],
+      ['previewId', preview.id],
+      ['sourceDigest', preview.sourceDigest],
+      ['packageDigest', preview.packageDigest],
+      ['acceptanceDigest', deliveryPackageAcceptance.acceptanceDigest],
+      ['checkpointId', preview.terminalCheckpointId],
+      ['checkpointDigest', preview.terminalCheckpointDigest],
+    ]) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`Mission close-out ${field} does not match current evidence`);
+      }
+    }
+    if (
+      deliveryPackage.status !== DELIVERY_PACKAGE_STATUS.REVIEW_REQUIRED ||
+      deliveryPackage.unresolvedItems.length !== 0 ||
+      deliveryPackage.previewId !== preview.id ||
+      deliveryPackage.sourceDigest !== preview.sourceDigest ||
+      deliveryPackage.packageDigest !== preview.packageDigest ||
+      deliveryPackage.terminalCheckpointId !== preview.terminalCheckpointId ||
+      deliveryPackage.terminalCheckpointDigest !== preview.terminalCheckpointDigest ||
+      deliveryPackageAcceptance.deliveryPackageId !== deliveryPackage.id ||
+      deliveryPackageAcceptance.decision !== DELIVERY_PACKAGE_ACCEPTANCE_DECISION.ACCEPTED ||
+      deliveryPackageAcceptance.previewId !== preview.id ||
+      deliveryPackageAcceptance.sourceDigest !== preview.sourceDigest ||
+      deliveryPackageAcceptance.packageDigest !== preview.packageDigest ||
+      deliveryPackageAcceptance.terminalCheckpointId !== preview.terminalCheckpointId ||
+      deliveryPackageAcceptance.terminalCheckpointDigest !== preview.terminalCheckpointDigest ||
+      !latestCheckpoint ||
+      latestCheckpoint.id !== preview.terminalCheckpointId ||
+      latestCheckpoint.checkpointDigest !== preview.terminalCheckpointDigest ||
+      latestCheckpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY ||
+      latestCheckpoint.status !== WORKFLOW_CHECKPOINT_STATUS.TERMINAL
+    ) {
+      throw conflict(`Mission ${mission.id} accepted delivery evidence is not close-out-ready`);
+    }
+    return gateState;
+  }
+
+  function closeOutMissionAndTask(input) {
+    assertExactMissionCloseOutInput(input);
+    const state = store.loadState();
+    const existing = findMissionCloseOut(state, input.missionId);
+    if (existing) {
+      assertExactMissionCloseOutRecordInput(input, existing);
+      return {
+        ...buildMissionCloseOutEnvelopeFromState(state, input.missionId),
+        missionCloseOut: assertMissionCloseOut(existing.id, state),
+        idempotent: true,
+      };
+    }
+
+    const envelope = buildMissionCloseOutEnvelopeFromState(state, input.missionId);
+    const gateState = assertMissionCloseOutReady(state, input, envelope);
+    const now = new Date().toISOString();
+    const missionCloseOut = createMissionCloseOut({
+      id: nextMissionCloseOutId(state),
+      mission: envelope.mission,
+      linkedTask: envelope.linkedTask,
+      executionPlan: envelope.executionPlanBundle.executionPlan,
+      deliveryPackage: envelope.deliveryPackage,
+      acceptance: envelope.deliveryPackageAcceptance,
+      createdAt: now,
+    });
+    state.missionCloseOuts[missionCloseOut.id] = missionCloseOut;
+    applyTaskGateFlags(envelope.linkedTask, gateState);
+    envelope.linkedTask.lifecycleState = TASK_LIFECYCLE.DONE;
+    envelope.linkedTask.updatedAt = now;
+    envelope.mission.status = 'completed';
+    envelope.mission.updatedAt = now;
+    store.saveState(state);
+
+    return {
+      ...buildMissionCloseOutEnvelopeFromState(state, envelope.mission.id),
+      missionCloseOut,
+      idempotent: false,
+    };
+  }
+
   function assertExactDeliveryPackageTuple(input, preview) {
     const exactFields = [
       ['previewId', preview.id],
@@ -4105,6 +4340,16 @@ function createRuntimeService(options = {}) {
       task.lifecycleState === TASK_LIFECYCLE.DONE &&
       task.review?.status === REVIEW_STATUS.PASSED
     ) {
+      const executionPlan = findExecutionPlanForMissionControlTask(state, mission, task);
+      if (executionPlan) {
+        const closeOut = findMissionCloseOut(state, mission.id);
+        if (!closeOut || closeOut.executionPlanId !== executionPlan.id) {
+          throw conflict(
+            `Mission ${mission.id} requires MissionCloseOut evidence before completed sync`,
+          );
+        }
+        if (mission.status === 'completed') return mission;
+      }
       nextStatus = 'completed';
     } else if (task.flags?.blocked || task.flags?.waitingDecision) {
       nextStatus = 'blocked';
@@ -4475,6 +4720,22 @@ function createRuntimeService(options = {}) {
       throw new Error(`Unsupported task lifecycle transition target: ${nextLifecycleState}`);
     }
 
+    if (task.missionId) {
+      const mission = assertMission(task.missionId, state);
+      const executionPlan = findExecutionPlanForMissionControlTask(state, mission, task);
+      const closeOut = executionPlan ? findMissionCloseOut(state, mission.id) : null;
+      if (
+        closeOut &&
+        closeOut.executionPlanId === executionPlan.id &&
+        task.lifecycleState === TASK_LIFECYCLE.DONE
+      ) {
+        if (nextLifecycleState === TASK_LIFECYCLE.DONE) return task;
+        throw conflict(
+          `Task ${task.id} is terminal under MissionCloseOut ${closeOut.id} and cannot reopen`,
+        );
+      }
+    }
+
     if (
       nextLifecycleState === TASK_LIFECYCLE.DONE &&
       task.review.required &&
@@ -4490,6 +4751,19 @@ function createRuntimeService(options = {}) {
         throw new Error(
           `Task ${task.id} cannot move to Done while gates remain active: ${activeGates.join(', ')}`,
         );
+      }
+      if (task.missionId) {
+        const mission = assertMission(task.missionId, state);
+        const executionPlan = findExecutionPlanForMissionControlTask(state, mission, task);
+        if (executionPlan) {
+          const closeOut = findMissionCloseOut(state, mission.id);
+          if (!closeOut || closeOut.executionPlanId !== executionPlan.id) {
+            throw conflict(
+              `Task ${task.id} requires MissionCloseOut evidence before Done transition`,
+            );
+          }
+          if (task.lifecycleState === TASK_LIFECYCLE.DONE) return task;
+        }
       }
     }
 
@@ -4876,6 +5150,7 @@ function createRuntimeService(options = {}) {
     assertTaskCanRunBuilderPreflight,
     assertTaskCanRunTaskBreaker,
     completeRun,
+    closeOutMissionAndTask,
     completeReviewedDeliveryBuilder,
     completeReviewedDeliveryQa,
     completeReviewedDeliveryReviewer,
@@ -4914,6 +5189,7 @@ function createRuntimeService(options = {}) {
     getExecutionPlanRecovery,
     getLogs,
     getMission,
+    getMissionCloseOut,
     getProposalApplicationAttempt,
     getProposalSourceMutation,
     getProposalRecord,

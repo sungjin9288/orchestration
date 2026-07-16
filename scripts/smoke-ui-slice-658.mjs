@@ -99,7 +99,7 @@ async function main() {
     assert.match(appSource, /Acceptance Evidence/);
     assert.match(appSource, /data-action="accept-delivery-package"/);
     assert.match(appSource, /decision: 'accept'/);
-    assert.match(appSource, /Mission\/task close-out은 별도 승인 전까지 차단됩니다/);
+    assert.match(appSource, /Current evidence가 일치하면 Mission과 linked control task를 한 transaction으로 종료할 수 있습니다/);
     assert.doesNotMatch(appSource, /data-action="reject-delivery-package"/);
     assert.doesNotMatch(appSource, /data-action="complete-mission-from-delivery-package"/);
     assert.doesNotMatch(appSource, /data-action="close-task-from-delivery-package"/);
@@ -182,7 +182,7 @@ async function main() {
     assert.equal(accepted.payload.deliveryPackageAcceptance.decision, 'accepted');
     assert.match(accepted.payload.deliveryPackageAcceptance.acceptanceDigest, /^[a-f0-9]{64}$/);
     assert.deepEqual(accepted.payload.durableDeliveryPackage, deliveryPackage);
-    assert.equal(accepted.payload.snapshot.schemaVersion, 10);
+    assert.equal(accepted.payload.snapshot.schemaVersion, 11);
     assert.equal(Object.keys(accepted.payload.snapshot.deliveryPackageAcceptances).length, 1);
     assert.equal(accepted.payload.executionPlanBundle.mission.status, 'executing');
     assert.equal(accepted.payload.executionPlanBundle.executionPlan.status, 'delivery-ready');

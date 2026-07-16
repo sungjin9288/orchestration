@@ -347,11 +347,13 @@ Mission/task close-out, done, commit/push/release, learning/memory, scheduling/p
 authority는 계속 blocked다.
 
 Mission/task close-out planning-only authority는 `DEC-104`, complete fielded implementation
-handoff는 `DEC-105`로 기록됐다. 계획은 exact accepted package evidence, completed WorkOrders,
-passed linked-task review, no active gates를 schema-v11 MissionCloseOut event에 결속하고 같은 atomic
-save에서 linked control task `Review -> Done`, Mission `executing -> completed`만 수행한다.
-Schema/runtime/API/UI implementation, standalone commit/release close-out, Git mutation, learning,
-scheduling/providers, policy mutation, next-Mission creation, approval bypass, and connectors remain blocked.
+handoff는 `DEC-105`, exact implementation은 `DEC-106`으로 기록됐다. Current schema-v11 path는
+exact accepted package evidence, completed WorkOrders, passed linked-task review, recomputed no-active-
+gate state를 MissionCloseOut event에 결속하고 같은 atomic save에서 linked control task
+`Review -> Done`, Mission `executing -> completed`만 수행한다. Terminal-record-first replay와 generic
+bypass guards를 유지하며 standalone commit/release close-out, Git/release, reopen, package lifecycle
+expansion, learning, scheduling/providers, policy mutation, next-Mission creation, approval bypass, and
+connectors remain blocked.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -384,6 +386,8 @@ node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance.mjs
 node scripts/smoke-ui-slice-658.mjs
 node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
+node scripts/smoke-ai-company-mission-task-close-out.mjs
+node scripts/smoke-ui-slice-659.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -392,7 +396,8 @@ authority boundary, Phase 4 response-only compiler, Phase 5 durable Builder stop
 reviewed-delivery와 response-only package, Phase 7 schema-v8 safe recovery boundary를 확인한다.
 Durable DeliveryPackage smokes는 schema-v9 exact persistence와 blocked downstream authority를 확인한다.
 DeliveryPackage acceptance planning smoke는 immutable package와 append-only acceptance 분리,
-schema-v10 exact implementation, and still-blocked Mission/task close-out authority를 확인한다.
-Mission/task close-out planning smoke는 future schema-v11 atomic event-plus-two-transition contract,
-standalone close-out isolation, exact accepted-evidence binding, and current negative evidence를 확인한다.
+schema-v10 exact implementation and immutable source evidence를 확인한다.
+Mission/task close-out planning/runtime/UI smokes는 current schema-v11 atomic event-plus-two-transition
+contract, terminal replay, generic bypass guards, standalone close-out isolation, exact accepted-
+evidence binding, and blocked downstream authority를 확인한다.
 Optional live-provider 결과는 별도 informational evidence다.

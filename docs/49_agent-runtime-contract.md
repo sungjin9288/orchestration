@@ -460,12 +460,13 @@ DeliveryPackageAcceptance record로 보존한다. Source package status와 diges
 model만 accepted evidence를 파생한다. Package rejection/changes-requested, Mission/task close-out,
 done, commit/push/release, LearningCandidate, memory, scheduling/provider/policy authority는 blocked다.
 
-Mission/task close-out planning은 `DEC-104`, implementation handoff는 `DEC-105`로 문서화됐다.
-Future schema-v11 candidate는 one MissionCloseOut record append와 linked control task
-`Review -> Done`, Mission `executing -> completed`를 one atomic state save에 묶는다. Exact accepted
-package/acceptance/plan/checkpoint tuple, completed WorkOrders, passed review, and no active task gate가
-모두 current여야 한다. Current schema v10은 이 record와 transition을 구현하지 않으며 standalone
-task close-out, commit/push/release, learning, scheduling/provider/policy authority도 계속 blocked다.
+Mission/task close-out planning은 `DEC-104`, implementation handoff는 `DEC-105`, exact implementation은
+`DEC-106`으로 기록됐다. Current schema-v11 path는 one MissionCloseOut record append와 linked control
+task `Review -> Done`, Mission `executing -> completed`를 one atomic state save에 묶는다. Exact accepted
+package/acceptance/plan/checkpoint tuple, completed WorkOrders, passed review, and recomputed no-active-
+gate state가 모두 current여야 한다. Terminal-record-first replay와 generic lifecycle/Mission sync
+bypass guard가 direct terminalization을 막으며 standalone task close-out, commit/push/release,
+reopen, learning, scheduling/provider/policy, next-Mission, and connector authority는 계속 blocked다.
 
 ## Verification
 

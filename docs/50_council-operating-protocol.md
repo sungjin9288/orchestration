@@ -347,11 +347,12 @@ Exact implementation은 `DEC-103`으로 accepted됐다. Council 또는 execution
 acceptance가 열리지 않으며 current package와 exact digest tuple plus `decision=accept`를 요구하고
 append-only evidence에서 멈춘다. Mission/task close-out과 done은 계속 별도 decision이다.
 
-Mission/task close-out planning은 `DEC-104`, complete fielded implementation handoff는 `DEC-105`로
-기록됐다. Council 합의, plan approval, review pass, QA pass, package persistence, acceptance 중 어느
-하나도 단독 close-out authority가 아니다. Future implementation은 exact accepted tuple, completed
-WorkOrders, passed linked-task review, no active gates를 다시 검증하고 one atomic MissionCloseOut
-transaction만 허용해야 한다. Current runtime에서는 Mission/task terminal transition이 blocked다.
+Mission/task close-out planning은 `DEC-104`, complete fielded implementation handoff는 `DEC-105`, exact
+implementation은 `DEC-106`으로 기록됐다. Council 합의, plan approval, review pass, QA pass, package
+persistence, acceptance 중 어느 하나도 단독 close-out authority가 아니다. Current schema-v11
+runtime은 exact accepted tuple, completed WorkOrders, passed linked-task review, recomputed no-active-
+gate state를 다시 검증하고 one atomic MissionCloseOut transaction만 허용한다. Standalone close-out,
+Git/release, reopen, learning, scheduling/provider/policy, next-Mission, and connector authority는 blocked다.
 
 ## Verification
 
@@ -380,6 +381,8 @@ node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance.mjs
 node scripts/smoke-ui-slice-658.mjs
 node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
+node scripts/smoke-ai-company-mission-task-close-out.mjs
+node scripts/smoke-ui-slice-659.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -391,5 +394,6 @@ Phase 6 runtime/UI smokes는 exact approval, Reviewer stop, constrained QA, resp
 resume, next-boundary stop, cancellation, stale refusal, active-stage quarantine를 고정한다. Durable
 DeliveryPackage planning smoke는 consumed schema-v9 persistence boundary를 고정하고 acceptance
 runtime/UI smokes는 exact schema-v10 event와 blocked Mission/task close-out를 고정한다.
-Mission/task close-out planning smoke는 schema-v11 event-plus-transition 후보와 standalone
-commit/release close-out isolation을 고정하며 implementation authority를 열지 않는다.
+Mission/task close-out planning smoke는 consumed contract provenance를 고정하고 runtime/UI smokes는
+schema-v11 exact event-plus-transition, terminal replay, bypass guards, and standalone close-out
+isolation을 고정한다.

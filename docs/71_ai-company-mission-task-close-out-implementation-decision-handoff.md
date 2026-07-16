@@ -5,16 +5,18 @@
 `docs/70_ai-company-mission-task-close-out-plan.md`의 planning-only 결과를 schema-v11
 MissionCloseOut record와 atomic Mission/task terminal transition으로 넓힐지 operator가 complete
 fielded decision으로 결정하도록 한다. 이 문서는 구현하지 않고 decision shape, compatibility,
-rollback, focused evidence, and stop boundary만 고정한다.
+rollback, focused evidence, and stop boundary를 고정했다. Complete fielded decision은 `DEC-106`으로
+accepted됐으며 이 문서는 consumed implementation input으로 보존한다.
 
 ## Current Gate
 
 - Planning-only authority is accepted as `DEC-104`.
 - The implementation decision handoff is recorded as `DEC-105`.
-- Current runtime remains schema v10 with exact package acceptance evidence.
+- The complete fielded implementation decision is accepted as `DEC-106`.
+- Current runtime is schema v11 with one exact MissionCloseOut path.
 - DeliveryPackage stays immutable `review-required`; read model derives `accepted`.
-- Mission remains `executing`, linked control task remains `Review`, and no MissionCloseOut record exists.
-- Schema-v11 migration, Mission/task terminal transition, and UI action remain blocked.
+- Before close-out, Mission remains `executing` and the linked control task remains `Review`; one exact
+  request may atomically create terminal evidence and move them to `completed` and `Done`.
 - Standalone task commit/release/close-out behavior remains authoritative and unchanged.
 
 ## Minimum Required Decision Fields
@@ -140,5 +142,5 @@ node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Until the complete fielded decision is accepted, current schema v10 package acceptance evidence stays
-authoritative and Mission/task close-out implementation remains blocked.
+The complete fielded shape is consumed by `DEC-106`. Current schema v11 implements only the named
+MissionCloseOut transaction; every still-blocked authority in the decision remains outside this path.

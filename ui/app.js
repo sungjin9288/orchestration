@@ -140,6 +140,7 @@ import {
   getMissionExecutionPlanBundle,
   getMissionDeliveryPackagePersistenceSummary,
   getMissionDeliveryPackageAcceptanceSummary,
+  getMissionCloseOutSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -348,6 +349,7 @@ const state = {
   missionDeliveryPackagePreview: null,
   missionDurableDeliveryPackage: null,
   missionDeliveryPackageAcceptance: null,
+  missionCloseOut: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4707,6 +4709,9 @@ function applySnapshotPayload(payload) {
   if (Object.prototype.hasOwnProperty.call(payload, 'deliveryPackageAcceptance')) {
     state.missionDeliveryPackageAcceptance = payload.deliveryPackageAcceptance || null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'missionCloseOut')) {
+    state.missionCloseOut = payload.missionCloseOut || null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
   }
@@ -4776,6 +4781,7 @@ async function hydrateSelectedDetails() {
   state.missionDeliveryPackagePreview = null;
   state.missionDurableDeliveryPackage = null;
   state.missionDeliveryPackageAcceptance = null;
+  state.missionCloseOut = null;
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
 
@@ -4830,6 +4836,12 @@ async function hydrateSelectedDetails() {
         `/api/delivery-packages/${encodeURIComponent(state.missionDurableDeliveryPackage.id)}/acceptance`,
       );
       state.missionDeliveryPackageAcceptance = acceptancePayload.acceptance || null;
+      if (state.missionDeliveryPackageAcceptance && selectedMission) {
+        const closeOutPayload = await fetchJson(
+          `/api/missions/${encodeURIComponent(selectedMission.id)}/close-out`,
+        );
+        state.missionCloseOut = closeOutPayload.missionCloseOut || null;
+      }
     }
   }
   if (executionPlanBundle) {
@@ -5922,6 +5934,61 @@ async function acceptDeliveryPackage(deliveryPackageId) {
     state.surface = 'deliverables';
     render();
     elements.refreshStatus.textContent = `${payload.deliveryPackageAcceptance.id} 승인 evidence를 기록했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function closeOutAiCompanyMission(missionId) {
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+  const deliveryPackage = state.missionDurableDeliveryPackage;
+  const executionPlan = deliveryPackage
+    ? data.snapshot.executionPlans?.[deliveryPackage.executionPlanId] || null
+    : null;
+  const councilSession = executionPlan
+    ? data.councilSessionMap.get(executionPlan.councilSessionId) || null
+    : null;
+  const bundle = getMissionExecutionPlanBundle(data.snapshot, councilSession?.id);
+  const acceptance = state.missionDeliveryPackageAcceptance;
+  const summary = getMissionCloseOutSummary(
+    mission,
+    state.missionDeliveryPackagePreview,
+    bundle,
+    deliveryPackage,
+    acceptance,
+    state.missionCloseOut,
+  );
+  if (!summary?.canCloseOut) {
+    throw new Error('현재 accepted package와 Mission/task evidence만 종료할 수 있습니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${mission.id} close-out evidence를 기록하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(`/api/missions/${encodeURIComponent(mission.id)}/close-out`, {
+      linkedTaskId: bundle.controlTask.id,
+      executionPlanId: bundle.executionPlan.id,
+      deliveryPackageId: deliveryPackage.id,
+      deliveryPackageAcceptanceId: acceptance.id,
+      previewId: deliveryPackage.previewId,
+      sourceDigest: deliveryPackage.sourceDigest,
+      packageDigest: deliveryPackage.packageDigest,
+      acceptanceDigest: acceptance.acceptanceDigest,
+      checkpointId: deliveryPackage.terminalCheckpointId,
+      checkpointDigest: deliveryPackage.terminalCheckpointDigest,
+      decision: 'close-out',
+    });
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent = `${payload.missionCloseOut.id} Mission/task close-out을 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -10584,12 +10651,23 @@ function renderDeliveryPackagePreview(preview, bundle) {
 
 function renderDurableDeliveryPackage(deliveryPackage, bundle) {
   if (!deliveryPackage || deliveryPackage.executionPlanId !== bundle?.executionPlan.id) return '';
+  const data = getDerived();
+  const mission = data.missionMap.get(bundle.executionPlan.missionId) || null;
   const acceptance = state.missionDeliveryPackageAcceptance;
   const acceptanceSummary = getMissionDeliveryPackageAcceptanceSummary(
     state.missionDeliveryPackagePreview,
     bundle,
     deliveryPackage,
     acceptance,
+  );
+  const missionCloseOut = state.missionCloseOut;
+  const closeOutSummary = getMissionCloseOutSummary(
+    mission,
+    state.missionDeliveryPackagePreview,
+    bundle,
+    deliveryPackage,
+    acceptance,
+    missionCloseOut,
   );
   const resultRows = deliveryPackage.workOrderResults
     .map(
@@ -10609,7 +10687,7 @@ function renderDurableDeliveryPackage(deliveryPackage, bundle) {
         <strong>DeliveryPackage Record</strong>
         ${createToken(deliveryPackage.status, 'warning')}
         ${createToken(`review:${acceptanceSummary?.reviewStatus || 'review-required'}`, acceptanceSummary?.accepted ? 'success' : 'warning')}
-        ${createToken('mission:not-done', 'warning')}
+        ${createToken(`mission:${mission?.status || 'unknown'}`, closeOutSummary?.completed ? 'success' : 'warning')}
       </div>
       <div class="token-row token-row-compact delivery-package-digests">
         ${createToken(deliveryPackage.id, 'accent')}
@@ -10626,8 +10704,8 @@ function renderDurableDeliveryPackage(deliveryPackage, bundle) {
       </div>
       <div class="delivery-package-authority" aria-label="Blocked downstream authority">
         ${createToken(acceptanceSummary?.accepted ? 'acceptance:accepted' : acceptanceSummary?.canAccept ? 'acceptance:ready' : 'acceptance:blocked', acceptanceSummary?.accepted ? 'success' : acceptanceSummary?.canAccept ? 'accent' : 'neutral')}
-        ${createToken('mission done:blocked', 'warning')}
-        ${createToken('task close-out:blocked', 'neutral')}
+        ${createToken(`mission close-out:${closeOutSummary?.status || 'blocked'}`, closeOutSummary?.completed ? 'success' : closeOutSummary?.canCloseOut ? 'accent' : 'warning')}
+        ${createToken(`task:${bundle.controlTask.lifecycleState}`, closeOutSummary?.completed ? 'success' : 'neutral')}
         ${createToken('commit:blocked', 'neutral')}
         ${createToken('push:blocked', 'neutral')}
         ${createToken('release:blocked', 'neutral')}
@@ -10649,11 +10727,32 @@ function renderDurableDeliveryPackage(deliveryPackage, bundle) {
                 ${createToken(`checkpoint:${acceptance.terminalCheckpointDigest}`, 'neutral')}
                 ${createToken(acceptance.createdAt, 'neutral')}
               </div>
-              <p>Mission/task close-out은 별도 승인 전까지 차단됩니다.</p>
+              <p>Current evidence가 일치하면 Mission과 linked control task를 한 transaction으로 종료할 수 있습니다.</p>
             `
             : `
               <p>현재 package tuple을 승인 evidence로 기록할 수 있습니다. Mission과 task 상태는 변경되지 않습니다.</p>
             `
+        }
+      </div>
+      <div class="mission-close-out-evidence" aria-label="Mission close-out evidence">
+        ${
+          closeOutSummary?.completed
+            ? `
+              <div class="card-title-row card-title-row-tight">
+                <strong>Mission Close-out Evidence</strong>
+                ${createToken(missionCloseOut.decision, 'success')}
+                ${createToken('append-only', 'neutral')}
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(missionCloseOut.id, 'accent')}
+                ${createToken(`close-out:${missionCloseOut.closeOutDigest}`, 'neutral')}
+                ${createToken(missionCloseOut.taskLifecycleTransition, 'success')}
+                ${createToken(missionCloseOut.missionStatusTransition, 'success')}
+                ${createToken(missionCloseOut.createdAt, 'neutral')}
+              </div>
+              <p>Package와 acceptance evidence는 immutable하게 유지됩니다.</p>
+            `
+            : `<p>Close-out은 accepted package, completed WorkOrders, passed review, no-active-gate evidence가 모두 current일 때만 가능합니다.</p>`
         }
       </div>
       <div class="relation-button-row delivery-package-actions">
@@ -10665,6 +10764,15 @@ function renderDurableDeliveryPackage(deliveryPackage, bundle) {
           ${state.loading || state.mutating || !acceptanceSummary?.canAccept ? 'disabled' : ''}
         >
           패키지 승인
+        </button>
+        <button
+          class="primary-button"
+          type="button"
+          data-action="close-out-ai-company-mission"
+          data-id="${escapeHtml(mission?.id || '')}"
+          ${state.loading || state.mutating || !closeOutSummary?.canCloseOut ? 'disabled' : ''}
+        >
+          미션 종료
         </button>
       </div>
     </section>
@@ -12064,13 +12172,24 @@ function renderDeliverables(data) {
   const commitExecutionState = getCommitExecutionAvailability(linkedTask, data, state.loading || state.mutating);
   const releasePackageState = getReleasePackageAvailability(linkedTask, data, state.loading || state.mutating);
   const closeOutState = getCloseOutAvailability(linkedTask, data, state.loading || state.mutating);
+  const missionCloseOutRecord = missionExecutionPlanBundle?.latestMissionCloseOut || null;
   const missionCompletionReady = Boolean(
     linkedTask &&
       linkedTask.lifecycleState === 'Done' &&
-      (latestCloseOutArtifact || closeOutState.summary.existingCloseOutArtifactId),
+      (
+        latestCloseOutArtifact ||
+        closeOutState.summary.existingCloseOutArtifactId ||
+        missionCloseOutRecord
+      ),
   );
   const missionCompletionArtifactId =
-    latestCloseOutArtifact?.id || closeOutState.summary.existingCloseOutArtifactId || null;
+    latestCloseOutArtifact?.id ||
+    closeOutState.summary.existingCloseOutArtifactId ||
+    missionCloseOutRecord?.id ||
+    null;
+  const missionCompletionEvidenceLabel = missionCloseOutRecord
+    ? `MissionCloseOut ${missionCloseOutRecord.id}`
+    : `종료 정리 아티팩트 ${missionCompletionArtifactId}`;
   const canApproveCurrentGate = Boolean(
     approvalBridge.pendingInboxItem &&
       approvalBridge.currentApproval?.status === 'pending' &&
@@ -12660,7 +12779,10 @@ function renderDeliverables(data) {
               }
               ${
                 missionCompletionArtifactId
-                  ? createToken(`종료정리:${missionCompletionArtifactId}`, 'neutral')
+                  ? createToken(
+                      `${missionCloseOutRecord ? 'MissionCloseOut' : '종료정리'}:${missionCompletionArtifactId}`,
+                      'neutral',
+                    )
                   : ''
               }
               ${
@@ -12676,7 +12798,7 @@ function renderDeliverables(data) {
               ${
                 missionCompletionReady
                   ? escapeHtml(
-                      `현재 미션 상태: 태스크 ${linkedTask.id}의 한정된 전달은 종료 정리 아티팩트 ${missionCompletionArtifactId}로 봉인됐습니다.`,
+                      `현재 미션 상태: 태스크 ${linkedTask.id}의 한정된 전달은 ${missionCompletionEvidenceLabel}로 봉인됐습니다.`,
                     )
                   : '현재 미션 상태: 한정된 전달은 아직 열려 있습니다. 미션이 완료에 도달하면 산출물이 종료 정리 번들을 이곳에 고정합니다.'
               }
@@ -15764,6 +15886,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'accept-delivery-package') {
         await acceptDeliveryPackage(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'close-out-ai-company-mission') {
+        await closeOutAiCompanyMission(actionButton.dataset.id);
         return;
       }
 

@@ -445,9 +445,10 @@ schema-v8 implementation은 `DEC-097`로 accepted됐다. Durable DeliveryPackage
 `DEC-098`, implementation handoff는 `DEC-099`, exact implementation은 `DEC-100`으로 accepted됐다.
 DeliveryPackage acceptance planning은 `DEC-101`, complete fielded implementation handoff는
 `DEC-102`, exact implementation은 `DEC-103`으로 accepted됐다. Mission/task close-out planning-only
-authority는 `DEC-104`, complete fielded implementation handoff는 `DEC-105`로 accepted됐다. 다음
-architecture-sensitive decision은 schema-v11 exact implementation이며 별도 complete fielded
-decision 전까지 Mission/task terminal runtime authority는 blocked다.
+authority는 `DEC-104`, complete fielded implementation handoff는 `DEC-105`, exact schema-v11
+implementation은 `DEC-106`으로 accepted됐다. Reopen, package lifecycle expansion, standalone
+close-out, Git/release, learning, scheduling/provider/policy, next-Mission, and connector authority는
+별도 complete fielded decision 전까지 blocked다.
 
 ```text
 targetAuthority=one deterministic local schema-v9 durable DeliveryPackage review-required record from one exact source-current schema-v8 delivery-ready ExecutionPlan and terminal WorkflowCheckpoint
@@ -468,17 +469,17 @@ The implemented schema-v10 path preserves the package as immutable evidence and 
 `decision=accept` event. Rejection/changes-requested, Mission/task close-out, done, commit/push/release, learning/memory,
 scheduling/providers, policy mutation, approval bypass, and external connectors remain blocked.
 
-Planned next target:
+Implemented close-out target:
 
 ```text
 targetAuthority=one deterministic local schema-v11 atomic Mission and linked control-task close-out from one exact source-current schema-v10 accepted DeliveryPackage evidence tuple
 ```
 
-The planning-only path requires completed Builder/Reviewer/QA WorkOrders, passed linked-task review,
-no active gates, and exact package/acceptance/plan/checkpoint digests. A future explicit
-`decision=close-out` may append one MissionCloseOut record plus task `Review -> Done` and Mission
-`executing -> completed` in one state save. Current schema v10 performs neither transition and does not
-invoke standalone commit/release close-out, Git, learning, scheduling, providers, policy, or connectors.
+The schema-v11 path requires completed Builder/Reviewer/QA WorkOrders, passed linked-task review,
+recomputed no-active-gate state, and exact package/acceptance/plan/checkpoint digests. One explicit
+`decision=close-out` appends one MissionCloseOut record plus task `Review -> Done` and Mission
+`executing -> completed` in one state save. It does not invoke standalone commit/release close-out,
+Git, learning, scheduling, providers, policy, next-Mission creation, or connectors.
 
 ## Verification
 
@@ -506,6 +507,8 @@ node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance.mjs
 node scripts/smoke-ui-slice-658.mjs
 node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
+node scripts/smoke-ai-company-mission-task-close-out.mjs
+node scripts/smoke-ui-slice-659.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -518,5 +521,5 @@ DeliveryPackage acceptance planning evidence는 schema-v9 immutable package, fut
 append-only acceptance, exact decision binding, and blocked Mission/task close-out를 확인한다.
 Focused implementation evidence는 accepted event reload, idempotency, stale no-write, package digest
 stability, and absent downstream authority를 확인한다.
-Mission/task close-out planning evidence는 future schema-v11 atomic record/lifecycle contract,
-standalone close-out compatibility, exact terminal gate, and current implementation absence를 확인한다.
+Mission/task close-out evidence는 current schema-v11 atomic record/lifecycle contract, terminal-record-
+first replay, generic bypass guards, standalone close-out compatibility, and exact terminal gate를 확인한다.

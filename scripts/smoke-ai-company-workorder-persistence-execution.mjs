@@ -119,7 +119,7 @@ async function main() {
     delete legacy.workflowCheckpoints;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(legacy));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 10);
+    assert.equal(migrated.schemaVersion, 11);
     assert.deepEqual(
       [migrated.sequences.executionPlan, migrated.sequences.workOrder, migrated.sequences.handoffPacket],
       [0, 0, 0],
@@ -127,7 +127,7 @@ async function main() {
     assert.equal(migrated.sequences.workflowCheckpoint, 0);
     assert.deepEqual(migrated.workflowCheckpoints, {});
 
-    for (const invalidVersion of [8, 11]) {
+    for (const invalidVersion of [8, 12]) {
       const invalidRoot = path.join(tempRoot, `invalid-${invalidVersion}`);
       fs.mkdirSync(invalidRoot, { recursive: true });
       const invalid = createEmptyState();
@@ -273,7 +273,7 @@ async function main() {
     }).getExecutionPlan(first.executionPlan.id);
     assert.deepEqual(reloaded.executionPlan, stopped.executionPlan);
     assert.deepEqual(reloaded.workOrders, stopped.workOrders);
-    assert.equal(JSON.parse(fs.readFileSync(statePath, 'utf8')).schemaVersion, 10);
+    assert.equal(JSON.parse(fs.readFileSync(statePath, 'utf8')).schemaVersion, 11);
 
     const rejected = createApprovedContext('rejected');
     const rejectedPlan = persist(rejected);
@@ -331,7 +331,7 @@ async function main() {
       ok: true,
       mode: MODE,
       schema: {
-      version: 10,
+      version: 11,
         v6Migration: true,
         partialAndFutureRejected: true,
         atomicWrite: true,

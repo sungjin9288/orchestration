@@ -95,7 +95,7 @@ assertAll(planText, [
   /does not call `executionCoordinator\.runCloseOut`/,
   /Planning-only authority: accepted as `DEC-104`/,
   /Complete fielded implementation handoff: documented as `DEC-105`/,
-  /implementation: blocked pending a later complete fielded decision/,
+  /implementation: accepted as `DEC-106` and verified on current schema v11/,
 ]);
 
 assert.match(
@@ -127,13 +127,14 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-104$/m);
 assert.match(decisionLog, /^### DEC-105$/m);
+assert.match(decisionLog, /^### DEC-106$/m);
 assert.match(masterPlan, /Mission\/task close-out planning-only authority는 `DEC-104`/);
 assert.match(runtimeContract, /Mission\/task close-out planning은 `DEC-104`/);
 assert.match(councilProtocol, /Mission\/task close-out planning은 `DEC-104`/);
 assertAll(roadmapText, [
   /Mission\/task close-out planning-only authority는 `DEC-104`/,
   /complete fielded implementation handoff는 `DEC-105`/,
-  /schema-v11 exact implementation/,
+  /exact schema-v11 implementation은 `DEC-106`/,
 ]);
 assert.match(
   completionInventory,
@@ -141,8 +142,8 @@ assert.match(
 );
 assertAll(readmeText, [
   /Mission\/task close-out planning-only authority is accepted by `DEC-104`/,
-  /complete fielded implementation handoff is recorded by `DEC-105`/,
-  /Current runtime remains schema v10/,
+  /exact implementation is accepted by `DEC-106`/,
+  /execution state is schema v11/,
 ]);
 assert.match(taskLedger, /ai-company-mission-task-close-out-planning-post-m7-1956/);
 assert.match(
@@ -155,14 +156,14 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-mission-task-close-out-planning\.mjs'/,
 );
 
-// Current negative evidence must remain exact until a complete fielded implementation decision lands.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 10/);
-assert.doesNotMatch(contracts, /missionCloseOut/);
-assert.doesNotMatch(fileStore, /validateMissionCloseOutRecords/);
-assert.doesNotMatch(runtimeService, /function closeOutMissionAndTask\(/);
-assert.doesNotMatch(runtimeService, /function getMissionCloseOut\(/);
-assert.doesNotMatch(server, /missionCloseOutMatch/);
-assert.doesNotMatch(ui, /data-action="close-out-ai-company-mission"/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 11/);
+assert.match(contracts, /missionCloseOut: 0/);
+assert.match(contracts, /missionCloseOuts: \{\}/);
+assert.match(fileStore, /validateMissionCloseOutRecords/);
+assert.match(runtimeService, /function closeOutMissionAndTask\(/);
+assert.match(runtimeService, /function getMissionCloseOut\(/);
+assert.match(server, /missionCloseOutMatch/);
+assert.match(ui, /data-action="close-out-ai-company-mission"/);
 assert.match(runtimeService, /function acceptDeliveryPackage\(/);
 assert.match(executionCoordinator, /async function runCloseOut\(/);
 assert.match(server, /const closeOutRunMatch = url\.pathname\.match/);
@@ -175,10 +176,10 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-104',
         handoff: 'documented-dec-105',
-        implementation: 'blocked-fielded-decision-required',
+        implementation: 'accepted-dec-106',
       },
       plannedPath: {
-        currentSchemaVersion: 10,
+        sourceSchemaVersion: 10,
         plannedSchemaVersion: 11,
         recordType: 'MissionCloseOut',
         decision: 'closed-out',
@@ -186,18 +187,18 @@ process.stdout.write(
         standaloneCloseOutInvoked: false,
       },
       currentRuntime: {
-        schemaVersion: 10,
+        schemaVersion: 11,
         acceptanceRecords: true,
-        missionCloseOutRecords: false,
-        missionCloseOutRoutes: false,
-        missionCloseOutUiAction: false,
+        missionCloseOutRecords: true,
+        missionCloseOutRoutes: true,
+        missionCloseOutUiAction: true,
         standaloneCloseOutPreserved: true,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        missionCloseOutAllowed: false,
-        taskDoneAllowed: false,
+        implementationAllowed: true,
+        missionCloseOutAllowed: true,
+        taskDoneAllowed: true,
         standaloneCloseOutAllowedByThisDecision: false,
         runtimeAgentCommitAllowed: false,
         runtimeAgentPushAllowed: false,

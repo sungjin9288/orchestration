@@ -205,7 +205,9 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 10;
+const STATE_SCHEMA_VERSION = 11;
+const MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION = 11;
+const DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION = 10;
 const DELIVERY_PACKAGE_STATE_SCHEMA_VERSION = 9;
 const WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION = 8;
 const MIGRATABLE_STATE_SCHEMA_VERSION = 7;
@@ -217,6 +219,10 @@ const DELIVERY_PACKAGE_STATUS = {
 
 const DELIVERY_PACKAGE_ACCEPTANCE_DECISION = {
   ACCEPTED: 'accepted',
+};
+
+const MISSION_CLOSE_OUT_DECISION = {
+  CLOSED_OUT: 'closed-out',
 };
 
 const EXECUTION_PLAN_STATUS = {
@@ -375,6 +381,7 @@ function createEmptyState() {
       workflowCheckpoint: 0,
       deliveryPackage: 0,
       deliveryPackageAcceptance: 0,
+      missionCloseOut: 0,
     },
     missions: {},
     councilSessions: {},
@@ -393,6 +400,7 @@ function createEmptyState() {
     workflowCheckpoints: {},
     deliveryPackages: {},
     deliveryPackageAcceptances: {},
+    missionCloseOuts: {},
   };
 }
 
@@ -409,6 +417,7 @@ module.exports = {
   DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
   DELIVERY_PACKAGE_ACCEPTANCE_DECISION,
+  DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION,
   DELIVERY_PACKAGE_STATUS,
   DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
   PACKS,
@@ -433,6 +442,8 @@ module.exports = {
   EXECUTION_PLAN_STATUS,
   LEGACY_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
+  MISSION_CLOSE_OUT_DECISION,
+  MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,
   TASK_LIFECYCLE,
   WORK_ORDER_ACTION,

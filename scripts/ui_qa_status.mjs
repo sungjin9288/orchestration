@@ -208,6 +208,12 @@ const smokeChecks = [
     purpose:
       'DeliveryPackage acceptance UI and API preserve exact tuple-gated append-only acceptance, immutable package evidence, safe stale and malformed failures, idempotent replay, read-only accepted rendering, responsive fit, and blocked Mission task close-out or downstream authority',
   },
+  {
+    id: 'ai-company-mission-task-close-out-ui-api',
+    script: 'scripts/smoke-ui-slice-659.mjs',
+    purpose:
+      'Mission close-out UI and API preserve exact accepted evidence gating, one immutable close-out fact, atomic Mission and task terminal states, safe stale and concurrent request behavior, immutable package and acceptance evidence, responsive fit, and blocked downstream authority',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

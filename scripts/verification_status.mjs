@@ -524,7 +524,17 @@ const informationalChecks = [
   {
     id: 'ai-company-mission-task-close-out-planning',
     script: 'scripts/smoke-ai-company-mission-task-close-out-planning.mjs',
-    purpose: 'AI Company Mission and linked control-task close-out planning pins DEC-104 and DEC-105, one future additive schema v11 MissionCloseOut event from exact current accepted package evidence, completed WorkOrders, passed review, and no active gates, one atomic task Review-to-Done plus Mission executing-to-completed transaction, standalone close-out isolation, rollback retention, and current negative evidence with implementation commit push release learning scheduling providers policy next-Mission and connectors still blocked',
+    purpose: 'AI Company Mission and linked control-task close-out planning preserves consumed DEC-104 and DEC-105 provenance while DEC-106 fixes the exact schema v11 event and atomic terminal transaction boundary',
+  },
+  {
+    id: 'ai-company-mission-task-close-out-implementation',
+    script: 'scripts/smoke-ai-company-mission-task-close-out.mjs',
+    purpose: 'AI Company Mission close-out runtime proves additive schema v11 migration, exact accepted package tuple binding, completed WorkOrders, passed review, recomputed no-active-gate state, one immutable canonical event, one-save atomic task and Mission terminal transitions, terminal-record-first replay, strict loader refusal, generic bypass guards, and unchanged package acceptance standalone close-out source Git release learning scheduling provider policy and connector authority',
+  },
+  {
+    id: 'ai-company-mission-task-close-out-ui-api',
+    script: 'scripts/smoke-ui-slice-659.mjs',
+    purpose: 'AI Company Mission close-out UI and API prove read-only hydration, exact tuple-gated command, safe stale and malformed failures, concurrent exact request convergence, idempotent replay, immutable package and acceptance evidence, terminal rendering, responsive fit, and blocked downstream authority',
   },
   {
     id: 'coordinator-path-containment-smoke',

@@ -1968,6 +1968,81 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const missionCloseOutMatch = url.pathname.match(/^\/api\/missions\/([^/]+)\/close-out$/);
+  if (method === 'GET' && missionCloseOutMatch) {
+    try {
+      const missionId = decodeURIComponent(missionCloseOutMatch[1]);
+      const result = runtime.getMissionCloseOut(missionId);
+      json(response, 200, {
+        ...result,
+        generatedAt: new Date().toISOString(),
+        runtimeRoot: options.runtimeRoot,
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Mission 종료 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  if (method === 'POST' && missionCloseOutMatch) {
+    try {
+      const missionId = decodeURIComponent(missionCloseOutMatch[1]);
+      const input = await readJsonBody(request);
+      const expectedFields = [
+        'linkedTaskId',
+        'executionPlanId',
+        'deliveryPackageId',
+        'deliveryPackageAcceptanceId',
+        'previewId',
+        'sourceDigest',
+        'packageDigest',
+        'acceptanceDigest',
+        'checkpointId',
+        'checkpointDigest',
+        'decision',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error('Mission close-out body has unexpected or missing fields');
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.closeOutMissionAndTask({ missionId, ...input });
+      json(
+        response,
+        result.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          missionCloseOut: result.missionCloseOut,
+          missionCloseOutStatus: result.closeOutStatus,
+          executionPlanBundle: result.executionPlanBundle,
+          mutation: {
+            missionCloseOutId: result.missionCloseOut.id,
+            missionId,
+            linkedTaskId: result.linkedTask.id,
+            executionPlanId: result.executionPlanBundle.executionPlan.id,
+            idempotent: result.idempotent,
+            kind: 'close-out-ai-company-mission',
+            stoppedAt: 'mission-and-linked-control-task-closed-out',
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Mission 종료에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );

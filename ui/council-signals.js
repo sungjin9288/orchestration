@@ -101,6 +101,9 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
       (deliveryPackage) => deliveryPackage.id === acceptance.deliveryPackageId,
     ),
   );
+  const missionCloseOuts = Object.values(snapshot.missionCloseOuts || {}).filter(
+    (closeOut) => closeOut.executionPlanId === executionPlan.id,
+  );
 
   if (
     workOrders.length !== executionPlan.workOrderIds.length ||
@@ -121,6 +124,7 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
     workflowCheckpoints,
     deliveryPackages,
     deliveryPackageAcceptances,
+    missionCloseOuts,
     latestCheckpoint: executionPlan.latestCheckpointId
       ? snapshot.workflowCheckpoints?.[executionPlan.latestCheckpointId] || null
       : null,
@@ -132,6 +136,61 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
           (acceptance) => acceptance.deliveryPackageId === executionPlan.latestDeliveryPackageId,
         ) || null
       : null,
+    latestMissionCloseOut: missionCloseOuts.at(-1) || null,
+  };
+}
+
+export function getMissionCloseOutSummary(
+  mission,
+  preview,
+  bundle,
+  durablePackage,
+  acceptance,
+  missionCloseOut,
+) {
+  const acceptanceSummary = getMissionDeliveryPackageAcceptanceSummary(
+    preview,
+    bundle,
+    durablePackage,
+    acceptance,
+  );
+  if (!mission || !acceptanceSummary?.tupleCurrent) return null;
+
+  const controlTask = bundle.controlTask;
+  const sourceReady = Boolean(
+    acceptanceSummary.accepted &&
+      bundle.executionPlan.missionId === mission.id &&
+      bundle.executionPlan.status === 'delivery-ready' &&
+      bundle.executionPlan.activeWorkOrderId === null &&
+      bundle.workOrders.length === 3 &&
+      bundle.workOrders.every((workOrder) => workOrder.status === 'completed') &&
+      controlTask?.missionId === mission.id &&
+      controlTask.lifecycleState === 'Review' &&
+      controlTask.review?.required === true &&
+      controlTask.review?.status === 'passed' &&
+      controlTask.flags?.blocked === false &&
+      controlTask.flags?.waitingDecision === false &&
+      controlTask.flags?.waitingApproval === false,
+  );
+  const completed = Boolean(
+    missionCloseOut &&
+      missionCloseOut.missionId === mission.id &&
+      missionCloseOut.linkedTaskId === controlTask?.id &&
+      missionCloseOut.executionPlanId === bundle.executionPlan.id &&
+      missionCloseOut.deliveryPackageId === durablePackage.id &&
+      missionCloseOut.deliveryPackageAcceptanceId === acceptance.id &&
+      missionCloseOut.packageDigest === durablePackage.packageDigest &&
+      missionCloseOut.acceptanceDigest === acceptance.acceptanceDigest &&
+      missionCloseOut.decision === 'closed-out' &&
+      mission.status === 'completed' &&
+      controlTask.lifecycleState === 'Done',
+  );
+
+  return {
+    canCloseOut: sourceReady && !missionCloseOut,
+    completed,
+    sourceReady,
+    status: completed ? 'closed-out' : sourceReady ? 'ready' : 'blocked',
   };
 }
 

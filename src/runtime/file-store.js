@@ -4,13 +4,18 @@ const fs = require('fs');
 const path = require('path');
 
 const {
+  APPROVAL_STATUS,
   ARTIFACT_TYPE,
+  DECISION_INBOX_STATUS,
   DELIVERY_PACKAGE_ACCEPTANCE_DECISION,
+  DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION,
   DELIVERY_PACKAGE_STATUS,
   DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
   EXECUTION_PLAN_STATUS,
   LEGACY_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
+  MISSION_CLOSE_OUT_DECISION,
+  MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
   STATE_SCHEMA_VERSION,
@@ -27,6 +32,12 @@ const {
   computeDeliveryPackageAcceptanceDigest,
 } = require('./delivery-package-acceptances');
 const { computeDeliveryPackageDigest } = require('./delivery-packages');
+const {
+  MISSION_CLOSE_OUT_AUTHORITY_SUMMARY,
+  MISSION_STATUS_TRANSITION,
+  TASK_LIFECYCLE_TRANSITION,
+  computeMissionCloseOutDigest,
+} = require('./mission-close-outs');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 
 function assertStringField(record, field, label) {
@@ -481,6 +492,215 @@ function validateDeliveryPackageAcceptanceRecords(state) {
   }
 }
 
+function validateMissionCloseOutRecords(state) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const closedMissionIds = new Set();
+  const closedTaskIds = new Set();
+  const closedPackageIds = new Set();
+  const closedAcceptanceIds = new Set();
+
+  for (const [key, closeOut] of Object.entries(state.missionCloseOuts)) {
+    const label = `MissionCloseOut ${key}`;
+    if (!closeOut || typeof closeOut !== 'object' || Array.isArray(closeOut) || closeOut.id !== key) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      closeOut,
+      [
+        'id',
+        'projectId',
+        'missionId',
+        'linkedTaskId',
+        'executionPlanId',
+        'deliveryPackageId',
+        'deliveryPackageAcceptanceId',
+        'previewId',
+        'sourceDigest',
+        'packageDigest',
+        'acceptanceDigest',
+        'terminalCheckpointId',
+        'terminalCheckpointDigest',
+        'decision',
+        'taskLifecycleTransition',
+        'missionStatusTransition',
+        'authoritySummary',
+        'closeOutDigest',
+        'createdAt',
+      ],
+      label,
+    );
+    for (const field of [
+      'projectId',
+      'missionId',
+      'linkedTaskId',
+      'executionPlanId',
+      'deliveryPackageId',
+      'deliveryPackageAcceptanceId',
+      'previewId',
+      'sourceDigest',
+      'packageDigest',
+      'acceptanceDigest',
+      'terminalCheckpointId',
+      'terminalCheckpointDigest',
+      'decision',
+      'taskLifecycleTransition',
+      'missionStatusTransition',
+      'closeOutDigest',
+      'createdAt',
+    ]) {
+      assertStringField(closeOut, field, label);
+    }
+    for (const field of [
+      'sourceDigest',
+      'packageDigest',
+      'acceptanceDigest',
+      'terminalCheckpointDigest',
+      'closeOutDigest',
+    ]) {
+      if (!digestPattern.test(closeOut[field])) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      Number.isNaN(Date.parse(closeOut.createdAt)) ||
+      new Date(closeOut.createdAt).toISOString() !== closeOut.createdAt
+    ) {
+      throw new Error(`${label} has invalid createdAt`);
+    }
+    if (
+      closeOut.decision !== MISSION_CLOSE_OUT_DECISION.CLOSED_OUT ||
+      closeOut.taskLifecycleTransition !== TASK_LIFECYCLE_TRANSITION ||
+      closeOut.missionStatusTransition !== MISSION_STATUS_TRANSITION
+    ) {
+      throw new Error(`${label} has invalid terminal transition`);
+    }
+    if (
+      !closeOut.authoritySummary ||
+      typeof closeOut.authoritySummary !== 'object' ||
+      Array.isArray(closeOut.authoritySummary) ||
+      Object.keys(closeOut.authoritySummary).length !==
+        Object.keys(MISSION_CLOSE_OUT_AUTHORITY_SUMMARY).length ||
+      Object.keys(MISSION_CLOSE_OUT_AUTHORITY_SUMMARY).some(
+        (field) =>
+          closeOut.authoritySummary[field] !== MISSION_CLOSE_OUT_AUTHORITY_SUMMARY[field],
+      )
+    ) {
+      throw new Error(`${label} has invalid authoritySummary`);
+    }
+
+    const mission = state.missions[closeOut.missionId];
+    const task = state.tasks[closeOut.linkedTaskId];
+    const plan = state.executionPlans[closeOut.executionPlanId];
+    const deliveryPackage = state.deliveryPackages[closeOut.deliveryPackageId];
+    const acceptance = state.deliveryPackageAcceptances[closeOut.deliveryPackageAcceptanceId];
+    const checkpoint = state.workflowCheckpoints[closeOut.terminalCheckpointId];
+    if (
+      !mission ||
+      mission.projectId !== closeOut.projectId ||
+      mission.linkedTaskId !== closeOut.linkedTaskId ||
+      mission.status !== 'completed' ||
+      mission.updatedAt !== closeOut.createdAt
+    ) {
+      throw new Error(`${label} has invalid Mission terminal binding`);
+    }
+    if (
+      !task ||
+      task.projectId !== closeOut.projectId ||
+      task.missionId !== closeOut.missionId ||
+      task.lifecycleState !== 'Done' ||
+      task.review?.required !== true ||
+      task.review?.status !== REVIEW_STATUS.PASSED ||
+      task.flags?.blocked ||
+      task.flags?.waitingApproval ||
+      task.flags?.waitingDecision ||
+      task.updatedAt !== closeOut.createdAt
+    ) {
+      throw new Error(`${label} has invalid linked task terminal binding`);
+    }
+    if (
+      Object.values(state.approvals).some(
+        (approval) =>
+          approval.taskId === task.id && approval.status === APPROVAL_STATUS.PENDING,
+      ) ||
+      Object.values(state.decisionInboxItems).some(
+        (item) => item.taskId === task.id && item.status === DECISION_INBOX_STATUS.PENDING,
+      )
+    ) {
+      throw new Error(`${label} has active linked task gates`);
+    }
+    if (
+      !plan ||
+      plan.projectId !== closeOut.projectId ||
+      plan.missionId !== closeOut.missionId ||
+      plan.controlTaskId !== closeOut.linkedTaskId ||
+      plan.status !== EXECUTION_PLAN_STATUS.DELIVERY_READY ||
+      plan.activeWorkOrderId !== null ||
+      plan.sourceDigest !== closeOut.sourceDigest ||
+      plan.latestDeliveryPackageId !== closeOut.deliveryPackageId ||
+      plan.latestCheckpointId !== closeOut.terminalCheckpointId ||
+      plan.workOrderIds.length !== 3 ||
+      plan.workOrderIds.some((id) => state.workOrders[id]?.status !== WORK_ORDER_STATUS.COMPLETED)
+    ) {
+      throw new Error(`${label} has invalid ExecutionPlan terminal binding`);
+    }
+    if (
+      !deliveryPackage ||
+      deliveryPackage.projectId !== closeOut.projectId ||
+      deliveryPackage.missionId !== closeOut.missionId ||
+      deliveryPackage.executionPlanId !== closeOut.executionPlanId ||
+      deliveryPackage.previewId !== closeOut.previewId ||
+      deliveryPackage.sourceDigest !== closeOut.sourceDigest ||
+      deliveryPackage.packageDigest !== closeOut.packageDigest ||
+      deliveryPackage.terminalCheckpointId !== closeOut.terminalCheckpointId ||
+      deliveryPackage.terminalCheckpointDigest !== closeOut.terminalCheckpointDigest ||
+      deliveryPackage.status !== DELIVERY_PACKAGE_STATUS.REVIEW_REQUIRED ||
+      deliveryPackage.unresolvedItems.length !== 0
+    ) {
+      throw new Error(`${label} has invalid DeliveryPackage binding`);
+    }
+    if (
+      !acceptance ||
+      acceptance.deliveryPackageId !== deliveryPackage.id ||
+      acceptance.projectId !== closeOut.projectId ||
+      acceptance.missionId !== closeOut.missionId ||
+      acceptance.executionPlanId !== closeOut.executionPlanId ||
+      acceptance.previewId !== closeOut.previewId ||
+      acceptance.sourceDigest !== closeOut.sourceDigest ||
+      acceptance.packageDigest !== closeOut.packageDigest ||
+      acceptance.terminalCheckpointId !== closeOut.terminalCheckpointId ||
+      acceptance.terminalCheckpointDigest !== closeOut.terminalCheckpointDigest ||
+      acceptance.acceptanceDigest !== closeOut.acceptanceDigest ||
+      acceptance.decision !== DELIVERY_PACKAGE_ACCEPTANCE_DECISION.ACCEPTED
+    ) {
+      throw new Error(`${label} has invalid DeliveryPackageAcceptance binding`);
+    }
+    if (
+      !checkpoint ||
+      checkpoint.executionPlanId !== plan.id ||
+      checkpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY ||
+      checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.TERMINAL ||
+      checkpoint.checkpointDigest !== closeOut.terminalCheckpointDigest
+    ) {
+      throw new Error(`${label} has invalid WorkflowCheckpoint binding`);
+    }
+    if (
+      closedMissionIds.has(closeOut.missionId) ||
+      closedTaskIds.has(closeOut.linkedTaskId) ||
+      closedPackageIds.has(closeOut.deliveryPackageId) ||
+      closedAcceptanceIds.has(closeOut.deliveryPackageAcceptanceId)
+    ) {
+      throw new Error(`${label} duplicates Mission close-out evidence`);
+    }
+    closedMissionIds.add(closeOut.missionId);
+    closedTaskIds.add(closeOut.linkedTaskId);
+    closedPackageIds.add(closeOut.deliveryPackageId);
+    closedAcceptanceIds.add(closeOut.deliveryPackageAcceptanceId);
+    if (computeMissionCloseOutDigest(closeOut) !== closeOut.closeOutDigest) {
+      throw new Error(`${label} closeOutDigest does not match its immutable payload`);
+    }
+  }
+}
+
 function validateDurableWorkOrderRecords(state) {
   const planStatuses = new Set(Object.values(EXECUTION_PLAN_STATUS));
   const workOrderStatuses = new Set(Object.values(WORK_ORDER_STATUS));
@@ -674,6 +894,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== MIGRATABLE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== DELIVERY_PACKAGE_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -731,7 +952,7 @@ function createFileStore(options = {}) {
       }
     }
 
-    if (sourceSchemaVersion === STATE_SCHEMA_VERSION) {
+    if (sourceSchemaVersion >= DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION) {
       if (
         !Number.isInteger(state.sequences?.deliveryPackageAcceptance) ||
         !state.deliveryPackageAcceptances ||
@@ -739,7 +960,20 @@ function createFileStore(options = {}) {
         Array.isArray(state.deliveryPackageAcceptances)
       ) {
         throw new Error(
-          'Runtime state schemaVersion 10 is missing DeliveryPackageAcceptance fields',
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing DeliveryPackageAcceptance fields`,
+        );
+      }
+    }
+
+    if (sourceSchemaVersion >= MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.missionCloseOut) ||
+        !state.missionCloseOuts ||
+        typeof state.missionCloseOuts !== 'object' ||
+        Array.isArray(state.missionCloseOuts)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing MissionCloseOut fields`,
         );
       }
     }
@@ -769,6 +1003,7 @@ function createFileStore(options = {}) {
       workflowCheckpoints: state.workflowCheckpoints || {},
       deliveryPackages: state.deliveryPackages || {},
       deliveryPackageAcceptances: state.deliveryPackageAcceptances || {},
+      missionCloseOuts: state.missionCloseOuts || {},
     };
 
     if (sourceSchemaVersion < WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION) {
@@ -1034,6 +1269,7 @@ function createFileStore(options = {}) {
     validateWorkflowCheckpointRecords(normalizedState);
     validateDeliveryPackageRecords(normalizedState);
     validateDeliveryPackageAcceptanceRecords(normalizedState);
+    validateMissionCloseOutRecords(normalizedState);
     return normalizedState;
   }
 

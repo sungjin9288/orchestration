@@ -196,6 +196,7 @@ assert.match(decisionLog, /^### DEC-102$/m);
 assert.match(decisionLog, /^### DEC-103$/m);
 assert.match(decisionLog, /^### DEC-104$/m);
 assert.match(decisionLog, /^### DEC-105$/m);
+assert.match(decisionLog, /^### DEC-106$/m);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -209,7 +210,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 10/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 11/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -260,9 +261,10 @@ process.stdout.write(
         'DEC-103',
         'DEC-104',
         'DEC-105',
+        'DEC-106',
       ],
       currentRuntime: {
-        schemaVersion: 10,
+        schemaVersion: 11,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -271,7 +273,7 @@ process.stdout.write(
         checkpointRecovery: 'schema-v8-exact-local-reviewer-or-qa-resume',
         durableDeliveryPackage: 'schema-v9-exact-review-required-record',
         deliveryPackageAcceptance: 'schema-v10-exact-append-only-accepted-record',
-        missionTaskCloseOut: 'schema-v11-planning-only-fielded-decision-required',
+        missionTaskCloseOut: 'schema-v11-exact-atomic-terminal-transaction',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -290,7 +292,7 @@ process.stdout.write(
         deliveryPackageAcceptancePlanningAllowed: true,
         deliveryPackageAcceptanceAllowed: true,
         missionTaskCloseOutPlanningAllowed: true,
-        missionTaskCloseOutAllowed: false,
+        missionTaskCloseOutAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -299,7 +301,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded schema-v11 Mission and task close-out implementation decision required',
+      nextGate: 'Separate fielded decision required for any post-close-out authority expansion',
     },
     null,
     2,

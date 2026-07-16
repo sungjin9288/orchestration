@@ -335,13 +335,17 @@ scripts/ui_qa_status.mjs
 
 - Planning-only authority: accepted as `DEC-104`.
 - Complete fielded implementation handoff: documented as `DEC-105`.
-- Schema/runtime/API/UI implementation: blocked pending a later complete fielded decision.
-- The current authoritative runtime remains schema v10 with Mission `executing` and linked task `Review`.
+- Schema/runtime/API/UI implementation: accepted as `DEC-106` and verified on current schema v11.
+- Planning and handoff remain consumed provenance for the exact implementation boundary.
+- Standalone close-out, Git/release, reopen, package lifecycle expansion, learning, scheduling, provider,
+  policy, next-Mission, bypass, and connector authority remain blocked.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
+node scripts/smoke-ai-company-mission-task-close-out.mjs
+node scripts/smoke-ui-slice-659.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance.mjs
 node scripts/smoke-ui-slice-658.mjs
@@ -351,7 +355,7 @@ node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Current schema v10 permits package acceptance evidence only. Mission/task terminal transition,
-MissionCloseOut persistence, standalone close-out, commit/push/release, learning/memory, scheduling,
-providers, policy mutation, approval bypass, and connectors remain blocked until a complete fielded
-implementation decision is accepted.
+Current schema v11 permits only the exact `DEC-106` MissionCloseOut record and atomic linked task/Mission
+terminal transaction. Package and acceptance evidence remain immutable; standalone close-out,
+commit/push/release, reopen, learning/memory, retry/rework, scheduling, providers, policy mutation,
+automatic next-Mission creation, approval bypass, and connectors remain blocked.

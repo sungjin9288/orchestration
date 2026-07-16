@@ -52,11 +52,20 @@ function assertDeliveryPackageAcceptance(deliveryPackageAcceptanceId, state) {
   return acceptance;
 }
 
+function assertMissionCloseOut(missionCloseOutId, state) {
+  const missionCloseOut = state.missionCloseOuts[missionCloseOutId];
+  if (!missionCloseOut) {
+    throw new Error(`MissionCloseOut not found: ${missionCloseOutId}`);
+  }
+  return missionCloseOut;
+}
+
 module.exports = {
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,
   assertHandoffPacket,
+  assertMissionCloseOut,
   assertRun,
   assertWorkOrder,
   assertWorkflowCheckpoint,
