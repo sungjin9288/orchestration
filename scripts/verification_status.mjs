@@ -507,6 +507,11 @@ const informationalChecks = [
     purpose: 'AI Company durable DeliveryPackage UI and API prove read-only hydration, exact tuple-gated explicit persistence, durable review-required evidence rendering, stale failure safety, idempotent replay, responsive controls, and absent package acceptance Mission done task close-out commit push release or learning actions',
   },
   {
+    id: 'ai-company-delivery-package-acceptance-planning',
+    script: 'scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs',
+    purpose: 'AI Company DeliveryPackage acceptance planning pins DEC-101 and DEC-102, future additive schema v10 append-only acceptance evidence from one exact current schema v9 package tuple, immutable source package retention, strict no-write and idempotency requirements, rollback retention, and current negative evidence with acceptance implementation rejection changes-requested Mission task close-out done commit push release learning memory scheduling providers policy mutation and connectors still blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

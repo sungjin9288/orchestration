@@ -188,6 +188,11 @@ assert.match(decisionLog, /^### DEC-094$/m);
 assert.match(decisionLog, /^### DEC-095$/m);
 assert.match(decisionLog, /^### DEC-096$/m);
 assert.match(decisionLog, /^### DEC-097$/m);
+assert.match(decisionLog, /^### DEC-098$/m);
+assert.match(decisionLog, /^### DEC-099$/m);
+assert.match(decisionLog, /^### DEC-100$/m);
+assert.match(decisionLog, /^### DEC-101$/m);
+assert.match(decisionLog, /^### DEC-102$/m);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -246,16 +251,20 @@ process.stdout.write(
         'DEC-097',
         'DEC-098',
         'DEC-099',
+        'DEC-100',
+        'DEC-101',
+        'DEC-102',
       ],
       currentRuntime: {
-        schemaVersion: 8,
+        schemaVersion: 9,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
         workOrderExecution: 'local-stub-sequential-builder-to-live-mutation-approval-gate',
         reviewedDelivery: 'exact-gated-local-reviewed-delivery-response-only-package',
         checkpointRecovery: 'schema-v8-exact-local-reviewer-or-qa-resume',
-        durableDeliveryPackage: 'planning-only-schema-v9-review-required-record',
+        durableDeliveryPackage: 'schema-v9-exact-review-required-record',
+        deliveryPackageAcceptance: 'planning-only-schema-v10-append-only-record',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -270,7 +279,9 @@ process.stdout.write(
         checkpointRecoveryPlanningAllowed: true,
         checkpointPersistenceAllowed: true,
         durableDeliveryPackagePlanningAllowed: true,
-        durableDeliveryPackagePersistenceAllowed: false,
+        durableDeliveryPackagePersistenceAllowed: true,
+        deliveryPackageAcceptancePlanningAllowed: true,
+        deliveryPackageAcceptanceAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -279,7 +290,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded schema-v9 durable DeliveryPackage implementation decision required',
+      nextGate: 'Complete fielded schema-v10 DeliveryPackage acceptance implementation decision required',
     },
     null,
     2,

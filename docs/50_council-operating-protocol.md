@@ -336,11 +336,16 @@ authority를 다시 증명한 `reviewer-ready`/`qa-ready` checkpoint plus explic
 Active or ambiguous Builder/Reviewer/QA는 자동 retry하지 않고 quarantine하며 새 reconciliation
 decision 전까지 실행 authority가 없다.
 
-Durable DeliveryPackage persistence planning은 `DEC-098`, implementation handoff는 `DEC-099`로
-기록됐다. Council alignment, plan approval, Builder approval, Reviewer pass, QA pass, terminal
-checkpoint 중 어느 하나도 durable package authority가 아니다. Future implementation은 이 evidence를
-모두 exact digest로 재검증한 separate operator persist request만 받을 수 있고 `review-required`
-record에서 멈춰야 한다. Package acceptance와 Mission done은 계속 별도 decision이다.
+Durable DeliveryPackage persistence planning은 `DEC-098`, implementation handoff는 `DEC-099`, exact
+implementation은 `DEC-100`으로 기록됐다. Council alignment, plan approval, Builder approval,
+Reviewer pass, QA pass, terminal checkpoint 중 어느 하나도 durable package authority가 아니다.
+Current path는 이 evidence를 모두 exact digest로 재검증한 separate operator persist request만 받고
+one immutable `review-required` record에서 멈춘다.
+
+DeliveryPackage acceptance planning은 `DEC-101`, implementation handoff는 `DEC-102`로 기록됐다.
+Council 또는 execution evidence만으로 acceptance가 열리지 않는다. Future acceptance는 current
+schema-v9 package와 exact digest tuple plus `decision=accept`를 요구하고 append-only evidence에서
+멈춰야 한다. Mission/task close-out과 done은 계속 별도 decision이다.
 
 ## Verification
 
@@ -363,6 +368,9 @@ node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ui-slice-656.mjs
 node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
+node scripts/smoke-ai-company-durable-delivery-package.mjs
+node scripts/smoke-ui-slice-657.mjs
+node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
 node scripts/verification_status.mjs
 ```
 

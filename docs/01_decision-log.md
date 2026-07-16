@@ -620,6 +620,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Valid schema-v8 state migrates atomically to schema v9 without losing WorkflowCheckpoint history or creating a package. One explicit exact-tuple request may append one immutable `review-required` record and per-plan refs; stale input fails without a write and exact replay is idempotent. Read-only API/UI surfaces expose durable evidence. Package acceptance/rejection/changes-requested, Mission/task close-out or done, commit, push, release, learning, memory, retry/rework, scheduling, provider expansion, policy mutation, approval bypass, and connectors remain blocked.
 - Needed Before: Any package lifecycle decision or Mission/task close-out requires a separate complete fielded decision and focused verification.
 
+### DEC-101
+- Status: `Accepted`
+- Decision: Accept `operator-delegated-ai-company-delivery-package-acceptance-planning-001` with `decisionStatus=approve-ai-company-delivery-package-acceptance-planning-only` for planning only for one deterministic local schema-v10 append-only DeliveryPackageAcceptance record from one exact source-current schema-v9 `review-required` DeliveryPackage.
+- Why: The operator approved the next step and previously delegated non-critical planning self-approval, but schema migration and package lifecycle mutation remain architecture-sensitive. The smallest next plan records acceptance as a separate immutable fact so the schema-v9 package and digest remain unchanged and Mission/task close-out cannot be opened accidentally.
+- Impact: `docs/68_ai-company-delivery-package-acceptance-plan.md` defines exact preview/source/package/checkpoint tuple binding, `decision=accept`, additive empty schema-v10 migration, one immutable acceptance, idempotency, rollback retention, read-only UI, and focused verification. This authority covers docs, read-only source checks, smoke/inventory/README/task-ledger updates, operator-side commit, and push only. It creates no schema, acceptance, route, UI action, Mission/task transition, commit package, release, or learning output.
+- Needed Before: Schema-v10 migration and acceptance implementation require the complete fielded `approve-ai-company-delivery-package-acceptance-implementation-slice` decision in `docs/69_ai-company-delivery-package-acceptance-implementation-decision-handoff.md`.
+
+### DEC-102
+- Status: `Accepted`
+- Decision: Define the AI Company DeliveryPackage acceptance implementation decision handoff as read-only input for the next schema- and lifecycle-sensitive gate.
+- Why: General approval cannot decide additive schema-v10 migration, immutable event fields, exact digest binding, stale/no-write semantics, idempotency, rollback retention, or the separation between package acceptance and Mission/task close-out. A complete fielded shape keeps that boundary reviewable.
+- Impact: `docs/69_ai-company-delivery-package-acceptance-implementation-decision-handoff.md` defines valid approval/evidence-request/rejection/deferral outcomes, invalid shortcuts, acceptance criteria, stop conditions, target files, migration/runtime/API/UI paths, focused smokes, and still-blocked authority. It records no runtime acceptance and opens no package rejection/changes-requested, Mission/task close-out, commit/push/release, learning/memory, scheduling/provider, policy, bypass, or connector authority.
+- Needed Before: The operator must supply the complete fielded implementation decision. This general approval, delegated planning approval, DEC-100, or the handoff document itself does not authorize schema-v10 or runtime/UI implementation.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
