@@ -372,6 +372,16 @@ Candidate generation을 disable하고 candidate를 quarantine한다. Source Miss
 
 Read-only candidate generation, memory persistence, skill promotion은 각각 별도 승인이다.
 
+Phase 8 LearningCandidate preview planning-only authority는 `DEC-107`, complete fielded
+implementation decision handoff는 `DEC-108`로 기록됐다. Planned first target keeps schema v11 and
+requires one exact completed Mission/MissionCloseOut source tuple plus one operator-owned
+`retrospectiveSpec`. It may return only a deterministic deeply frozen response-only preview with
+`persisted=false`, `reviewerStatus=review-required`, `promotionStatus=proposed`, and every downstream
+authority false. The response-only implementation remains blocked until the complete fielded decision
+is supplied. Schema-v12, durable candidate lifecycle, memory/skill promotion, provider generation,
+raw evidence ingestion, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors
+remain blocked.
+
 ## Phase 9: Dogfood And Productization
 
 ### Objective
@@ -447,8 +457,9 @@ DeliveryPackage acceptance planning은 `DEC-101`, complete fielded implementatio
 `DEC-102`, exact implementation은 `DEC-103`으로 accepted됐다. Mission/task close-out planning-only
 authority는 `DEC-104`, complete fielded implementation handoff는 `DEC-105`, exact schema-v11
 implementation은 `DEC-106`으로 accepted됐다. Reopen, package lifecycle expansion, standalone
-close-out, Git/release, learning, scheduling/provider/policy, next-Mission, and connector authority는
-별도 complete fielded decision 전까지 blocked다.
+close-out, Git/release, scheduling/provider/policy, next-Mission, and connector authority는 별도
+complete fielded decision 전까지 blocked다. Phase 8 LearningCandidate response-only preview planning은
+`DEC-107`, implementation handoff는 `DEC-108`로 accepted됐으며 implementation은 아직 blocked다.
 
 ```text
 targetAuthority=one deterministic local schema-v9 durable DeliveryPackage review-required record from one exact source-current schema-v8 delivery-ready ExecutionPlan and terminal WorkflowCheckpoint
@@ -481,6 +492,18 @@ recomputed no-active-gate state, and exact package/acceptance/plan/checkpoint di
 `executing -> completed` in one state save. It does not invoke standalone commit/release close-out,
 Git, learning, scheduling, providers, policy, next-Mission creation, or connectors.
 
+Planned LearningCandidate preview target:
+
+```text
+targetAuthority=one deterministic response-only LearningCandidate preview from one exact source-current schema-v11 completed Mission and immutable MissionCloseOut evidence tuple plus one operator-owned retrospectiveSpec
+```
+
+The planned path keeps schema v11, validates source-contained applicability, verification commands,
+negative evidence, redaction, and expiry, and returns only `persisted=false` review-required evidence.
+No runtime/API/UI implementation, durable candidate, memory/skill promotion, provider generation, raw
+evidence ingestion, source/Git/release, scheduling, next-Mission, policy mutation, approval bypass, or
+connector authority is approved by the planning decision.
+
 ## Verification
 
 ```bash
@@ -509,6 +532,7 @@ node scripts/smoke-ui-slice-658.mjs
 node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
 node scripts/smoke-ai-company-mission-task-close-out.mjs
 node scripts/smoke-ui-slice-659.mjs
+node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -523,3 +547,6 @@ Focused implementation evidence는 accepted event reload, idempotency, stale no-
 stability, and absent downstream authority를 확인한다.
 Mission/task close-out evidence는 current schema-v11 atomic record/lifecycle contract, terminal-record-
 first replay, generic bypass guards, standalone close-out compatibility, and exact terminal gate를 확인한다.
+LearningCandidate preview planning evidence는 schema-v11 no-write compatibility, exact terminal source
+tuple, operator-owned retrospectiveSpec, response-only non-persistence, and still-blocked implementation/
+promotion/downstream authority를 확인한다.

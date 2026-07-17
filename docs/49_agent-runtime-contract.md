@@ -468,6 +468,14 @@ gate state가 모두 current여야 한다. Terminal-record-first replay와 gener
 bypass guard가 direct terminalization을 막으며 standalone task close-out, commit/push/release,
 reopen, learning, scheduling/provider/policy, next-Mission, and connector authority는 계속 blocked다.
 
+LearningCandidate preview planning은 `DEC-107`, implementation handoff는 `DEC-108`로 문서화됐다.
+Planned Phase 8 path는 current schema-v11 terminal tuple과 one exact operator-owned
+`retrospectiveSpec`을 read-only로 검증해 deterministic `persisted=false` preview만 반환한다. Source
+evidence에 없는 lesson, path, command, or negative evidence를 invent하지 않고 raw transcript,
+artifact body, source content, provider payload, secret를 입력으로 받지 않는다. Runtime/API/UI
+implementation, schema-v12, durable candidate lifecycle, memory/skill promotion, provider generation,
+source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+
 ## Verification
 
 ```bash
@@ -498,6 +506,9 @@ node scripts/smoke-ai-company-delivery-package-acceptance-planning.mjs
 node scripts/smoke-ai-company-delivery-package-acceptance.mjs
 node scripts/smoke-ui-slice-658.mjs
 node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
+node scripts/smoke-ai-company-mission-task-close-out.mjs
+node scripts/smoke-ui-slice-659.mjs
+node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -506,5 +517,7 @@ conflict/synthesis, revision/stop/resume, snapshot compatibility, schema v7 migr
 Council 보존, Phase 4 response-only compilation, Phase 5 durable Builder stop boundary, Phase 6
 exact-gated reviewed delivery, Phase 7 schema-v8 safe recovery, schema-v9 durable DeliveryPackage,
 append-only acceptance implementation boundary, and planning-only Mission/task close-out boundary를
-검증한다. StaffingPlan, Builder replay, Mission done implementation, auto-rework, provider-backed WorkOrders, memory expansion,
-commit/push/release는 blocked다.
+검증한다. Mission/task close-out runtime/UI smoke는 current schema-v11 terminal transaction을
+검증하고, LearningCandidate planning smoke는 no-write response-only Phase 8 boundary를 고정한다.
+StaffingPlan, Builder replay, auto-rework, provider-backed WorkOrders, durable learning, memory/skill
+promotion, commit/push/release는 blocked다.

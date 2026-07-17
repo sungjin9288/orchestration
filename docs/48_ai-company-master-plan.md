@@ -355,6 +355,14 @@ bypass guards를 유지하며 standalone commit/release close-out, Git/release, 
 expansion, learning, scheduling/providers, policy mutation, next-Mission creation, approval bypass, and
 connectors remain blocked.
 
+LearningCandidate preview planning-only authority는 `DEC-107`, complete fielded implementation
+handoff는 `DEC-108`으로 기록됐다. Phase 8 첫 target은 schema-v11 terminal evidence와 one exact
+operator-owned `retrospectiveSpec`에서 source-contained applicability, verification commands,
+negative evidence, redaction acknowledgement, expiry를 검증하고 deterministic response-only preview를
+계산하는 path다. Runtime/API/UI implementation, schema-v12, durable candidate lifecycle,
+memory/skill promotion, provider generation, raw evidence ingestion, source/Git/release action,
+scheduling, next-Mission, policy mutation, approval bypass, and connectors remain blocked.
+
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
@@ -388,6 +396,7 @@ node scripts/smoke-ui-slice-658.mjs
 node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
 node scripts/smoke-ai-company-mission-task-close-out.mjs
 node scripts/smoke-ui-slice-659.mjs
+node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -400,4 +409,7 @@ schema-v10 exact implementation and immutable source evidence를 확인한다.
 Mission/task close-out planning/runtime/UI smokes는 current schema-v11 atomic event-plus-two-transition
 contract, terminal replay, generic bypass guards, standalone close-out isolation, exact accepted-
 evidence binding, and blocked downstream authority를 확인한다.
+LearningCandidate preview planning smoke는 schema v11 no-write posture, exact terminal source tuple,
+operator-owned retrospectiveSpec, response-only/non-persistent output, and blocked memory/skill/provider/
+source/Git/release/scheduling/next-Mission authority를 확인한다.
 Optional live-provider 결과는 별도 informational evidence다.

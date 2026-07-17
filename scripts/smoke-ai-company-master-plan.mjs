@@ -197,6 +197,8 @@ assert.match(decisionLog, /^### DEC-103$/m);
 assert.match(decisionLog, /^### DEC-104$/m);
 assert.match(decisionLog, /^### DEC-105$/m);
 assert.match(decisionLog, /^### DEC-106$/m);
+assert.match(decisionLog, /^### DEC-107$/m);
+assert.match(decisionLog, /^### DEC-108$/m);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -262,6 +264,8 @@ process.stdout.write(
         'DEC-104',
         'DEC-105',
         'DEC-106',
+        'DEC-107',
+        'DEC-108',
       ],
       currentRuntime: {
         schemaVersion: 11,
@@ -274,6 +278,7 @@ process.stdout.write(
         durableDeliveryPackage: 'schema-v9-exact-review-required-record',
         deliveryPackageAcceptance: 'schema-v10-exact-append-only-accepted-record',
         missionTaskCloseOut: 'schema-v11-exact-atomic-terminal-transaction',
+        learningCandidatePreview: 'planning-only-response-local',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -293,6 +298,9 @@ process.stdout.write(
         deliveryPackageAcceptanceAllowed: true,
         missionTaskCloseOutPlanningAllowed: true,
         missionTaskCloseOutAllowed: true,
+        learningCandidatePreviewPlanningAllowed: true,
+        learningCandidatePreviewImplementationAllowed: false,
+        durableLearningCandidateAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -301,7 +309,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Separate fielded decision required for any post-close-out authority expansion',
+      nextGate: 'Complete fielded decision required for LearningCandidate preview implementation',
     },
     null,
     2,

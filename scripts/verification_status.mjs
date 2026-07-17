@@ -537,6 +537,11 @@ const informationalChecks = [
     purpose: 'AI Company Mission close-out UI and API prove read-only hydration, exact tuple-gated command, safe stale and malformed failures, concurrent exact request convergence, idempotent replay, immutable package and acceptance evidence, terminal rendering, responsive fit, and blocked downstream authority',
   },
   {
+    id: 'ai-company-learning-candidate-preview-planning',
+    script: 'scripts/smoke-ai-company-learning-candidate-preview-planning.mjs',
+    purpose: 'AI Company Phase 8 planning pins DEC-107 and DEC-108, one future schema-v11-preserving deterministic response-only LearningCandidate preview from exact terminal Mission evidence plus operator-owned retrospectiveSpec, source-contained applicability and negative evidence, no-write rollback, and still-blocked implementation durable learning memory skill provider source Git release scheduling next-Mission policy bypass and connectors',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

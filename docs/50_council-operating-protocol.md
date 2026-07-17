@@ -354,6 +354,14 @@ runtime은 exact accepted tuple, completed WorkOrders, passed linked-task review
 gate state를 다시 검증하고 one atomic MissionCloseOut transaction만 허용한다. Standalone close-out,
 Git/release, reopen, learning, scheduling/provider/policy, next-Mission, and connector authority는 blocked다.
 
+LearningCandidate preview planning은 `DEC-107`, complete fielded implementation handoff는
+`DEC-108`으로 기록됐다. Council position, conflict, synthesis는 retrospective의 허용 source evidence
+일부일 뿐이며 단독으로 lesson, applicability, negative evidence, candidate review, memory, or skill
+authority를 만들지 않는다. Planned response-only path는 exact completed Mission tuple과
+operator-owned `retrospectiveSpec`을 요구하고 source-contained refs만 정규화한다. Implementation,
+durable candidate, provider generation, raw evidence ingestion, memory/skill promotion, source/Git/
+release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+
 ## Verification
 
 ```bash
@@ -383,6 +391,7 @@ node scripts/smoke-ui-slice-658.mjs
 node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
 node scripts/smoke-ai-company-mission-task-close-out.mjs
 node scripts/smoke-ui-slice-659.mjs
+node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -397,3 +406,5 @@ runtime/UI smokes는 exact schema-v10 event와 blocked Mission/task close-out를
 Mission/task close-out planning smoke는 consumed contract provenance를 고정하고 runtime/UI smokes는
 schema-v11 exact event-plus-transition, terminal replay, bypass guards, and standalone close-out
 isolation을 고정한다.
+LearningCandidate preview planning smoke는 Council evidence가 bounded source ref로만 사용되고
+response-only preview implementation과 모든 learning promotion authority가 blocked임을 고정한다.
