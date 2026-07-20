@@ -582,6 +582,11 @@ const informationalChecks = [
     purpose: 'AI Company LearningCandidate review UI and API prove exact-gated human-reviewed submission, all three decision choices, read-only durable hydration, safe stale malformed and content-type failures, idempotent replay, runtime-path redaction, responsive fit, and absent candidate revision promotion memory skill provider source Git release schedule next-Mission policy bypass and connector controls',
   },
   {
+    id: 'ai-company-memory-candidate-preview-planning',
+    script: 'scripts/smoke-ai-company-memory-candidate-preview-planning.mjs',
+    purpose: 'AI Company MemoryCandidate preview planning fixes one accepted-review-only schema-v13 response-only readiness preview target while durable memory retrieval import apply export deletion skill provider source Git release scheduling policy and connector authority remain blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

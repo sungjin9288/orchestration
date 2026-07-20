@@ -36,10 +36,10 @@ function assertReadmeHas(pattern) {
 }
 
 const inventoryGateRows = [
-  /Recent evidence refresh head checked before this document update: `10301cd`/,
+  /Recent evidence refresh head checked before this document update: `cd0a352`/,
   /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current aggregate count is source-checked by this inventory smoke\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
   /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| `ok=true`; required `40\/40`; snapshot reachability informational skipped when the local UI server is not running \| Treat snapshot reachability as optional unless a UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate registration, UI QA `40\/40`, zero-open backlog, post-completion router, proposal-record lifecycle review alias boundaries, proposal generation evidence, AI Company Phase 5-8 evidence, durable DeliveryPackage implementation, package acceptance implementation, Mission\/task close-out implementation, LearningCandidate preview and durable persistence implementation, and candidate review outcome implementation evidence \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate registration, UI QA `40\/40`, zero-open backlog, post-completion router, proposal-record lifecycle review alias boundaries, proposal generation evidence, AI Company Phase 5-8 evidence, durable DeliveryPackage implementation, package acceptance implementation, Mission\/task close-out implementation, LearningCandidate preview and durable persistence implementation, candidate review outcome implementation, and MemoryCandidate preview planning evidence \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -72,6 +72,7 @@ const inventoryGateRows = [
   /\| AI Company durable LearningCandidate persistence implementation \| pass \| `DEC-112`, `src\/runtime\/learning-candidates\.js`, `node scripts\/smoke-ai-company-durable-learning-candidate\.mjs`, `node scripts\/smoke-ui-slice-661\.mjs` \|/,
   /\| AI Company LearningCandidate review outcome planning \| pass \| `docs\/76_ai-company-learning-candidate-review-outcome-plan\.md`, `docs\/77_ai-company-learning-candidate-review-outcome-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-learning-candidate-review-outcome-planning\.mjs` \|/,
   /\| AI Company LearningCandidate review outcome implementation \| pass \| `DEC-115`, `src\/runtime\/learning-candidate-reviews\.js`, `node scripts\/smoke-ai-company-learning-candidate-review-outcome\.mjs`, `node scripts\/smoke-ui-slice-662\.mjs` \|/,
+  /\| AI Company MemoryCandidate preview planning \| pass \| `docs\/78_ai-company-memory-candidate-preview-plan\.md`, `docs\/79_ai-company-memory-candidate-preview-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-memory-candidate-preview-planning\.mjs` \|/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -101,7 +102,7 @@ for (const pattern of staleInventoryEvidence) {
 
 assertReadmeHas(new RegExp(`${smokeFileCount} smoke files`));
 assertReadmeHas(new RegExp(`${uiSmokeFileCount} UI smoke files`));
-assertReadmeHas(/total `218\/218`/);
+assertReadmeHas(/total `219\/219`/);
 assert.match(verificationStatus, /completion-gate-inventory-current-evidence/);
 assert.match(verificationStatus, /smoke-completion-gate-inventory-current-evidence\.mjs/);
 assert.match(verificationStatus, /ai-company-workorder-persistence-execution-planning/);
@@ -130,6 +131,7 @@ assert.match(verificationStatus, /ai-company-durable-learning-candidate-ui-api/)
 assert.match(verificationStatus, /ai-company-learning-candidate-review-outcome-planning/);
 assert.match(verificationStatus, /ai-company-learning-candidate-review-outcome-implementation/);
 assert.match(verificationStatus, /ai-company-learning-candidate-review-outcome-ui-api/);
+assert.match(verificationStatus, /ai-company-memory-candidate-preview-planning/);
 assert.match(uiQaStatus, /smoke-ui-slice-651\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-652\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-653\.mjs/);
@@ -152,8 +154,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '217/217',
-        total: '218/218',
+        informational: '218/218',
+        total: '219/219',
       },
     },
     null,

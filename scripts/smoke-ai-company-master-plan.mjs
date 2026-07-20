@@ -205,6 +205,9 @@ assert.match(decisionLog, /^### DEC-111$/m);
 assert.match(decisionLog, /^### DEC-112$/m);
 assert.match(decisionLog, /^### DEC-113$/m);
 assert.match(decisionLog, /^### DEC-114$/m);
+assert.match(decisionLog, /^### DEC-115$/m);
+assert.match(decisionLog, /^### DEC-116$/m);
+assert.match(decisionLog, /^### DEC-117$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -213,6 +216,10 @@ assert.match(masterPlanText, /LearningCandidate review outcome planning-only aut
 assert.match(runtimeContractText, /LearningCandidate review outcome planning은 `DEC-113`/);
 assert.match(councilProtocolText, /LearningCandidate review outcome planning은 `DEC-113`/);
 assert.match(deliveryRoadmapText, /LearningCandidate review outcome planning-only authority는 `DEC-113`/);
+assert.match(masterPlanText, /MemoryCandidate preview planning-only authority는 `DEC-116`/);
+assert.match(runtimeContractText, /MemoryCandidate preview planning은 `DEC-116`/);
+assert.match(councilProtocolText, /MemoryCandidate preview planning은 `DEC-116`/);
+assert.match(deliveryRoadmapText, /MemoryCandidate preview planning-only authority는 `DEC-116`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -286,9 +293,12 @@ process.stdout.write(
         'DEC-112',
         'DEC-113',
         'DEC-114',
+        'DEC-115',
+        'DEC-116',
+        'DEC-117',
       ],
       currentRuntime: {
-        schemaVersion: 12,
+        schemaVersion: 13,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -300,6 +310,8 @@ process.stdout.write(
         missionTaskCloseOut: 'schema-v11-exact-atomic-terminal-transaction',
         learningCandidatePreview: 'schema-v11-response-only-review-required',
         durableLearningCandidate: 'schema-v12-exact-review-required-record',
+        learningCandidateReview: 'schema-v13-exact-append-only-outcome',
+        memoryCandidatePreview: 'planning-only-not-implemented',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -324,7 +336,9 @@ process.stdout.write(
         durableLearningCandidatePlanningAllowed: true,
         durableLearningCandidateAllowed: true,
         learningCandidateReviewPlanningAllowed: true,
-        learningCandidateReviewAllowed: false,
+        learningCandidateReviewAllowed: true,
+        memoryCandidatePreviewPlanningAllowed: true,
+        memoryCandidatePreviewImplementationAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -333,7 +347,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded decision required for LearningCandidate review outcome',
+      nextGate: 'Complete fielded decision required for MemoryCandidate preview implementation',
     },
     null,
     2,
