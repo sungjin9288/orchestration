@@ -262,7 +262,6 @@ scripts/ui_qa_status.mjs
 
 ## Exclusions
 
-- schema-v13 or runtime/API/UI implementation before a complete fielded decision
 - candidate rewrite, deletion, supersession, duplicate review, automatic revision, or rework
 - expiry mutation, automatic expiration, quarantine, unquarantine, or replacement candidate
 - memory persistence/retrieval, skill creation/promotion, profile/policy learning
@@ -275,13 +274,17 @@ scripts/ui_qa_status.mjs
 
 - Planning-only authority: accepted as `DEC-113`.
 - Complete fielded implementation handoff: documented as `DEC-114`.
-- Current runtime remains schema v12 with no LearningCandidateReview records or actions.
-- Schema/runtime/API/UI implementation and every downstream authority remain blocked.
+- Implementation authority: accepted as `DEC-115`.
+- Current runtime is schema v13 with one exact append-only LearningCandidateReview path.
+- Candidate mutation, expiry/quarantine, memory/skill, provider, source/Git/release, scheduling,
+  next-Mission, policy, bypass, and connector authority remain blocked.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
+node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/smoke-ai-company-durable-learning-candidate.mjs
 node scripts/smoke-ui-slice-661.mjs

@@ -487,11 +487,11 @@ provider generation, source/Git/release,
 scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 LearningCandidate review outcome planning은 `DEC-113`, implementation decision handoff는
-`DEC-114`로 문서화됐다. Planned schema-v13 runtime은 candidate 자체를 rewrite하지 않고 exact
+`DEC-114`, exact implementation은 `DEC-115`로 문서화됐다. Schema-v13 runtime은 candidate 자체를 rewrite하지 않고 exact
 candidate id, preview/candidate/record digests, unexpired review window, bounded rationale,
 source-contained evidence refs, and `human-reviewed` acknowledgement에 결속된 one append-only
-accepted/rejected/changes-requested event만 허용한다. Current schema v12에는 review sequence,
-record, route, or UI action이 없다.
+accepted/rejected/changes-requested event만 허용한다. GET/POST와 Deliverables review form은
+review evidence만 노출하며 candidate status나 downstream authority를 변경하지 않는다.
 
 ## Verification
 
@@ -531,6 +531,9 @@ node scripts/smoke-ui-slice-660.mjs
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/smoke-ai-company-durable-learning-candidate.mjs
 node scripts/smoke-ui-slice-661.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
+node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/verification_status.mjs
 ```

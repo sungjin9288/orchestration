@@ -289,6 +289,39 @@ export function getMissionLearningCandidatePersistenceSummary(
   };
 }
 
+export function getLearningCandidateReviewSummary(
+  durableCandidate,
+  durableReview,
+  missionId,
+  now = Date.now(),
+) {
+  const candidate =
+    durableCandidate?.sourceMissionId === missionId && durableCandidate.persisted === true
+      ? durableCandidate
+      : null;
+  const review =
+    durableReview?.learningCandidateId === candidate?.id ? durableReview : null;
+  const unexpired = Boolean(
+    candidate &&
+      Number.isFinite(Date.parse(candidate.expiry?.expiresAt)) &&
+      Date.parse(candidate.expiry.expiresAt) > now,
+  );
+  const sourceClosed = Boolean(
+    candidate &&
+      candidate.reviewerStatus === 'review-required' &&
+      candidate.promotionStatus === 'proposed' &&
+      Object.values(candidate.authoritySummary || {}).every((value) => value === false),
+  );
+
+  return {
+    canReview: Boolean(candidate && !review && unexpired && sourceClosed),
+    candidate,
+    review,
+    reviewed: Boolean(review),
+    unexpired,
+  };
+}
+
 export function getMissionDeliveryPackageAcceptanceSummary(
   preview,
   bundle,

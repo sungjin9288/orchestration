@@ -388,11 +388,11 @@ promotion, provider generation, raw evidence ingestion, source/Git/release, sche
 policy, bypass, and connectors remain blocked.
 
 LearningCandidate review outcome planning-only authority는 `DEC-113`, complete fielded
-implementation decision handoff는 `DEC-114`로 기록됐다. The next proposed schema-v13 slice keeps
-the candidate immutable and records one append-only accepted, rejected, or changes-requested
-operator review event. Current runtime remains schema v12. Implementation, candidate revision,
-expiry/quarantine, memory/skill promotion, providers, source/Git/release, scheduling, next-Mission,
-policy, bypass, and connectors remain blocked.
+implementation decision handoff는 `DEC-114`, exact implementation은 `DEC-115`로 기록됐다.
+Schema-v13 keeps the candidate immutable and records one append-only accepted, rejected, or
+changes-requested operator review event. Candidate revision, expiry/quarantine, memory/skill
+promotion, providers, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors
+remain blocked.
 
 ## Phase 9: Dogfood And Productization
 
@@ -551,6 +551,9 @@ node scripts/smoke-ui-slice-660.mjs
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/smoke-ai-company-durable-learning-candidate.mjs
 node scripts/smoke-ui-slice-661.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
+node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/verification_status.mjs
 ```

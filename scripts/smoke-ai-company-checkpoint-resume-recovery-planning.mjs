@@ -140,7 +140,7 @@ assert.match(
 );
 
 // Pin the consumed decision chain to the exact accepted implementation boundary.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 12/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 13/);
 assert.match(contracts, /WORKFLOW_CHECKPOINT_STAGE/);
 assert.match(fileStore, /workflowCheckpoints/);
 assert.match(runtimeService, /function resumeExecutionPlanFromCheckpoint\(/);

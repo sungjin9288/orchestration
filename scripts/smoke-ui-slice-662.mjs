@@ -6,18 +6,16 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
 import {
-  getMissionExecutionPlanBundle,
-  getMissionLearningCandidatePersistenceSummary,
-  getMissionLearningCandidatePreviewSummary,
+  getLearningCandidateReviewSummary,
 } from '../ui/council-signals.js';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const tempRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-661');
-const port = 7800 + (process.pid % 300);
+const tempRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-662');
+const port = 8100 + (process.pid % 300);
 const baseUrl = `http://127.0.0.1:${port}`;
-const MODE = 'ui-slice-661-durable-learning-candidate-smoke';
-const keepFixture = process.env.ORCHESTRATION_UI_SLICE_661_KEEP_FIXTURE === '1';
+const MODE = 'ui-slice-662-learning-candidate-review-outcome-smoke';
+const keepFixture = process.env.ORCHESTRATION_UI_SLICE_662_KEEP_FIXTURE === '1';
 
 requireNoCliArgs(process.argv.slice(2), { mode: MODE });
 
@@ -46,7 +44,7 @@ async function waitForServer() {
     }
     await delay(150);
   }
-  throw new Error('Timed out waiting for ui-slice-661 server');
+  throw new Error('Timed out waiting for ui-slice-662 server');
 }
 
 function seedCompletedMission() {
@@ -66,7 +64,7 @@ function seedCompletedMission() {
     },
   );
   if (seeded.status !== 0) {
-    throw new Error(seeded.stderr || seeded.stdout || 'Failed to seed LearningCandidate fixture');
+    throw new Error(seeded.stderr || seeded.stdout || 'Failed to seed review UI fixture');
   }
   return JSON.parse(seeded.stdout);
 }
@@ -93,135 +91,131 @@ async function main() {
       fetch(`${baseUrl}/council-signals.js`).then((response) => response.text()),
       fetch(`${baseUrl}/styles.css`).then((response) => response.text()),
     ]);
-    assert.match(appSource, /data-action="persist-learning-candidate"/);
-    assert.match(appSource, /LearningCandidate 기록/);
-    assert.match(appSource, /Durable LearningCandidate evidence/);
-    assert.match(appSource, /persisted:true/);
-    assert.match(appSource, /review-required evidence only/);
-    assert.match(appSource, /missionLearningCandidate = null/);
-    assert.match(appSource, /\/persist-learning-candidate/);
-    assert.match(appSource, /\/learning-candidate/);
-    assert.doesNotMatch(appSource, /data-action="accept-learning-candidate"/);
-    assert.doesNotMatch(appSource, /data-action="reject-learning-candidate"/);
+    assert.match(appSource, /data-action="review-learning-candidate"/);
+    assert.match(appSource, /LearningCandidate Review/);
+    assert.match(appSource, /Durable LearningCandidate review evidence/);
+    assert.match(appSource, /value="accept"/);
+    assert.match(appSource, /value="reject"/);
+    assert.match(appSource, /value="changes-requested"/);
+    assert.match(appSource, /human-reviewed/);
+    assert.match(appSource, /\/api\/learning-candidates\/\$\{encodeURIComponent\(candidate\.id\)\}\/review/);
     assert.doesNotMatch(appSource, /data-action="promote-learning-memory"/);
     assert.doesNotMatch(appSource, /data-action="promote-learning-skill"/);
-    assert.match(signalSource, /getMissionLearningCandidatePersistenceSummary/);
-    assert.match(signalSource, /currentPreview\.expiry/);
-    assert.match(stylesSource, /\.learning-candidate-record/);
+    assert.doesNotMatch(appSource, /data-action="revise-learning-candidate"/);
+    assert.match(signalSource, /getLearningCandidateReviewSummary/);
+    assert.match(stylesSource, /\.learning-candidate-review-form/);
+    assert.match(stylesSource, /\.learning-candidate-review-record/);
     assert.match(stylesSource, /overflow-wrap: anywhere/);
     assert.match(
       stylesSource,
       /@media \(max-width: 720px\)[\s\S]*\.learning-candidate-grid,[\s\S]*grid-template-columns: 1fr/,
     );
 
-    const snapshotResult = await fetchJson('/api/snapshot');
-    assert.equal(snapshotResult.response.status, 200);
-    const snapshot = snapshotResult.payload.snapshot;
-    assert.equal(snapshot.schemaVersion, 13);
-    assert.deepEqual(snapshot.learningCandidates, {});
-    const stateBytesBeforeGet = fs.readFileSync(statePath, 'utf8');
-    const absent = await fetchJson(
-      `/api/missions/${encodeURIComponent(seeded.missionId)}/learning-candidate`,
-    );
-    assert.equal(absent.response.status, 200);
-    assert.equal(absent.payload.persisted, false);
-    assert.equal(absent.payload.learningCandidate, null);
-    assert.equal(Object.prototype.hasOwnProperty.call(absent.payload, 'runtimeRoot'), false);
-    assert.equal(fs.readFileSync(statePath, 'utf8'), stateBytesBeforeGet);
-
-    const mission = snapshot.missions[seeded.missionId];
-    const councilSession = snapshot.councilSessions[mission.councilSessionId];
-    const bundle = getMissionExecutionPlanBundle(snapshot, councilSession.id);
-    const deliveryPreview = await fetchJson(
-      `/api/execution-plans/${encodeURIComponent(bundle.executionPlan.id)}/delivery-preview`,
-    );
-    const summary = getMissionLearningCandidatePreviewSummary(
-      mission,
-      deliveryPreview.payload.deliveryPackagePreview,
-      bundle,
-      bundle.latestDeliveryPackage,
-      bundle.latestDeliveryPackageAcceptance,
-      bundle.latestMissionCloseOut,
-    );
-    const { missionId: _missionId, ...previewBody } = seeded.previewRequest;
+    const { missionId, ...previewBody } = seeded.previewRequest;
     const previewResult = await postJson(
-      `/api/missions/${encodeURIComponent(seeded.missionId)}/learning-candidate-preview`,
+      `/api/missions/${encodeURIComponent(missionId)}/learning-candidate-preview`,
       previewBody,
     );
     assert.equal(previewResult.response.status, 200);
     const preview = previewResult.payload.learningCandidatePreview;
+    const {
+      missionId: _sourceMissionId,
+      previewId: sourceDeliveryPreviewId,
+      ...sourceTuple
+    } = seeded.previewRequest;
+    const candidateResult = await postJson(
+      `/api/missions/${encodeURIComponent(missionId)}/persist-learning-candidate`,
+      {
+        ...sourceTuple,
+        sourceDeliveryPreviewId,
+        previewId: preview.previewId,
+        candidateDigest: preview.candidateDigest,
+        decision: 'persist',
+      },
+    );
+    assert.equal(candidateResult.response.status, 201);
+    const candidate = candidateResult.payload.learningCandidate;
+
+    const absentBytes = fs.readFileSync(statePath, 'utf8');
+    const absent = await fetchJson(
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/review`,
+    );
+    assert.equal(absent.response.status, 200);
+    assert.equal(absent.payload.reviewed, false);
+    assert.equal(absent.payload.learningCandidateReview, null);
+    assert.equal(Object.prototype.hasOwnProperty.call(absent.payload, 'runtimeRoot'), false);
+    assert.equal(fs.readFileSync(statePath, 'utf8'), absentBytes);
     assert.equal(
-      getMissionLearningCandidatePersistenceSummary(
-        preview,
-        null,
-        seeded.missionId,
-      ).canPersist,
+      getLearningCandidateReviewSummary(candidate, null, missionId).canReview,
       true,
     );
 
-    const {
-      previewId: sourceDeliveryPreviewId,
-      ...sourceTuple
-    } = summary.source;
-    const persistenceBody = {
-      ...sourceTuple,
-      sourceDeliveryPreviewId,
-      retrospectiveSpec: previewBody.retrospectiveSpec,
-      previewId: preview.previewId,
-      candidateDigest: preview.candidateDigest,
-      decision: 'persist',
+    const reviewBody = {
+      previewId: candidate.previewId,
+      candidateDigest: candidate.candidateDigest,
+      candidateRecordDigest: candidate.recordDigest,
+      decision: 'accept',
+      rationale: '현재 source evidence를 확인하고 이 후보를 검토했습니다.',
+      evidenceRefs: candidate.sourceEvidenceRefs.slice(0, 3),
+      reviewerAcknowledgement: 'human-reviewed',
     };
     const created = await postJson(
-      `/api/missions/${encodeURIComponent(seeded.missionId)}/persist-learning-candidate`,
-      persistenceBody,
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/review`,
+      reviewBody,
     );
     assert.equal(created.response.status, 201);
-    assert.equal(created.payload.learningCandidate.persisted, true);
+    assert.equal(created.payload.learningCandidateReview.decision, 'accepted');
+    assert.equal(created.payload.mutation.stoppedAt, 'learning-candidate-review-recorded');
+    assert.equal(created.payload.learningCandidate.recordDigest, candidate.recordDigest);
     assert.equal(created.payload.learningCandidate.reviewerStatus, 'review-required');
     assert.equal(created.payload.learningCandidate.promotionStatus, 'proposed');
-    assert.equal(created.payload.mutation.stoppedAt, 'learning-candidate-review-required');
-    assert.equal(Object.prototype.hasOwnProperty.call(created.payload, 'runtimeRoot'), false);
-    assert.equal(Object.prototype.hasOwnProperty.call(created.payload, 'snapshot'), false);
     assert.equal(
-      getMissionLearningCandidatePersistenceSummary(
-        preview,
-        created.payload.learningCandidate,
-        seeded.missionId,
-      ).canPersist,
+      getLearningCandidateReviewSummary(
+        candidate,
+        created.payload.learningCandidateReview,
+        missionId,
+      ).canReview,
       false,
     );
 
     const persistedBytes = fs.readFileSync(statePath, 'utf8');
     const readBack = await fetchJson(
-      `/api/missions/${encodeURIComponent(seeded.missionId)}/learning-candidate`,
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/review`,
     );
     assert.equal(readBack.response.status, 200);
-    assert.deepEqual(readBack.payload.learningCandidate, created.payload.learningCandidate);
+    assert.deepEqual(
+      readBack.payload.learningCandidateReview,
+      created.payload.learningCandidateReview,
+    );
     assert.equal(fs.readFileSync(statePath, 'utf8'), persistedBytes);
 
     const replay = await postJson(
-      `/api/missions/${encodeURIComponent(seeded.missionId)}/persist-learning-candidate`,
-      persistenceBody,
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/review`,
+      reviewBody,
     );
     assert.equal(replay.response.status, 200);
     assert.equal(replay.payload.mutation.idempotent, true);
-    assert.equal(fs.readFileSync(statePath, 'utf8'), persistedBytes);
-
+    const divergent = await postJson(
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/review`,
+      { ...reviewBody, decision: 'reject' },
+    );
+    assert.equal(divergent.response.status, 409);
+    assert.match(divergent.payload.error, /already has a different review/);
     const stale = await postJson(
-      `/api/missions/${encodeURIComponent(seeded.missionId)}/persist-learning-candidate`,
-      { ...persistenceBody, candidateDigest: '0'.repeat(64) },
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/review`,
+      { ...reviewBody, candidateRecordDigest: '0'.repeat(64) },
     );
     assert.equal(stale.response.status, 409);
-    assert.match(stale.payload.error, /candidateDigest/);
+    assert.match(stale.payload.error, /candidateRecordDigest/);
     const malformed = await postJson(
-      `/api/missions/${encodeURIComponent(seeded.missionId)}/persist-learning-candidate`,
-      { ...persistenceBody, rawArtifactBody: 'forbidden' },
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/review`,
+      { ...reviewBody, rawArtifactBody: 'forbidden' },
     );
     assert.equal(malformed.response.status, 400);
     assert.match(malformed.payload.error, /unexpected or missing fields/);
     const wrongContentType = await postJson(
-      `/api/missions/${encodeURIComponent(seeded.missionId)}/persist-learning-candidate`,
-      persistenceBody,
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/review`,
+      reviewBody,
       'text/plain',
     );
     assert.equal(wrongContentType.response.status, 415);
@@ -235,8 +229,9 @@ async function main() {
           mode: MODE,
           api: {
             absentGetReadOnly: true,
-            exactPersistenceStatus: created.response.status,
+            exactReviewStatus: created.response.status,
             exactReplayStatus: replay.response.status,
+            divergentStatus: divergent.response.status,
             staleStatus: stale.response.status,
             malformedStatus: malformed.response.status,
             wrongContentTypeStatus: wrongContentType.response.status,
@@ -244,11 +239,11 @@ async function main() {
             sourceBytesUnchanged: true,
           },
           ui: {
-            explicitPersistenceAction: true,
+            explicitReviewAction: true,
+            acceptedRejectedChangesRequestedOptions: true,
             readOnlyDurableEvidence: true,
             refreshHydrationRoute: true,
-            responseOnlyPreviewCompatible: true,
-            expiredPreviewGate: true,
+            idempotentReplay: true,
             downstreamControlsAbsent: true,
             desktopColumns: 2,
             mobileColumns: 1,

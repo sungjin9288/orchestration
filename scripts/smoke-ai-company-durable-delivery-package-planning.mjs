@@ -147,7 +147,7 @@ assert.match(
 );
 
 // Keep planning provenance while pinning the exact implementation boundary it authorized.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 12/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 13/);
 assert.match(contracts, /deliveryPackage/);
 assert.match(fileStore, /validateDeliveryPackageRecords/);
 assert.match(runtimeService, /function previewExecutionPlanDelivery\(input\)/);

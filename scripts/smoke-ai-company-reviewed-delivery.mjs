@@ -462,7 +462,7 @@ async function main() {
       companyBlueprintPath: blueprintPath,
       companyRepoRoot: repoRoot,
     });
-    assert.equal(reloaded.getSnapshot().schemaVersion, 12);
+    assert.equal(reloaded.getSnapshot().schemaVersion, 13);
     assert.deepEqual(
       reloaded.previewExecutionPlanDelivery({
         executionPlanId: success.persisted.executionPlan.id,

@@ -92,7 +92,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v12 after the additive durable LearningCandidate migration, while `companyRuntime` remains an
+execution state is schema v13 after the additive LearningCandidateReview migration, while `companyRuntime` remains an
 additive read-only snapshot on the configured local server path. The editable company roster remains
 browser presentation only.
 
@@ -225,17 +225,19 @@ review outcome, memory/skill promotion,
 providers, raw evidence, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors
 remain blocked and require a separate complete fielded decision.
 
-LearningCandidate review outcome planning-only authority is accepted by `DEC-113`, and its complete
-fielded implementation handoff is recorded by `DEC-114` in
+LearningCandidate review outcome planning-only authority is accepted by `DEC-113`, its complete
+fielded implementation handoff is recorded by `DEC-114`, and exact implementation is accepted by
+`DEC-115` in
 `docs/76_ai-company-learning-candidate-review-outcome-plan.md` and
 `docs/77_ai-company-learning-candidate-review-outcome-implementation-decision-handoff.md`. The
-planned schema-v13 path preserves each schema-v12 candidate as immutable and binds one append-only
+schema-v13 path preserves each schema-v12 candidate as immutable and binds one append-only
 accepted, rejected, or changes-requested review event to exact `previewId`, `candidateDigest`,
 `recordDigest`, an unexpired review window, bounded operator rationale, source-contained evidence
 refs, and `human-reviewed`
-acknowledgement. Current runtime remains schema v12. Review implementation, candidate revision,
+acknowledgement. Exact replay is read-only and GET/UI hydration exposes the review as a separate
+immutable fact without changing the candidate's review-required/proposed status. Candidate revision,
 expiry/quarantine, memory/skill promotion, providers, raw evidence, source/Git/release, scheduling,
-next-Mission, policy, bypass, and connectors remain blocked pending the complete fielded decision.
+next-Mission, policy, bypass, and connectors remain blocked.
 
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
@@ -301,7 +303,7 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `215/215`, total `216/216`; UI QA is required `39/39`.
+`1/1`, informational `217/217`, total `218/218`; UI QA is required `40/40`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -362,7 +364,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `216/216`, UI QA `39/39`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `218/218`, UI QA `40/40`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -395,13 +397,14 @@ Current source-backed evidence:
   prove schema-v12 sequence/map-only migration, runtime preview recomputation, one-save exact
   digest-bound immutable record, read-only hydration, and absent review/memory/skill/downstream
   authority.
-- LearningCandidate review outcome planning: `DEC-113`, `DEC-114`,
+- LearningCandidate review outcome: `DEC-113`, `DEC-114`, `DEC-115`,
   `docs/76_ai-company-learning-candidate-review-outcome-plan.md`,
   `docs/77_ai-company-learning-candidate-review-outcome-implementation-decision-handoff.md`, and
-  `scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs` prove the future
-  schema-v13 append-only review contract, exact candidate/digest/expiry gate, immutable source
-  candidate, accepted/rejected/changes-requested outcomes, and current absence of implementation or
-  downstream authority.
+  `scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs`,
+  `scripts/smoke-ai-company-learning-candidate-review-outcome.mjs`, and
+  `scripts/smoke-ui-slice-662.mjs` prove schema-v13 append-only review persistence, exact
+  candidate/digest/expiry/evidence gating, immutable source candidate, all three normalized
+  outcomes, idempotent replay, safe failures, read-only hydration, and absent downstream authority.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
   draft planning target, the full operator decision fields, rollback and focused smoke requirements,
@@ -1816,6 +1819,8 @@ Observed result:
 | `POST` | `/api/missions/:missionId/learning-candidate-preview` | Return one exact response-only, review-required LearningCandidate preview without state or source writes. |
 | `GET` | `/api/missions/:missionId/learning-candidate` | Read the current durable review-required LearningCandidate evidence, if present. |
 | `POST` | `/api/missions/:missionId/persist-learning-candidate` | Recompute one exact current preview and append at most one immutable proposed record. |
+| `GET` | `/api/learning-candidates/:learningCandidateId/review` | Read the separate append-only review event without rewriting the source candidate. |
+| `POST` | `/api/learning-candidates/:learningCandidateId/review` | Append one exact human-reviewed accepted, rejected, or changes-requested event. |
 | `POST` | `/api/tasks` | Create a task under the active project. |
 | `POST` | `/api/tasks/:taskId/run-planner` | Run planner. |
 | `POST` | `/api/tasks/:taskId/run-architect` | Run architect. |
@@ -1846,9 +1851,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 894 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 896 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 661 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 662 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -1986,6 +1991,8 @@ node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/smoke-ai-company-durable-learning-candidate.mjs
 node scripts/smoke-ui-slice-661.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
+node scripts/smoke-ui-slice-662.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -1994,7 +2001,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `216/216`, UI QA `39/39`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `218/218`, UI QA `40/40`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2029,12 +2036,14 @@ Current verification evidence from this README and completion close-out refresh:
   read-only hydration, safe stale/malformed/expired refusal, responsive fit, and still-blocked review,
   memory/skill, provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connector
   authority stay aligned.
-- `node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs`: `DEC-113`/`DEC-114`,
-  current schema-v12 negative evidence, future schema-v13 sequence/map-only migration, immutable
-  candidate plus append-only accepted/rejected/changes-requested review contract, exact
-  digest/expiry/evidence binding, and still-blocked implementation, candidate mutation,
-  expiry/quarantine, memory/skill, provider, source/Git/release, scheduling, next-Mission, policy,
-  bypass, and connector authority stay aligned.
+- `node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs`,
+  `node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs`, and
+  `node scripts/smoke-ui-slice-662.mjs`: `DEC-113`/`DEC-114` provenance and `DEC-115`
+  implementation, v12-to-v13 one-save migration/review append, exact candidate/digest/expiry/evidence
+  binding, immutable source candidate, accepted/rejected/changes-requested normalization, idempotent
+  replay, safe stale/malformed/credential refusal, read-only hydration, responsive fit, and blocked
+  revision, memory/skill, provider, source/Git/release, scheduling, next-Mission, policy, bypass, and
+  connector authority stay aligned.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
   reports `ok=true`, read-only lifecycle-close status readiness, blocked
   source mutation and remediation execution, and the next lifecycle-close-review command.
@@ -2294,9 +2303,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `39/39`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `40/40`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `215/215`, total `216/216`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `217/217`, total `218/218`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2327,7 +2336,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `216/216`, UI QA `39/39`, and zero-open backlog are local source-backed checks.
+  aggregate `218/218`, UI QA `40/40`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
@@ -2379,10 +2388,10 @@ Playwright CLI:
   outcome, memory/skill promotion, providers,
   raw evidence, source/Git/release, scheduling, next-Mission, policy mutation, approval bypass, and
   connectors remain blocked.
-- `DEC-113` permits planning only for one future schema-v13 append-only LearningCandidateReview
-  record, and `DEC-114` records the complete fielded implementation handoff. The plan preserves the
-  schema-v12 candidate as immutable, accepts only exact operator-authored accept, reject, or
-  changes-requested review evidence, and keeps implementation, candidate revision,
+- `DEC-113` permits planning for one schema-v13 append-only LearningCandidateReview record,
+  `DEC-114` records the complete fielded implementation handoff, and `DEC-115` permits the exact
+  runtime/API/UI slice. The implementation preserves the schema-v12 candidate as immutable, accepts
+  only exact operator-authored accept, reject, or changes-requested review evidence, and keeps candidate revision,
   expiry/quarantine, memory/skill promotion, providers, source/Git/release, scheduling, next-Mission,
   policy mutation, approval bypass, and connectors blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.

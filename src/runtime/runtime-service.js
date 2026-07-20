@@ -109,6 +109,7 @@ const {
   assertExecutionPlan,
   assertHandoffPacket,
   assertLearningCandidate,
+  assertLearningCandidateReview,
   assertMissionCloseOut,
   assertRun,
   assertWorkOrder,
@@ -141,6 +142,10 @@ const {
 const {
   createLearningCandidate,
 } = require('./learning-candidates');
+const {
+  createLearningCandidateReview,
+  normalizeLearningCandidateReviewRequest,
+} = require('./learning-candidate-reviews');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -202,6 +207,13 @@ function createRuntimeService(options = {}) {
   function nextLearningCandidateId(state) {
     state.sequences.learningCandidate += 1;
     return `learning-candidate-${String(state.sequences.learningCandidate).padStart(4, '0')}`;
+  }
+
+  function nextLearningCandidateReviewId(state) {
+    state.sequences.learningCandidateReview += 1;
+    return `learning-candidate-review-${String(
+      state.sequences.learningCandidateReview,
+    ).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -3793,6 +3805,120 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  function findLearningCandidateReview(state, learningCandidateId) {
+    return (
+      Object.values(state.learningCandidateReviews).find(
+        (review) => review.learningCandidateId === learningCandidateId,
+      ) || null
+    );
+  }
+
+  function assertLearningCandidateReviewSourceCurrent(state, candidate) {
+    const source = buildLearningCandidateSourceFromState(
+      state,
+      candidate.sourceMissionId,
+    );
+    const exactFields = [
+      ['projectId', source.projectId],
+      ['sourceMissionId', source.missionId],
+      ['sourceMissionCloseOutId', source.missionCloseOutId],
+      ['sourceExecutionPlanId', source.executionPlanId],
+      ['sourceDeliveryPackageId', source.deliveryPackageId],
+      ['sourceDeliveryPackageAcceptanceId', source.deliveryPackageAcceptanceId],
+      ['sourceTerminalCheckpointId', source.sourceTerminalCheckpointId],
+      ['sourceDeliveryPreviewId', source.sourceDeliveryPreviewId],
+      ['sourceDigest', source.sourceDigest],
+      ['sourcePackageDigest', source.sourcePackageDigest],
+      ['sourcePackageAcceptanceDigest', source.sourcePackageAcceptanceDigest],
+      ['sourceTerminalCheckpointDigest', source.sourceTerminalCheckpointDigest],
+      ['sourceMissionCloseOutDigest', source.sourceMissionCloseOutDigest],
+    ];
+    for (const [field, expected] of exactFields) {
+      if (candidate[field] !== expected) {
+        throw conflict(
+          `LearningCandidate ${candidate.id} ${field} is not source-current`,
+        );
+      }
+    }
+    const candidateSourceEvidenceRefs = [...candidate.sourceEvidenceRefs].sort();
+    const currentSourceEvidenceRefs = [...source.sourceEvidenceRefs].sort();
+    if (
+      candidateSourceEvidenceRefs.length !== currentSourceEvidenceRefs.length ||
+      candidateSourceEvidenceRefs.some(
+        (sourceEvidenceRef, index) =>
+          sourceEvidenceRef !== currentSourceEvidenceRefs[index],
+      )
+    ) {
+      throw conflict(
+        `LearningCandidate ${candidate.id} sourceEvidenceRefs are not source-current`,
+      );
+    }
+    return source;
+  }
+
+  function getLearningCandidateReview(learningCandidateId) {
+    const state = store.loadState();
+    const candidate = assertLearningCandidate(learningCandidateId, state);
+    const review = findLearningCandidateReview(state, candidate.id);
+    return {
+      learningCandidate: candidate,
+      learningCandidateReview: review
+        ? assertLearningCandidateReview(review.id, state)
+        : null,
+      reviewed: Boolean(review),
+    };
+  }
+
+  function reviewLearningCandidate(input) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`LearningCandidate review requires supported state: ${error.message}`);
+    }
+    const candidate = assertLearningCandidate(input.learningCandidateId, state);
+    assertLearningCandidateReviewSourceCurrent(state, candidate);
+    const existing = findLearningCandidateReview(state, candidate.id);
+    const createdAt = existing?.createdAt || new Date().toISOString();
+    let reviewSpec;
+    try {
+      reviewSpec = normalizeLearningCandidateReviewRequest(
+        input,
+        candidate,
+        createdAt,
+      );
+    } catch (error) {
+      throw conflict(error.message);
+    }
+    const candidateReview = createLearningCandidateReview({
+      id: existing?.id || nextLearningCandidateReviewId(state),
+      learningCandidate: candidate,
+      reviewSpec,
+      createdAt,
+    });
+
+    if (existing) {
+      if (existing.reviewDigest !== candidateReview.reviewDigest) {
+        throw conflict(
+          `LearningCandidate ${candidate.id} already has a different review`,
+        );
+      }
+      return {
+        learningCandidate: candidate,
+        learningCandidateReview: assertLearningCandidateReview(existing.id, state),
+        idempotent: true,
+      };
+    }
+
+    state.learningCandidateReviews[candidateReview.id] = candidateReview;
+    store.saveState(state);
+    return {
+      learningCandidate: candidate,
+      learningCandidateReview: candidateReview,
+      idempotent: false,
+    };
+  }
+
   function assertExactDeliveryPackageTuple(input, preview) {
     const exactFields = [
       ['previewId', preview.id],
@@ -5625,6 +5751,7 @@ function createRuntimeService(options = {}) {
     getMission,
     getMissionCloseOut,
     getMissionLearningCandidate,
+    getLearningCandidateReview,
     getProposalApplicationAttempt,
     getProposalSourceMutation,
     getProposalRecord,
@@ -5640,6 +5767,7 @@ function createRuntimeService(options = {}) {
     previewExecutionPlanDelivery,
     persistExecutionPlanDeliveryPackage,
     persistMissionLearningCandidate,
+    reviewLearningCandidate,
     persistMissionWorkOrderPlan,
     listApprovals,
     listCouncilProviderReadinessSummaries,

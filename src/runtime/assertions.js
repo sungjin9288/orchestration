@@ -68,12 +68,21 @@ function assertLearningCandidate(learningCandidateId, state) {
   return learningCandidate;
 }
 
+function assertLearningCandidateReview(learningCandidateReviewId, state) {
+  const review = state.learningCandidateReviews[learningCandidateReviewId];
+  if (!review) {
+    throw new Error(`LearningCandidateReview not found: ${learningCandidateReviewId}`);
+  }
+  return review;
+}
+
 module.exports = {
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,
   assertHandoffPacket,
   assertLearningCandidate,
+  assertLearningCandidateReview,
   assertMissionCloseOut,
   assertRun,
   assertWorkOrder,

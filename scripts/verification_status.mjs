@@ -569,7 +569,17 @@ const informationalChecks = [
   {
     id: 'ai-company-learning-candidate-review-outcome-planning',
     script: 'scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs',
-    purpose: 'AI Company LearningCandidate review outcome planning pins DEC-113 and DEC-114, future additive schema v13 sequence and map only migration, exact current learningCandidateId previewId candidateDigest and candidateRecordDigest plus expiry rationale evidence refs and acknowledgement binding, one immutable accepted rejected or changes-requested event, strict no-write behavior and rollback retention, and current schema v12 negative evidence with implementation candidate mutation expiry quarantine memory skill provider raw evidence source Git release scheduling next-Mission policy bypass and connectors still blocked',
+    purpose: 'AI Company LearningCandidate review outcome planning preserves consumed DEC-113 and DEC-114 provenance while DEC-115 fixes the exact schema v13 append-only review event and blocked downstream authority boundary',
+  },
+  {
+    id: 'ai-company-learning-candidate-review-outcome-implementation',
+    script: 'scripts/smoke-ai-company-learning-candidate-review-outcome.mjs',
+    purpose: 'AI Company LearningCandidate review runtime proves one-save schema v12 to v13 migration and exact append-only accepted rejected or changes-requested review evidence, immutable candidate binding, canonical digest, replay idempotency, stale expired malformed credential and corrupt-state refusal, read-only absence and reload, source stability, and blocked candidate mutation memory skill provider Git release scheduling policy and connectors',
+  },
+  {
+    id: 'ai-company-learning-candidate-review-outcome-ui-api',
+    script: 'scripts/smoke-ui-slice-662.mjs',
+    purpose: 'AI Company LearningCandidate review UI and API prove exact-gated human-reviewed submission, all three decision choices, read-only durable hydration, safe stale malformed and content-type failures, idempotent replay, runtime-path redaction, responsive fit, and absent candidate revision promotion memory skill provider source Git release schedule next-Mission policy bypass and connector controls',
   },
   {
     id: 'coordinator-path-containment-smoke',

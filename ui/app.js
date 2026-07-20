@@ -143,6 +143,7 @@ import {
   getMissionCloseOutSummary,
   getMissionLearningCandidatePreviewSummary,
   getMissionLearningCandidatePersistenceSummary,
+  getLearningCandidateReviewSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -363,6 +364,13 @@ const state = {
   },
   missionLearningCandidatePreview: null,
   missionLearningCandidate: null,
+  missionLearningCandidateReviewDraft: {
+    decision: 'accept',
+    rationale: '',
+    evidenceRefs: [],
+    reviewerAcknowledgement: 'human-reviewed',
+  },
+  missionLearningCandidateReview: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4733,6 +4741,9 @@ function applySnapshotPayload(payload) {
   if (Object.prototype.hasOwnProperty.call(payload, 'learningCandidate')) {
     state.missionLearningCandidate = payload.learningCandidate || null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'learningCandidateReview')) {
+    state.missionLearningCandidateReview = payload.learningCandidateReview || null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
   }
@@ -4805,6 +4816,7 @@ async function hydrateSelectedDetails() {
   state.missionCloseOut = null;
   state.missionLearningCandidatePreview = null;
   state.missionLearningCandidate = null;
+  state.missionLearningCandidateReview = null;
   state.missionLearningCandidateDraft = {
     lesson: '',
     applicabilitySummary: '',
@@ -4813,6 +4825,12 @@ async function hydrateSelectedDetails() {
     negativeEvidence: '',
     expiresAt: '',
     redactionAcknowledgement: 'source-summary-only',
+  };
+  state.missionLearningCandidateReviewDraft = {
+    decision: 'accept',
+    rationale: '',
+    evidenceRefs: [],
+    reviewerAcknowledgement: 'human-reviewed',
   };
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
@@ -4879,6 +4897,13 @@ async function hydrateSelectedDetails() {
           );
           state.missionLearningCandidate =
             learningCandidatePayload.learningCandidate || null;
+          if (state.missionLearningCandidate) {
+            const reviewPayload = await fetchJson(
+              `/api/learning-candidates/${encodeURIComponent(state.missionLearningCandidate.id)}/review`,
+            );
+            state.missionLearningCandidateReview =
+              reviewPayload.learningCandidateReview || null;
+          }
         }
       }
     }
@@ -6200,6 +6225,65 @@ async function persistMissionLearningCandidate(actionButton) {
     render();
     elements.refreshStatus.textContent =
       `${payload.learningCandidate.id} review-required 기록을 보존했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+function readLearningCandidateReviewDraft(form) {
+  const formData = new FormData(form);
+  const draft = {
+    decision: String(formData.get('decision') || ''),
+    rationale: String(formData.get('rationale') || ''),
+    evidenceRefs: formData.getAll('evidenceRefs').map((value) => String(value)),
+    reviewerAcknowledgement: String(
+      formData.get('reviewerAcknowledgement') || '',
+    ),
+  };
+  state.missionLearningCandidateReviewDraft = draft;
+  return draft;
+}
+
+async function reviewLearningCandidate(actionButton) {
+  const form = actionButton?.closest?.('[data-form="review-learning-candidate"]');
+  const learningCandidateId = String(actionButton?.dataset.id || '').trim();
+  const candidate = state.missionLearningCandidate;
+  if (!form || !candidate || candidate.id !== learningCandidateId) {
+    throw new Error('검토할 current LearningCandidate를 찾을 수 없습니다.');
+  }
+  const summary = getLearningCandidateReviewSummary(
+    candidate,
+    state.missionLearningCandidateReview,
+    candidate.sourceMissionId,
+  );
+  if (!summary.canReview) {
+    throw new Error('현재 LearningCandidate는 만료되었거나 이미 검토되었습니다.');
+  }
+  const reviewSpec = readLearningCandidateReviewDraft(form);
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${candidate.id} 검토 결과를 기록하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/review`,
+      {
+        previewId: candidate.previewId,
+        candidateDigest: candidate.candidateDigest,
+        candidateRecordDigest: candidate.recordDigest,
+        ...reviewSpec,
+      },
+    );
+    state.missionLearningCandidate = payload.learningCandidate || candidate;
+    state.missionLearningCandidateReview =
+      payload.learningCandidateReview || null;
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.learningCandidateReview.id} ${payload.learningCandidateReview.decision} 검토를 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -11022,6 +11106,33 @@ function renderMissionLearningCandidatePreview(
     mission.id,
   );
   const currentCandidate = persistenceSummary.durableCandidate;
+  const reviewSummary = getLearningCandidateReviewSummary(
+    currentCandidate,
+    state.missionLearningCandidateReview,
+    mission.id,
+  );
+  const currentReview = reviewSummary.review;
+  const reviewDraft = state.missionLearningCandidateReviewDraft;
+  const selectedReviewEvidenceRefs =
+    reviewDraft.evidenceRefs.length > 0
+      ? reviewDraft.evidenceRefs
+      : currentCandidate?.sourceEvidenceRefs.slice(0, 3) || [];
+  const reviewEvidenceOptions = (currentCandidate?.sourceEvidenceRefs || [])
+    .map(
+      (sourceEvidenceRef) => `
+        <label class="learning-candidate-review-evidence">
+          <input
+            type="checkbox"
+            name="evidenceRefs"
+            value="${escapeHtml(sourceEvidenceRef)}"
+            ${selectedReviewEvidenceRefs.includes(sourceEvidenceRef) ? 'checked' : ''}
+            ${state.loading || state.mutating || Boolean(currentReview) ? 'disabled' : ''}
+          />
+          <span>${escapeHtml(sourceEvidenceRef)}</span>
+        </label>
+      `,
+    )
+    .join('');
   const negativeEvidenceRows = (currentPreview?.negativeEvidence || [])
     .map(
       (entry) => `
@@ -11199,6 +11310,91 @@ function renderMissionLearningCandidatePreview(
               <p><strong>Lesson</strong> ${escapeHtml(currentCandidate.lesson)}</p>
               <p><strong>Review boundary</strong> review-required evidence only; promotion, memory, skill, provider, source, Git, release, scheduling, and next Mission remain blocked.</p>
             </div>
+            ${
+              currentReview
+                ? `
+                  <div class="learning-candidate-review-record" aria-label="Durable LearningCandidate review evidence">
+                    <div class="card-title-row card-title-row-tight">
+                      <strong>${escapeHtml(currentReview.id)}</strong>
+                      ${createToken(currentReview.decision, currentReview.decision === 'accepted' ? 'success' : 'warning')}
+                      ${createToken('append-only', 'neutral')}
+                    </div>
+                    <div class="token-row token-row-compact">
+                      ${createToken(`review:${currentReview.reviewDigest}`, 'neutral')}
+                      ${createToken(`candidate:${currentReview.candidateRecordDigest}`, 'neutral')}
+                      ${createToken(`created:${currentReview.createdAt}`, 'neutral')}
+                    </div>
+                    <p><strong>Rationale</strong> ${escapeHtml(currentReview.rationale)}</p>
+                    <p><strong>Evidence</strong> ${escapeHtml(currentReview.evidenceRefs.join(' · '))}</p>
+                    <div class="delivery-package-authority" aria-label="Blocked post-review authority">
+                      ${createToken('review evidence:recorded', 'success')}
+                      ${createToken('candidate mutation:blocked', 'neutral')}
+                      ${createToken('memory:blocked', 'neutral')}
+                      ${createToken('skill:blocked', 'neutral')}
+                      ${createToken('provider:blocked', 'neutral')}
+                      ${createToken('source/Git:blocked', 'neutral')}
+                      ${createToken('next Mission:blocked', 'neutral')}
+                    </div>
+                  </div>
+                `
+                : `
+                  <form class="learning-candidate-review-form" data-form="review-learning-candidate">
+                    <div class="card-title-row card-title-row-tight">
+                      <strong>LearningCandidate Review</strong>
+                      ${createToken(reviewSummary.unexpired ? 'current' : 'expired', reviewSummary.unexpired ? 'success' : 'warning')}
+                      ${createToken('human-reviewed', 'neutral')}
+                    </div>
+                    <div class="learning-candidate-grid">
+                      <label class="field">
+                        <span class="field-label">Decision</span>
+                        <select
+                          class="text-input"
+                          name="decision"
+                          ${state.loading || state.mutating || !reviewSummary.canReview ? 'disabled' : ''}
+                        >
+                          <option value="accept" ${reviewDraft.decision === 'accept' ? 'selected' : ''}>accept</option>
+                          <option value="reject" ${reviewDraft.decision === 'reject' ? 'selected' : ''}>reject</option>
+                          <option value="changes-requested" ${reviewDraft.decision === 'changes-requested' ? 'selected' : ''}>changes-requested</option>
+                        </select>
+                      </label>
+                      <label class="field">
+                        <span class="field-label">Reviewer acknowledgement</span>
+                        <select
+                          class="text-input"
+                          name="reviewerAcknowledgement"
+                          ${state.loading || state.mutating || !reviewSummary.canReview ? 'disabled' : ''}
+                        >
+                          <option value="human-reviewed">human-reviewed</option>
+                        </select>
+                      </label>
+                      <label class="field learning-candidate-grid-wide">
+                        <span class="field-label">Rationale</span>
+                        <textarea
+                          class="text-input"
+                          name="rationale"
+                          rows="3"
+                          ${state.loading || state.mutating || !reviewSummary.canReview ? 'disabled' : ''}
+                        >${escapeHtml(reviewDraft.rationale)}</textarea>
+                      </label>
+                      <fieldset class="learning-candidate-review-evidence-list learning-candidate-grid-wide">
+                        <legend>Evidence refs</legend>
+                        ${reviewEvidenceOptions}
+                      </fieldset>
+                    </div>
+                    <div class="relation-button-row learning-candidate-actions">
+                      <button
+                        class="primary-button"
+                        type="button"
+                        data-action="review-learning-candidate"
+                        data-id="${escapeHtml(currentCandidate.id)}"
+                        ${state.loading || state.mutating || !reviewSummary.canReview ? 'disabled' : ''}
+                      >
+                        검토 결과 기록
+                      </button>
+                    </div>
+                  </form>
+                `
+            }
           `
           : ''
       }
@@ -16340,6 +16536,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'review-learning-candidate') {
+        await reviewLearningCandidate(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'resume-workflow-checkpoint') {
         await submitWorkflowCheckpointAction(
           actionButton.dataset.id,
@@ -16511,6 +16712,9 @@ function handleFormInput(event) {
   const learningCandidateForm = event.target.closest(
     '[data-form="preview-learning-candidate"]',
   );
+  const learningCandidateReviewForm = event.target.closest(
+    '[data-form="review-learning-candidate"]',
+  );
 
   if (runHarnessOperatorActionForm) {
     if (event.target.name === 'inputPath') {
@@ -16521,6 +16725,11 @@ function handleFormInput(event) {
       state.harnessExecutionDraftOutputPath = event.target.value;
     }
 
+    return;
+  }
+
+  if (learningCandidateReviewForm) {
+    readLearningCandidateReviewDraft(learningCandidateReviewForm);
     return;
   }
 

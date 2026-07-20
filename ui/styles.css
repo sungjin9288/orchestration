@@ -8972,12 +8972,16 @@ h3 {
 
 .learning-candidate-actions,
 .learning-candidate-result,
-.learning-candidate-record {
+.learning-candidate-record,
+.learning-candidate-review-form,
+.learning-candidate-review-record {
   margin-top: 12px;
 }
 
 .learning-candidate-result,
-.learning-candidate-record {
+.learning-candidate-record,
+.learning-candidate-review-form,
+.learning-candidate-review-record {
   min-width: 0;
   padding-top: 12px;
   border-top: 1px solid var(--surface-control-border);
@@ -8985,8 +8989,32 @@ h3 {
 
 .learning-candidate-result p,
 .learning-candidate-record p,
+.learning-candidate-review-record p,
 .learning-candidate-negative-row {
   overflow-wrap: anywhere;
+}
+
+.learning-candidate-review-evidence-list {
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--surface-control-border);
+}
+
+.learning-candidate-review-evidence-list legend {
+  padding: 0 4px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.learning-candidate-review-evidence {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 4px 0;
+  overflow-wrap: anywhere;
+  font-size: 0.78rem;
 }
 
 .learning-candidate-negative-list {

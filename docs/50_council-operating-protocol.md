@@ -369,9 +369,9 @@ raw evidence ingestion, memory/skill promotion, source/Git/release, scheduling, 
 bypass, and connectors remain blocked.
 
 LearningCandidate review outcome planning은 `DEC-113`, complete fielded implementation handoff는
-`DEC-114`로 기록됐다. Council evidence는 future review rationale이나 outcome을 생성하지 않으며
+`DEC-114`, exact implementation은 `DEC-115`로 기록됐다. Council evidence는 review rationale이나 outcome을 생성하지 않으며
 candidate의 existing sourceEvidenceRefs 중 operator가 명시적으로 선택할 수 있는 evidence
-domain일 뿐이다. Current runtime에는 review event가 없고 candidate mutation, memory/skill,
+domain일 뿐이다. Review event는 append-only operator evidence이며 candidate mutation, memory/skill,
 provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
 
 ## Verification
@@ -409,6 +409,9 @@ node scripts/smoke-ui-slice-660.mjs
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/smoke-ai-company-durable-learning-candidate.mjs
 node scripts/smoke-ui-slice-661.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
+node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/verification_status.mjs
 ```

@@ -13,6 +13,7 @@ const {
   DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
   EXECUTION_PLAN_STATUS,
   LEGACY_STATE_SCHEMA_VERSION,
+  LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION,
   LEARNING_CANDIDATE_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
@@ -44,6 +45,12 @@ const {
   LEARNING_CANDIDATE_STATUS,
   computeLearningCandidateRecordDigest,
 } = require('./learning-candidates');
+const {
+  LEARNING_CANDIDATE_REVIEW_AUTHORITY,
+  LEARNING_CANDIDATE_REVIEW_DECISION,
+  assertLearningCandidateReviewRecordContent,
+  computeLearningCandidateReviewDigest,
+} = require('./learning-candidate-reviews');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 
 function assertStringField(record, field, label) {
@@ -925,6 +932,113 @@ function validateLearningCandidateRecords(state) {
   }
 }
 
+function validateLearningCandidateReviewRecords(state) {
+  const decisions = new Set(Object.values(LEARNING_CANDIDATE_REVIEW_DECISION));
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const reviewedCandidateIds = new Set();
+
+  for (const [key, review] of Object.entries(state.learningCandidateReviews)) {
+    const label = `LearningCandidateReview ${key}`;
+    if (!review || typeof review !== 'object' || Array.isArray(review) || review.id !== key) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      review,
+      [
+        'id',
+        'projectId',
+        'sourceMissionId',
+        'learningCandidateId',
+        'previewId',
+        'candidateDigest',
+        'candidateRecordDigest',
+        'decision',
+        'rationale',
+        'evidenceRefs',
+        'reviewerAcknowledgement',
+        'authoritySummary',
+        'reviewDigest',
+        'createdAt',
+      ],
+      label,
+    );
+    for (const field of [
+      'projectId',
+      'sourceMissionId',
+      'learningCandidateId',
+      'previewId',
+      'candidateDigest',
+      'candidateRecordDigest',
+      'decision',
+      'rationale',
+      'reviewerAcknowledgement',
+      'reviewDigest',
+      'createdAt',
+    ]) {
+      assertStringField(review, field, label);
+    }
+    assertStringArrayField(review, 'evidenceRefs', label);
+    if (
+      review.evidenceRefs.length === 0 ||
+      review.evidenceRefs.length > 64 ||
+      new Set(review.evidenceRefs).size !== review.evidenceRefs.length ||
+      [...review.evidenceRefs].sort().some((entry, index) => entry !== review.evidenceRefs[index])
+    ) {
+      throw new Error(`${label} has invalid evidenceRefs`);
+    }
+    if (
+      !decisions.has(review.decision) ||
+      review.reviewerAcknowledgement !== 'human-reviewed' ||
+      !digestPattern.test(review.candidateDigest) ||
+      !digestPattern.test(review.candidateRecordDigest) ||
+      !digestPattern.test(review.reviewDigest) ||
+      Number.isNaN(Date.parse(review.createdAt)) ||
+      new Date(review.createdAt).toISOString() !== review.createdAt
+    ) {
+      throw new Error(`${label} has invalid review evidence`);
+    }
+    if (
+      !review.authoritySummary ||
+      typeof review.authoritySummary !== 'object' ||
+      Array.isArray(review.authoritySummary) ||
+      Object.keys(review.authoritySummary).length !==
+        Object.keys(LEARNING_CANDIDATE_REVIEW_AUTHORITY).length ||
+      Object.keys(LEARNING_CANDIDATE_REVIEW_AUTHORITY).some(
+        (field) =>
+          review.authoritySummary[field] !== LEARNING_CANDIDATE_REVIEW_AUTHORITY[field],
+      )
+    ) {
+      throw new Error(`${label} has invalid authoritySummary`);
+    }
+    const candidate = state.learningCandidates[review.learningCandidateId];
+    if (
+      !candidate ||
+      candidate.projectId !== review.projectId ||
+      candidate.sourceMissionId !== review.sourceMissionId ||
+      candidate.previewId !== review.previewId ||
+      candidate.candidateDigest !== review.candidateDigest ||
+      candidate.recordDigest !== review.candidateRecordDigest ||
+      review.evidenceRefs.some((entry) => !candidate.sourceEvidenceRefs.includes(entry)) ||
+      Date.parse(review.createdAt) < Date.parse(candidate.createdAt) ||
+      Date.parse(review.createdAt) >= Date.parse(candidate.expiry.expiresAt)
+    ) {
+      throw new Error(`${label} has invalid LearningCandidate binding`);
+    }
+    try {
+      assertLearningCandidateReviewRecordContent(review, candidate);
+    } catch (error) {
+      throw new Error(`${label} has invalid normalized content: ${error.message}`);
+    }
+    if (reviewedCandidateIds.has(review.learningCandidateId)) {
+      throw new Error(`${label} duplicates LearningCandidate review evidence`);
+    }
+    reviewedCandidateIds.add(review.learningCandidateId);
+    if (computeLearningCandidateReviewDigest(review) !== review.reviewDigest) {
+      throw new Error(`${label} reviewDigest does not match its immutable payload`);
+    }
+  }
+}
+
 function validateDurableWorkOrderRecords(state) {
   const planStatuses = new Set(Object.values(EXECUTION_PLAN_STATUS));
   const workOrderStatuses = new Set(Object.values(WORK_ORDER_STATUS));
@@ -1120,6 +1234,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== DELIVERY_PACKAGE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== LEARNING_CANDIDATE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -1216,6 +1331,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.learningCandidateReview) ||
+        !state.learningCandidateReviews ||
+        typeof state.learningCandidateReviews !== 'object' ||
+        Array.isArray(state.learningCandidateReviews)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing LearningCandidateReview fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -1243,6 +1371,7 @@ function createFileStore(options = {}) {
       deliveryPackageAcceptances: state.deliveryPackageAcceptances || {},
       missionCloseOuts: state.missionCloseOuts || {},
       learningCandidates: state.learningCandidates || {},
+      learningCandidateReviews: state.learningCandidateReviews || {},
     };
 
     if (sourceSchemaVersion < WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION) {
@@ -1510,6 +1639,7 @@ function createFileStore(options = {}) {
     validateDeliveryPackageAcceptanceRecords(normalizedState);
     validateMissionCloseOutRecords(normalizedState);
     validateLearningCandidateRecords(normalizedState);
+    validateLearningCandidateReviewRecords(normalizedState);
     return normalizedState;
   }
 

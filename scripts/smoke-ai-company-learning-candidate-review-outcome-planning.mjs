@@ -88,7 +88,8 @@ assertAll(planText, [
   /POST \/api\/learning-candidates\/:learningCandidateId\/review/,
   /Planning-only authority: accepted as `DEC-113`/,
   /Complete fielded implementation handoff: documented as `DEC-114`/,
-  /Current runtime remains schema v12/,
+  /Implementation authority: accepted as `DEC-115`/,
+  /Current runtime is schema v13/,
 ]);
 
 assert.match(
@@ -119,6 +120,7 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-113$/m);
 assert.match(decisionLog, /^### DEC-114$/m);
+assert.match(decisionLog, /^### DEC-115$/m);
 assert.match(masterPlan, /LearningCandidate review outcome planning-only authority는 `DEC-113`/);
 assert.match(runtimeContract, /LearningCandidate review outcome planning은 `DEC-113`/);
 assert.match(councilProtocol, /LearningCandidate review outcome planning은 `DEC-113`/);
@@ -150,13 +152,18 @@ assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-learning-candidate-review-outcome-planning\.mjs'/,
 );
+assert.match(
+  verification,
+  /script: 'scripts\/smoke-ai-company-learning-candidate-review-outcome\.mjs'/,
+);
+assert.match(verification, /script: 'scripts\/smoke-ui-slice-662\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 12/);
-assert.doesNotMatch(contracts, /learningCandidateReview/);
-assert.doesNotMatch(fileStore, /validateLearningCandidateReviewRecords/);
-assert.doesNotMatch(runtimeService, /function reviewLearningCandidate\(/);
-assert.doesNotMatch(server, /learningCandidateReviewMatch/);
-assert.doesNotMatch(ui, /data-action="review-learning-candidate"/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 13/);
+assert.match(contracts, /learningCandidateReview/);
+assert.match(fileStore, /validateLearningCandidateReviewRecords/);
+assert.match(runtimeService, /function reviewLearningCandidate\(/);
+assert.match(server, /learningCandidateReviewMatch/);
+assert.match(ui, /data-action="review-learning-candidate"/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -166,6 +173,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-113',
         handoff: 'documented-dec-114',
+        implementation: 'accepted-dec-115',
       },
       plannedPath: {
         sourceSchemaVersion: 12,
@@ -176,16 +184,16 @@ process.stdout.write(
         explicitOperatorReviewRequired: true,
       },
       currentRuntime: {
-        schemaVersion: 12,
+        schemaVersion: 13,
         durableLearningCandidates: true,
-        reviewRecords: false,
-        reviewRoutes: false,
-        reviewUi: false,
+        reviewRecords: true,
+        reviewRoutes: true,
+        reviewUi: true,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        candidateReviewAllowed: false,
+        implementationAllowed: true,
+        candidateReviewAllowed: true,
         candidateMutationAllowed: false,
         expiryOrQuarantineAllowed: false,
         memoryPersistenceAllowed: false,

@@ -373,10 +373,10 @@ ingestion, source/Git/release action, scheduling, next-Mission, policy mutation,
 connectors remain blocked.
 
 LearningCandidate review outcome planning-only authority는 `DEC-113`, complete fielded
-implementation decision handoff는 `DEC-114`로 기록됐다. The planned schema-v13 path preserves the
-schema-v12 candidate as immutable and appends at most one exact accepted, rejected, or
-changes-requested review event after candidate/digest/expiry validation. Current runtime remains
-schema v12; review implementation, candidate revision, expiry/quarantine, memory/skill, provider,
+implementation decision handoff는 `DEC-114`, exact implementation은 `DEC-115`로 기록됐다.
+Schema-v13 runtime은 schema-v12 candidate를 immutable하게 유지하고 exact
+candidate/digest/expiry validation 뒤 one append-only accepted, rejected, or changes-requested
+review event만 기록한다. Candidate revision, expiry/quarantine, memory/skill, provider,
 source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 Foundation 계획과 consumed implementation decision input은
@@ -418,6 +418,9 @@ node scripts/smoke-ui-slice-660.mjs
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/smoke-ai-company-durable-learning-candidate.mjs
 node scripts/smoke-ui-slice-661.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
+node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/verification_status.mjs
 ```

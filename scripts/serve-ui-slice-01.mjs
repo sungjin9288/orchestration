@@ -2208,6 +2208,66 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const learningCandidateReviewMatch = url.pathname.match(
+    /^\/api\/learning-candidates\/([^/]+)\/review$/,
+  );
+  if (learningCandidateReviewMatch && (method === 'GET' || method === 'POST')) {
+    try {
+      const learningCandidateId = decodeURIComponent(learningCandidateReviewMatch[1]);
+      if (method === 'GET') {
+        const result = runtime.getLearningCandidateReview(learningCandidateId);
+        json(response, 200, {
+          ...result,
+          generatedAt: new Date().toISOString(),
+        });
+        return;
+      }
+      const input = await readBoundedJsonBody(request, 32 * 1024);
+      const expectedFields = [
+        'previewId',
+        'candidateDigest',
+        'candidateRecordDigest',
+        'decision',
+        'rationale',
+        'evidenceRefs',
+        'reviewerAcknowledgement',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'LearningCandidate review body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.reviewLearningCandidate({
+        learningCandidateId,
+        ...input,
+      });
+      json(response, result.idempotent ? 200 : 201, {
+        learningCandidate: result.learningCandidate,
+        learningCandidateReview: result.learningCandidateReview,
+        mutation: {
+          idempotent: result.idempotent,
+          kind: 'review-learning-candidate',
+          learningCandidateId,
+          learningCandidateReviewId: result.learningCandidateReview.id,
+          stoppedAt: 'learning-candidate-review-recorded',
+        },
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'LearningCandidate 검토 기록에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );

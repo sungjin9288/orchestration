@@ -4,18 +4,18 @@
 
 `docs/76_ai-company-learning-candidate-review-outcome-plan.md`의 planning-only evidence를
 schema-v13 append-only `LearningCandidateReview` record와 exact API/UI review path로 넓힐지
-operator가 complete fielded shape로 결정하게 한다. 이 문서는 implementation authority를 열지
-않으며 candidate mutation, expiry/quarantine, memory/skill, provider, source, Git, release,
-scheduling, next Mission, policy, bypass, and connectors를 계속 분리한다.
+operator가 complete fielded shape로 결정하게 한다. `DEC-115`가 이 handoff를 exact
+implementation authority로 소비했으며 candidate mutation, expiry/quarantine, memory/skill,
+provider, source, Git, release, scheduling, next Mission, policy, bypass, and connectors는 계속
+분리한다.
 
 ## Current Gate
 
 - Planning-only authority is accepted as `DEC-113`.
 - This complete fielded implementation handoff is recorded as `DEC-114`.
-- Current runtime remains schema v12 with immutable DEC-112 candidates only.
-- No review sequence/map, review record/digest, review route, review UI, or derived review outcome exists.
-- General approval, continuation, broad `approve all`, or delegated non-critical self-approval does
-  not open this schema- and persistence-sensitive implementation.
+- Exact implementation authority is accepted as `DEC-115`.
+- Current runtime is schema v13 with immutable DEC-112 candidates and append-only review events.
+- This document remains consumed provenance and opens no authority beyond the exact DEC-115 slice.
 
 ## Minimum Required Decision Fields
 
