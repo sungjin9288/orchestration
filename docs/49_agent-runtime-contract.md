@@ -502,6 +502,14 @@ preview에서 멈춘다. POST와 browser memory만 사용하고 schema migration
 memory, retrieval/import/apply/export/delete, skill promotion, provider, source/Git/release,
 scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
 
+Durable MemoryItem persistence planning은 `DEC-119`, complete fielded implementation handoff는
+`DEC-120`으로 문서화됐다. Future schema-v14 path는 current accepted-review source tuple와
+operator-owned memorySpec에서 DEC-118 preview를 recompute하고 separate
+`storageApproval.decision=store`를 검증한 뒤 immutable `status=stored` record 하나만 append하는
+target이다. Current runtime은 schema v13이며 persistence, exact durable inspection, recommendation
+retrieval/application, import/export/delete/refresh, cross-workspace use, skill, provider,
+source/Git/release, scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
+
 ## Verification
 
 ```bash
@@ -546,6 +554,7 @@ node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-memory-candidate-preview.mjs
 node scripts/smoke-ui-slice-663.mjs
+node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -561,5 +570,8 @@ schema-v12 exact recomputation, one-save persistence, reload hydration, and bloc
 authority를 고정한다. LearningCandidate review smokes는 schema-v13 immutable source plus append-only
 outcome을 고정한다. MemoryCandidate planning/runtime/UI smokes는 accepted review를 storage
 approval로 오해하지 않는 exact zero-write response/browser-memory contract를 고정한다.
+Durable MemoryItem planning smoke는 readiness preview와 storage approval을 분리하고 schema-v14
+implementation, retrieval/application/export/delete/refresh, cross-workspace, skill, provider, and
+downstream authority를 계속 false로 고정한다.
 StaffingPlan, Builder replay, auto-rework, provider-backed
 WorkOrders, memory/skill promotion, commit/push/release는 blocked다.

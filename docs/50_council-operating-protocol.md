@@ -382,6 +382,13 @@ Accepted LearningCandidateReview는 operator-owned memorySpec이 검증될 수 �
 cross-workspace retrieval, skill promotion, provider, source/Git/release, scheduling, next-Mission,
 policy, bypass, and connectors는 blocked다.
 
+Durable MemoryItem persistence planning은 `DEC-119`, complete fielded implementation handoff는
+`DEC-120`으로 기록됐다. Council output은 storage approval을 생성하지 않으며 source-contained
+evidence ref로만 보존될 수 있다. Future schema-v14 path도 exact DEC-118 recomputation과 별도
+operator storage approval을 요구하고 `status=stored`에서 멈춘다. Current implementation,
+recommendation retrieval/application, export/delete/refresh, skill, provider, source/Git/release,
+scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
+
 ## Verification
 
 ```bash
@@ -423,6 +430,7 @@ node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-memory-candidate-preview.mjs
 node scripts/smoke-ui-slice-663.mjs
+node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -443,3 +451,5 @@ Council execution이나 learning acceptance authority를 새로 만들지 않는
 LearningCandidate review smokes는 Council output과 operator outcome을 분리한다. MemoryCandidate
 planning/runtime/UI smokes는 Council evidence가 memory scope, redaction, expiry, storage, or skill
 authority를 생성하지 않고 source-contained refs로만 사용되는 경계를 고정한다.
+Durable MemoryItem planning smoke는 Council evidence와 explicit storage approval을 분리하고
+schema-v14 implementation 및 every downstream memory authority를 blocked로 고정한다.

@@ -209,6 +209,8 @@ assert.match(decisionLog, /^### DEC-115$/m);
 assert.match(decisionLog, /^### DEC-116$/m);
 assert.match(decisionLog, /^### DEC-117$/m);
 assert.match(decisionLog, /^### DEC-118$/m);
+assert.match(decisionLog, /^### DEC-119$/m);
+assert.match(decisionLog, /^### DEC-120$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -225,6 +227,11 @@ assert.match(masterPlanText, /exact response-only implementation은 `DEC-118`/);
 assert.match(runtimeContractText, /exact response-only runtime\/API\/UI implementation은 `DEC-118`/);
 assert.match(councilProtocolText, /exact response-only implementation은 `DEC-118`/);
 assert.match(deliveryRoadmapText, /exact response-only implementation은 `DEC-118`/);
+assert.match(masterPlanText, /Durable MemoryItem persistence planning-only authority는 `DEC-119`/);
+assert.match(runtimeContractText, /Durable MemoryItem persistence planning은 `DEC-119`/);
+assert.match(councilProtocolText, /Durable MemoryItem persistence planning은 `DEC-119`/);
+assert.match(deliveryRoadmapText, /Durable MemoryItem persistence planning-only authority는 `DEC-119`/);
+assert.match(deliveryRoadmapText, /Schema-v14 implementation은 complete fielded decision 전까지 blocked/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -302,6 +309,8 @@ process.stdout.write(
         'DEC-116',
         'DEC-117',
         'DEC-118',
+        'DEC-119',
+        'DEC-120',
       ],
       currentRuntime: {
         schemaVersion: 13,
@@ -345,6 +354,7 @@ process.stdout.write(
         learningCandidateReviewAllowed: true,
         memoryCandidatePreviewPlanningAllowed: true,
         memoryCandidatePreviewImplementationAllowed: true,
+        durableMemoryItemPlanningAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -353,7 +363,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Separate planning and complete fielded decision required for durable memory lifecycle',
+      nextGate: 'Complete fielded schema-v14 durable MemoryItem implementation decision required',
     },
     null,
     2,

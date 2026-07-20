@@ -388,6 +388,14 @@ candidate, operator-owned project-scoped memorySpec을 검증해 one determinist
 retrieval/import/apply/export/delete, cross-workspace memory, skill promotion, provider,
 source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
+Durable MemoryItem persistence planning-only authority는 `DEC-119`, complete fielded implementation
+decision handoff는 `DEC-120`으로 기록됐다. The plan separates the response-only MemoryCandidate
+from a future immutable `MemoryItem(status=stored)`, requires runtime DEC-118 recomputation and one
+explicit project-scoped storage approval, and limits schema v14 to an additive sequence/map. Current
+runtime remains schema v13. Schema-v14 implementation, recommendation retrieval, application,
+import/export/delete/refresh, cross-workspace use, skill promotion, provider, source/Git/release,
+scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
@@ -433,6 +441,7 @@ node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-memory-candidate-preview.mjs
 node scripts/smoke-ui-slice-663.mjs
+node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -456,4 +465,7 @@ LearningCandidate review runtime/UI smokes는 schema-v13 append-only review evid
 candidate boundary를 확인한다. MemoryCandidate planning/runtime/UI smokes는 exact
 accepted-review-only response preview, project-only memorySpec, zero-write/browser-memory lifecycle,
 and still-blocked durable memory/skill/downstream authority를 확인한다.
+Durable MemoryItem planning smoke는 DEC-119/120, schema-v14 sequence/map-only target, exact DEC-118
+recomputation, separate storage approval, initial stored status, and still-blocked implementation,
+retrieval/application/export/delete/skill/downstream authority를 확인한다.
 Optional live-provider 결과는 별도 informational evidence다.

@@ -597,6 +597,11 @@ const informationalChecks = [
     purpose: 'AI Company MemoryCandidate UI and API prove bounded JSON-only accepted-review response preview, exact tuple gating, review-ready persisted-false storage-not-approved browser-memory lifecycle, edit refresh and failed-recompute invalidation, no GET snapshot runtime path or durable record, safe stale malformed oversized wrong-content-type credential and cross-workspace failures, responsive fit, and absent downstream controls',
   },
   {
+    id: 'ai-company-durable-memory-item-planning',
+    script: 'scripts/smoke-ai-company-durable-memory-item-planning.mjs',
+    purpose: 'AI Company durable MemoryItem planning fixes one schema v14 sequence and map only stored-record target with exact DEC-118 recomputation and separate project-scoped storage approval while implementation recommendation retrieval application import export deletion refresh cross-workspace skill provider source Git release scheduling policy and connector authority remain blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

@@ -403,6 +403,15 @@ POST response와 browser memory 밖에 저장하지 않으며 GET/snapshot/durab
 memory, retrieval/import/apply/export/delete, cross-workspace memory, skill promotion, providers,
 source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
+Durable MemoryItem persistence planning-only authority는 `DEC-119`, complete fielded implementation
+decision handoff는 `DEC-120`으로 기록됐다. The planned path recomputes DEC-118 from one exact
+accepted review and memorySpec, requires a separate explicit project-scoped storage approval, adds
+only schema-v14 memoryItem sequence/map, and creates at most one immutable
+`MemoryItem(status=stored)`. Schema-v14 implementation은 complete fielded decision 전까지 blocked다.
+Recommendation retrieval/application, import/export/delete/refresh, cross-workspace use, skill,
+provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain
+blocked.
+
 ## Phase 9: Dogfood And Productization
 
 ### Objective
@@ -484,10 +493,13 @@ complete fielded decision 전까지 blocked다. Phase 8 LearningCandidate respon
 Durable LearningCandidate planning/handoff/implementation은 `DEC-110`/`DEC-111`/`DEC-112`,
 LearningCandidate review planning/handoff/implementation은 `DEC-113`/`DEC-114`/`DEC-115`로
 accepted됐다. MemoryCandidate response-only preview planning/handoff/implementation은
-`DEC-116`/`DEC-117`/`DEC-118`로 accepted됐다. Current next authority gate는 schema-v14 또는 any
-durable memory lifecycle을 열기 전 별도 planning and complete fielded decision이다. Durable
-memory, retrieval/import/apply/export/delete, cross-workspace memory, skill promotion, providers,
-source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+`DEC-116`/`DEC-117`/`DEC-118`로 accepted됐다. Durable MemoryItem persistence planning과
+implementation handoff는 `DEC-119`/`DEC-120`으로 accepted됐다. Current next authority gate는
+`docs/81_ai-company-durable-memory-item-implementation-decision-handoff.md`의 complete fielded
+schema-v14 implementation decision이다. Durable MemoryItem creation, recommendation
+retrieval/application, import/export/delete/refresh, cross-workspace memory, skill promotion,
+providers, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain
+blocked.
 
 Implemented acceptance target:
 
@@ -546,6 +558,16 @@ memorySpec, and returns only `persisted=false`/`review-ready` readiness evidence
 response and browser memory. Every durable memory, skill, provider, source/Git/release, scheduling,
 policy, and connector authority remains blocked.
 
+Planned durable MemoryItem target:
+
+```text
+targetAuthority=one deterministic local schema-v14 durable stored MemoryItem from one exact source-current schema-v13 MemoryCandidate preview and explicit operator storage approval
+```
+
+The plan separates readiness from storage approval, requires exact DEC-118 recomputation, and adds
+only one sequence/map plus one immutable project-scoped stored record. Implementation remains
+blocked until the complete fielded decision is supplied.
+
 ## Verification
 
 ```bash
@@ -586,6 +608,7 @@ node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-memory-candidate-preview.mjs
 node scripts/smoke-ui-slice-663.mjs
+node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -610,3 +633,6 @@ LearningCandidate review evidence는 schema-v13 append-only outcome과 immutable
 확인한다. MemoryCandidate planning/runtime/UI evidence는 accepted-review-only response preview
 contract, schema-v13 non-migration, zero-write/browser-memory lifecycle, and still-blocked durable
 memory/skill/downstream authority를 확인한다.
+Durable MemoryItem planning evidence는 schema-v14 target, exact current preview recomputation,
+explicit storage approval, immutable stored status, and blocked implementation/retrieval/
+application/export/delete/skill/downstream authority를 확인한다.
