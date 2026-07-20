@@ -194,6 +194,68 @@ export function getMissionCloseOutSummary(
   };
 }
 
+export function getMissionLearningCandidatePreviewSummary(
+  mission,
+  preview,
+  bundle,
+  durablePackage,
+  acceptance,
+  missionCloseOut,
+) {
+  const closeOutSummary = getMissionCloseOutSummary(
+    mission,
+    preview,
+    bundle,
+    durablePackage,
+    acceptance,
+    missionCloseOut,
+  );
+  if (!closeOutSummary?.completed) return null;
+
+  const targetPathAllowlist = [
+    ...new Set(
+      bundle.workOrders.flatMap((workOrder) => workOrder.targetPathAllowlist || []),
+    ),
+  ];
+  const verificationCommands = [
+    ...new Set([
+      ...(bundle.executionPlan.verificationPlan || []),
+      ...bundle.workOrders.flatMap((workOrder) => workOrder.verificationCommands || []),
+    ]),
+  ];
+  const negativeEvidenceRefs = [
+    ...new Set([
+      durablePackage.id,
+      durablePackage.reviewerEvidenceRef,
+      ...(durablePackage.qaEvidenceRefs || []),
+      missionCloseOut.id,
+      bundle.executionPlan.councilSessionId,
+    ].filter(Boolean)),
+  ];
+
+  return {
+    available: targetPathAllowlist.length > 0 && verificationCommands.length > 0,
+    persisted: false,
+    source: {
+      linkedTaskId: bundle.controlTask.id,
+      executionPlanId: bundle.executionPlan.id,
+      deliveryPackageId: durablePackage.id,
+      deliveryPackageAcceptanceId: acceptance.id,
+      missionCloseOutId: missionCloseOut.id,
+      previewId: durablePackage.previewId,
+      sourceDigest: durablePackage.sourceDigest,
+      packageDigest: durablePackage.packageDigest,
+      acceptanceDigest: acceptance.acceptanceDigest,
+      checkpointId: durablePackage.terminalCheckpointId,
+      checkpointDigest: durablePackage.terminalCheckpointDigest,
+      closeOutDigest: missionCloseOut.closeOutDigest,
+    },
+    targetPathAllowlist,
+    verificationCommands,
+    negativeEvidenceRefs,
+  };
+}
+
 export function getMissionDeliveryPackageAcceptanceSummary(
   preview,
   bundle,

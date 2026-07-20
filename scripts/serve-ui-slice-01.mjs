@@ -719,6 +719,41 @@ async function readJsonBody(request) {
   return JSON.parse(rawBody);
 }
 
+async function readBoundedJsonBody(request, maxBytes) {
+  const contentType = String(request.headers['content-type'] || '')
+    .split(';', 1)[0]
+    .trim()
+    .toLowerCase();
+  if (contentType !== 'application/json') {
+    const error = new Error('Content-Type must be application/json');
+    error.statusCode = 415;
+    throw error;
+  }
+
+  const contentLength = Number(request.headers['content-length']);
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    const error = new Error(`JSON body exceeds ${maxBytes} bytes`);
+    error.statusCode = 413;
+    throw error;
+  }
+
+  const chunks = [];
+  let totalBytes = 0;
+  for await (const chunk of request) {
+    totalBytes += chunk.length;
+    if (totalBytes > maxBytes) {
+      const error = new Error(`JSON body exceeds ${maxBytes} bytes`);
+      error.statusCode = 413;
+      throw error;
+    }
+    chunks.push(chunk);
+  }
+  if (chunks.length === 0) return {};
+
+  const rawBody = Buffer.concat(chunks).toString('utf8').trim();
+  return rawBody ? JSON.parse(rawBody) : {};
+}
+
 function parseProviderConfigInput(input) {
   const provider = input?.provider && typeof input.provider === 'object' ? input.provider : {};
   const env = provider.env && typeof provider.env === 'object' ? provider.env : {};
@@ -2038,6 +2073,57 @@ const server = createServer(async (request, response) => {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, {
         error: error.message || 'Mission 종료에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const missionLearningCandidatePreviewMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/learning-candidate-preview$/,
+  );
+  if (method === 'POST' && missionLearningCandidatePreviewMatch) {
+    try {
+      const missionId = decodeURIComponent(missionLearningCandidatePreviewMatch[1]);
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'linkedTaskId',
+        'executionPlanId',
+        'deliveryPackageId',
+        'deliveryPackageAcceptanceId',
+        'missionCloseOutId',
+        'previewId',
+        'sourceDigest',
+        'packageDigest',
+        'acceptanceDigest',
+        'checkpointId',
+        'checkpointDigest',
+        'closeOutDigest',
+        'retrospectiveSpec',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'LearningCandidate preview body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const learningCandidatePreview = runtime.previewMissionLearningCandidate({
+        missionId,
+        ...input,
+      });
+      json(response, 200, {
+        learningCandidatePreview,
+        generatedAt: new Date().toISOString(),
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'LearningCandidate preview 생성에 실패했습니다.',
       });
       return;
     }

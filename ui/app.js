@@ -141,6 +141,7 @@ import {
   getMissionDeliveryPackagePersistenceSummary,
   getMissionDeliveryPackageAcceptanceSummary,
   getMissionCloseOutSummary,
+  getMissionLearningCandidatePreviewSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -350,6 +351,16 @@ const state = {
   missionDurableDeliveryPackage: null,
   missionDeliveryPackageAcceptance: null,
   missionCloseOut: null,
+  missionLearningCandidateDraft: {
+    lesson: '',
+    applicabilitySummary: '',
+    targetPathAllowlist: '',
+    verificationCommands: '',
+    negativeEvidence: '',
+    expiresAt: '',
+    redactionAcknowledgement: 'source-summary-only',
+  },
+  missionLearningCandidatePreview: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4712,6 +4723,11 @@ function applySnapshotPayload(payload) {
   if (Object.prototype.hasOwnProperty.call(payload, 'missionCloseOut')) {
     state.missionCloseOut = payload.missionCloseOut || null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'learningCandidatePreview')) {
+    state.missionLearningCandidatePreview = payload.learningCandidatePreview || null;
+  } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
+    state.missionLearningCandidatePreview = null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
   }
@@ -4782,6 +4798,16 @@ async function hydrateSelectedDetails() {
   state.missionDurableDeliveryPackage = null;
   state.missionDeliveryPackageAcceptance = null;
   state.missionCloseOut = null;
+  state.missionLearningCandidatePreview = null;
+  state.missionLearningCandidateDraft = {
+    lesson: '',
+    applicabilitySummary: '',
+    targetPathAllowlist: '',
+    verificationCommands: '',
+    negativeEvidence: '',
+    expiresAt: '',
+    redactionAcknowledgement: 'source-summary-only',
+  };
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
 
@@ -5989,6 +6015,110 @@ async function closeOutAiCompanyMission(missionId) {
     state.surface = 'deliverables';
     render();
     elements.refreshStatus.textContent = `${payload.missionCloseOut.id} Mission/task close-out을 기록했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+function readMissionLearningCandidateDraft(form) {
+  const formData = new FormData(form);
+  const draft = {
+    lesson: String(formData.get('lesson') || ''),
+    applicabilitySummary: String(formData.get('applicabilitySummary') || ''),
+    targetPathAllowlist: String(formData.get('targetPathAllowlist') || ''),
+    verificationCommands: String(formData.get('verificationCommands') || ''),
+    negativeEvidence: String(formData.get('negativeEvidence') || ''),
+    expiresAt: String(formData.get('expiresAt') || ''),
+    redactionAcknowledgement: String(
+      formData.get('redactionAcknowledgement') || '',
+    ),
+  };
+  state.missionLearningCandidateDraft = draft;
+
+  const targetPathAllowlist = parseMissionWorkOrderCompileList(
+    draft.targetPathAllowlist,
+  );
+  const verificationCommands = parseMissionWorkOrderCompileList(
+    draft.verificationCommands,
+  );
+  const negativeEvidence = parseMissionWorkOrderCompileList(
+    draft.negativeEvidence,
+  ).map((entry, index) => {
+    const separatorIndex = entry.indexOf('::');
+    if (separatorIndex < 1) {
+      throw new Error(
+        `Negative evidence ${index + 1}은 sourceEvidenceRef :: statement 형식이어야 합니다.`,
+      );
+    }
+    return {
+      sourceEvidenceRef: entry.slice(0, separatorIndex).trim(),
+      statement: entry.slice(separatorIndex + 2).trim(),
+    };
+  });
+
+  return {
+    lesson: draft.lesson,
+    applicabilitySummary: draft.applicabilitySummary,
+    targetPathAllowlist,
+    verificationCommands,
+    negativeEvidence,
+    expiresAt: draft.expiresAt,
+    redactionAcknowledgement: draft.redactionAcknowledgement,
+  };
+}
+
+async function previewMissionLearningCandidate(actionButton) {
+  const form = actionButton?.closest?.('[data-form="preview-learning-candidate"]');
+  const missionId = String(actionButton?.dataset.id || '').trim();
+  if (!form || !missionId) {
+    throw new Error('LearningCandidate preview form을 찾을 수 없습니다.');
+  }
+
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+  const deliveryPackage = state.missionDurableDeliveryPackage;
+  const acceptance = state.missionDeliveryPackageAcceptance;
+  const missionCloseOut = state.missionCloseOut;
+  const executionPlan = deliveryPackage
+    ? data.snapshot.executionPlans?.[deliveryPackage.executionPlanId] || null
+    : null;
+  const councilSession = executionPlan
+    ? data.councilSessionMap.get(executionPlan.councilSessionId) || null
+    : null;
+  const bundle = getMissionExecutionPlanBundle(data.snapshot, councilSession?.id);
+  const summary = getMissionLearningCandidatePreviewSummary(
+    mission,
+    state.missionDeliveryPackagePreview,
+    bundle,
+    deliveryPackage,
+    acceptance,
+    missionCloseOut,
+  );
+  if (!summary?.available) {
+    throw new Error('현재 terminal Mission evidence로 학습 후보를 계산할 수 없습니다.');
+  }
+  const retrospectiveSpec = readMissionLearningCandidateDraft(form);
+
+  state.error = null;
+  state.mutating = true;
+  state.missionLearningCandidatePreview = null;
+  elements.refreshStatus.textContent = `${mission.id} 학습 후보를 검증하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/missions/${encodeURIComponent(mission.id)}/learning-candidate-preview`,
+      {
+        ...summary.source,
+        retrospectiveSpec,
+      },
+    );
+    state.missionLearningCandidatePreview = payload.learningCandidatePreview || null;
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.learningCandidatePreview.previewId}를 response-only로 계산했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -10779,6 +10909,185 @@ function renderDurableDeliveryPackage(deliveryPackage, bundle) {
   `;
 }
 
+function renderMissionLearningCandidatePreview(
+  preview,
+  mission,
+  bundle,
+  deliveryPackage,
+  acceptance,
+  missionCloseOut,
+) {
+  const summary = getMissionLearningCandidatePreviewSummary(
+    mission,
+    state.missionDeliveryPackagePreview,
+    bundle,
+    deliveryPackage,
+    acceptance,
+    missionCloseOut,
+  );
+  if (!summary) return '';
+
+  const draft = state.missionLearningCandidateDraft;
+  const targetPathDraft =
+    draft.targetPathAllowlist || summary.targetPathAllowlist.join('\n');
+  const verificationCommandDraft =
+    draft.verificationCommands || summary.verificationCommands.join('\n');
+  const currentPreview =
+    preview?.sourceMissionId === mission.id ? preview : null;
+  const negativeEvidenceRows = (currentPreview?.negativeEvidence || [])
+    .map(
+      (entry) => `
+        <div class="learning-candidate-negative-row">
+          <strong>${escapeHtml(entry.sourceEvidenceRef)}</strong>
+          <span>${escapeHtml(entry.statement)}</span>
+        </div>
+      `,
+    )
+    .join('');
+
+  return `
+    <section class="learning-candidate-panel" aria-label="Response-only LearningCandidate preview">
+      <div class="card-title-row card-title-row-tight">
+        <strong>LearningCandidate Preview</strong>
+        ${createToken('response-only', 'accent')}
+        ${createToken('review-required', 'warning')}
+        ${createToken('persisted:false', 'neutral')}
+      </div>
+      <p class="detail-copy detail-copy-compact">
+        완료된 Mission evidence에 operator summary를 결속합니다. 이 입력과 결과는 저장되지 않습니다.
+      </p>
+      <div class="token-row token-row-compact learning-candidate-source-tuple">
+        ${createToken(`mission:${mission.id}`, 'success')}
+        ${createToken(`close-out:${missionCloseOut.id}`, 'success')}
+        ${createToken(`plan:${bundle.executionPlan.id}`, 'neutral')}
+        ${createToken(`package:${deliveryPackage.id}`, 'neutral')}
+        ${createToken(`acceptance:${acceptance.id}`, 'neutral')}
+        ${createToken(`checkpoint:${deliveryPackage.terminalCheckpointId}`, 'neutral')}
+      </div>
+      <form class="learning-candidate-form" data-form="preview-learning-candidate">
+        <div class="learning-candidate-grid">
+          <label class="field">
+            <span class="field-label">Lesson</span>
+            <input
+              class="text-input"
+              name="lesson"
+              type="text"
+              value="${escapeHtml(draft.lesson)}"
+              placeholder="이번 Mission에서 재사용할 수 있는 교훈"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Applicability summary</span>
+            <input
+              class="text-input"
+              name="applicabilitySummary"
+              type="text"
+              value="${escapeHtml(draft.applicabilitySummary)}"
+              placeholder="이 교훈을 적용할 조건과 범위"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Target path allowlist</span>
+            <textarea
+              class="text-input"
+              name="targetPathAllowlist"
+              rows="3"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >${escapeHtml(targetPathDraft)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Verification commands</span>
+            <textarea
+              class="text-input"
+              name="verificationCommands"
+              rows="3"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >${escapeHtml(verificationCommandDraft)}</textarea>
+          </label>
+          <label class="field learning-candidate-grid-wide">
+            <span class="field-label">Negative evidence</span>
+            <textarea
+              class="text-input"
+              name="negativeEvidence"
+              rows="3"
+              placeholder="${escapeHtml(summary.negativeEvidenceRefs[0] || 'evidence-ref')} :: 확인된 제한 또는 반증"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >${escapeHtml(draft.negativeEvidence)}</textarea>
+            <span class="field-help">허용 refs: ${escapeHtml(summary.negativeEvidenceRefs.join(' · '))}</span>
+          </label>
+          <label class="field">
+            <span class="field-label">Expires at</span>
+            <input
+              class="text-input"
+              name="expiresAt"
+              type="text"
+              value="${escapeHtml(draft.expiresAt)}"
+              placeholder="2030-01-01T00:00:00.000Z"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Redaction acknowledgement</span>
+            <select
+              class="text-input"
+              name="redactionAcknowledgement"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              <option value="source-summary-only" ${draft.redactionAcknowledgement === 'source-summary-only' ? 'selected' : ''}>source-summary-only</option>
+            </select>
+          </label>
+        </div>
+        <div class="relation-button-row learning-candidate-actions">
+          <button
+            class="primary-button"
+            type="button"
+            data-action="preview-learning-candidate"
+            data-id="${escapeHtml(mission.id)}"
+            ${state.loading || state.mutating || !summary.available ? 'disabled' : ''}
+          >
+            학습 후보 미리보기
+          </button>
+        </div>
+      </form>
+      ${
+        currentPreview
+          ? `
+            <div class="learning-candidate-result" aria-label="LearningCandidate response evidence">
+              <div class="card-title-row card-title-row-tight">
+                <strong>${escapeHtml(currentPreview.previewId)}</strong>
+                ${createToken(currentPreview.reviewerStatus, 'warning')}
+                ${createToken(currentPreview.promotionStatus, 'neutral')}
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(`digest:${currentPreview.candidateDigest}`, 'neutral')}
+                ${createToken(`expiry:${currentPreview.expiry.expiresAt}`, 'neutral')}
+                ${createToken(`sources:${currentPreview.sourceEvidenceRefs.length}`, 'neutral')}
+              </div>
+              <p><strong>Lesson</strong> ${escapeHtml(currentPreview.lesson)}</p>
+              <p><strong>Applicability</strong> ${escapeHtml(currentPreview.applicability.summary)}</p>
+              <p><strong>Paths</strong> ${escapeHtml(currentPreview.applicability.targetPathAllowlist.join(' · '))}</p>
+              <p><strong>Checks</strong> ${escapeHtml(currentPreview.applicability.verificationCommands.join(' · '))}</p>
+              <div class="learning-candidate-negative-list">${negativeEvidenceRows}</div>
+              <div class="delivery-package-authority" aria-label="Blocked learning authority">
+                ${createToken('candidate persistence:blocked', 'neutral')}
+                ${createToken('memory:blocked', 'neutral')}
+                ${createToken('skill:blocked', 'neutral')}
+                ${createToken('provider:blocked', 'neutral')}
+                ${createToken('source:blocked', 'neutral')}
+                ${createToken('git:blocked', 'neutral')}
+                ${createToken('release:blocked', 'neutral')}
+                ${createToken('next Mission:blocked', 'neutral')}
+              </div>
+            </div>
+          `
+          : ''
+      }
+    </section>
+  `;
+}
+
 function renderRealCouncilAlignmentControls(councilSession) {
   const attempt = getCurrentRealCouncilAttempt(councilSession);
   const busy = state.loading || state.mutating;
@@ -12365,6 +12674,14 @@ function renderDeliverables(data) {
       ${renderDeliverablesCompletionSummary(deliverablesCompletionSummary)}
       ${renderDeliveryPackagePreview(state.missionDeliveryPackagePreview, missionExecutionPlanBundle)}
       ${renderDurableDeliveryPackage(state.missionDurableDeliveryPackage, missionExecutionPlanBundle)}
+      ${renderMissionLearningCandidatePreview(
+        state.missionLearningCandidatePreview,
+        selectedMission,
+        missionExecutionPlanBundle,
+        state.missionDurableDeliveryPackage,
+        state.missionDeliveryPackageAcceptance,
+        state.missionCloseOut,
+      )}
       ${renderHarnessBriefRegister(harnessBrief)}
       <div class="surface-grid">
       <section class="surface-panel">
@@ -15894,6 +16211,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'preview-learning-candidate') {
+        await previewMissionLearningCandidate(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'resume-workflow-checkpoint') {
         await submitWorkflowCheckpointAction(
           actionButton.dataset.id,
@@ -16062,6 +16384,9 @@ function handleFormInput(event) {
   const updateProjectProviderForm = event.target.closest('[data-form="update-project-provider"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
   const createCompanyMemberForm = event.target.closest('[data-form="create-company-member"]');
+  const learningCandidateForm = event.target.closest(
+    '[data-form="preview-learning-candidate"]',
+  );
 
   if (runHarnessOperatorActionForm) {
     if (event.target.name === 'inputPath') {
@@ -16072,6 +16397,18 @@ function handleFormInput(event) {
       state.harnessExecutionDraftOutputPath = event.target.value;
     }
 
+    return;
+  }
+
+  if (learningCandidateForm) {
+    if (Object.prototype.hasOwnProperty.call(state.missionLearningCandidateDraft, event.target.name)) {
+      state.missionLearningCandidateDraft[event.target.name] = event.target.value;
+      state.missionLearningCandidatePreview = null;
+      event.target
+        .closest('.learning-candidate-panel')
+        ?.querySelector('.learning-candidate-result')
+        ?.remove();
+    }
     return;
   }
 

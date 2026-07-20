@@ -3,17 +3,19 @@
 ## Purpose
 
 `docs/72_ai-company-learning-candidate-preview-plan.md`의 planning-only 결과를 one deterministic
-response-only LearningCandidate preview runtime/API/UI slice로 넓힐지 operator가 complete fielded
-decision으로 결정하도록 한다. 이 문서는 구현하지 않고 exact source tuple, retrospectiveSpec,
-no-write contract, compatibility, rollback, focused evidence, and stop boundary를 고정한다.
+response-only LearningCandidate preview runtime/API/UI slice로 넓히는 complete fielded decision을
+보존한다. Recommended approval shape는 `DEC-109`로 소비됐고, 이 문서는 exact source tuple,
+retrospectiveSpec, no-write contract, compatibility, rollback, focused evidence, and stop boundary의
+decision provenance다.
 
 ## Current Gate
 
 - Planning-only authority is accepted as `DEC-107`.
 - The implementation decision handoff is recorded as `DEC-108`.
+- The complete fielded approval is accepted and implemented as `DEC-109`.
 - Current runtime remains schema v11 with exact MissionCloseOut terminal evidence.
-- No LearningCandidate compiler, route, UI preview, schema, record, memory, or skill authority exists.
-- Runtime/API/UI implementation remains blocked until the operator supplies the complete fielded decision.
+- One response-only LearningCandidate compiler, POST route, and browser-memory UI preview exist.
+- No LearningCandidate schema, durable record, review outcome, memory, or skill authority exists.
 
 ## Minimum Required Decision Fields
 
@@ -137,6 +139,6 @@ node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Until the complete fielded decision is supplied, only `DEC-107` planning and `DEC-108` handoff
-evidence exist. Current schema v11 remains authoritative and every implementation/downstream authority
-listed above stays blocked.
+The complete fielded approval shape above is consumed as `DEC-109`. Current schema v11 remains
+authoritative; only the response-only runtime/API/UI slice is implemented, and every durable or
+downstream authority listed above stays blocked.

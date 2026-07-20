@@ -214,6 +214,12 @@ const smokeChecks = [
     purpose:
       'Mission close-out UI and API preserve exact accepted evidence gating, one immutable close-out fact, atomic Mission and task terminal states, safe stale and concurrent request behavior, immutable package and acceptance evidence, responsive fit, and blocked downstream authority',
   },
+  {
+    id: 'ai-company-learning-candidate-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-660.mjs',
+    purpose:
+      'LearningCandidate UI and API preserve bounded JSON-only exact terminal evidence gating, explicit response-only preview, source-summary-only redaction and review-required status, Mission-scoped draft reset and edit invalidation, safe stale malformed oversized wrong-content-type and credential failures, no runtime path exposure, responsive fit, and blocked downstream authority',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

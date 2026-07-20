@@ -199,6 +199,7 @@ assert.match(decisionLog, /^### DEC-105$/m);
 assert.match(decisionLog, /^### DEC-106$/m);
 assert.match(decisionLog, /^### DEC-107$/m);
 assert.match(decisionLog, /^### DEC-108$/m);
+assert.match(decisionLog, /^### DEC-109$/m);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -266,6 +267,7 @@ process.stdout.write(
         'DEC-106',
         'DEC-107',
         'DEC-108',
+        'DEC-109',
       ],
       currentRuntime: {
         schemaVersion: 11,
@@ -278,7 +280,7 @@ process.stdout.write(
         durableDeliveryPackage: 'schema-v9-exact-review-required-record',
         deliveryPackageAcceptance: 'schema-v10-exact-append-only-accepted-record',
         missionTaskCloseOut: 'schema-v11-exact-atomic-terminal-transaction',
-        learningCandidatePreview: 'planning-only-response-local',
+        learningCandidatePreview: 'schema-v11-response-only-review-required',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -299,7 +301,7 @@ process.stdout.write(
         missionTaskCloseOutPlanningAllowed: true,
         missionTaskCloseOutAllowed: true,
         learningCandidatePreviewPlanningAllowed: true,
-        learningCandidatePreviewImplementationAllowed: false,
+        learningCandidatePreviewImplementationAllowed: true,
         durableLearningCandidateAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
@@ -309,7 +311,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded decision required for LearningCandidate preview implementation',
+      nextGate: 'Separate fielded decision required for durable LearningCandidate lifecycle',
     },
     null,
     2,

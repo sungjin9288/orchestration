@@ -127,11 +127,16 @@ const {
   createDeliveryPackage,
 } = require('./delivery-packages');
 const {
+  computeDeliveryPackageAcceptanceDigest,
   createDeliveryPackageAcceptance,
 } = require('./delivery-package-acceptances');
 const {
+  computeMissionCloseOutDigest,
   createMissionCloseOut,
 } = require('./mission-close-outs');
+const {
+  compileLearningCandidatePreview,
+} = require('./learning-candidate-preview');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -3359,6 +3364,295 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  function assertExactLearningCandidatePreviewInput(input) {
+    const expectedFields = [
+      'missionId',
+      'linkedTaskId',
+      'executionPlanId',
+      'deliveryPackageId',
+      'deliveryPackageAcceptanceId',
+      'missionCloseOutId',
+      'previewId',
+      'sourceDigest',
+      'packageDigest',
+      'acceptanceDigest',
+      'checkpointId',
+      'checkpointDigest',
+      'closeOutDigest',
+      'retrospectiveSpec',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict(
+        'LearningCandidate preview request has unexpected or missing fields',
+      );
+    }
+  }
+
+  function buildLearningCandidateSourceFromState(state, missionId) {
+    const envelope = buildMissionCloseOutEnvelopeFromState(state, missionId);
+    const {
+      mission,
+      linkedTask,
+      deliveryPackage,
+      deliveryPackageAcceptance,
+      missionCloseOut,
+    } = envelope;
+    if (!missionCloseOut) {
+      throw conflict(`Mission ${mission.id} does not have MissionCloseOut evidence`);
+    }
+
+    const bundle = getReviewedDeliveryRoleBundle(
+      state,
+      envelope.executionPlanBundle.executionPlan.id,
+    );
+    const {
+      executionPlan,
+      workOrders,
+      byRole,
+      latestCheckpoint,
+      councilSession,
+      terminalGateApproval,
+    } = bundle;
+    assertReviewedDeliveryPlanApproval(bundle);
+    assertReviewedDeliverySourceCurrent(bundle, state);
+
+    const gateState = computeTaskGateState(linkedTask, state);
+    const activeGates = listActiveTaskGates(gateState);
+    if (
+      mission.status !== 'completed' ||
+      linkedTask.lifecycleState !== TASK_LIFECYCLE.DONE ||
+      linkedTask.review?.required !== true ||
+      linkedTask.review?.status !== REVIEW_STATUS.PASSED ||
+      activeGates.length > 0
+    ) {
+      throw conflict(`Mission ${mission.id} is not closed with a passed gate-free task`);
+    }
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.DELIVERY_READY ||
+      executionPlan.activeWorkOrderId !== null ||
+      workOrders.length !== 3 ||
+      workOrders.some((workOrder) => workOrder.status !== WORK_ORDER_STATUS.COMPLETED)
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} is not terminal delivery evidence`);
+    }
+    if (
+      !latestCheckpoint ||
+      latestCheckpoint.id !== deliveryPackage.terminalCheckpointId ||
+      latestCheckpoint.checkpointDigest !== deliveryPackage.terminalCheckpointDigest ||
+      latestCheckpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY ||
+      latestCheckpoint.status !== WORKFLOW_CHECKPOINT_STATUS.TERMINAL
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} terminal checkpoint is not current`);
+    }
+
+    const reviewerRun = assertRun(byRole.reviewer.completionRunId, state);
+    const reviewArtifact = assertArtifact(byRole.reviewer.reviewArtifactId, state);
+    const qaRun = assertRun(byRole.qa.completionRunId, state);
+    const qaArtifact = assertArtifact(byRole.qa.qaEvidenceArtifactId, state);
+    if (
+      reviewerRun.status !== RUN_STATUS.COMPLETED ||
+      reviewerRun.summary?.mappedReviewStatus !== REVIEW_STATUS.PASSED ||
+      reviewerRun.summary?.reviewArtifactId !== reviewArtifact.id ||
+      reviewArtifact.type !== ARTIFACT_TYPE.REVIEW ||
+      reviewArtifact.taskId !== linkedTask.id ||
+      reviewArtifact.runId !== reviewerRun.id ||
+      qaRun.status !== RUN_STATUS.COMPLETED ||
+      qaRun.summary?.qaEvidenceArtifactId !== qaArtifact.id ||
+      qaArtifact.type !== ARTIFACT_TYPE.QA_EVIDENCE ||
+      qaArtifact.taskId !== linkedTask.id ||
+      qaArtifact.runId !== qaRun.id ||
+      !terminalGateApproval ||
+      terminalGateApproval.status !== APPROVAL_STATUS.APPROVED ||
+      terminalGateApproval.allowedNextAction !== BUILDER_ACTION.LIVE_MUTATION ||
+      terminalGateApproval.metadata?.consumedByRunId !== byRole.builder.completionRunId
+    ) {
+      throw conflict(`Mission ${mission.id} review or QA evidence is incomplete`);
+    }
+
+    if (
+      deliveryPackage.status !== DELIVERY_PACKAGE_STATUS.REVIEW_REQUIRED ||
+      deliveryPackage.unresolvedItems.length !== 0 ||
+      deliveryPackage.projectId !== mission.projectId ||
+      deliveryPackage.missionId !== mission.id ||
+      deliveryPackage.executionPlanId !== executionPlan.id ||
+      deliveryPackage.packageDigest !== computeDeliveryPackageDigest(deliveryPackage) ||
+      deliveryPackage.reviewerEvidenceRef !== reviewArtifact.id ||
+      !deliveryPackage.qaEvidenceRefs.includes(qaArtifact.id) ||
+      deliveryPackage.verificationSummary?.verdict !== 'passed' ||
+      deliveryPackage.verificationSummary?.passedCheckCount !==
+        deliveryPackage.verificationSummary?.checkCount ||
+      deliveryPackage.verificationSummary?.checkCount < 1
+    ) {
+      throw conflict(`Mission ${mission.id} DeliveryPackage evidence is not source-current`);
+    }
+    const currentDeliveryPreview = buildExecutionPlanDeliveryPreviewFromState(state, {
+      executionPlanId: executionPlan.id,
+      sourceDigest: deliveryPackage.sourceDigest,
+    });
+    if (
+      deliveryPackage.previewId !== currentDeliveryPreview.id ||
+      deliveryPackage.sourceDigest !== currentDeliveryPreview.sourceDigest ||
+      deliveryPackage.packageDigest !== currentDeliveryPreview.packageDigest ||
+      deliveryPackage.terminalCheckpointId !== currentDeliveryPreview.terminalCheckpointId ||
+      deliveryPackage.terminalCheckpointDigest !==
+        currentDeliveryPreview.terminalCheckpointDigest
+    ) {
+      throw conflict(`Mission ${mission.id} DeliveryPackage preview is not current`);
+    }
+    if (
+      deliveryPackageAcceptance.deliveryPackageId !== deliveryPackage.id ||
+      deliveryPackageAcceptance.decision !== DELIVERY_PACKAGE_ACCEPTANCE_DECISION.ACCEPTED ||
+      deliveryPackageAcceptance.previewId !== deliveryPackage.previewId ||
+      deliveryPackageAcceptance.sourceDigest !== deliveryPackage.sourceDigest ||
+      deliveryPackageAcceptance.packageDigest !== deliveryPackage.packageDigest ||
+      deliveryPackageAcceptance.terminalCheckpointId !== deliveryPackage.terminalCheckpointId ||
+      deliveryPackageAcceptance.terminalCheckpointDigest !==
+        deliveryPackage.terminalCheckpointDigest ||
+      deliveryPackageAcceptance.acceptanceDigest !==
+        computeDeliveryPackageAcceptanceDigest(deliveryPackageAcceptance)
+    ) {
+      throw conflict(`Mission ${mission.id} DeliveryPackageAcceptance evidence is not current`);
+    }
+    if (
+      missionCloseOut.projectId !== mission.projectId ||
+      missionCloseOut.missionId !== mission.id ||
+      missionCloseOut.linkedTaskId !== linkedTask.id ||
+      missionCloseOut.executionPlanId !== executionPlan.id ||
+      missionCloseOut.deliveryPackageId !== deliveryPackage.id ||
+      missionCloseOut.deliveryPackageAcceptanceId !== deliveryPackageAcceptance.id ||
+      missionCloseOut.previewId !== deliveryPackage.previewId ||
+      missionCloseOut.sourceDigest !== deliveryPackage.sourceDigest ||
+      missionCloseOut.packageDigest !== deliveryPackage.packageDigest ||
+      missionCloseOut.acceptanceDigest !== deliveryPackageAcceptance.acceptanceDigest ||
+      missionCloseOut.terminalCheckpointId !== latestCheckpoint.id ||
+      missionCloseOut.terminalCheckpointDigest !== latestCheckpoint.checkpointDigest ||
+      missionCloseOut.decision !== MISSION_CLOSE_OUT_DECISION.CLOSED_OUT ||
+      missionCloseOut.closeOutDigest !== computeMissionCloseOutDigest(missionCloseOut)
+    ) {
+      throw conflict(`Mission ${mission.id} MissionCloseOut evidence is not current`);
+    }
+
+    const currentAttempt =
+      councilSession.attempts?.find(
+        (attempt) => attempt.id === councilSession.currentAttemptId,
+      ) || councilSession.attempts?.at(-1) || null;
+    const sourceEvidenceRefs = appendUniqueRefs(
+      [
+        mission.id,
+        linkedTask.id,
+        executionPlan.id,
+        deliveryPackage.id,
+        deliveryPackageAcceptance.id,
+        missionCloseOut.id,
+        latestCheckpoint.id,
+        councilSession.id,
+        currentAttempt?.id,
+        currentAttempt?.synthesis?.id,
+        terminalGateApproval.id,
+        reviewArtifact.id,
+        qaArtifact.id,
+        reviewerRun.id,
+        qaRun.id,
+      ],
+      [
+        ...executionPlan.runRefs,
+        ...executionPlan.artifactRefs,
+        ...deliveryPackage.deliveredArtifactRefs,
+        ...workOrders.flatMap((workOrder) => [
+          workOrder.id,
+          ...(workOrder.inputRefs || []),
+          ...(workOrder.runRefs || []),
+          ...(workOrder.artifactRefs || []),
+        ]),
+        ...(currentAttempt?.synthesis?.adoptedPositionRefs || []),
+        ...(currentAttempt?.synthesis?.dissentRefs || []),
+      ],
+    );
+    const allowedNegativeEvidenceRefs = appendUniqueRefs(
+      [
+        deliveryPackage.id,
+        missionCloseOut.id,
+        reviewArtifact.id,
+        qaArtifact.id,
+        councilSession.id,
+        currentAttempt?.id,
+        currentAttempt?.synthesis?.id,
+      ],
+      currentAttempt?.synthesis?.dissentRefs || [],
+    );
+
+    return {
+      projectId: mission.projectId,
+      missionId: mission.id,
+      linkedTaskId: linkedTask.id,
+      executionPlanId: executionPlan.id,
+      deliveryPackageId: deliveryPackage.id,
+      deliveryPackageAcceptanceId: deliveryPackageAcceptance.id,
+      missionCloseOutId: missionCloseOut.id,
+      sourceDeliveryPreviewId: deliveryPackage.previewId,
+      sourceDigest: deliveryPackage.sourceDigest,
+      sourcePackageDigest: deliveryPackage.packageDigest,
+      sourcePackageAcceptanceDigest: deliveryPackageAcceptance.acceptanceDigest,
+      sourceTerminalCheckpointId: latestCheckpoint.id,
+      sourceTerminalCheckpointDigest: latestCheckpoint.checkpointDigest,
+      sourceMissionCloseOutDigest: missionCloseOut.closeOutDigest,
+      missionCloseOutCreatedAt: missionCloseOut.createdAt,
+      sourceEvidenceRefs,
+      allowedTargetPaths: appendUniqueRefs(
+        [],
+        workOrders.flatMap((workOrder) => workOrder.targetPathAllowlist || []),
+      ),
+      allowedVerificationCommands: appendUniqueRefs(
+        executionPlan.verificationPlan || [],
+        workOrders.flatMap((workOrder) => workOrder.verificationCommands || []),
+      ),
+      allowedNegativeEvidenceRefs,
+    };
+  }
+
+  function assertLearningCandidateSourceRequest(input, source) {
+    const exactFields = [
+      ['missionId', source.missionId],
+      ['linkedTaskId', source.linkedTaskId],
+      ['executionPlanId', source.executionPlanId],
+      ['deliveryPackageId', source.deliveryPackageId],
+      ['deliveryPackageAcceptanceId', source.deliveryPackageAcceptanceId],
+      ['missionCloseOutId', source.missionCloseOutId],
+      ['previewId', source.sourceDeliveryPreviewId],
+      ['sourceDigest', source.sourceDigest],
+      ['packageDigest', source.sourcePackageDigest],
+      ['acceptanceDigest', source.sourcePackageAcceptanceDigest],
+      ['checkpointId', source.sourceTerminalCheckpointId],
+      ['checkpointDigest', source.sourceTerminalCheckpointDigest],
+      ['closeOutDigest', source.sourceMissionCloseOutDigest],
+    ];
+    for (const [field, expected] of exactFields) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`LearningCandidate preview ${field} does not match current evidence`);
+      }
+    }
+  }
+
+  function previewMissionLearningCandidate(input) {
+    assertExactLearningCandidatePreviewInput(input);
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`LearningCandidate preview requires current state: ${error.message}`);
+    }
+    const source = buildLearningCandidateSourceFromState(state, input.missionId);
+    assertLearningCandidateSourceRequest(input, source);
+    return compileLearningCandidatePreview({
+      source,
+      retrospectiveSpec: input.retrospectiveSpec,
+    });
+  }
+
   function assertExactDeliveryPackageTuple(input, preview) {
     const exactFields = [
       ['previewId', preview.id],
@@ -5200,6 +5494,7 @@ function createRuntimeService(options = {}) {
     getTaskGuardSummary,
     previewRetentionConsumer,
     preflightMissionWorkOrderPreview,
+    previewMissionLearningCandidate,
     previewMissionWorkOrders,
     previewExecutionPlanDelivery,
     persistExecutionPlanDeliveryPackage,

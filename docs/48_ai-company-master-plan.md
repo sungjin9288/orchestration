@@ -356,12 +356,13 @@ expansion, learning, scheduling/providers, policy mutation, next-Mission creatio
 connectors remain blocked.
 
 LearningCandidate preview planning-only authority는 `DEC-107`, complete fielded implementation
-handoff는 `DEC-108`으로 기록됐다. Phase 8 첫 target은 schema-v11 terminal evidence와 one exact
-operator-owned `retrospectiveSpec`에서 source-contained applicability, verification commands,
-negative evidence, redaction acknowledgement, expiry를 검증하고 deterministic response-only preview를
-계산하는 path다. Runtime/API/UI implementation, schema-v12, durable candidate lifecycle,
-memory/skill promotion, provider generation, raw evidence ingestion, source/Git/release action,
-scheduling, next-Mission, policy mutation, approval bypass, and connectors remain blocked.
+handoff는 `DEC-108`, exact response-only implementation은 `DEC-109`로 기록됐다. Current schema-v11
+path는 terminal Mission evidence와 one exact operator-owned `retrospectiveSpec`에서 source-contained
+applicability, verification commands, negative evidence, redaction acknowledgement, expiry를
+검증하고 deterministic deeply frozen `persisted=false` preview만 계산한다. POST response와 browser
+memory 밖에 저장하지 않으며 schema-v12, durable candidate lifecycle, review outcome, memory/skill
+promotion, provider generation, raw evidence ingestion, source/Git/release action, scheduling,
+next-Mission, policy mutation, approval bypass, and connectors remain blocked.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -397,6 +398,8 @@ node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
 node scripts/smoke-ai-company-mission-task-close-out.mjs
 node scripts/smoke-ui-slice-659.mjs
 node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
+node scripts/smoke-ai-company-learning-candidate-preview.mjs
+node scripts/smoke-ui-slice-660.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -409,7 +412,8 @@ schema-v10 exact implementation and immutable source evidence를 확인한다.
 Mission/task close-out planning/runtime/UI smokes는 current schema-v11 atomic event-plus-two-transition
 contract, terminal replay, generic bypass guards, standalone close-out isolation, exact accepted-
 evidence binding, and blocked downstream authority를 확인한다.
-LearningCandidate preview planning smoke는 schema v11 no-write posture, exact terminal source tuple,
-operator-owned retrospectiveSpec, response-only/non-persistent output, and blocked memory/skill/provider/
+LearningCandidate preview planning/runtime/UI smokes는 consumed decision provenance, schema v11
+no-write posture, exact terminal source tuple, operator-owned retrospectiveSpec, response-only
+non-persistent output, browser-memory clearing, and blocked durable learning/memory/skill/provider/
 source/Git/release/scheduling/next-Mission authority를 확인한다.
 Optional live-provider 결과는 별도 informational evidence다.

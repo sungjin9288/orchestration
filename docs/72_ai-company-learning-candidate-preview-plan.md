@@ -193,10 +193,13 @@ Planned route:
 POST /api/missions/:missionId/learning-candidate-preview
 ```
 
-The POST route accepts only the exact Mission/source tuple and retrospectiveSpec. Transport and runtime
-both validate exact keys. The runtime loads one current snapshot, resolves strict terminal evidence,
-calls the pure compiler, and returns the preview. It never calls `saveState`, file-store mutation,
-provider adapters, execution coordinators, Git, memory, skill, scheduler, policy, or connector code.
+The POST route accepts only JSON up to 64 KiB containing the exact Mission/source tuple and
+retrospectiveSpec. Transport and runtime both validate exact keys. The runtime uses an additive
+read-only loader that rejects missing or non-v11 state without bootstrapping or migration, recomputes
+the current DeliveryPackage preview and QA evidence, resolves strict terminal evidence, calls the pure
+compiler, and returns a minimal
+response without the runtime path. It never calls `saveState`, file-store mutation, provider adapters,
+execution coordinators, Git, memory, skill, scheduler, policy, or connector code.
 
 No GET route or snapshot field is added in this slice because a response-only preview cannot be
 rehydrated as durable evidence. Reload clears the browser-memory preview and leaves source evidence
@@ -259,6 +262,7 @@ Future implementation smoke must prove:
 ## Implementation Target Surface
 
 ```text
+src/runtime/file-store.js
 src/runtime/learning-candidate-preview.js
 src/runtime/runtime-service.js
 scripts/serve-ui-slice-01.mjs
@@ -274,7 +278,8 @@ scripts/ui_qa_status.mjs
 ## Implementation Sequence
 
 1. Add one pure exact-field retrospectiveSpec validator and canonical preview compiler.
-2. Resolve the strict schema-v11 terminal source tuple in one read-only runtime method.
+2. Add one no-bootstrap/no-migration current-schema loader and resolve the strict schema-v11 terminal
+   source tuple in one read-only runtime method.
 3. Add the exact POST route with transport and runtime key allowlists and no save path.
 4. Add a terminal Deliverables form and response-only review-required preview.
 5. Add focused runtime/API/UI smokes for determinism, no-write behavior, redaction, and compatibility.
@@ -309,8 +314,8 @@ scripts/ui_qa_status.mjs
 
 - Planning-only authority: accepted as `DEC-107`.
 - Complete fielded implementation handoff: documented as `DEC-108`.
-- Runtime/API/UI implementation: blocked pending the complete fielded decision in
-  `docs/73_ai-company-learning-candidate-preview-implementation-decision-handoff.md`.
+- Response-only runtime/API/UI implementation: accepted and implemented as `DEC-109`.
+- The plan and handoff remain consumed provenance for the exact schema-v11 no-write implementation.
 - Schema-v12, durable candidate lifecycle, memory/skill promotion, providers, source/Git/release,
   scheduling, next-Mission, policy, bypass, and connector authority remain blocked.
 
@@ -318,15 +323,18 @@ scripts/ui_qa_status.mjs
 
 ```bash
 node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
+node scripts/smoke-ai-company-learning-candidate-preview.mjs
 node scripts/smoke-ai-company-mission-task-close-out-planning.mjs
 node scripts/smoke-ai-company-mission-task-close-out.mjs
 node scripts/smoke-ui-slice-659.mjs
+node scripts/smoke-ui-slice-660.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/smoke-completion-gate-inventory-current-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Current schema v11 and `DEC-106` terminal evidence are read-only planning inputs. No LearningCandidate
-preview implementation, durable learning, memory/skill promotion, provider call, source/Git/release
-action, scheduling, next-Mission creation, policy mutation, approval bypass, or connector is authorized.
+Current schema v11 and `DEC-106` terminal evidence now feed only the `DEC-109` response-local
+LearningCandidate preview. No durable learning, review outcome, memory/skill promotion, provider call,
+source/Git/release action, scheduling, next-Mission creation, policy mutation, approval bypass, or
+connector is authorized.

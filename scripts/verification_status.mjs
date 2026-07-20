@@ -539,7 +539,17 @@ const informationalChecks = [
   {
     id: 'ai-company-learning-candidate-preview-planning',
     script: 'scripts/smoke-ai-company-learning-candidate-preview-planning.mjs',
-    purpose: 'AI Company Phase 8 planning pins DEC-107 and DEC-108, one future schema-v11-preserving deterministic response-only LearningCandidate preview from exact terminal Mission evidence plus operator-owned retrospectiveSpec, source-contained applicability and negative evidence, no-write rollback, and still-blocked implementation durable learning memory skill provider source Git release scheduling next-Mission policy bypass and connectors',
+    purpose: 'AI Company Phase 8 planning preserves consumed DEC-107 and DEC-108 provenance while DEC-109 fixes the exact schema-v11-preserving response-only LearningCandidate preview boundary',
+  },
+  {
+    id: 'ai-company-learning-candidate-preview-implementation',
+    script: 'scripts/smoke-ai-company-learning-candidate-preview.mjs',
+    purpose: 'AI Company LearningCandidate runtime proves strict schema v11 read-only load, current DeliveryPackage preview and QA evidence recomputation, exact completed Mission source closure, operator retrospectiveSpec validation, source-contained paths commands and negative evidence, conservative credential-marker refusal, canonical digest and stable preview id, deep freeze, zero saveState and byte mutation, no snapshot or durable record, and blocked downstream authority',
+  },
+  {
+    id: 'ai-company-learning-candidate-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-660.mjs',
+    purpose: 'AI Company LearningCandidate UI and API prove bounded JSON-only terminal response preview, exact tuple gating, redaction and review-required evidence, Mission-scoped draft reset, edit invalidation, browser-memory-only lifecycle, stale malformed oversized wrong-content-type and credential failure safety, no runtime path GET or snapshot persistence, responsive fit, and absent downstream controls',
   },
   {
     id: 'coordinator-path-containment-smoke',

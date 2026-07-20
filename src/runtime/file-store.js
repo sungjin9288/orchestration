@@ -1298,6 +1298,17 @@ function createFileStore(options = {}) {
     return normalizedState;
   }
 
+  function loadStateReadonly() {
+    if (!fs.existsSync(statePath)) {
+      throw new Error('state file does not exist');
+    }
+    const sourceState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    if (sourceState.schemaVersion !== STATE_SCHEMA_VERSION) {
+      throw new Error(`state must use current schema v${STATE_SCHEMA_VERSION}`);
+    }
+    return normalizeState(sourceState);
+  }
+
   function writeStateAtomically(state) {
     ensureDirs();
     const temporaryStatePath = `${statePath}.tmp-${process.pid}`;
@@ -1402,6 +1413,7 @@ function createFileStore(options = {}) {
     artifactsDir,
     deletedArtifactsDir,
     loadState,
+    loadStateReadonly,
     logsDir,
     moveArtifactToArchive,
     moveArtifactToDeleted,

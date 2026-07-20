@@ -44,6 +44,7 @@ const taskLedger = read('tasks/todo.md');
 const lessons = read('tasks/lessons.md');
 const verification = read('scripts/verification_status.mjs');
 const contracts = read('src/runtime/contracts.js');
+const learningCandidateCompiler = read('src/runtime/learning-candidate-preview.js');
 const runtimeService = read('src/runtime/runtime-service.js');
 const server = read('scripts/serve-ui-slice-01.mjs');
 const ui = read('ui/app.js');
@@ -94,7 +95,7 @@ assertAll(planText, [
   /Keep `STATE_SCHEMA_VERSION = 11`/,
   /Planning-only authority: accepted as `DEC-107`/,
   /Complete fielded implementation handoff: documented as `DEC-108`/,
-  /implementation: blocked pending the complete fielded decision/,
+  /implementation: accepted and implemented as `DEC-109`/,
 ]);
 
 assert.match(
@@ -126,26 +127,36 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-107$/m);
 assert.match(decisionLog, /^### DEC-108$/m);
-assert.match(masterPlan, /LearningCandidate preview planning-only authority는 `DEC-107`/);
-assert.match(runtimeContract, /LearningCandidate preview planning은 `DEC-107`/);
-assert.match(councilProtocol, /LearningCandidate preview planning은 `DEC-107`/);
+assert.match(decisionLog, /^### DEC-109$/m);
+assert.match(masterPlan, /exact response-only implementation은 `DEC-109`/);
+assert.match(runtimeContract, /exact\s+response-only implementation은 `DEC-109`/);
+assert.match(councilProtocol, /exact response-only implementation은 `DEC-109`/);
 assertAll(roadmapText, [
   /Phase 8 LearningCandidate preview planning-only authority는 `DEC-107`/,
   /implementation decision handoff는 `DEC-108`/,
-  /response-only implementation remains blocked/,
+  /exact response-only implementation은 `DEC-109`/,
 ]);
 assert.match(
   completionInventory,
   /AI Company LearningCandidate preview planning \| pass/,
 );
+assert.match(
+  completionInventory,
+  /AI Company LearningCandidate preview implementation \| pass/,
+);
 assertAll(readmeText, [
   /LearningCandidate preview planning-only authority is accepted by `DEC-107`/,
   /implementation handoff is recorded by `DEC-108`/,
+  /exact response-only implementation is accepted by `DEC-109`/,
   /schema v11 unchanged/,
 ]);
 assert.match(
   taskLedger,
   /ai-company-learning-candidate-preview-planning-post-m7-1958/,
+);
+assert.match(
+  taskLedger,
+  /ai-company-learning-candidate-preview-implementation-post-m7-1959/,
 );
 assert.match(
   lessons,
@@ -156,12 +167,16 @@ assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-learning-candidate-preview-planning\.mjs'/,
 );
+assert.match(verification, /id: 'ai-company-learning-candidate-preview-implementation'/);
+assert.match(verification, /id: 'ai-company-learning-candidate-preview-ui-api'/);
 
 assert.match(contracts, /const STATE_SCHEMA_VERSION = 11/);
 assert.doesNotMatch(contracts, /learningCandidate/);
-assert.doesNotMatch(runtimeService, /function previewMissionLearningCandidate\(/);
-assert.doesNotMatch(server, /learning-candidate-preview/);
-assert.doesNotMatch(ui, /data-action="preview-learning-candidate"/);
+assert.match(learningCandidateCompiler, /function compileLearningCandidatePreview\(/);
+assert.match(runtimeService, /function previewMissionLearningCandidate\(/);
+assert.match(server, /learning-candidate-preview/);
+assert.match(ui, /data-action="preview-learning-candidate"/);
+assert.doesNotMatch(server, /method === 'GET'.*learning-candidate-preview/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -171,7 +186,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-107',
         handoff: 'documented-dec-108',
-        implementation: 'blocked-fielded-decision-required',
+        implementation: 'accepted-dec-109',
       },
       plannedPath: {
         sourceSchemaVersion: 11,
@@ -183,14 +198,14 @@ process.stdout.write(
       },
       currentRuntime: {
         schemaVersion: 11,
-        learningCandidateCompiler: false,
-        learningCandidateRoute: false,
-        learningCandidateUiPreview: false,
+        learningCandidateCompiler: true,
+        learningCandidateRoute: true,
+        learningCandidateUiPreview: true,
         learningCandidatePersistence: false,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
+        implementationAllowed: true,
         durableCandidateAllowed: false,
         memoryPersistenceAllowed: false,
         skillPromotionAllowed: false,
