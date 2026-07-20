@@ -256,6 +256,39 @@ export function getMissionLearningCandidatePreviewSummary(
   };
 }
 
+export function getMissionLearningCandidatePersistenceSummary(
+  preview,
+  durableCandidate,
+  missionId,
+  now = Date.now(),
+) {
+  const currentPreview =
+    preview?.sourceMissionId === missionId && preview.persisted === false ? preview : null;
+  const currentCandidate =
+    durableCandidate?.sourceMissionId === missionId && durableCandidate.persisted === true
+      ? durableCandidate
+      : null;
+  const unexpired = Boolean(
+    currentPreview &&
+      Number.isFinite(Date.parse(currentPreview.expiry?.expiresAt)) &&
+      Date.parse(currentPreview.expiry.expiresAt) > now,
+  );
+  return {
+    canPersist: Boolean(
+      currentPreview &&
+        !currentCandidate &&
+        unexpired &&
+        currentPreview.redactionStatus === 'review-required' &&
+        currentPreview.reviewerStatus === 'review-required' &&
+        currentPreview.promotionStatus === 'proposed' &&
+        Object.values(currentPreview.authoritySummary || {}).every((value) => value === false),
+    ),
+    durableCandidate: currentCandidate,
+    persisted: Boolean(currentCandidate),
+    unexpired,
+  };
+}
+
 export function getMissionDeliveryPackageAcceptanceSummary(
   preview,
   bundle,

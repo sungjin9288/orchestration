@@ -12,8 +12,10 @@ release, scheduling, next Mission, policy, bypass, and connectors를 계속 분�
 
 - Planning-only decision is accepted as `DEC-110`.
 - This complete fielded implementation handoff is recorded as `DEC-111`.
-- Current runtime remains schema v11 with only the DEC-109 response-only preview.
-- No durable LearningCandidate sequence, map, record, GET route, persistence route, or durable UI exists.
+- The complete fielded approval is consumed by `DEC-112`.
+- Current runtime is schema v12 with the DEC-109 response-only preview plus one exact durable record path.
+- Candidate review outcome, memory/skill promotion, providers, source/Git/release, scheduling, next Mission,
+  policy mutation, approval bypass, and connectors remain blocked.
 - General continuation, broad approval, or delegated non-critical self-approval does not open this
   schema- and persistence-sensitive implementation.
 

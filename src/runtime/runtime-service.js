@@ -108,6 +108,7 @@ const {
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,
   assertHandoffPacket,
+  assertLearningCandidate,
   assertMissionCloseOut,
   assertRun,
   assertWorkOrder,
@@ -137,6 +138,9 @@ const {
 const {
   compileLearningCandidatePreview,
 } = require('./learning-candidate-preview');
+const {
+  createLearningCandidate,
+} = require('./learning-candidates');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -193,6 +197,11 @@ function createRuntimeService(options = {}) {
   function nextMissionCloseOutId(state) {
     state.sequences.missionCloseOut += 1;
     return `mission-close-out-${String(state.sequences.missionCloseOut).padStart(4, '0')}`;
+  }
+
+  function nextLearningCandidateId(state) {
+    state.sequences.learningCandidate += 1;
+    return `learning-candidate-${String(state.sequences.learningCandidate).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -3653,6 +3662,137 @@ function createRuntimeService(options = {}) {
     });
   }
 
+  function findLearningCandidate(state, missionId) {
+    return (
+      Object.values(state.learningCandidates).find(
+        (candidate) => candidate.sourceMissionId === missionId,
+      ) || null
+    );
+  }
+
+  function assertExactLearningCandidatePersistenceInput(input) {
+    const expectedFields = [
+      'missionId',
+      'linkedTaskId',
+      'executionPlanId',
+      'deliveryPackageId',
+      'deliveryPackageAcceptanceId',
+      'missionCloseOutId',
+      'sourceDeliveryPreviewId',
+      'sourceDigest',
+      'packageDigest',
+      'acceptanceDigest',
+      'checkpointId',
+      'checkpointDigest',
+      'closeOutDigest',
+      'retrospectiveSpec',
+      'previewId',
+      'candidateDigest',
+      'decision',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict(
+        'LearningCandidate persistence request has unexpected or missing fields',
+      );
+    }
+    if (String(input.decision || '').trim() !== 'persist') {
+      throw conflict('LearningCandidate persistence decision must be persist');
+    }
+  }
+
+  function assertLearningCandidatePersistenceSourceRequest(input, source) {
+    assertLearningCandidateSourceRequest(
+      {
+        ...input,
+        previewId: input.sourceDeliveryPreviewId,
+      },
+      source,
+    );
+  }
+
+  function assertLearningCandidatePreviewTuple(input, preview) {
+    if (String(input.previewId || '').trim() !== preview.previewId) {
+      throw conflict('LearningCandidate previewId does not match current recomputation');
+    }
+    if (String(input.candidateDigest || '').trim() !== preview.candidateDigest) {
+      throw conflict('LearningCandidate candidateDigest does not match current recomputation');
+    }
+  }
+
+  function getMissionLearningCandidate(missionId) {
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`LearningCandidate read requires current state: ${error.message}`);
+    }
+    const candidate = findLearningCandidate(state, missionId);
+    return {
+      missionId,
+      learningCandidate: candidate
+        ? assertLearningCandidate(candidate.id, state)
+        : null,
+      persisted: Boolean(candidate),
+    };
+  }
+
+  function persistMissionLearningCandidate(input) {
+    assertExactLearningCandidatePersistenceInput(input);
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`LearningCandidate persistence requires supported state: ${error.message}`);
+    }
+
+    const source = buildLearningCandidateSourceFromState(state, input.missionId);
+    assertLearningCandidatePersistenceSourceRequest(input, source);
+    const existing = findLearningCandidate(state, input.missionId);
+    const evaluatedAt = existing?.createdAt || new Date().toISOString();
+    const preview = compileLearningCandidatePreview(
+      {
+        source,
+        retrospectiveSpec: input.retrospectiveSpec,
+      },
+      { evaluatedAt },
+    );
+    assertLearningCandidatePreviewTuple(input, preview);
+
+    if (existing) {
+      if (
+        existing.previewId !== preview.previewId ||
+        existing.candidateDigest !== preview.candidateDigest
+      ) {
+        throw conflict(
+          `Mission ${input.missionId} already has a different LearningCandidate`,
+        );
+      }
+      return {
+        learningCandidate: assertLearningCandidate(existing.id, state),
+        learningCandidatePreview: preview,
+        idempotent: true,
+      };
+    }
+
+    const learningCandidate = createLearningCandidate({
+      id: nextLearningCandidateId(state),
+      preview,
+      source,
+      createdAt: evaluatedAt,
+    });
+    state.learningCandidates[learningCandidate.id] = learningCandidate;
+    store.saveState(state);
+    return {
+      learningCandidate,
+      learningCandidatePreview: preview,
+      idempotent: false,
+    };
+  }
+
   function assertExactDeliveryPackageTuple(input, preview) {
     const exactFields = [
       ['previewId', preview.id],
@@ -5484,6 +5624,7 @@ function createRuntimeService(options = {}) {
     getLogs,
     getMission,
     getMissionCloseOut,
+    getMissionLearningCandidate,
     getProposalApplicationAttempt,
     getProposalSourceMutation,
     getProposalRecord,
@@ -5498,6 +5639,7 @@ function createRuntimeService(options = {}) {
     previewMissionWorkOrders,
     previewExecutionPlanDelivery,
     persistExecutionPlanDeliveryPackage,
+    persistMissionLearningCandidate,
     persistMissionWorkOrderPlan,
     listApprovals,
     listCouncilProviderReadinessSummaries,

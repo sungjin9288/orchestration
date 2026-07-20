@@ -106,7 +106,7 @@ async function main() {
       /state\.missionLearningCandidateDraft\[event\.target\.name\] = event\.target\.value;[\s\S]*state\.missionLearningCandidatePreview = null;[\s\S]*querySelector\('\.learning-candidate-result'\)[\s\S]*\.remove\(\);/,
     );
     assert.match(appSource, /sourceEvidenceRef :: statement/);
-    assert.doesNotMatch(appSource, /data-action="persist-learning-candidate"/);
+    assert.match(appSource, /data-action="persist-learning-candidate"/);
     assert.doesNotMatch(appSource, /data-action="accept-learning-candidate"/);
     assert.doesNotMatch(appSource, /data-action="promote-learning-memory"/);
     assert.doesNotMatch(appSource, /data-action="promote-learning-skill"/);
@@ -124,11 +124,8 @@ async function main() {
     const snapshotResult = await fetchJson('/api/snapshot');
     assert.equal(snapshotResult.response.status, 200);
     const snapshot = snapshotResult.payload.snapshot;
-    assert.equal(snapshot.schemaVersion, 11);
-    assert.equal(
-      Object.keys(snapshot).some((key) => /learningCandidate/i.test(key)),
-      false,
-    );
+    assert.equal(snapshot.schemaVersion, 12);
+    assert.deepEqual(snapshot.learningCandidates, {});
     const mission = snapshot.missions[seeded.missionId];
     const councilSession = snapshot.councilSessions[mission.councilSessionId];
     const bundle = getMissionExecutionPlanBundle(snapshot, councilSession.id);
@@ -244,10 +241,7 @@ async function main() {
 
     const refreshed = await fetchJson('/api/snapshot');
     assert.equal(refreshed.response.status, 200);
-    assert.equal(
-      Object.keys(refreshed.payload.snapshot).some((key) => /learningCandidate/i.test(key)),
-      false,
-    );
+    assert.deepEqual(refreshed.payload.snapshot.learningCandidates, {});
     assert.equal(fs.readFileSync(statePath, 'utf8'), stateBytesBefore);
     assert.equal(fs.readFileSync(sourcePath, 'utf8'), sourceBytesBefore);
 
@@ -257,7 +251,7 @@ async function main() {
       api: {
         exactTerminalTupleRequired: true,
         responseOnly: true,
-        noGetRoute: true,
+        noPreviewGetRoute: true,
         staleInputStatus: stale.response.status,
         malformedInputStatus: extra.response.status,
         credentialMarkerStatus: secret.response.status,
@@ -273,7 +267,7 @@ async function main() {
         browserMemoryClearsOnHydration: true,
         draftResetsOnMissionHydration: true,
         stalePreviewClearsOnEdit: true,
-        downstreamControlsAbsent: true,
+        downstreamReviewAndPromotionControlsAbsent: true,
         desktopColumns: 2,
         mobileColumns: 1,
       },

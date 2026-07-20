@@ -90,7 +90,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v11 after the additive MissionCloseOut migration, while `companyRuntime` remains an
+execution state is schema v12 after the additive durable LearningCandidate migration, while `companyRuntime` remains an
 additive read-only snapshot on the configured local server path. The editable company roster remains
 browser presentation only.
 
@@ -206,20 +206,22 @@ completed Mission/MissionCloseOut/package/acceptance/plan/checkpoint/WorkOrder/r
 One explicit POST returns only a deterministic deeply frozen response-only preview with
 `persisted=false`, both redaction and reviewer status kept `review-required`, source-contained
 applicability and negative evidence, and every promotion or downstream authority false. The browser
-keeps the response only in memory and clears it on snapshot refresh. Schema-v12, durable candidate
-lifecycle, memory/skill promotion, provider generation, raw evidence ingestion, source/Git/release,
+keeps the response only in memory and clears it on snapshot refresh. Durable candidate review
+outcomes, memory/skill promotion, provider generation, raw evidence ingestion, source/Git/release,
 scheduling, next-Mission, policy mutation, approval bypass, and connectors remain blocked.
 
-Durable LearningCandidate persistence planning-only authority is accepted by `DEC-110`, and its
-complete fielded implementation handoff is recorded by `DEC-111` in
+Durable LearningCandidate persistence planning-only authority is accepted by `DEC-110`, its
+complete fielded implementation handoff is recorded by `DEC-111`, and exact implementation is
+accepted by `DEC-112` in
 `docs/74_ai-company-durable-learning-candidate-persistence-plan.md` and
-`docs/75_ai-company-durable-learning-candidate-implementation-decision-handoff.md`. The planned
-schema-v12 path adds only a LearningCandidate sequence/map and requires the runtime to recompute the
+`docs/75_ai-company-durable-learning-candidate-implementation-decision-handoff.md`. Schema v12 adds
+only a LearningCandidate sequence/map and requires the runtime to recompute the
 exact DEC-109 preview from the current terminal tuple plus operator-owned retrospectiveSpec before
-one immutable `review-required`/`proposed` record can be appended. Current runtime remains schema v11
-and no durable candidate exists. Implementation, candidate review outcome, memory/skill promotion,
+one immutable `review-required`/`proposed` record can be appended. Invalid v11 input causes no
+migration write, exact replay is read-only, and GET hydration exposes no runtime path. Candidate
+review outcome, memory/skill promotion,
 providers, raw evidence, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors
-remain blocked pending a complete fielded decision.
+remain blocked and require a separate complete fielded decision.
 
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
@@ -285,7 +287,7 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `212/212`, total `213/213`; UI QA is required `38/38`.
+`1/1`, informational `214/214`, total `215/215`; UI QA is required `39/39`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -346,7 +348,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `213/213`, UI QA `38/38`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `215/215`, UI QA `39/39`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -371,12 +373,13 @@ Current source-backed evidence:
   and `scripts/smoke-ui-slice-660.mjs` prove the exact response-only, zero-write, browser-memory review
   path while durable learning, memory/skill promotion, providers, source/Git/release, scheduling,
   next-Mission, policy, bypass, and connectors remain blocked.
-- Durable LearningCandidate persistence planning: `DEC-110`, `DEC-111`,
+- Durable LearningCandidate persistence: `DEC-110`, `DEC-111`, `DEC-112`,
   `docs/74_ai-company-durable-learning-candidate-persistence-plan.md`,
   `docs/75_ai-company-durable-learning-candidate-implementation-decision-handoff.md`, and
-  `scripts/smoke-ai-company-durable-learning-candidate-planning.mjs` prove the future schema-v12
-  sequence/map-only migration, runtime preview recomputation, exact digest-bound immutable
-  review-required record, and current absence of implementation/review/memory/skill/downstream
+  `scripts/smoke-ai-company-durable-learning-candidate-planning.mjs`,
+  `scripts/smoke-ai-company-durable-learning-candidate.mjs`, and `scripts/smoke-ui-slice-661.mjs`
+  prove schema-v12 sequence/map-only migration, runtime preview recomputation, one-save exact
+  digest-bound immutable record, read-only hydration, and absent review/memory/skill/downstream
   authority.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
@@ -1790,6 +1793,8 @@ Observed result:
 | `GET` | `/api/missions/:missionId/close-out` | Read exact MissionCloseOut evidence and its terminal Mission/task state. |
 | `POST` | `/api/missions/:missionId/close-out` | Append one exact MissionCloseOut and atomically terminalize only the linked task and Mission. |
 | `POST` | `/api/missions/:missionId/learning-candidate-preview` | Return one exact response-only, review-required LearningCandidate preview without state or source writes. |
+| `GET` | `/api/missions/:missionId/learning-candidate` | Read the current durable review-required LearningCandidate evidence, if present. |
+| `POST` | `/api/missions/:missionId/persist-learning-candidate` | Recompute one exact current preview and append at most one immutable proposed record. |
 | `POST` | `/api/tasks` | Create a task under the active project. |
 | `POST` | `/api/tasks/:taskId/run-planner` | Run planner. |
 | `POST` | `/api/tasks/:taskId/run-architect` | Run architect. |
@@ -1820,9 +1825,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 891 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 893 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 660 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 661 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -1957,6 +1962,8 @@ node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-preview.mjs
 node scripts/smoke-ui-slice-660.mjs
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
+node scripts/smoke-ai-company-durable-learning-candidate.mjs
+node scripts/smoke-ui-slice-661.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -1965,7 +1972,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `213/213`, UI QA `38/38`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `215/215`, UI QA `39/39`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -1993,11 +2000,13 @@ Current verification evidence from this README and completion close-out refresh:
   clearing, safe stale/malformed/credential refusal, responsive fit, and blocked durable learning,
   memory/skill, provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connector
   authority stay aligned.
-- `node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs`: `DEC-110`/`DEC-111`,
-  current schema-v11 negative evidence, future schema-v12 sequence/map-only migration, exact DEC-109
-  preview recomputation, immutable review-required/proposed record, and still-blocked implementation,
-  review outcome, memory/skill, provider, source/Git/release, scheduling, next-Mission, policy,
-  bypass, and connector authority stay aligned.
+- `node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs`,
+  `node scripts/smoke-ai-company-durable-learning-candidate.mjs`, and
+  `node scripts/smoke-ui-slice-661.mjs`: `DEC-110`/`DEC-111`/`DEC-112`, v11-to-v12 one-save
+  migration/persistence, exact DEC-109 recomputation, immutable record digest, idempotent replay,
+  read-only hydration, safe stale/malformed/expired refusal, responsive fit, and still-blocked review,
+  memory/skill, provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connector
+  authority stay aligned.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
   reports `ok=true`, read-only lifecycle-close status readiness, blocked
   source mutation and remediation execution, and the next lifecycle-close-review command.
@@ -2257,9 +2266,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `38/38`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `39/39`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `212/212`, total `213/213`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `214/214`, total `215/215`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2290,7 +2299,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `213/213`, UI QA `38/38`, and zero-open backlog are local source-backed checks.
+  aggregate `215/215`, UI QA `39/39`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
@@ -2331,14 +2340,15 @@ Playwright CLI:
   runtime/API/UI response-only slice. It requires one completed Mission evidence tuple plus an
   operator-owned retrospectiveSpec, keeps `persisted=false` with redaction and reviewer status
   review-required, writes no state or source, exposes no GET/snapshot record, and clears browser
-  memory on refresh. Schema-v12, durable candidate lifecycle/review outcome, memory/skill promotion,
+  memory on refresh. Durable candidate review outcome, memory/skill promotion,
   provider generation, raw evidence ingestion, source/Git/release, scheduling, next-Mission, policy
   mutation, approval bypass, and connectors remain blocked.
-- `DEC-110` permits planning only for one future schema-v12 durable LearningCandidate record, and
-  `DEC-111` records the complete fielded implementation handoff. The plan requires exact terminal
+- `DEC-110` permits planning for one schema-v12 durable LearningCandidate record, `DEC-111` records
+  the complete fielded implementation handoff, and `DEC-112` permits the exact runtime/API/UI slice.
+  The path requires exact terminal
   evidence plus retrospectiveSpec, runtime recomputation of DEC-109, exact preview/candidate digests,
-  explicit `decision=persist`, and one immutable review-required/proposed record. Current runtime
-  remains schema v11; implementation, candidate review outcome, memory/skill promotion, providers,
+  explicit `decision=persist`, and one immutable review-required/proposed record. Candidate review
+  outcome, memory/skill promotion, providers,
   raw evidence, source/Git/release, scheduling, next-Mission, policy mutation, approval bypass, and
   connectors remain blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.

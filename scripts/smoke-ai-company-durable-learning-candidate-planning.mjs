@@ -91,7 +91,7 @@ assertAll(planText, [
   /POST \/api\/missions\/:missionId\/persist-learning-candidate/,
   /Planning-only authority: accepted as `DEC-110`/,
   /Complete fielded implementation handoff: documented as `DEC-111`/,
-  /implementation: blocked pending that complete fielded decision/,
+  /implementation: accepted as `DEC-112` and verified on schema v12/,
 ]);
 
 assert.match(
@@ -122,12 +122,14 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-110$/m);
 assert.match(decisionLog, /^### DEC-111$/m);
+assert.match(decisionLog, /^### DEC-112$/m);
 assert.match(masterPlan, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContract, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocol, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assertAll(roadmapText, [
   /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/,
   /implementation decision handoff는 `DEC-111`/,
+  /exact implementation은 `DEC-112`/,
 ]);
 assert.match(
   completionInventory,
@@ -136,11 +138,15 @@ assert.match(
 assertAll(readmeText, [
   /Durable LearningCandidate persistence planning-only authority is accepted by `DEC-110`/,
   /complete fielded implementation handoff is recorded by `DEC-111`/,
-  /Current runtime remains schema v11/,
+  /exact implementation is accepted by `DEC-112`/,
 ]);
 assert.match(
   taskLedger,
   /ai-company-durable-learning-candidate-planning-post-m7-1960/,
+);
+assert.match(
+  taskLedger,
+  /ai-company-durable-learning-candidate-implementation-post-m7-1961/,
 );
 assert.match(
   lessons,
@@ -152,17 +158,14 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-learning-candidate-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 11/);
-assert.doesNotMatch(contracts, /learningCandidate/);
-assert.doesNotMatch(fileStore, /validateLearningCandidateRecords/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 12/);
+assert.match(contracts, /learningCandidate: 0/);
+assert.match(fileStore, /validateLearningCandidateRecords/);
 assert.match(runtimeService, /function previewMissionLearningCandidate\(/);
-assert.doesNotMatch(runtimeService, /function persistMissionLearningCandidate\(/);
-assert.doesNotMatch(server, /persist-learning-candidate/);
-assert.doesNotMatch(
-  server,
-  /method === 'GET'.*\/api\/missions\/.*\/learning-candidate/,
-);
-assert.doesNotMatch(ui, /data-action="persist-learning-candidate"/);
+assert.match(runtimeService, /function persistMissionLearningCandidate\(/);
+assert.match(server, /persist-learning-candidate/);
+assert.match(server, /missionLearningCandidateMatch/);
+assert.match(ui, /data-action="persist-learning-candidate"/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -172,7 +175,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-110',
         handoff: 'documented-dec-111',
-        implementation: 'blocked-fielded-decision-required',
+        implementation: 'accepted-dec-112',
       },
       plannedPath: {
         sourceSchemaVersion: 11,
@@ -184,17 +187,17 @@ process.stdout.write(
         runtimeRecomputationRequired: true,
       },
       currentRuntime: {
-        schemaVersion: 11,
+        schemaVersion: 12,
         responseOnlyPreview: true,
-        durableLearningCandidateRecords: false,
-        persistenceRoutes: false,
-        durableUi: false,
+        durableLearningCandidateRecords: true,
+        persistenceRoutes: true,
+        durableUi: true,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        schemaMigrationAllowed: false,
-        durableRecordAllowed: false,
+        implementationAllowed: true,
+        schemaMigrationAllowed: true,
+        durableRecordAllowed: true,
         candidateReviewAllowed: false,
         memoryPersistenceAllowed: false,
         skillPromotionAllowed: false,

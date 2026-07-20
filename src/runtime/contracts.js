@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 11;
+const STATE_SCHEMA_VERSION = 12;
+const LEARNING_CANDIDATE_STATE_SCHEMA_VERSION = 12;
 const MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION = 11;
 const DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION = 10;
 const DELIVERY_PACKAGE_STATE_SCHEMA_VERSION = 9;
@@ -382,6 +383,7 @@ function createEmptyState() {
       deliveryPackage: 0,
       deliveryPackageAcceptance: 0,
       missionCloseOut: 0,
+      learningCandidate: 0,
     },
     missions: {},
     councilSessions: {},
@@ -401,6 +403,7 @@ function createEmptyState() {
     deliveryPackages: {},
     deliveryPackageAcceptances: {},
     missionCloseOuts: {},
+    learningCandidates: {},
   };
 }
 
@@ -441,6 +444,7 @@ module.exports = {
   RUN_STATUS,
   EXECUTION_PLAN_STATUS,
   LEGACY_STATE_SCHEMA_VERSION,
+  LEARNING_CANDIDATE_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,

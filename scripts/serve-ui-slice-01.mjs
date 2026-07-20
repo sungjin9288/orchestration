@@ -2129,6 +2129,85 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const missionLearningCandidateMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/learning-candidate$/,
+  );
+  if (method === 'GET' && missionLearningCandidateMatch) {
+    try {
+      const missionId = decodeURIComponent(missionLearningCandidateMatch[1]);
+      const result = runtime.getMissionLearningCandidate(missionId);
+      json(response, 200, {
+        ...result,
+        generatedAt: new Date().toISOString(),
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'LearningCandidate 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const missionPersistLearningCandidateMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/persist-learning-candidate$/,
+  );
+  if (method === 'POST' && missionPersistLearningCandidateMatch) {
+    try {
+      const missionId = decodeURIComponent(missionPersistLearningCandidateMatch[1]);
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'linkedTaskId',
+        'executionPlanId',
+        'deliveryPackageId',
+        'deliveryPackageAcceptanceId',
+        'missionCloseOutId',
+        'sourceDeliveryPreviewId',
+        'sourceDigest',
+        'packageDigest',
+        'acceptanceDigest',
+        'checkpointId',
+        'checkpointDigest',
+        'closeOutDigest',
+        'retrospectiveSpec',
+        'previewId',
+        'candidateDigest',
+        'decision',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'LearningCandidate persistence body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.persistMissionLearningCandidate({ missionId, ...input });
+      json(response, result.idempotent ? 200 : 201, {
+        learningCandidate: result.learningCandidate,
+        learningCandidatePreview: result.learningCandidatePreview,
+        mutation: {
+          idempotent: result.idempotent,
+          kind: 'persist-learning-candidate',
+          learningCandidateId: result.learningCandidate.id,
+          missionId,
+          stoppedAt: 'learning-candidate-review-required',
+        },
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'LearningCandidate 기록에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );

@@ -150,7 +150,7 @@ assert.match(verification, /id: 'ai-company-delivery-package-acceptance-implemen
 assert.match(verification, /id: 'ai-company-delivery-package-acceptance-ui-api'/);
 
 // Preserve planning provenance while pinning the exact implementation boundary it authorized.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 11/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 12/);
 assert.match(contracts, /const DELIVERY_PACKAGE_STATUS = \{\s+REVIEW_REQUIRED: 'review-required'/);
 assert.match(contracts, /deliveryPackageAcceptance/);
 assert.match(fileStore, /validateDeliveryPackageAcceptanceRecords/);
@@ -187,7 +187,7 @@ process.stdout.write(
         ],
       },
       currentRuntime: {
-        schemaVersion: 11,
+        schemaVersion: 12,
         acceptanceRecords: true,
         acceptanceRoutes: true,
         acceptanceUiAction: true,

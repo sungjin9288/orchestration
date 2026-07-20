@@ -554,7 +554,17 @@ const informationalChecks = [
   {
     id: 'ai-company-durable-learning-candidate-planning',
     script: 'scripts/smoke-ai-company-durable-learning-candidate-planning.mjs',
-    purpose: 'AI Company durable LearningCandidate planning pins DEC-110 and DEC-111, future additive schema v12 sequence and map only migration, exact runtime recomputation of the current DEC-109 preview, one immutable review-required proposed record, strict stale expired malformed and authority-widening no-write behavior, rollback retention, and current schema v11 negative evidence with implementation candidate review memory skill provider raw evidence source Git release scheduling next-Mission policy bypass and connectors still blocked',
+    purpose: 'AI Company durable LearningCandidate planning preserves consumed DEC-110 and DEC-111 provenance while DEC-112 fixes the exact schema v12 persistence and blocked downstream authority boundary',
+  },
+  {
+    id: 'ai-company-durable-learning-candidate-implementation',
+    script: 'scripts/smoke-ai-company-durable-learning-candidate.mjs',
+    purpose: 'AI Company durable LearningCandidate runtime proves one-save schema v11 to v12 migration and exact record append, DEC-109 recomputation, source tuple retrospective preview and candidate digest binding, immutable record digest, replay idempotency, stale divergent expired malformed credential and corrupt-state refusal, read-only absence and reload, source stability, and blocked review memory skill provider Git release scheduling policy and connectors',
+  },
+  {
+    id: 'ai-company-durable-learning-candidate-ui-api',
+    script: 'scripts/smoke-ui-slice-661.mjs',
+    purpose: 'AI Company durable LearningCandidate UI and API prove exact-gated explicit persistence, read-only durable hydration, response-only preview compatibility, safe stale malformed and content-type failures, idempotent replay, runtime-path redaction, responsive fit, and absent candidate review promotion memory skill provider source Git release schedule next-Mission policy bypass and connector controls',
   },
   {
     id: 'coordinator-path-containment-smoke',

@@ -219,7 +219,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 11/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 12/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -276,9 +276,10 @@ process.stdout.write(
         'DEC-109',
         'DEC-110',
         'DEC-111',
+        'DEC-112',
       ],
       currentRuntime: {
-        schemaVersion: 11,
+        schemaVersion: 12,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -289,6 +290,7 @@ process.stdout.write(
         deliveryPackageAcceptance: 'schema-v10-exact-append-only-accepted-record',
         missionTaskCloseOut: 'schema-v11-exact-atomic-terminal-transaction',
         learningCandidatePreview: 'schema-v11-response-only-review-required',
+        durableLearningCandidate: 'schema-v12-exact-review-required-record',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -311,7 +313,7 @@ process.stdout.write(
         learningCandidatePreviewPlanningAllowed: true,
         learningCandidatePreviewImplementationAllowed: true,
         durableLearningCandidatePlanningAllowed: true,
-        durableLearningCandidateAllowed: false,
+        durableLearningCandidateAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -320,7 +322,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded decision required for durable LearningCandidate implementation',
+      nextGate: 'Complete fielded decision required for LearningCandidate review outcome',
     },
     null,
     2,

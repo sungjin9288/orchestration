@@ -8971,17 +8971,20 @@ h3 {
 }
 
 .learning-candidate-actions,
-.learning-candidate-result {
+.learning-candidate-result,
+.learning-candidate-record {
   margin-top: 12px;
 }
 
-.learning-candidate-result {
+.learning-candidate-result,
+.learning-candidate-record {
   min-width: 0;
   padding-top: 12px;
   border-top: 1px solid var(--surface-control-border);
 }
 
 .learning-candidate-result p,
+.learning-candidate-record p,
 .learning-candidate-negative-row {
   overflow-wrap: anywhere;
 }

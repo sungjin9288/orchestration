@@ -174,11 +174,11 @@ async function main() {
     });
     assert.throws(
       () => legacyStateRuntime.previewMissionLearningCandidate(request),
-      /state must use current schema v11/,
+      /state must use current schema v12/,
     );
     assert.equal(fs.readFileSync(legacyStatePath, 'utf8'), legacyStateBytes);
 
-    assert.equal(stateBefore.schemaVersion, 11);
+    assert.equal(stateBefore.schemaVersion, 12);
     assert.equal(stateBefore.missions[request.missionId].status, 'completed');
     assert.equal(stateBefore.tasks[request.linkedTaskId].lifecycleState, 'Done');
     assert.equal(
@@ -229,10 +229,7 @@ async function main() {
     assert.equal(fs.readFileSync(statePath, 'utf8'), stateBytesBefore);
     assert.equal(fs.readFileSync(sourcePath, 'utf8'), sourceBytesBefore);
     assert.deepEqual(snapshotCounts(seed.runtime.getSnapshot()), countsBefore);
-    assert.equal(
-      Object.keys(seed.runtime.getSnapshot()).some((key) => /learningCandidate/i.test(key)),
-      false,
-    );
+    assert.deepEqual(seed.runtime.getSnapshot().learningCandidates, {});
 
     const replay = seed.runtime.previewMissionLearningCandidate(request);
     assert.deepEqual(replay, preview);

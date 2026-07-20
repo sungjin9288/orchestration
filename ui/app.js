@@ -142,6 +142,7 @@ import {
   getMissionDeliveryPackageAcceptanceSummary,
   getMissionCloseOutSummary,
   getMissionLearningCandidatePreviewSummary,
+  getMissionLearningCandidatePersistenceSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -361,6 +362,7 @@ const state = {
     redactionAcknowledgement: 'source-summary-only',
   },
   missionLearningCandidatePreview: null,
+  missionLearningCandidate: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4728,6 +4730,9 @@ function applySnapshotPayload(payload) {
   } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.missionLearningCandidatePreview = null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'learningCandidate')) {
+    state.missionLearningCandidate = payload.learningCandidate || null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
   }
@@ -4799,6 +4804,7 @@ async function hydrateSelectedDetails() {
   state.missionDeliveryPackageAcceptance = null;
   state.missionCloseOut = null;
   state.missionLearningCandidatePreview = null;
+  state.missionLearningCandidate = null;
   state.missionLearningCandidateDraft = {
     lesson: '',
     applicabilitySummary: '',
@@ -4867,6 +4873,13 @@ async function hydrateSelectedDetails() {
           `/api/missions/${encodeURIComponent(selectedMission.id)}/close-out`,
         );
         state.missionCloseOut = closeOutPayload.missionCloseOut || null;
+        if (state.missionCloseOut) {
+          const learningCandidatePayload = await fetchJson(
+            `/api/missions/${encodeURIComponent(selectedMission.id)}/learning-candidate`,
+          );
+          state.missionLearningCandidate =
+            learningCandidatePayload.learningCandidate || null;
+        }
       }
     }
   }
@@ -6119,6 +6132,74 @@ async function previewMissionLearningCandidate(actionButton) {
     render();
     elements.refreshStatus.textContent =
       `${payload.learningCandidatePreview.previewId}를 response-only로 계산했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function persistMissionLearningCandidate(actionButton) {
+  const form = actionButton?.closest?.('[data-form="preview-learning-candidate"]');
+  const missionId = String(actionButton?.dataset.id || '').trim();
+  const preview = state.missionLearningCandidatePreview;
+  if (!form || !missionId || !preview) {
+    throw new Error('기록할 current LearningCandidate preview가 없습니다.');
+  }
+
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+  const deliveryPackage = state.missionDurableDeliveryPackage;
+  const acceptance = state.missionDeliveryPackageAcceptance;
+  const missionCloseOut = state.missionCloseOut;
+  const executionPlan = deliveryPackage
+    ? data.snapshot.executionPlans?.[deliveryPackage.executionPlanId] || null
+    : null;
+  const councilSession = executionPlan
+    ? data.councilSessionMap.get(executionPlan.councilSessionId) || null
+    : null;
+  const bundle = getMissionExecutionPlanBundle(data.snapshot, councilSession?.id);
+  const sourceSummary = getMissionLearningCandidatePreviewSummary(
+    mission,
+    state.missionDeliveryPackagePreview,
+    bundle,
+    deliveryPackage,
+    acceptance,
+    missionCloseOut,
+  );
+  const persistenceSummary = getMissionLearningCandidatePersistenceSummary(
+    preview,
+    state.missionLearningCandidate,
+    missionId,
+  );
+  if (!sourceSummary?.available || !persistenceSummary.canPersist) {
+    throw new Error('현재 preview는 만료되었거나 durable 기록 조건과 일치하지 않습니다.');
+  }
+
+  const retrospectiveSpec = readMissionLearningCandidateDraft(form);
+  const { previewId: sourceDeliveryPreviewId, ...sourceTuple } = sourceSummary.source;
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${missionId} 학습 후보를 기록하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/missions/${encodeURIComponent(missionId)}/persist-learning-candidate`,
+      {
+        ...sourceTuple,
+        sourceDeliveryPreviewId,
+        retrospectiveSpec,
+        previewId: preview.previewId,
+        candidateDigest: preview.candidateDigest,
+        decision: 'persist',
+      },
+    );
+    state.missionLearningCandidate = payload.learningCandidate || null;
+    state.missionLearningCandidatePreview = payload.learningCandidatePreview || preview;
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.learningCandidate.id} review-required 기록을 보존했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -10911,6 +10992,7 @@ function renderDurableDeliveryPackage(deliveryPackage, bundle) {
 
 function renderMissionLearningCandidatePreview(
   preview,
+  durableCandidate,
   mission,
   bundle,
   deliveryPackage,
@@ -10934,6 +11016,12 @@ function renderMissionLearningCandidatePreview(
     draft.verificationCommands || summary.verificationCommands.join('\n');
   const currentPreview =
     preview?.sourceMissionId === mission.id ? preview : null;
+  const persistenceSummary = getMissionLearningCandidatePersistenceSummary(
+    currentPreview,
+    durableCandidate,
+    mission.id,
+  );
+  const currentCandidate = persistenceSummary.durableCandidate;
   const negativeEvidenceRows = (currentPreview?.negativeEvidence || [])
     .map(
       (entry) => `
@@ -11049,6 +11137,15 @@ function renderMissionLearningCandidatePreview(
           >
             학습 후보 미리보기
           </button>
+          <button
+            class="primary-button"
+            type="button"
+            data-action="persist-learning-candidate"
+            data-id="${escapeHtml(mission.id)}"
+            ${state.loading || state.mutating || !persistenceSummary.canPersist ? 'disabled' : ''}
+          >
+            LearningCandidate 기록
+          </button>
         </div>
       </form>
       ${
@@ -11071,7 +11168,7 @@ function renderMissionLearningCandidatePreview(
               <p><strong>Checks</strong> ${escapeHtml(currentPreview.applicability.verificationCommands.join(' · '))}</p>
               <div class="learning-candidate-negative-list">${negativeEvidenceRows}</div>
               <div class="delivery-package-authority" aria-label="Blocked learning authority">
-                ${createToken('candidate persistence:blocked', 'neutral')}
+                ${createToken(currentCandidate ? 'candidate persistence:recorded' : 'candidate persistence:explicit-only', currentCandidate ? 'success' : 'warning')}
                 ${createToken('memory:blocked', 'neutral')}
                 ${createToken('skill:blocked', 'neutral')}
                 ${createToken('provider:blocked', 'neutral')}
@@ -11080,6 +11177,27 @@ function renderMissionLearningCandidatePreview(
                 ${createToken('release:blocked', 'neutral')}
                 ${createToken('next Mission:blocked', 'neutral')}
               </div>
+            </div>
+          `
+          : ''
+      }
+      ${
+        currentCandidate
+          ? `
+            <div class="learning-candidate-record" aria-label="Durable LearningCandidate evidence">
+              <div class="card-title-row card-title-row-tight">
+                <strong>${escapeHtml(currentCandidate.id)}</strong>
+                ${createToken('persisted:true', 'success')}
+                ${createToken(currentCandidate.reviewerStatus, 'warning')}
+                ${createToken(currentCandidate.promotionStatus, 'neutral')}
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(`candidate:${currentCandidate.candidateDigest}`, 'neutral')}
+                ${createToken(`record:${currentCandidate.recordDigest}`, 'neutral')}
+                ${createToken(`created:${currentCandidate.createdAt}`, 'neutral')}
+              </div>
+              <p><strong>Lesson</strong> ${escapeHtml(currentCandidate.lesson)}</p>
+              <p><strong>Review boundary</strong> review-required evidence only; promotion, memory, skill, provider, source, Git, release, scheduling, and next Mission remain blocked.</p>
             </div>
           `
           : ''
@@ -12676,6 +12794,7 @@ function renderDeliverables(data) {
       ${renderDurableDeliveryPackage(state.missionDurableDeliveryPackage, missionExecutionPlanBundle)}
       ${renderMissionLearningCandidatePreview(
         state.missionLearningCandidatePreview,
+        state.missionLearningCandidate,
         selectedMission,
         missionExecutionPlanBundle,
         state.missionDurableDeliveryPackage,
@@ -16213,6 +16332,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'preview-learning-candidate') {
         await previewMissionLearningCandidate(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'persist-learning-candidate') {
+        await persistMissionLearningCandidate(actionButton);
         return;
       }
 

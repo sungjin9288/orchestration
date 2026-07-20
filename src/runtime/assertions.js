@@ -60,11 +60,20 @@ function assertMissionCloseOut(missionCloseOutId, state) {
   return missionCloseOut;
 }
 
+function assertLearningCandidate(learningCandidateId, state) {
+  const learningCandidate = state.learningCandidates[learningCandidateId];
+  if (!learningCandidate) {
+    throw new Error(`LearningCandidate not found: ${learningCandidateId}`);
+  }
+  return learningCandidate;
+}
+
 module.exports = {
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,
   assertHandoffPacket,
+  assertLearningCandidate,
   assertMissionCloseOut,
   assertRun,
   assertWorkOrder,

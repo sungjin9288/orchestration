@@ -227,7 +227,7 @@ try {
     companyBlueprintPath: blueprintPath,
     companyRepoRoot: repoRoot,
   });
-  assert.equal(reloaded.getSnapshot().schemaVersion, 11);
+  assert.equal(reloaded.getSnapshot().schemaVersion, 12);
   assert.equal(reloaded.getCouncilSession(session.id).mode, 'real-openai-responses');
 
   let retryCalls = 0;
@@ -390,7 +390,7 @@ try {
           callBudget: 5,
         },
         compatibility: {
-      schemaVersion: 11,
+          schemaVersion: 12,
           localStub: true,
           legacyCouncil: true,
           downstreamMutation: false,

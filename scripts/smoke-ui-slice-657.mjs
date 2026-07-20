@@ -159,7 +159,7 @@ async function main() {
     assert.equal(persisted.response.status, 201);
     assert.equal(persisted.payload.durableDeliveryPackage.status, 'review-required');
     assert.equal(persisted.payload.durableDeliveryPackage.packageDigest, preview.packageDigest);
-    assert.equal(persisted.payload.snapshot.schemaVersion, 11);
+    assert.equal(persisted.payload.snapshot.schemaVersion, 12);
     assert.deepEqual(persisted.payload.snapshot.deliveryPackageAcceptances, {});
     assert.equal(persisted.payload.executionPlanBundle.mission.status, 'executing');
     assert.equal(persisted.payload.executionPlanBundle.executionPlan.status, 'delivery-ready');

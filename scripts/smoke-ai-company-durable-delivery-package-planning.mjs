@@ -147,7 +147,7 @@ assert.match(
 );
 
 // Keep planning provenance while pinning the exact implementation boundary it authorized.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 11/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 12/);
 assert.match(contracts, /deliveryPackage/);
 assert.match(fileStore, /validateDeliveryPackageRecords/);
 assert.match(runtimeService, /function previewExecutionPlanDelivery\(input\)/);
@@ -182,7 +182,7 @@ process.stdout.write(
         explicitOperatorRequestRequired: true,
       },
       currentRuntime: {
-        schemaVersion: 11,
+        schemaVersion: 12,
         responseOnlyPreview: true,
         durableDeliveryPackageRecords: true,
         persistenceRoutes: true,

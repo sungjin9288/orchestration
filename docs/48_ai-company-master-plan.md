@@ -363,11 +363,12 @@ applicability, verification commands, negative evidence, redaction acknowledgeme
 memory 밖에 저장하지 않는다.
 
 Durable LearningCandidate persistence planning-only authority는 `DEC-110`, complete fielded
-implementation handoff는 `DEC-111`로 기록됐다. Future schema-v12 slice는 exact terminal tuple,
-operator-owned retrospectiveSpec, `previewId`, `candidateDigest`, and `decision=persist`를 받아
-DEC-109 preview를 runtime에서 다시 계산한 뒤 one immutable `review-required`/`proposed` record만
-append하도록 제한한다. Current runtime remains schema v11 and no durable candidate exists.
-Implementation, candidate review outcome, memory/skill promotion, provider generation, raw evidence
+implementation handoff는 `DEC-111`, exact implementation은 `DEC-112`로 기록됐다. Schema-v12
+runtime은 exact terminal tuple, operator-owned retrospectiveSpec, source delivery preview id,
+LearningCandidate `previewId`, `candidateDigest`, and `decision=persist`를 받아 DEC-109 preview를
+다시 계산한 뒤 one immutable `review-required`/`proposed` record만 append한다. Invalid input은
+v11 migration도 기록하지 않고 exact replay는 read-only다. Candidate review outcome,
+memory/skill promotion, provider generation, raw evidence
 ingestion, source/Git/release action, scheduling, next-Mission, policy mutation, approval bypass, and
 connectors remain blocked.
 
@@ -408,6 +409,8 @@ node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-preview.mjs
 node scripts/smoke-ui-slice-660.mjs
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
+node scripts/smoke-ai-company-durable-learning-candidate.mjs
+node scripts/smoke-ui-slice-661.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -424,7 +427,7 @@ LearningCandidate preview planning/runtime/UI smokes는 consumed decision proven
 no-write posture, exact terminal source tuple, operator-owned retrospectiveSpec, response-only
 non-persistent output, browser-memory clearing, and blocked durable learning/memory/skill/provider/
 source/Git/release/scheduling/next-Mission authority를 확인한다.
-Durable LearningCandidate planning smoke는 DEC-110/111, future schema-v12 empty migration, exact
-runtime preview recomputation, immutable review-required record, and still-blocked implementation/
-review/memory/skill/provider/downstream authority를 확인한다.
+Durable LearningCandidate planning/runtime/UI smokes는 DEC-110/111/112, schema-v12 empty migration,
+exact runtime preview recomputation, immutable review-required record, read-only hydration, and
+still-blocked review/memory/skill/provider/downstream authority를 확인한다.
 Optional live-provider 결과는 별도 informational evidence다.

@@ -170,8 +170,8 @@ assert.match(
 assert.match(verification, /id: 'ai-company-learning-candidate-preview-implementation'/);
 assert.match(verification, /id: 'ai-company-learning-candidate-preview-ui-api'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 11/);
-assert.doesNotMatch(contracts, /learningCandidate/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 12/);
+assert.match(contracts, /learningCandidate: 0/);
 assert.match(learningCandidateCompiler, /function compileLearningCandidatePreview\(/);
 assert.match(runtimeService, /function previewMissionLearningCandidate\(/);
 assert.match(server, /learning-candidate-preview/);
@@ -197,16 +197,16 @@ process.stdout.write(
         persisted: false,
       },
       currentRuntime: {
-        schemaVersion: 11,
+        schemaVersion: 12,
         learningCandidateCompiler: true,
         learningCandidateRoute: true,
         learningCandidateUiPreview: true,
-        learningCandidatePersistence: false,
+        learningCandidatePersistence: true,
       },
       authority: {
         planningAllowed: true,
         implementationAllowed: true,
-        durableCandidateAllowed: false,
+        durableCandidateAllowed: true,
         memoryPersistenceAllowed: false,
         skillPromotionAllowed: false,
         providerGenerationAllowed: false,

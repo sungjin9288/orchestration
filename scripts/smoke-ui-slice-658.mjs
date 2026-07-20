@@ -182,7 +182,7 @@ async function main() {
     assert.equal(accepted.payload.deliveryPackageAcceptance.decision, 'accepted');
     assert.match(accepted.payload.deliveryPackageAcceptance.acceptanceDigest, /^[a-f0-9]{64}$/);
     assert.deepEqual(accepted.payload.durableDeliveryPackage, deliveryPackage);
-    assert.equal(accepted.payload.snapshot.schemaVersion, 11);
+    assert.equal(accepted.payload.snapshot.schemaVersion, 12);
     assert.equal(Object.keys(accepted.payload.snapshot.deliveryPackageAcceptances).length, 1);
     assert.equal(accepted.payload.executionPlanBundle.mission.status, 'executing');
     assert.equal(accepted.payload.executionPlanBundle.executionPlan.status, 'delivery-ready');

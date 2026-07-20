@@ -70,9 +70,9 @@ Future persistence must require all of the following:
    WorkflowCheckpoint, Builder/Reviewer/QA WorkOrders, passed review, QA artifact, approval, and
    Council evidence remain source-current and internally valid;
 3. exact request tuple includes `missionId`, `linkedTaskId`, `executionPlanId`, `deliveryPackageId`,
-   `deliveryPackageAcceptanceId`, `missionCloseOutId`, `previewId`, `sourceDigest`, `packageDigest`,
+   `deliveryPackageAcceptanceId`, `missionCloseOutId`, `sourceDeliveryPreviewId`, `sourceDigest`, `packageDigest`,
    `acceptanceDigest`, `checkpointId`, `checkpointDigest`, `closeOutDigest`, `candidateDigest`,
-   `retrospectiveSpec`, and `decision=persist`;
+   LearningCandidate `previewId`, `retrospectiveSpec`, and `decision=persist`;
 4. runtime recomputes the current DEC-109 preview from the request retrospectiveSpec;
 5. exact `previewId` and `candidateDigest` match that recomputation;
 6. preview expiry remains after the persistence time; expiry is still metadata and creates no timer;
@@ -291,8 +291,8 @@ scripts/ui_qa_status.mjs
 
 - Planning-only authority: accepted as `DEC-110`.
 - Complete fielded implementation handoff: documented as `DEC-111`.
-- Schema/runtime/API/UI implementation: blocked pending that complete fielded decision.
-- Current runtime remains schema v11 with DEC-109 response-only preview only.
+- Schema/runtime/API/UI implementation: accepted as `DEC-112` and verified on schema v12.
+- Current runtime preserves DEC-109 response-only preview and adds one explicit durable record path.
 - Candidate review outcome, memory/skill promotion, providers, raw evidence, source/Git/release,
   scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
@@ -300,6 +300,8 @@ scripts/ui_qa_status.mjs
 
 ```bash
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
+node scripts/smoke-ai-company-durable-learning-candidate.mjs
+node scripts/smoke-ui-slice-661.mjs
 node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-preview.mjs
 node scripts/smoke-ui-slice-660.mjs

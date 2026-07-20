@@ -13,6 +13,7 @@ const {
   DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
   EXECUTION_PLAN_STATUS,
   LEGACY_STATE_SCHEMA_VERSION,
+  LEARNING_CANDIDATE_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
@@ -38,6 +39,11 @@ const {
   TASK_LIFECYCLE_TRANSITION,
   computeMissionCloseOutDigest,
 } = require('./mission-close-outs');
+const { CLOSED_AUTHORITY } = require('./learning-candidate-preview');
+const {
+  LEARNING_CANDIDATE_STATUS,
+  computeLearningCandidateRecordDigest,
+} = require('./learning-candidates');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 
 function assertStringField(record, field, label) {
@@ -701,6 +707,224 @@ function validateMissionCloseOutRecords(state) {
   }
 }
 
+function validateLearningCandidateRecords(state) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const sourceMissionIds = new Set();
+
+  for (const [key, candidate] of Object.entries(state.learningCandidates)) {
+    const label = `LearningCandidate ${key}`;
+    if (
+      !candidate ||
+      typeof candidate !== 'object' ||
+      Array.isArray(candidate) ||
+      candidate.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      candidate,
+      [
+        'id',
+        'projectId',
+        'sourceMissionId',
+        'sourceMissionCloseOutId',
+        'sourceExecutionPlanId',
+        'sourceDeliveryPackageId',
+        'sourceDeliveryPackageAcceptanceId',
+        'sourceTerminalCheckpointId',
+        'sourceDeliveryPreviewId',
+        'sourceDigest',
+        'sourcePackageDigest',
+        'sourcePackageAcceptanceDigest',
+        'sourceTerminalCheckpointDigest',
+        'sourceMissionCloseOutDigest',
+        'sourceEvidenceRefs',
+        'lesson',
+        'applicability',
+        'negativeEvidence',
+        'redactionMode',
+        'redactionStatus',
+        'expiry',
+        'reviewerStatus',
+        'promotionStatus',
+        'authoritySummary',
+        'previewId',
+        'candidateDigest',
+        'persisted',
+        'createdAt',
+        'recordDigest',
+      ],
+      label,
+    );
+    for (const field of [
+      'projectId',
+      'sourceMissionId',
+      'sourceMissionCloseOutId',
+      'sourceExecutionPlanId',
+      'sourceDeliveryPackageId',
+      'sourceDeliveryPackageAcceptanceId',
+      'sourceTerminalCheckpointId',
+      'sourceDeliveryPreviewId',
+      'sourceDigest',
+      'sourcePackageDigest',
+      'sourcePackageAcceptanceDigest',
+      'sourceTerminalCheckpointDigest',
+      'sourceMissionCloseOutDigest',
+      'lesson',
+      'redactionMode',
+      'redactionStatus',
+      'reviewerStatus',
+      'promotionStatus',
+      'previewId',
+      'candidateDigest',
+      'createdAt',
+      'recordDigest',
+    ]) {
+      assertStringField(candidate, field, label);
+    }
+    assertStringArrayField(candidate, 'sourceEvidenceRefs', label);
+    if (
+      candidate.persisted !== true ||
+      candidate.redactionMode !== 'source-summary-only' ||
+      candidate.redactionStatus !== LEARNING_CANDIDATE_STATUS.REDACTION ||
+      candidate.reviewerStatus !== LEARNING_CANDIDATE_STATUS.REVIEWER ||
+      candidate.promotionStatus !== LEARNING_CANDIDATE_STATUS.PROMOTION
+    ) {
+      throw new Error(`${label} has invalid immutable status`);
+    }
+    for (const field of [
+      'sourceDigest',
+      'sourcePackageDigest',
+      'sourcePackageAcceptanceDigest',
+      'sourceTerminalCheckpointDigest',
+      'sourceMissionCloseOutDigest',
+      'candidateDigest',
+      'recordDigest',
+    ]) {
+      if (!digestPattern.test(candidate[field])) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      Number.isNaN(Date.parse(candidate.createdAt)) ||
+      new Date(candidate.createdAt).toISOString() !== candidate.createdAt
+    ) {
+      throw new Error(`${label} has invalid createdAt`);
+    }
+    if (
+      !candidate.expiry ||
+      typeof candidate.expiry !== 'object' ||
+      Array.isArray(candidate.expiry)
+    ) {
+      throw new Error(`${label} has invalid expiry`);
+    }
+    assertExactObjectKeys(candidate.expiry, ['expiresAt', 'status'], `${label} expiry`);
+    if (
+      typeof candidate.expiry.expiresAt !== 'string' ||
+      Number.isNaN(Date.parse(candidate.expiry.expiresAt)) ||
+      new Date(candidate.expiry.expiresAt).toISOString() !== candidate.expiry.expiresAt ||
+      candidate.expiry.status !== 'review-required' ||
+      Date.parse(candidate.expiry.expiresAt) <= Date.parse(candidate.createdAt)
+    ) {
+      throw new Error(`${label} has invalid expiry`);
+    }
+    if (
+      !candidate.applicability ||
+      typeof candidate.applicability !== 'object' ||
+      Array.isArray(candidate.applicability)
+    ) {
+      throw new Error(`${label} has invalid applicability`);
+    }
+    assertExactObjectKeys(
+      candidate.applicability,
+      ['summary', 'projectId', 'targetPathAllowlist', 'verificationCommands'],
+      `${label} applicability`,
+    );
+    assertStringField(candidate.applicability, 'summary', `${label} applicability`);
+    assertStringField(candidate.applicability, 'projectId', `${label} applicability`);
+    assertStringArrayField(
+      candidate.applicability,
+      'targetPathAllowlist',
+      `${label} applicability`,
+    );
+    assertStringArrayField(
+      candidate.applicability,
+      'verificationCommands',
+      `${label} applicability`,
+    );
+    if (
+      candidate.applicability.projectId !== candidate.projectId ||
+      !Array.isArray(candidate.negativeEvidence) ||
+      candidate.negativeEvidence.length === 0 ||
+      candidate.negativeEvidence.some(
+        (entry) =>
+          !entry ||
+          typeof entry !== 'object' ||
+          Array.isArray(entry) ||
+          Object.keys(entry).sort().join(',') !== 'sourceEvidenceRef,statement' ||
+          typeof entry.sourceEvidenceRef !== 'string' ||
+          !entry.sourceEvidenceRef ||
+          typeof entry.statement !== 'string' ||
+          !entry.statement ||
+          !candidate.sourceEvidenceRefs.includes(entry.sourceEvidenceRef),
+      )
+    ) {
+      throw new Error(`${label} has invalid applicability or negative evidence`);
+    }
+    if (
+      !candidate.authoritySummary ||
+      typeof candidate.authoritySummary !== 'object' ||
+      Array.isArray(candidate.authoritySummary) ||
+      Object.keys(candidate.authoritySummary).length !== Object.keys(CLOSED_AUTHORITY).length ||
+      Object.keys(CLOSED_AUTHORITY).some(
+        (field) => candidate.authoritySummary[field] !== CLOSED_AUTHORITY[field],
+      )
+    ) {
+      throw new Error(`${label} has invalid authoritySummary`);
+    }
+
+    const mission = state.missions[candidate.sourceMissionId];
+    const closeOut = state.missionCloseOuts[candidate.sourceMissionCloseOutId];
+    const plan = state.executionPlans[candidate.sourceExecutionPlanId];
+    const deliveryPackage = state.deliveryPackages[candidate.sourceDeliveryPackageId];
+    const acceptance =
+      state.deliveryPackageAcceptances[candidate.sourceDeliveryPackageAcceptanceId];
+    const checkpoint = state.workflowCheckpoints[candidate.sourceTerminalCheckpointId];
+    if (
+      !mission ||
+      mission.projectId !== candidate.projectId ||
+      mission.status !== 'completed' ||
+      !closeOut ||
+      closeOut.missionId !== mission.id ||
+      closeOut.executionPlanId !== candidate.sourceExecutionPlanId ||
+      closeOut.deliveryPackageId !== candidate.sourceDeliveryPackageId ||
+      closeOut.deliveryPackageAcceptanceId !==
+        candidate.sourceDeliveryPackageAcceptanceId ||
+      closeOut.terminalCheckpointId !== candidate.sourceTerminalCheckpointId ||
+      closeOut.closeOutDigest !== candidate.sourceMissionCloseOutDigest ||
+      !plan ||
+      plan.missionId !== mission.id ||
+      plan.sourceDigest !== candidate.sourceDigest ||
+      !deliveryPackage ||
+      deliveryPackage.previewId !== candidate.sourceDeliveryPreviewId ||
+      deliveryPackage.packageDigest !== candidate.sourcePackageDigest ||
+      !acceptance ||
+      acceptance.acceptanceDigest !== candidate.sourcePackageAcceptanceDigest ||
+      !checkpoint ||
+      checkpoint.checkpointDigest !== candidate.sourceTerminalCheckpointDigest
+    ) {
+      throw new Error(`${label} has invalid terminal source binding`);
+    }
+    if (sourceMissionIds.has(candidate.sourceMissionId)) {
+      throw new Error(`${label} duplicates Mission learning evidence`);
+    }
+    sourceMissionIds.add(candidate.sourceMissionId);
+    if (computeLearningCandidateRecordDigest(candidate) !== candidate.recordDigest) {
+      throw new Error(`${label} recordDigest does not match its immutable payload`);
+    }
+  }
+}
+
 function validateDurableWorkOrderRecords(state) {
   const planStatuses = new Set(Object.values(EXECUTION_PLAN_STATUS));
   const workOrderStatuses = new Set(Object.values(WORK_ORDER_STATUS));
@@ -895,6 +1119,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== DELIVERY_PACKAGE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -978,6 +1203,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= LEARNING_CANDIDATE_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.learningCandidate) ||
+        !state.learningCandidates ||
+        typeof state.learningCandidates !== 'object' ||
+        Array.isArray(state.learningCandidates)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing LearningCandidate fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -1004,6 +1242,7 @@ function createFileStore(options = {}) {
       deliveryPackages: state.deliveryPackages || {},
       deliveryPackageAcceptances: state.deliveryPackageAcceptances || {},
       missionCloseOuts: state.missionCloseOuts || {},
+      learningCandidates: state.learningCandidates || {},
     };
 
     if (sourceSchemaVersion < WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION) {
@@ -1270,6 +1509,7 @@ function createFileStore(options = {}) {
     validateDeliveryPackageRecords(normalizedState);
     validateDeliveryPackageAcceptanceRecords(normalizedState);
     validateMissionCloseOutRecords(normalizedState);
+    validateLearningCandidateRecords(normalizedState);
     return normalizedState;
   }
 
@@ -1307,6 +1547,13 @@ function createFileStore(options = {}) {
       throw new Error(`state must use current schema v${STATE_SCHEMA_VERSION}`);
     }
     return normalizeState(sourceState);
+  }
+
+  function loadStateSupportedReadonly() {
+    if (!fs.existsSync(statePath)) {
+      throw new Error('state file does not exist');
+    }
+    return normalizeState(JSON.parse(fs.readFileSync(statePath, 'utf8')));
   }
 
   function writeStateAtomically(state) {
@@ -1414,6 +1661,7 @@ function createFileStore(options = {}) {
     deletedArtifactsDir,
     loadState,
     loadStateReadonly,
+    loadStateSupportedReadonly,
     logsDir,
     moveArtifactToArchive,
     moveArtifactToDeleted,

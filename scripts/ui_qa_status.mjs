@@ -220,6 +220,12 @@ const smokeChecks = [
     purpose:
       'LearningCandidate UI and API preserve bounded JSON-only exact terminal evidence gating, explicit response-only preview, source-summary-only redaction and review-required status, Mission-scoped draft reset and edit invalidation, safe stale malformed oversized wrong-content-type and credential failures, no runtime path exposure, responsive fit, and blocked downstream authority',
   },
+  {
+    id: 'ai-company-durable-learning-candidate-ui-api',
+    script: 'scripts/smoke-ui-slice-661.mjs',
+    purpose:
+      'Durable LearningCandidate UI and API preserve exact-gated explicit persistence, read-only durable hydration, response-only preview compatibility, safe failures, idempotent replay, runtime-path redaction, responsive fit, and absent review promotion or downstream controls',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
