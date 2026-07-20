@@ -552,6 +552,11 @@ const informationalChecks = [
     purpose: 'AI Company LearningCandidate UI and API prove bounded JSON-only terminal response preview, exact tuple gating, redaction and review-required evidence, Mission-scoped draft reset, edit invalidation, browser-memory-only lifecycle, stale malformed oversized wrong-content-type and credential failure safety, no runtime path GET or snapshot persistence, responsive fit, and absent downstream controls',
   },
   {
+    id: 'ai-company-durable-learning-candidate-planning',
+    script: 'scripts/smoke-ai-company-durable-learning-candidate-planning.mjs',
+    purpose: 'AI Company durable LearningCandidate planning pins DEC-110 and DEC-111, future additive schema v12 sequence and map only migration, exact runtime recomputation of the current DEC-109 preview, one immutable review-required proposed record, strict stale expired malformed and authority-widening no-write behavior, rollback retention, and current schema v11 negative evidence with implementation candidate review memory skill provider raw evidence source Git release scheduling next-Mission policy bypass and connectors still blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

@@ -473,9 +473,16 @@ response-only implementation은 `DEC-109`로 문서화됐다. Current schema-v11
 one exact operator-owned `retrospectiveSpec`을 read-only로 검증해 deterministic deeply frozen
 `persisted=false` preview만 반환한다. Source evidence에 없는 lesson, path, command, or negative
 evidence를 invent하지 않고 raw transcript, artifact body, source content, provider payload, secret를
-입력으로 받지 않는다. Schema-v12, durable candidate lifecycle, review outcome, memory/skill
-promotion, provider generation, source/Git/release, scheduling, next-Mission, policy, bypass, and
-connectors remain blocked.
+입력으로 받지 않는다.
+
+Durable LearningCandidate persistence planning은 `DEC-110`, implementation handoff는 `DEC-111`로
+문서화됐다. Planned schema-v12 path는 sequence/map만 add하고, exact terminal tuple plus
+retrospectiveSpec에서 DEC-109 preview를 recompute한 뒤 exact `previewId`, `candidateDigest`, and
+`decision=persist`가 모두 맞을 때 one immutable `persisted=true`,
+`redactionStatus=review-required`, `reviewerStatus=review-required`,
+`promotionStatus=proposed` record만 append한다. Current runtime remains schema v11. Implementation,
+candidate review outcome, memory/skill promotion, provider generation, source/Git/release,
+scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 ## Verification
 
@@ -512,6 +519,7 @@ node scripts/smoke-ui-slice-659.mjs
 node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-preview.mjs
 node scripts/smoke-ui-slice-660.mjs
+node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -522,6 +530,7 @@ exact-gated reviewed delivery, Phase 7 schema-v8 safe recovery, schema-v9 durabl
 append-only acceptance implementation boundary, and planning-only Mission/task close-out boundary를
 검증한다. Mission/task close-out runtime/UI smoke는 current schema-v11 terminal transaction을
 검증하고, LearningCandidate planning/runtime/UI smokes는 no-write response-only Phase 8 boundary와
-browser-memory-only lifecycle을 고정한다.
+browser-memory-only lifecycle을 고정한다. Durable LearningCandidate planning smoke는 current
+schema-v11 negative evidence와 future schema-v12 exact recomputation/persistence gate를 고정한다.
 StaffingPlan, Builder replay, auto-rework, provider-backed WorkOrders, durable learning, memory/skill
 promotion, commit/push/release는 blocked다.

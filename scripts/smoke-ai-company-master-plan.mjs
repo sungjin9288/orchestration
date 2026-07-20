@@ -200,6 +200,12 @@ assert.match(decisionLog, /^### DEC-106$/m);
 assert.match(decisionLog, /^### DEC-107$/m);
 assert.match(decisionLog, /^### DEC-108$/m);
 assert.match(decisionLog, /^### DEC-109$/m);
+assert.match(decisionLog, /^### DEC-110$/m);
+assert.match(decisionLog, /^### DEC-111$/m);
+assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
+assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
+assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
+assert.match(deliveryRoadmapText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -268,6 +274,8 @@ process.stdout.write(
         'DEC-107',
         'DEC-108',
         'DEC-109',
+        'DEC-110',
+        'DEC-111',
       ],
       currentRuntime: {
         schemaVersion: 11,
@@ -302,6 +310,7 @@ process.stdout.write(
         missionTaskCloseOutAllowed: true,
         learningCandidatePreviewPlanningAllowed: true,
         learningCandidatePreviewImplementationAllowed: true,
+        durableLearningCandidatePlanningAllowed: true,
         durableLearningCandidateAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
@@ -311,7 +320,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Separate fielded decision required for durable LearningCandidate lifecycle',
+      nextGate: 'Complete fielded decision required for durable LearningCandidate implementation',
     },
     null,
     2,

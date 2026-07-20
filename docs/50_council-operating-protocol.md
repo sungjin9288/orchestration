@@ -359,8 +359,14 @@ LearningCandidate preview planning은 `DEC-107`, complete fielded implementation
 synthesis는 retrospective의 허용 source evidence 일부일 뿐이며 단독으로 lesson, applicability,
 negative evidence, candidate review, memory, or skill authority를 만들지 않는다. Current path는
 exact completed Mission tuple과 operator-owned `retrospectiveSpec`을 요구하고 source-contained
-refs만 정규화한다. Durable candidate, provider generation, raw evidence ingestion, memory/skill
-promotion, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+refs만 정규화한다.
+
+Durable LearningCandidate persistence planning은 `DEC-110`, complete fielded implementation
+handoff는 `DEC-111`로 기록됐다. Planned persistence는 Council evidence를 새로 생성하거나
+재해석하지 않고 exact DEC-109 preview recomputation의 existing source ref로만 보존한다. Current
+runtime remains schema v11; durable candidate implementation, candidate review, provider generation,
+raw evidence ingestion, memory/skill promotion, source/Git/release, scheduling, next-Mission, policy,
+bypass, and connectors remain blocked.
 
 ## Verification
 
@@ -394,6 +400,7 @@ node scripts/smoke-ui-slice-659.mjs
 node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-preview.mjs
 node scripts/smoke-ui-slice-660.mjs
+node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -410,4 +417,5 @@ schema-v11 exact event-plus-transition, terminal replay, bypass guards, and stan
 isolation을 고정한다.
 LearningCandidate preview planning/runtime/UI smokes는 Council evidence가 bounded source ref로만
 사용되고 response-only preview 밖의 모든 durable learning promotion authority가 blocked임을
-고정한다.
+고정한다. Durable LearningCandidate planning smoke는 future durable record가 Council execution이나
+learning acceptance authority를 새로 만들지 않는 exact persistence gate임을 고정한다.

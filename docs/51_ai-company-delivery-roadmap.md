@@ -377,9 +377,15 @@ implementation decision handoff는 `DEC-108`, exact response-only implementation
 기록됐다. Current path keeps schema v11 and requires one exact completed Mission/MissionCloseOut
 source tuple plus one operator-owned `retrospectiveSpec`. It returns only a deterministic deeply frozen
 response-only preview with `persisted=false`, `reviewerStatus=review-required`,
-`promotionStatus=proposed`, and every downstream authority false. Schema-v12, durable candidate
-lifecycle or review outcome, memory/skill promotion, provider generation, raw evidence ingestion,
-source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+`promotionStatus=proposed`, and every downstream authority false.
+
+Durable LearningCandidate persistence planning-only authority는 `DEC-110`, complete fielded
+implementation decision handoff는 `DEC-111`로 기록됐다. The planned schema-v12 slice adds only an
+empty sequence/map migration and one exact explicit persistence path that recomputes DEC-109 from the
+current terminal tuple plus retrospectiveSpec before appending one immutable review-required/proposed
+record. Current runtime remains schema v11. Implementation, candidate review outcome, memory/skill
+promotion, provider generation, raw evidence ingestion, source/Git/release, scheduling, next-Mission,
+policy, bypass, and connectors remain blocked.
 
 ## Phase 9: Dogfood And Productization
 
@@ -535,6 +541,7 @@ node scripts/smoke-ui-slice-659.mjs
 node scripts/smoke-ai-company-learning-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-preview.mjs
 node scripts/smoke-ui-slice-660.mjs
+node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -552,3 +559,6 @@ first replay, generic bypass guards, standalone close-out compatibility, and exa
 LearningCandidate preview planning/runtime/UI evidence는 schema-v11 no-write compatibility, exact
 terminal source tuple, operator-owned retrospectiveSpec, response-only non-persistence,
 browser-memory clearing, and still-blocked promotion/downstream authority를 확인한다.
+Durable LearningCandidate planning evidence는 current schema-v11 negative evidence, future schema-v12
+sequence/map-only migration, exact runtime recomputation, immutable review-required record boundary,
+and blocked implementation/review/memory/skill/provider/downstream authority를 확인한다.
