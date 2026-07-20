@@ -486,6 +486,13 @@ retrospectiveSpec에서 DEC-109 preview를 recompute한 뒤 exact `previewId`, `
 provider generation, source/Git/release,
 scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
+LearningCandidate review outcome planning은 `DEC-113`, implementation decision handoff는
+`DEC-114`로 문서화됐다. Planned schema-v13 runtime은 candidate 자체를 rewrite하지 않고 exact
+candidate id, preview/candidate/record digests, unexpired review window, bounded rationale,
+source-contained evidence refs, and `human-reviewed` acknowledgement에 결속된 one append-only
+accepted/rejected/changes-requested event만 허용한다. Current schema v12에는 review sequence,
+record, route, or UI action이 없다.
+
 ## Verification
 
 ```bash
@@ -524,6 +531,7 @@ node scripts/smoke-ui-slice-660.mjs
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/smoke-ai-company-durable-learning-candidate.mjs
 node scripts/smoke-ui-slice-661.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/verification_status.mjs
 ```
 

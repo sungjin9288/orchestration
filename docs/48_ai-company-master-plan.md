@@ -372,6 +372,13 @@ memory/skill promotion, provider generation, raw evidence
 ingestion, source/Git/release action, scheduling, next-Mission, policy mutation, approval bypass, and
 connectors remain blocked.
 
+LearningCandidate review outcome planning-only authority는 `DEC-113`, complete fielded
+implementation decision handoff는 `DEC-114`로 기록됐다. The planned schema-v13 path preserves the
+schema-v12 candidate as immutable and appends at most one exact accepted, rejected, or
+changes-requested review event after candidate/digest/expiry validation. Current runtime remains
+schema v12; review implementation, candidate revision, expiry/quarantine, memory/skill, provider,
+source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
@@ -411,6 +418,7 @@ node scripts/smoke-ui-slice-660.mjs
 node scripts/smoke-ai-company-durable-learning-candidate-planning.mjs
 node scripts/smoke-ai-company-durable-learning-candidate.mjs
 node scripts/smoke-ui-slice-661.mjs
+node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/verification_status.mjs
 ```
 

@@ -202,10 +202,17 @@ assert.match(decisionLog, /^### DEC-108$/m);
 assert.match(decisionLog, /^### DEC-109$/m);
 assert.match(decisionLog, /^### DEC-110$/m);
 assert.match(decisionLog, /^### DEC-111$/m);
+assert.match(decisionLog, /^### DEC-112$/m);
+assert.match(decisionLog, /^### DEC-113$/m);
+assert.match(decisionLog, /^### DEC-114$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(deliveryRoadmapText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
+assert.match(masterPlanText, /LearningCandidate review outcome planning-only authority는 `DEC-113`/);
+assert.match(runtimeContractText, /LearningCandidate review outcome planning은 `DEC-113`/);
+assert.match(councilProtocolText, /LearningCandidate review outcome planning은 `DEC-113`/);
+assert.match(deliveryRoadmapText, /LearningCandidate review outcome planning-only authority는 `DEC-113`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -277,6 +284,8 @@ process.stdout.write(
         'DEC-110',
         'DEC-111',
         'DEC-112',
+        'DEC-113',
+        'DEC-114',
       ],
       currentRuntime: {
         schemaVersion: 12,
@@ -314,6 +323,8 @@ process.stdout.write(
         learningCandidatePreviewImplementationAllowed: true,
         durableLearningCandidatePlanningAllowed: true,
         durableLearningCandidateAllowed: true,
+        learningCandidateReviewPlanningAllowed: true,
+        learningCandidateReviewAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,

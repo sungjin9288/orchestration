@@ -567,6 +567,11 @@ const informationalChecks = [
     purpose: 'AI Company durable LearningCandidate UI and API prove exact-gated explicit persistence, read-only durable hydration, response-only preview compatibility, safe stale malformed and content-type failures, idempotent replay, runtime-path redaction, responsive fit, and absent candidate review promotion memory skill provider source Git release schedule next-Mission policy bypass and connector controls',
   },
   {
+    id: 'ai-company-learning-candidate-review-outcome-planning',
+    script: 'scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs',
+    purpose: 'AI Company LearningCandidate review outcome planning pins DEC-113 and DEC-114, future additive schema v13 sequence and map only migration, exact current learningCandidateId previewId candidateDigest and candidateRecordDigest plus expiry rationale evidence refs and acknowledgement binding, one immutable accepted rejected or changes-requested event, strict no-write behavior and rollback retention, and current schema v12 negative evidence with implementation candidate mutation expiry quarantine memory skill provider raw evidence source Git release scheduling next-Mission policy bypass and connectors still blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',
