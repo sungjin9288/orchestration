@@ -147,6 +147,9 @@ const {
   normalizeLearningCandidateReviewRequest,
 } = require('./learning-candidate-reviews');
 const {
+  previewLearningCandidateMemory: compileMemoryCandidatePreview,
+} = require('./memory-candidate-preview');
+const {
   assertSupportedArtifactType,
   cloneJsonValue,
   compareByCreatedDesc,
@@ -3919,6 +3922,80 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  function assertExactMemoryCandidatePreviewInput(input) {
+    const expectedFields = [
+      'learningCandidateId',
+      'learningCandidateReviewId',
+      'previewId',
+      'candidateDigest',
+      'candidateRecordDigest',
+      'reviewDigest',
+      'evaluatedAt',
+      'memorySpec',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict(
+        'MemoryCandidate preview request has unexpected or missing fields',
+      );
+    }
+  }
+
+  function previewLearningCandidateMemory(input) {
+    assertExactMemoryCandidatePreviewInput(input);
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`MemoryCandidate preview requires current state: ${error.message}`);
+    }
+
+    const candidate = assertLearningCandidate(input.learningCandidateId, state);
+    const review = assertLearningCandidateReview(
+      input.learningCandidateReviewId,
+      state,
+    );
+    assertLearningCandidateReviewSourceCurrent(state, candidate);
+    const currentReview = findLearningCandidateReview(state, candidate.id);
+    if (!currentReview || currentReview.id !== review.id) {
+      throw conflict(
+        `LearningCandidate ${candidate.id} does not have the requested current review`,
+      );
+    }
+    for (const [field, expected] of [
+      ['previewId', candidate.previewId],
+      ['candidateDigest', candidate.candidateDigest],
+      ['candidateRecordDigest', candidate.recordDigest],
+      ['reviewDigest', review.reviewDigest],
+    ]) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`MemoryCandidate preview ${field} does not match current evidence`);
+      }
+    }
+    if (review.decision !== 'accepted') {
+      throw conflict(
+        `LearningCandidateReview ${review.id} is not accepted for memory readiness`,
+      );
+    }
+
+    try {
+      return compileMemoryCandidatePreview({
+        candidate,
+        review,
+        evaluatedAt: input.evaluatedAt,
+        memorySpec: input.memorySpec,
+      });
+    } catch (error) {
+      if (/source LearningCandidate|source LearningCandidateReview|expired/.test(error.message)) {
+        throw conflict(error.message);
+      }
+      throw error;
+    }
+  }
+
   function assertExactDeliveryPackageTuple(input, preview) {
     const exactFields = [
       ['previewId', preview.id],
@@ -5763,6 +5840,7 @@ function createRuntimeService(options = {}) {
     previewRetentionConsumer,
     preflightMissionWorkOrderPreview,
     previewMissionLearningCandidate,
+    previewLearningCandidateMemory,
     previewMissionWorkOrders,
     previewExecutionPlanDelivery,
     persistExecutionPlanDeliveryPackage,

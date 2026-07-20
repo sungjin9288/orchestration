@@ -494,12 +494,13 @@ accepted/rejected/changes-requested event만 허용한다. GET/POST와 Deliverab
 review evidence만 노출하며 candidate status나 downstream authority를 변경하지 않는다.
 
 MemoryCandidate preview planning은 `DEC-116`, complete fielded implementation handoff는
-`DEC-117`로 문서화됐다. Planned runtime은 schema v13 read-only state에서 exact accepted
-LearningCandidateReview, immutable candidate/source closure, project-only scope, source-contained
-applicability/evidence/negative-evidence/redaction/review refs, expiry, and explicit non-persistence
-statement를 검증한 뒤 one response-only preview에서 멈춘다. Runtime method, POST route, UI form,
-schema migration, durable memory, retrieval/import/apply/export/delete, skill promotion, provider,
-source/Git/release, scheduling, next-Mission, policy, bypass, and connectors는 아직 blocked다.
+`DEC-117`, exact response-only runtime/API/UI implementation은 `DEC-118`로 문서화됐다. Schema v13
+read-only state에서 exact accepted LearningCandidateReview, immutable candidate/source closure,
+project-only scope, source-contained applicability/evidence/negative-evidence/redaction/review refs,
+expiry, and explicit non-persistence statement를 검증한 뒤 one deeply frozen response-only
+preview에서 멈춘다. POST와 browser memory만 사용하고 schema migration, GET/snapshot/durable
+memory, retrieval/import/apply/export/delete, skill promotion, provider, source/Git/release,
+scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
 
 ## Verification
 
@@ -543,6 +544,8 @@ node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
 node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
+node scripts/smoke-ai-company-memory-candidate-preview.mjs
+node scripts/smoke-ui-slice-663.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -556,6 +559,7 @@ append-only acceptance implementation boundary, and planning-only Mission/task c
 browser-memory-only lifecycle을 고정한다. Durable LearningCandidate planning/runtime/UI smokes는
 schema-v12 exact recomputation, one-save persistence, reload hydration, and blocked review/promotion
 authority를 고정한다. LearningCandidate review smokes는 schema-v13 immutable source plus append-only
-outcome을 고정하고, MemoryCandidate planning smoke는 accepted review를 storage approval로 오해하지
-않는 response-only contract를 고정한다. StaffingPlan, Builder replay, auto-rework, provider-backed
+outcome을 고정한다. MemoryCandidate planning/runtime/UI smokes는 accepted review를 storage
+approval로 오해하지 않는 exact zero-write response/browser-memory contract를 고정한다.
+StaffingPlan, Builder replay, auto-rework, provider-backed
 WorkOrders, memory/skill promotion, commit/push/release는 blocked다.

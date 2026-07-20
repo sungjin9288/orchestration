@@ -232,6 +232,12 @@ const smokeChecks = [
     purpose:
       'LearningCandidate review UI and API preserve exact candidate and digest gating, one explicit human-reviewed accepted rejected or changes-requested event, immutable candidate evidence, safe stale and malformed failures, idempotent replay, responsive fit, and blocked revision promotion or downstream controls',
   },
+  {
+    id: 'ai-company-memory-candidate-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-663.mjs',
+    purpose:
+      'MemoryCandidate UI and API preserve accepted-review-only exact tuple gating, bounded project-scoped memorySpec, response and browser-memory-only review-ready evidence, edit refresh and failure invalidation, safe stale malformed oversized wrong-content-type credential and cross-workspace refusal, responsive fit, and absent storage retrieval application promotion or downstream controls',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

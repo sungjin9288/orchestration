@@ -144,6 +144,7 @@ import {
   getMissionLearningCandidatePreviewSummary,
   getMissionLearningCandidatePersistenceSummary,
   getLearningCandidateReviewSummary,
+  getMemoryCandidatePreviewSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -371,6 +372,21 @@ const state = {
     reviewerAcknowledgement: 'human-reviewed',
   },
   missionLearningCandidateReview: null,
+  missionMemoryCandidateDraft: {
+    summary: '',
+    applicabilitySummary: '',
+    targetPathAllowlist: '',
+    verificationCommands: '',
+    evidenceRefs: '',
+    negativeEvidenceRefs: '',
+    redactionRefs: '',
+    reviewRefs: '',
+    expiresAt: '',
+    workspaceProjectId: '',
+    redactionAcknowledgement: 'source-summary-only',
+    nonPersistenceStatement: 'readiness-only-not-durable-memory',
+  },
+  missionMemoryCandidatePreview: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4743,6 +4759,12 @@ function applySnapshotPayload(payload) {
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'learningCandidateReview')) {
     state.missionLearningCandidateReview = payload.learningCandidateReview || null;
+    state.missionMemoryCandidatePreview = null;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'memoryCandidatePreview')) {
+    state.missionMemoryCandidatePreview = payload.memoryCandidatePreview || null;
+  } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
+    state.missionMemoryCandidatePreview = null;
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
@@ -4817,6 +4839,7 @@ async function hydrateSelectedDetails() {
   state.missionLearningCandidatePreview = null;
   state.missionLearningCandidate = null;
   state.missionLearningCandidateReview = null;
+  state.missionMemoryCandidatePreview = null;
   state.missionLearningCandidateDraft = {
     lesson: '',
     applicabilitySummary: '',
@@ -4831,6 +4854,20 @@ async function hydrateSelectedDetails() {
     rationale: '',
     evidenceRefs: [],
     reviewerAcknowledgement: 'human-reviewed',
+  };
+  state.missionMemoryCandidateDraft = {
+    summary: '',
+    applicabilitySummary: '',
+    targetPathAllowlist: '',
+    verificationCommands: '',
+    evidenceRefs: '',
+    negativeEvidenceRefs: '',
+    redactionRefs: '',
+    reviewRefs: '',
+    expiresAt: '',
+    workspaceProjectId: '',
+    redactionAcknowledgement: 'source-summary-only',
+    nonPersistenceStatement: 'readiness-only-not-durable-memory',
   };
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
@@ -6280,10 +6317,109 @@ async function reviewLearningCandidate(actionButton) {
     state.missionLearningCandidate = payload.learningCandidate || candidate;
     state.missionLearningCandidateReview =
       payload.learningCandidateReview || null;
+    state.missionMemoryCandidatePreview = null;
     state.surface = 'deliverables';
     render();
     elements.refreshStatus.textContent =
       `${payload.learningCandidateReview.id} ${payload.learningCandidateReview.decision} 검토를 기록했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+function readMemoryCandidateDraft(form) {
+  const formData = new FormData(form);
+  const draft = {
+    summary: String(formData.get('summary') || ''),
+    applicabilitySummary: String(formData.get('applicabilitySummary') || ''),
+    targetPathAllowlist: String(formData.get('targetPathAllowlist') || ''),
+    verificationCommands: String(formData.get('verificationCommands') || ''),
+    evidenceRefs: String(formData.get('evidenceRefs') || ''),
+    negativeEvidenceRefs: String(formData.get('negativeEvidenceRefs') || ''),
+    redactionRefs: String(formData.get('redactionRefs') || ''),
+    reviewRefs: String(formData.get('reviewRefs') || ''),
+    expiresAt: String(formData.get('expiresAt') || ''),
+    workspaceProjectId: String(formData.get('workspaceProjectId') || ''),
+    redactionAcknowledgement: String(
+      formData.get('redactionAcknowledgement') || '',
+    ),
+    nonPersistenceStatement: String(
+      formData.get('nonPersistenceStatement') || '',
+    ),
+  };
+  state.missionMemoryCandidateDraft = draft;
+  return {
+    summary: draft.summary,
+    workspaceScope: {
+      projectId: draft.workspaceProjectId,
+    },
+    applicability: {
+      summary: draft.applicabilitySummary,
+      targetPathAllowlist: parseMissionWorkOrderCompileList(
+        draft.targetPathAllowlist,
+      ),
+      verificationCommands: parseMissionWorkOrderCompileList(
+        draft.verificationCommands,
+      ),
+    },
+    evidenceRefs: parseMissionWorkOrderCompileList(draft.evidenceRefs),
+    negativeEvidenceRefs: parseMissionWorkOrderCompileList(
+      draft.negativeEvidenceRefs,
+    ),
+    redactionRefs: parseMissionWorkOrderCompileList(draft.redactionRefs),
+    reviewRefs: parseMissionWorkOrderCompileList(draft.reviewRefs),
+    expiresAt: draft.expiresAt,
+    redactionAcknowledgement: draft.redactionAcknowledgement,
+    nonPersistenceStatement: draft.nonPersistenceStatement,
+  };
+}
+
+async function previewLearningCandidateMemory(actionButton) {
+  const form = actionButton?.closest?.('[data-form="preview-memory-candidate"]');
+  const learningCandidateId = String(actionButton?.dataset.id || '').trim();
+  const candidate = state.missionLearningCandidate;
+  const review = state.missionLearningCandidateReview;
+  if (
+    !form ||
+    !candidate ||
+    candidate.id !== learningCandidateId ||
+    !review
+  ) {
+    throw new Error('MemoryCandidate preview source evidence를 찾을 수 없습니다.');
+  }
+  const summary = getMemoryCandidatePreviewSummary(
+    candidate,
+    review,
+    candidate.sourceMissionId,
+  );
+  if (!summary?.canPreview) {
+    throw new Error('accepted current LearningCandidate review만 memory readiness로 계산할 수 있습니다.');
+  }
+  const memorySpec = readMemoryCandidateDraft(form);
+
+  state.error = null;
+  state.mutating = true;
+  state.missionMemoryCandidatePreview = null;
+  elements.refreshStatus.textContent =
+    `${candidate.id} memory readiness를 검증하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/memory-candidate-preview`,
+      {
+        ...summary.source,
+        evaluatedAt: new Date().toISOString(),
+        memorySpec,
+      },
+    );
+    state.missionMemoryCandidatePreview =
+      payload.memoryCandidatePreview || null;
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.memoryCandidatePreview.id}를 response-only로 계산했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -11402,6 +11538,226 @@ function renderMissionLearningCandidatePreview(
   `;
 }
 
+function renderMemoryCandidatePreview(
+  preview,
+  durableCandidate,
+  durableReview,
+  mission,
+) {
+  const summary = getMemoryCandidatePreviewSummary(
+    durableCandidate,
+    durableReview,
+    mission?.id,
+  );
+  if (!summary?.canPreview) return '';
+
+  const draft = state.missionMemoryCandidateDraft;
+  const workspaceProjectId =
+    draft.workspaceProjectId || summary.workspaceProjectId;
+  const targetPathAllowlist =
+    draft.targetPathAllowlist || summary.targetPathAllowlist.join('\n');
+  const verificationCommands =
+    draft.verificationCommands || summary.verificationCommands.join('\n');
+  const evidenceRefs =
+    draft.evidenceRefs || durableReview.evidenceRefs.join('\n');
+  const negativeEvidenceRefs =
+    draft.negativeEvidenceRefs || summary.negativeEvidenceRefs.join('\n');
+  const redactionRefs =
+    draft.redactionRefs || summary.redactionRefs.join('\n');
+  const reviewRefs =
+    draft.reviewRefs || summary.reviewRefs.join('\n');
+  const expiresAt =
+    draft.expiresAt || durableCandidate.expiry.expiresAt;
+  const currentPreview =
+    preview?.sourceLearningCandidateId === durableCandidate.id &&
+    preview?.sourceLearningCandidateReviewId === durableReview.id
+      ? preview
+      : null;
+  const blockedActionTokens = (currentPreview?.blockedActions || [])
+    .map((action) => createToken(`${action}:blocked`, 'neutral'))
+    .join('');
+
+  return `
+    <section class="memory-candidate-panel" aria-label="Response-only MemoryCandidate preview">
+      <div class="card-title-row card-title-row-tight">
+        <strong>MemoryCandidate Preview</strong>
+        ${createToken('response-only', 'accent')}
+        ${createToken('review-ready', 'warning')}
+        ${createToken('persisted:false', 'neutral')}
+      </div>
+      <p class="detail-copy detail-copy-compact">
+        accepted LearningCandidate review를 project-scoped readiness evidence로만 계산합니다.
+        저장, 검색, 적용, 승격 권한은 열리지 않습니다.
+      </p>
+      <div class="token-row token-row-compact memory-candidate-source-tuple">
+        ${createToken(`candidate:${durableCandidate.id}`, 'success')}
+        ${createToken(`review:${durableReview.id}`, 'success')}
+        ${createToken(`mission:${durableCandidate.sourceMissionId}`, 'neutral')}
+        ${createToken(`project:${durableCandidate.projectId}`, 'neutral')}
+      </div>
+      <form class="memory-candidate-form" data-form="preview-memory-candidate">
+        <div class="memory-candidate-grid">
+          <label class="field">
+            <span class="field-label">Summary</span>
+            <input
+              class="text-input"
+              name="summary"
+              type="text"
+              value="${escapeHtml(draft.summary)}"
+              placeholder="검토 가능한 memory readiness 요약"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Workspace project</span>
+            <input
+              class="text-input"
+              name="workspaceProjectId"
+              type="text"
+              value="${escapeHtml(workspaceProjectId)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field memory-candidate-grid-wide">
+            <span class="field-label">Applicability summary</span>
+            <input
+              class="text-input"
+              name="applicabilitySummary"
+              type="text"
+              value="${escapeHtml(draft.applicabilitySummary)}"
+              placeholder="적용 가능한 조건과 제외 범위"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Target path allowlist</span>
+            <textarea
+              class="text-input"
+              name="targetPathAllowlist"
+              rows="3"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >${escapeHtml(targetPathAllowlist)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Verification commands</span>
+            <textarea
+              class="text-input"
+              name="verificationCommands"
+              rows="3"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >${escapeHtml(verificationCommands)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Evidence refs</span>
+            <textarea
+              class="text-input"
+              name="evidenceRefs"
+              rows="4"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >${escapeHtml(evidenceRefs)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Negative evidence refs</span>
+            <textarea
+              class="text-input"
+              name="negativeEvidenceRefs"
+              rows="4"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >${escapeHtml(negativeEvidenceRefs)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Redaction refs</span>
+            <textarea
+              class="text-input"
+              name="redactionRefs"
+              rows="3"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >${escapeHtml(redactionRefs)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Review refs</span>
+            <textarea
+              class="text-input"
+              name="reviewRefs"
+              rows="3"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >${escapeHtml(reviewRefs)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Expires at</span>
+            <input
+              class="text-input"
+              name="expiresAt"
+              type="text"
+              value="${escapeHtml(expiresAt)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Redaction acknowledgement</span>
+            <select
+              class="text-input"
+              name="redactionAcknowledgement"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              <option value="source-summary-only">source-summary-only</option>
+            </select>
+          </label>
+          <label class="field memory-candidate-grid-wide">
+            <span class="field-label">Non-persistence statement</span>
+            <select
+              class="text-input"
+              name="nonPersistenceStatement"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              <option value="readiness-only-not-durable-memory">readiness-only-not-durable-memory</option>
+            </select>
+          </label>
+        </div>
+        <div class="relation-button-row memory-candidate-actions">
+          <button
+            class="primary-button"
+            type="button"
+            data-action="preview-memory-candidate"
+            data-id="${escapeHtml(durableCandidate.id)}"
+            ${state.loading || state.mutating ? 'disabled' : ''}
+          >
+            MemoryCandidate 미리보기
+          </button>
+        </div>
+      </form>
+      ${
+        currentPreview
+          ? `
+            <div class="memory-candidate-result" aria-label="MemoryCandidate response evidence">
+              <div class="card-title-row card-title-row-tight">
+                <strong>${escapeHtml(currentPreview.id)}</strong>
+                ${createToken(currentPreview.status, 'warning')}
+                ${createToken(`storage:${currentPreview.storageStatus}`, 'neutral')}
+                ${createToken(`promotion:${currentPreview.promotionStatus}`, 'neutral')}
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(`digest:${currentPreview.previewDigest}`, 'neutral')}
+                ${createToken(`scope:${currentPreview.workspaceScope.projectId}`, 'neutral')}
+                ${createToken(`expires:${currentPreview.expiresAt}`, 'neutral')}
+              </div>
+              <p><strong>Summary</strong> ${escapeHtml(currentPreview.summary)}</p>
+              <p><strong>Applicability</strong> ${escapeHtml(currentPreview.applicability.summary)}</p>
+              <p><strong>Paths</strong> ${escapeHtml(currentPreview.applicability.targetPathAllowlist.join(' · '))}</p>
+              <p><strong>Checks</strong> ${escapeHtml(currentPreview.applicability.verificationCommands.join(' · '))}</p>
+              <p><strong>Evidence</strong> ${escapeHtml(currentPreview.evidenceRefs.join(' · '))}</p>
+              <p><strong>Negative evidence</strong> ${escapeHtml(currentPreview.negativeEvidenceRefs.join(' · '))}</p>
+              <div class="delivery-package-authority" aria-label="Blocked memory authority">
+                ${blockedActionTokens}
+              </div>
+            </div>
+          `
+          : ''
+      }
+    </section>
+  `;
+}
+
 function renderRealCouncilAlignmentControls(councilSession) {
   const attempt = getCurrentRealCouncilAttempt(councilSession);
   const busy = state.loading || state.mutating;
@@ -12996,6 +13352,12 @@ function renderDeliverables(data) {
         state.missionDurableDeliveryPackage,
         state.missionDeliveryPackageAcceptance,
         state.missionCloseOut,
+      )}
+      ${renderMemoryCandidatePreview(
+        state.missionMemoryCandidatePreview,
+        state.missionLearningCandidate,
+        state.missionLearningCandidateReview,
+        selectedMission,
       )}
       ${renderHarnessBriefRegister(harnessBrief)}
       <div class="surface-grid">
@@ -16541,6 +16903,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'preview-memory-candidate') {
+        await previewLearningCandidateMemory(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'resume-workflow-checkpoint') {
         await submitWorkflowCheckpointAction(
           actionButton.dataset.id,
@@ -16715,6 +17082,9 @@ function handleFormInput(event) {
   const learningCandidateReviewForm = event.target.closest(
     '[data-form="review-learning-candidate"]',
   );
+  const memoryCandidateForm = event.target.closest(
+    '[data-form="preview-memory-candidate"]',
+  );
 
   if (runHarnessOperatorActionForm) {
     if (event.target.name === 'inputPath') {
@@ -16730,6 +17100,18 @@ function handleFormInput(event) {
 
   if (learningCandidateReviewForm) {
     readLearningCandidateReviewDraft(learningCandidateReviewForm);
+    return;
+  }
+
+  if (memoryCandidateForm) {
+    if (Object.prototype.hasOwnProperty.call(state.missionMemoryCandidateDraft, event.target.name)) {
+      state.missionMemoryCandidateDraft[event.target.name] = event.target.value;
+      state.missionMemoryCandidatePreview = null;
+      event.target
+        .closest('.memory-candidate-panel')
+        ?.querySelector('.memory-candidate-result')
+        ?.remove();
+    }
     return;
   }
 

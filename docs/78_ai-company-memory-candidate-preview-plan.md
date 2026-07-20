@@ -148,8 +148,8 @@ invent summary, scope, applicability, evidence, redaction, review, or expiry fie
 
 ## Digest And Idempotency Binding
 
-`previewDigest` should be SHA-256 over the canonical key-sorted preview payload excluding only the
-derived `id`. The id is derived from the digest.
+`previewDigest` is SHA-256 over the canonical key-sorted preview content before the derived `id` and
+`previewDigest` fields are added. The id is derived from that digest.
 
 The exact request tuple is:
 
@@ -281,13 +281,17 @@ scripts/ui_qa_status.mjs
 
 - Planning-only authority: accepted as `DEC-116`.
 - Complete fielded implementation handoff: documented as `DEC-117`.
-- Current runtime remains schema v13 with no MemoryCandidate preview implementation.
-- Runtime/API/UI implementation and every durable memory or downstream authority remain blocked.
+- Exact response-only runtime/API/UI implementation: accepted as `DEC-118`.
+- Current runtime remains schema v13 and exposes no durable MemoryCandidate record or snapshot field.
+- Durable memory lifecycle and every retrieval/skill/provider/source/Git/release/scheduling/policy/
+  connector authority remain blocked.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
+node scripts/smoke-ai-company-memory-candidate-preview.mjs
+node scripts/smoke-ui-slice-663.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
 node scripts/smoke-ui-slice-662.mjs

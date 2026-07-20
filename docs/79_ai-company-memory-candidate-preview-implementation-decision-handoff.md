@@ -18,6 +18,23 @@ next Mission, policy, bypass, and connectors를 계속 분리한다.
 - General continuation, broad approval, or delegated non-critical self-approval does not open
   runtime/API/UI implementation.
 
+## Implementation Outcome
+
+The operator supplied the complete recommended approval shape as
+`operator-decision-ai-company-memory-candidate-preview-implementation-001`, and `DEC-118` accepts
+only the bounded response-only runtime/API/UI slice.
+
+- Schema v13 and every durable candidate, review, Mission, task, and source record remain unchanged.
+- One accepted source-current review plus exact operator memorySpec may produce one deeply frozen
+  `persisted=false`/`review-ready` response and browser-memory result.
+- Rejected, changes-requested, stale, expired, malformed, cross-workspace, unsupported-ref, and
+  credential-marked input fails without output or writes.
+- There is no GET, snapshot field, durable memory record, storage/retrieval/apply/export/delete
+  action, skill promotion, provider call, source/Git/release action, scheduling, next Mission,
+  policy mutation, approval bypass, or connector action.
+- `scripts/smoke-ai-company-memory-candidate-preview.mjs` and
+  `scripts/smoke-ui-slice-663.mjs` are the focused implementation evidence.
+
 ## Minimum Required Decision Fields
 
 ```text

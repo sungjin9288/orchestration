@@ -2268,6 +2268,54 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const learningCandidateMemoryPreviewMatch = url.pathname.match(
+    /^\/api\/learning-candidates\/([^/]+)\/memory-candidate-preview$/,
+  );
+  if (method === 'POST' && learningCandidateMemoryPreviewMatch) {
+    try {
+      const learningCandidateId = decodeURIComponent(
+        learningCandidateMemoryPreviewMatch[1],
+      );
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'learningCandidateReviewId',
+        'previewId',
+        'candidateDigest',
+        'candidateRecordDigest',
+        'reviewDigest',
+        'evaluatedAt',
+        'memorySpec',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'MemoryCandidate preview body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const memoryCandidatePreview = runtime.previewLearningCandidateMemory({
+        learningCandidateId,
+        ...input,
+      });
+      json(response, 200, {
+        memoryCandidatePreview,
+        generatedAt: new Date().toISOString(),
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'MemoryCandidate preview 생성에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );

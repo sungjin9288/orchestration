@@ -44,6 +44,7 @@ const taskLedger = read('tasks/todo.md');
 const lessons = read('tasks/lessons.md');
 const verification = read('scripts/verification_status.mjs');
 const contracts = read('src/runtime/contracts.js');
+const memoryCandidatePreview = read('src/runtime/memory-candidate-preview.js');
 const runtimeService = read('src/runtime/runtime-service.js');
 const server = read('scripts/serve-ui-slice-01.mjs');
 const ui = read('ui/app.js');
@@ -106,6 +107,7 @@ assertSections(handoff, [
   'Minimum Acceptance Criteria',
   'Stop Conditions',
   'Verification After A Later Decision',
+  'Implementation Outcome',
 ]);
 assertAll(handoffText, [
   /operator-decision-ai-company-memory-candidate-preview-implementation-001/,
@@ -116,6 +118,7 @@ assertAll(handoffText, [
   /scripts\/smoke-ui-slice-663\.mjs/,
   /stillBlockedAuthorities=schema-v14 migration/,
   /approval approved continue do everything approve all self approve use your judgment/,
+  /`DEC-118` accepts only the bounded response-only runtime\/API\/UI slice/,
 ]);
 
 assertAll(memorySpecText, [
@@ -128,12 +131,14 @@ assertAll(memorySpecText, [
 
 assert.match(decisionLog, /^### DEC-116$/m);
 assert.match(decisionLog, /^### DEC-117$/m);
+assert.match(decisionLog, /^### DEC-118$/m);
 assert.match(masterPlan, /MemoryCandidate preview planning-only authority는 `DEC-116`/);
 assert.match(runtimeContract, /MemoryCandidate preview planning은 `DEC-116`/);
 assert.match(councilProtocol, /MemoryCandidate preview planning은 `DEC-116`/);
 assertAll(roadmapText, [
   /MemoryCandidate preview planning-only authority는 `DEC-116`/,
   /implementation decision handoff는 `DEC-117`/,
+  /implementation은 `DEC-118`/,
 ]);
 assert.match(
   completionInventory,
@@ -142,7 +147,8 @@ assert.match(
 assertAll(readmeText, [
   /MemoryCandidate preview planning-only authority is accepted by `DEC-116`/,
   /complete fielded implementation handoff is recorded by `DEC-117`/,
-  /Current runtime remains schema v13 with no MemoryCandidate preview implementation/,
+  /exact response-only implementation is accepted by `DEC-118`/,
+  /current path keeps schema v13 unchanged and accepts only one exact source-current unexpired LearningCandidate/,
 ]);
 assert.match(
   taskLedger,
@@ -164,9 +170,11 @@ assert.match(
 assert.match(contracts, /const STATE_SCHEMA_VERSION = 13/);
 assert.match(contracts, /learningCandidateReviews: \{\}/);
 assert.doesNotMatch(contracts, /memoryCandidateReviews: \{\}/);
-assert.doesNotMatch(runtimeService, /function previewLearningCandidateMemory\(/);
-assert.doesNotMatch(server, /memoryCandidatePreviewMatch/);
-assert.doesNotMatch(ui, /data-action="preview-memory-candidate"/);
+assert.match(memoryCandidatePreview, /function previewLearningCandidateMemory\(/);
+assert.match(memoryCandidatePreview, /persisted: false/);
+assert.match(runtimeService, /previewLearningCandidateMemory\(input\)/);
+assert.match(server, /learningCandidateMemoryPreviewMatch/);
+assert.match(ui, /data-action="preview-memory-candidate"/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -176,7 +184,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-116',
         handoff: 'documented-dec-117',
-        implementation: 'fielded-decision-required',
+        implementation: 'accepted-dec-118',
       },
       plannedPath: {
         sourceSchemaVersion: 13,
@@ -191,13 +199,13 @@ process.stdout.write(
         schemaVersion: 13,
         durableLearningCandidates: true,
         learningCandidateReviews: true,
-        memoryCandidatePreview: false,
+        memoryCandidatePreview: true,
         durableMemory: false,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        memoryReadinessPreviewAllowed: false,
+        implementationAllowed: true,
+        memoryReadinessPreviewAllowed: true,
         memoryPersistenceAllowed: false,
         crossWorkspaceMemoryAllowed: false,
         skillPromotionAllowed: false,

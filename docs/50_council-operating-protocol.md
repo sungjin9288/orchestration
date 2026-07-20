@@ -375,9 +375,10 @@ domain일 뿐이다. Review event는 append-only operator evidence이며 candida
 provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
 
 MemoryCandidate preview planning은 `DEC-116`, complete fielded implementation handoff는
-`DEC-117`로 기록됐다. Council evidence는 memory summary, scope, applicability, redaction, expiry,
-or promotion decision을 생성하지 않는다. Accepted LearningCandidateReview는 operator-owned
-memorySpec이 검증될 수 있는 source ref일 뿐이며 preview implementation, durable memory,
+`DEC-117`, exact response-only implementation은 `DEC-118`로 기록됐다. Council evidence는 memory
+summary, scope, applicability, redaction, expiry, or promotion decision을 생성하지 않는다.
+Accepted LearningCandidateReview는 operator-owned memorySpec이 검증될 수 있는 source ref일
+뿐이며 runtime은 response/browser-memory `review-ready` preview에서 멈춘다. Durable memory,
 cross-workspace retrieval, skill promotion, provider, source/Git/release, scheduling, next-Mission,
 policy, bypass, and connectors는 blocked다.
 
@@ -420,6 +421,8 @@ node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
 node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
+node scripts/smoke-ai-company-memory-candidate-preview.mjs
+node scripts/smoke-ui-slice-663.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -437,6 +440,6 @@ isolation을 고정한다.
 LearningCandidate preview planning/runtime/UI smokes는 Council evidence가 bounded source ref로만
 사용됨을 고정한다. Durable LearningCandidate planning/runtime/UI smokes는 persisted record가
 Council execution이나 learning acceptance authority를 새로 만들지 않는 exact gate임을 고정한다.
-LearningCandidate review smokes는 Council output과 operator outcome을 분리하고, MemoryCandidate
-planning smoke는 Council evidence가 memory scope, redaction, expiry, storage, or skill authority를
-생성하지 않는 경계를 고정한다.
+LearningCandidate review smokes는 Council output과 operator outcome을 분리한다. MemoryCandidate
+planning/runtime/UI smokes는 Council evidence가 memory scope, redaction, expiry, storage, or skill
+authority를 생성하지 않고 source-contained refs로만 사용되는 경계를 고정한다.

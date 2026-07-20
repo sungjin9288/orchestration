@@ -322,6 +322,84 @@ export function getLearningCandidateReviewSummary(
   };
 }
 
+export function getMemoryCandidatePreviewSummary(
+  durableCandidate,
+  durableReview,
+  missionId,
+  now = Date.now(),
+) {
+  const candidate =
+    durableCandidate?.sourceMissionId === missionId && durableCandidate.persisted === true
+      ? durableCandidate
+      : null;
+  const review =
+    durableReview?.learningCandidateId === candidate?.id ? durableReview : null;
+  if (!candidate || !review) return null;
+
+  const unexpired = Boolean(
+    Number.isFinite(Date.parse(candidate.expiry?.expiresAt)) &&
+      Date.parse(candidate.expiry.expiresAt) > now,
+  );
+  const sourceCurrent = Boolean(
+    review.projectId === candidate.projectId &&
+      review.sourceMissionId === candidate.sourceMissionId &&
+      review.previewId === candidate.previewId &&
+      review.candidateDigest === candidate.candidateDigest &&
+      review.candidateRecordDigest === candidate.recordDigest &&
+      candidate.reviewerStatus === 'review-required' &&
+      candidate.promotionStatus === 'proposed',
+  );
+  const targetPathAllowlist = [...new Set(
+    candidate.applicability?.targetPathAllowlist || [],
+  )];
+  const verificationCommands = [...new Set(
+    candidate.applicability?.verificationCommands || [],
+  )];
+  const evidenceRefs = [...new Set(candidate.sourceEvidenceRefs || [])];
+  const negativeEvidenceRefs = [...new Set(
+    (candidate.negativeEvidence || [])
+      .map((entry) => entry.sourceEvidenceRef)
+      .filter(Boolean),
+  )];
+  const sourceRefs = [...new Set([
+    candidate.id,
+    review.id,
+    ...evidenceRefs,
+    ...(review.evidenceRefs || []),
+  ])];
+
+  return {
+    canPreview: Boolean(
+      review.decision === 'accepted' &&
+        unexpired &&
+        sourceCurrent &&
+        targetPathAllowlist.length > 0 &&
+        verificationCommands.length > 0 &&
+        evidenceRefs.length > 0 &&
+        negativeEvidenceRefs.length > 0,
+    ),
+    accepted: review.decision === 'accepted',
+    unexpired,
+    sourceCurrent,
+    workspaceProjectId: candidate.projectId,
+    targetPathAllowlist,
+    verificationCommands,
+    evidenceRefs,
+    negativeEvidenceRefs,
+    redactionRefs: [candidate.id, review.id].filter(
+      (sourceRef) => sourceRefs.includes(sourceRef),
+    ),
+    reviewRefs: [review.id],
+    source: {
+      learningCandidateReviewId: review.id,
+      previewId: candidate.previewId,
+      candidateDigest: candidate.candidateDigest,
+      candidateRecordDigest: candidate.recordDigest,
+      reviewDigest: review.reviewDigest,
+    },
+  };
+}
+
 export function getMissionDeliveryPackageAcceptanceSummary(
   preview,
   bundle,

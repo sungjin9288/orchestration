@@ -395,13 +395,13 @@ promotion, providers, source/Git/release, scheduling, next-Mission, policy, bypa
 remain blocked.
 
 MemoryCandidate preview planning-only authority는 `DEC-116`, complete fielded implementation
-decision handoff는 `DEC-117`로 기록됐다. Planned path accepts only one exact source-current
-accepted LearningCandidateReview, validates project-only scope and operator-owned
-applicability/evidence/negative-evidence/redaction/review/expiry inputs, and returns one
-`persisted=false`/`review-ready` response-only preview. Current runtime remains schema v13; preview
-implementation, durable memory, retrieval/import/apply/export/delete, cross-workspace memory, skill
-promotion, providers, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors
-remain blocked.
+decision handoff는 `DEC-117`, exact response-only implementation은 `DEC-118`로 기록됐다. Current
+schema-v13 path accepts only one exact source-current accepted LearningCandidateReview, validates
+project-only scope and operator-owned applicability/evidence/negative-evidence/redaction/review/
+expiry inputs, and returns one deeply frozen `persisted=false`/`review-ready` response-only preview.
+POST response와 browser memory 밖에 저장하지 않으며 GET/snapshot/durable record가 없다. Durable
+memory, retrieval/import/apply/export/delete, cross-workspace memory, skill promotion, providers,
+source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 ## Phase 9: Dogfood And Productization
 
@@ -483,12 +483,11 @@ complete fielded decision 전까지 blocked다. Phase 8 LearningCandidate respon
 `DEC-107`, implementation handoff는 `DEC-108`, exact implementation은 `DEC-109`로 accepted됐다.
 Durable LearningCandidate planning/handoff/implementation은 `DEC-110`/`DEC-111`/`DEC-112`,
 LearningCandidate review planning/handoff/implementation은 `DEC-113`/`DEC-114`/`DEC-115`로
-accepted됐다. MemoryCandidate response-only preview planning은 `DEC-116`, complete fielded
-implementation handoff는 `DEC-117`로 accepted됐다. Current next decision은
-`docs/79_ai-company-memory-candidate-preview-implementation-decision-handoff.md`의 complete fielded
-runtime/API/UI choice다. Durable memory, retrieval/import/apply/export/delete, cross-workspace
-memory, skill promotion, providers, source/Git/release, scheduling, next-Mission, policy, bypass,
-and connectors remain blocked.
+accepted됐다. MemoryCandidate response-only preview planning/handoff/implementation은
+`DEC-116`/`DEC-117`/`DEC-118`로 accepted됐다. Current next authority gate는 schema-v14 또는 any
+durable memory lifecycle을 열기 전 별도 planning and complete fielded decision이다. Durable
+memory, retrieval/import/apply/export/delete, cross-workspace memory, skill promotion, providers,
+source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 Implemented acceptance target:
 
@@ -536,16 +535,16 @@ Implemented LearningCandidate review target:
 targetAuthority=one deterministic local schema-v13 append-only LearningCandidateReview record from one exact source-current schema-v12 review-required LearningCandidate
 ```
 
-Planned MemoryCandidate preview target:
+Implemented MemoryCandidate preview target:
 
 ```text
 targetAuthority=one deterministic response-only AI Company MemoryCandidate preview from one exact source-current accepted schema-v13 LearningCandidateReview and immutable LearningCandidate
 ```
 
-The planned path keeps schema v13 unchanged, requires explicit project-scoped operator memorySpec,
-and returns only `persisted=false`/`review-ready` readiness evidence. Implementation and every durable
-memory, skill, provider, source/Git/release, scheduling, policy, and connector authority remain
-blocked until the complete fielded decision is supplied.
+The implemented path keeps schema v13 unchanged, requires explicit project-scoped operator
+memorySpec, and returns only `persisted=false`/`review-ready` readiness evidence through POST
+response and browser memory. Every durable memory, skill, provider, source/Git/release, scheduling,
+policy, and connector authority remains blocked.
 
 ## Verification
 
@@ -585,6 +584,8 @@ node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
 node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
+node scripts/smoke-ai-company-memory-candidate-preview.mjs
+node scripts/smoke-ui-slice-663.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -606,6 +607,6 @@ Durable LearningCandidate planning/runtime/UI evidence는 schema-v12 sequence/ma
 exact runtime recomputation, immutable review-required record, read-only hydration, and blocked
 review/memory/skill/provider/downstream authority를 확인한다.
 LearningCandidate review evidence는 schema-v13 append-only outcome과 immutable candidate를
-확인하고, MemoryCandidate planning evidence는 accepted-review-only response preview contract,
-schema-v13 non-migration posture, and still-blocked durable memory/skill/downstream authority를
-확인한다.
+확인한다. MemoryCandidate planning/runtime/UI evidence는 accepted-review-only response preview
+contract, schema-v13 non-migration, zero-write/browser-memory lifecycle, and still-blocked durable
+memory/skill/downstream authority를 확인한다.

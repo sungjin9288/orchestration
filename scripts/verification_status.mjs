@@ -587,6 +587,16 @@ const informationalChecks = [
     purpose: 'AI Company MemoryCandidate preview planning fixes one accepted-review-only schema-v13 response-only readiness preview target while durable memory retrieval import apply export deletion skill provider source Git release scheduling policy and connector authority remain blocked',
   },
   {
+    id: 'ai-company-memory-candidate-preview-implementation',
+    script: 'scripts/smoke-ai-company-memory-candidate-preview.mjs',
+    purpose: 'AI Company MemoryCandidate runtime proves strict schema v13 read-only load, exact current immutable candidate and accepted review binding, bounded operator memorySpec, project-only source-contained applicability evidence negative evidence redaction and review refs, canonical digest stable id deep freeze deterministic replay, zero saveState and byte mutation, rejected changes-requested stale expired malformed credential and cross-workspace refusal, and blocked durable memory skill provider source Git release scheduling policy and connectors',
+  },
+  {
+    id: 'ai-company-memory-candidate-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-663.mjs',
+    purpose: 'AI Company MemoryCandidate UI and API prove bounded JSON-only accepted-review response preview, exact tuple gating, review-ready persisted-false storage-not-approved browser-memory lifecycle, edit refresh and failed-recompute invalidation, no GET snapshot runtime path or durable record, safe stale malformed oversized wrong-content-type credential and cross-workspace failures, responsive fit, and absent downstream controls',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

@@ -380,12 +380,13 @@ review event만 기록한다. Candidate revision, expiry/quarantine, memory/skil
 source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 MemoryCandidate preview planning-only authority는 `DEC-116`, complete fielded implementation
-decision handoff는 `DEC-117`로 기록됐다. Planned path는 exact source-current
-`LearningCandidateReview(decision=accepted)`와 immutable candidate, operator-owned memorySpec을
-검증해 one deterministic `persisted=false`/`review-ready` response만 반환한다. Current runtime은
-schema v13이며 preview implementation, durable memory, retrieval/import/apply/export/delete,
-cross-workspace memory, skill promotion, provider, source/Git/release, scheduling, next-Mission,
-policy, bypass, and connectors remain blocked.
+decision handoff는 `DEC-117`, exact response-only implementation은 `DEC-118`로 기록됐다. Current
+schema-v13 runtime은 exact source-current `LearningCandidateReview(decision=accepted)`와 immutable
+candidate, operator-owned project-scoped memorySpec을 검증해 one deterministic deeply frozen
+`persisted=false`/`review-ready` response만 반환한다. POST response와 browser memory 밖에
+저장하지 않으며 GET/snapshot/durable record가 없다. Durable memory,
+retrieval/import/apply/export/delete, cross-workspace memory, skill promotion, provider,
+source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -430,6 +431,8 @@ node scripts/smoke-ai-company-learning-candidate-review-outcome-planning.mjs
 node scripts/smoke-ai-company-learning-candidate-review-outcome.mjs
 node scripts/smoke-ui-slice-662.mjs
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
+node scripts/smoke-ai-company-memory-candidate-preview.mjs
+node scripts/smoke-ui-slice-663.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -450,6 +453,7 @@ Durable LearningCandidate planning/runtime/UI smokes는 DEC-110/111/112, schema-
 exact runtime preview recomputation, immutable review-required record, read-only hydration, and
 still-blocked review/memory/skill/provider/downstream authority를 확인한다.
 LearningCandidate review runtime/UI smokes는 schema-v13 append-only review evidence와 immutable
-candidate boundary를 확인하고, MemoryCandidate planning smoke는 exact accepted-review-only
-response preview target과 still-blocked durable memory/skill/downstream authority를 확인한다.
+candidate boundary를 확인한다. MemoryCandidate planning/runtime/UI smokes는 exact
+accepted-review-only response preview, project-only memorySpec, zero-write/browser-memory lifecycle,
+and still-blocked durable memory/skill/downstream authority를 확인한다.
 Optional live-provider 결과는 별도 informational evidence다.

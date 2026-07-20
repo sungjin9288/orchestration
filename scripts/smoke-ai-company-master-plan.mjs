@@ -208,6 +208,7 @@ assert.match(decisionLog, /^### DEC-114$/m);
 assert.match(decisionLog, /^### DEC-115$/m);
 assert.match(decisionLog, /^### DEC-116$/m);
 assert.match(decisionLog, /^### DEC-117$/m);
+assert.match(decisionLog, /^### DEC-118$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -220,6 +221,10 @@ assert.match(masterPlanText, /MemoryCandidate preview planning-only authority는
 assert.match(runtimeContractText, /MemoryCandidate preview planning은 `DEC-116`/);
 assert.match(councilProtocolText, /MemoryCandidate preview planning은 `DEC-116`/);
 assert.match(deliveryRoadmapText, /MemoryCandidate preview planning-only authority는 `DEC-116`/);
+assert.match(masterPlanText, /exact response-only implementation은 `DEC-118`/);
+assert.match(runtimeContractText, /exact response-only runtime\/API\/UI implementation은 `DEC-118`/);
+assert.match(councilProtocolText, /exact response-only implementation은 `DEC-118`/);
+assert.match(deliveryRoadmapText, /exact response-only implementation은 `DEC-118`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -296,6 +301,7 @@ process.stdout.write(
         'DEC-115',
         'DEC-116',
         'DEC-117',
+        'DEC-118',
       ],
       currentRuntime: {
         schemaVersion: 13,
@@ -311,7 +317,7 @@ process.stdout.write(
         learningCandidatePreview: 'schema-v11-response-only-review-required',
         durableLearningCandidate: 'schema-v12-exact-review-required-record',
         learningCandidateReview: 'schema-v13-exact-append-only-outcome',
-        memoryCandidatePreview: 'planning-only-not-implemented',
+        memoryCandidatePreview: 'schema-v13-response-only-review-ready',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -338,7 +344,7 @@ process.stdout.write(
         learningCandidateReviewPlanningAllowed: true,
         learningCandidateReviewAllowed: true,
         memoryCandidatePreviewPlanningAllowed: true,
-        memoryCandidatePreviewImplementationAllowed: false,
+        memoryCandidatePreviewImplementationAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -347,7 +353,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded decision required for MemoryCandidate preview implementation',
+      nextGate: 'Separate planning and complete fielded decision required for durable memory lifecycle',
     },
     null,
     2,
