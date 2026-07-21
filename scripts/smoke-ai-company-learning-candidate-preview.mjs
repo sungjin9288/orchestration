@@ -174,11 +174,11 @@ async function main() {
     });
     assert.throws(
       () => legacyStateRuntime.previewMissionLearningCandidate(request),
-      /state must use current schema v14/,
+      /state must use current schema v15/,
     );
     assert.equal(fs.readFileSync(legacyStatePath, 'utf8'), legacyStateBytes);
 
-    assert.equal(stateBefore.schemaVersion, 14);
+    assert.equal(stateBefore.schemaVersion, 15);
     assert.equal(stateBefore.missions[request.missionId].status, 'completed');
     assert.equal(stateBefore.tasks[request.linkedTaskId].lifecycleState, 'Done');
     assert.equal(

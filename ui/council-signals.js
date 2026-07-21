@@ -492,6 +492,41 @@ export function getMemoryRecallPreviewSummary(durableItem, preview, durableCandi
   };
 }
 
+export function getMemoryRecallPersistenceSummary(
+  durableItem,
+  preview,
+  durableRecall,
+  durableCandidate,
+) {
+  const source = getMemoryRecallPreviewSummary(
+    durableItem,
+    preview,
+    durableCandidate,
+  );
+  if (!source) return null;
+
+  const memoryRecall =
+    durableRecall?.persisted === true &&
+    durableRecall.status === 'recorded' &&
+    durableRecall.sourceMemoryItemId === durableItem.id &&
+    durableRecall.sourceMemoryItemRecordDigest === durableItem.recordDigest &&
+    durableRecall.sourceLearningCandidateId === durableCandidate.id &&
+    durableRecall.projectId === durableItem.projectId &&
+    durableRecall.applicationStatus === 'blocked' &&
+    durableRecall.recommendationStatus === 'blocked' &&
+    durableRecall.missionInjectionStatus === 'blocked'
+      ? durableRecall
+      : null;
+
+  return {
+    ...source,
+    canPersist: Boolean(source.currentPreview && !memoryRecall),
+    canPreview: Boolean(source.canPreview && !memoryRecall),
+    memoryRecall,
+    persisted: Boolean(memoryRecall),
+  };
+}
+
 export function getMissionDeliveryPackageAcceptanceSummary(
   preview,
   bundle,

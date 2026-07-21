@@ -2443,6 +2443,78 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const memoryItemRecallMatch = url.pathname.match(
+    /^\/api\/memory-items\/([^/]+)\/memory-recall$/,
+  );
+  if (method === 'GET' && memoryItemRecallMatch) {
+    try {
+      const memoryItemId = decodeURIComponent(memoryItemRecallMatch[1]);
+      const result = runtime.getMemoryItemRecall(memoryItemId);
+      json(response, 200, {
+        ...result,
+        generatedAt: new Date().toISOString(),
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'MemoryRecall 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const memoryItemPersistRecallMatch = url.pathname.match(
+    /^\/api\/memory-items\/([^/]+)\/persist-memory-recall$/,
+  );
+  if (method === 'POST' && memoryItemPersistRecallMatch) {
+    try {
+      const memoryItemId = decodeURIComponent(memoryItemPersistRecallMatch[1]);
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'memoryItemRecordDigest',
+        'evaluatedAt',
+        'recallSpec',
+        'memoryRecallPreviewId',
+        'memoryRecallPreviewDigest',
+        'recordApproval',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'MemoryRecall persistence body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.persistMemoryItemRecall({ memoryItemId, ...input });
+      json(response, result.idempotent ? 200 : 201, {
+        memoryItem: result.memoryItem,
+        memoryRecallPreview: result.memoryRecallPreview,
+        memoryRecall: result.memoryRecall,
+        mutation: {
+          idempotent: result.idempotent,
+          kind: 'persist-memory-recall',
+          memoryItemId,
+          memoryRecallId: result.memoryRecall.id,
+          stoppedAt: 'memory-recall-recorded-application-blocked',
+        },
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'MemoryRecall 기록에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );

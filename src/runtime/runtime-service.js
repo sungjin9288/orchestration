@@ -111,6 +111,7 @@ const {
   assertLearningCandidate,
   assertLearningCandidateReview,
   assertMemoryItem,
+  assertMemoryRecall,
   assertMissionCloseOut,
   assertRun,
   assertWorkOrder,
@@ -154,6 +155,7 @@ const { createMemoryItem } = require('./memory-items');
 const {
   previewMemoryItemRecall: compileMemoryRecallPreview,
 } = require('./memory-recall-preview');
+const { createMemoryRecall } = require('./memory-recalls');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -227,6 +229,11 @@ function createRuntimeService(options = {}) {
   function nextMemoryItemId(state) {
     state.sequences.memoryItem += 1;
     return `memory-item-${String(state.sequences.memoryItem).padStart(4, '0')}`;
+  }
+
+  function nextMemoryRecallId(state) {
+    state.sequences.memoryRecall += 1;
+    return `memory-recall-${String(state.sequences.memoryRecall).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -4148,14 +4155,7 @@ function createRuntimeService(options = {}) {
     }
   }
 
-  function previewMemoryItemRecall(input) {
-    assertExactMemoryRecallPreviewInput(input);
-    let state;
-    try {
-      state = store.loadStateReadonly();
-    } catch (error) {
-      throw conflict(`MemoryRecall preview requires current state: ${error.message}`);
-    }
+  function buildMemoryItemRecallPreviewFromState(state, input) {
     const item = assertMemoryItem(input.memoryItemId, state);
     if (String(input.memoryItemRecordDigest || '').trim() !== item.recordDigest) {
       throw conflict('MemoryRecall preview recordDigest does not match current evidence');
@@ -4172,6 +4172,121 @@ function createRuntimeService(options = {}) {
       }
       throw error;
     }
+  }
+
+  function previewMemoryItemRecall(input) {
+    assertExactMemoryRecallPreviewInput(input);
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`MemoryRecall preview requires current state: ${error.message}`);
+    }
+    return buildMemoryItemRecallPreviewFromState(state, input);
+  }
+
+  function findMemoryRecall(state, memoryItemId) {
+    return (
+      Object.values(state.memoryRecalls).find(
+        (recall) => recall.sourceMemoryItemId === memoryItemId,
+      ) || null
+    );
+  }
+
+  function getMemoryItemRecall(memoryItemId) {
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`MemoryRecall inspection requires current state: ${error.message}`);
+    }
+    const memoryItem = assertMemoryItem(memoryItemId, state);
+    const recall = findMemoryRecall(state, memoryItem.id);
+    return {
+      memoryItem,
+      memoryRecall: recall ? assertMemoryRecall(recall.id, state) : null,
+      persisted: Boolean(recall),
+    };
+  }
+
+  function assertExactMemoryRecallPersistenceInput(input) {
+    const expectedFields = [
+      'memoryItemId',
+      'memoryItemRecordDigest',
+      'evaluatedAt',
+      'recallSpec',
+      'memoryRecallPreviewId',
+      'memoryRecallPreviewDigest',
+      'recordApproval',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('MemoryRecall persistence request has unexpected or missing fields');
+    }
+  }
+
+  function persistMemoryItemRecall(input) {
+    assertExactMemoryRecallPersistenceInput(input);
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`MemoryRecall persistence requires supported state: ${error.message}`);
+    }
+    const preview = buildMemoryItemRecallPreviewFromState(state, input);
+    for (const [field, expected] of [
+      ['memoryRecallPreviewId', preview.id],
+      ['memoryRecallPreviewDigest', preview.previewDigest],
+    ]) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`MemoryRecall ${field} does not match current recomputation`);
+      }
+    }
+    const reviewedAtMs = Date.parse(input.recordApproval?.reviewedAt);
+    if (Number.isFinite(reviewedAtMs) && reviewedAtMs > Date.now() + 5 * 60 * 1000) {
+      throw conflict('recordApproval.reviewedAt is too far in the future');
+    }
+
+    const existing = findMemoryRecall(state, input.memoryItemId);
+    let memoryRecall;
+    try {
+      memoryRecall = createMemoryRecall({
+        id:
+          existing?.id ||
+          `memory-recall-${String(state.sequences.memoryRecall + 1).padStart(4, '0')}`,
+        preview,
+        recordApproval: input.recordApproval,
+      });
+    } catch (error) {
+      throw conflict(error.message);
+    }
+    if (existing) {
+      if (existing.recordDigest !== memoryRecall.recordDigest) {
+        throw conflict(`MemoryItem ${input.memoryItemId} already has a different MemoryRecall`);
+      }
+      return {
+        memoryItem: assertMemoryItem(input.memoryItemId, state),
+        memoryRecallPreview: preview,
+        memoryRecall: assertMemoryRecall(existing.id, state),
+        idempotent: true,
+      };
+    }
+
+    const id = nextMemoryRecallId(state);
+    if (id !== memoryRecall.id) {
+      throw new Error('MemoryRecall sequence is not deterministic');
+    }
+    state.memoryRecalls[memoryRecall.id] = memoryRecall;
+    store.saveState(state);
+    return {
+      memoryItem: assertMemoryItem(input.memoryItemId, state),
+      memoryRecallPreview: preview,
+      memoryRecall,
+      idempotent: false,
+    };
   }
 
   function assertExactDeliveryPackageTuple(input, preview) {
@@ -6008,6 +6123,7 @@ function createRuntimeService(options = {}) {
     getMissionLearningCandidate,
     getLearningCandidateReview,
     getLearningCandidateMemoryItem,
+    getMemoryItemRecall,
     getProposalApplicationAttempt,
     getProposalSourceMutation,
     getProposalRecord,
@@ -6026,6 +6142,7 @@ function createRuntimeService(options = {}) {
     persistExecutionPlanDeliveryPackage,
     persistMissionLearningCandidate,
     persistLearningCandidateMemoryItem,
+    persistMemoryItemRecall,
     reviewLearningCandidate,
     persistMissionWorkOrderPlan,
     listApprovals,

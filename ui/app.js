@@ -146,7 +146,7 @@ import {
   getLearningCandidateReviewSummary,
   getMemoryCandidatePreviewSummary,
   getMemoryItemPersistenceSummary,
-  getMemoryRecallPreviewSummary,
+  getMemoryRecallPersistenceSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -408,6 +408,11 @@ const state = {
     nonApplicationStatement: 'recall-preview-not-runtime-application',
   },
   missionMemoryRecallPreview: null,
+  missionMemoryRecallRecordDraft: {
+    rationale: '',
+    acknowledgement: 'reviewed-exact-memory-recall-for-local-audit',
+  },
+  missionMemoryRecall: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4797,7 +4802,17 @@ function applySnapshotPayload(payload) {
     ) {
       state.missionMemoryRecallPreview = null;
     }
+    if (
+      state.missionMemoryRecall &&
+      (state.missionMemoryRecall.sourceMemoryItemId !== memoryItem?.id ||
+        state.missionMemoryRecall.sourceMemoryItemRecordDigest !== memoryItem?.recordDigest)
+    ) {
+      state.missionMemoryRecall = null;
+    }
     state.missionMemoryItem = memoryItem;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'memoryRecall')) {
+    state.missionMemoryRecall = payload.memoryRecall || null;
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
@@ -4875,6 +4890,7 @@ async function hydrateSelectedDetails() {
   state.missionMemoryCandidatePreview = null;
   state.missionMemoryItem = null;
   state.missionMemoryRecallPreview = null;
+  state.missionMemoryRecall = null;
   state.missionLearningCandidateDraft = {
     lesson: '',
     applicabilitySummary: '',
@@ -4920,6 +4936,10 @@ async function hydrateSelectedDetails() {
     workspaceProjectId: '',
     acknowledgement: 'operator-selected-exact-memory-item-for-read-only-recall',
     nonApplicationStatement: 'recall-preview-not-runtime-application',
+  };
+  state.missionMemoryRecallRecordDraft = {
+    rationale: '',
+    acknowledgement: 'reviewed-exact-memory-recall-for-local-audit',
   };
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
@@ -4997,6 +5017,12 @@ async function hydrateSelectedDetails() {
                 `/api/learning-candidates/${encodeURIComponent(state.missionLearningCandidate.id)}/memory-item`,
               );
               state.missionMemoryItem = memoryItemPayload.memoryItem || null;
+              if (state.missionMemoryItem) {
+                const memoryRecallPayload = await fetchJson(
+                  `/api/memory-items/${encodeURIComponent(state.missionMemoryItem.id)}/memory-recall`,
+                );
+                state.missionMemoryRecall = memoryRecallPayload.memoryRecall || null;
+              }
             }
           }
         }
@@ -6378,6 +6404,7 @@ async function reviewLearningCandidate(actionButton) {
     state.missionMemoryCandidatePreview = null;
     state.missionMemoryItem = null;
     state.missionMemoryRecallPreview = null;
+    state.missionMemoryRecall = null;
     state.surface = 'deliverables';
     render();
     elements.refreshStatus.textContent =
@@ -6540,6 +6567,7 @@ async function persistLearningCandidateMemoryItem(actionButton) {
     state.missionMemoryCandidatePreview = payload.memoryCandidatePreview || preview;
     state.missionMemoryItem = payload.memoryItem || null;
     state.missionMemoryRecallPreview = null;
+    state.missionMemoryRecall = null;
     state.surface = 'deliverables';
     render();
     elements.refreshStatus.textContent =
@@ -6596,9 +6624,10 @@ async function previewMemoryItemRecall(actionButton) {
   const memoryItemId = String(actionButton?.dataset.id || '').trim();
   const item = state.missionMemoryItem;
   const candidate = state.missionLearningCandidate;
-  const summary = getMemoryRecallPreviewSummary(
+  const summary = getMemoryRecallPersistenceSummary(
     item,
     state.missionMemoryRecallPreview,
+    state.missionMemoryRecall,
     candidate,
   );
   if (!form || !item || item.id !== memoryItemId || !summary?.canPreview) {
@@ -6626,6 +6655,65 @@ async function previewMemoryItemRecall(actionButton) {
     render();
     elements.refreshStatus.textContent =
       `${payload.memoryRecallPreview.id}를 response-only로 계산했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function persistMemoryItemRecall(actionButton) {
+  const panel = actionButton?.closest?.('.memory-recall-panel');
+  const previewForm = panel?.querySelector?.('[data-form="preview-memory-recall"]');
+  const recordForm = actionButton?.closest?.('[data-form="persist-memory-recall"]');
+  const item = state.missionMemoryItem;
+  const candidate = state.missionLearningCandidate;
+  const preview = state.missionMemoryRecallPreview;
+  const summary = getMemoryRecallPersistenceSummary(
+    item,
+    preview,
+    state.missionMemoryRecall,
+    candidate,
+  );
+  if (!previewForm || !recordForm || !item || !preview || !summary?.canPersist) {
+    throw new Error('기록할 exact current MemoryRecall preview가 없습니다.');
+  }
+
+  const formData = new FormData(recordForm);
+  const recordApproval = {
+    decision: 'record',
+    acknowledgement: String(formData.get('acknowledgement') || ''),
+    rationale: String(formData.get('rationale') || ''),
+    reviewedAt: new Date().toISOString(),
+  };
+  state.missionMemoryRecallRecordDraft = {
+    rationale: recordApproval.rationale,
+    acknowledgement: recordApproval.acknowledgement,
+  };
+  const recallSpec = readMemoryRecallDraft(previewForm);
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${preview.id} record approval을 검증하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/memory-items/${encodeURIComponent(item.id)}/persist-memory-recall`,
+      {
+        memoryItemRecordDigest: item.recordDigest,
+        evaluatedAt: preview.evaluatedAt,
+        recallSpec,
+        memoryRecallPreviewId: preview.id,
+        memoryRecallPreviewDigest: preview.previewDigest,
+        recordApproval,
+      },
+    );
+    state.missionMemoryRecallPreview = payload.memoryRecallPreview || preview;
+    state.missionMemoryRecall = payload.memoryRecall || null;
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.memoryRecall.id}를 project-local recorded evidence로 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -11745,15 +11833,18 @@ function renderMissionLearningCandidatePreview(
 }
 
 function renderMemoryRecallPreview(durableItem, durableCandidate) {
-  const summary = getMemoryRecallPreviewSummary(
+  const summary = getMemoryRecallPersistenceSummary(
     durableItem,
     state.missionMemoryRecallPreview,
+    state.missionMemoryRecall,
     durableCandidate,
   );
   if (!summary) return '';
 
   const draft = state.missionMemoryRecallDraft;
+  const recordDraft = state.missionMemoryRecallRecordDraft;
   const currentPreview = summary.currentPreview;
+  const durableRecall = summary.memoryRecall;
   const workspaceProjectId =
     draft.workspaceProjectId || summary.workspaceProjectId;
   const applicabilitySummary =
@@ -11769,7 +11860,7 @@ function renderMemoryRecallPreview(durableItem, durableCandidate) {
   const reviewRefs = draft.reviewRefs || summary.reviewRefs.join('\n');
 
   return `
-    <section class="memory-recall-panel" aria-label="Response-only MemoryRecall preview">
+    <section class="memory-recall-panel" aria-label="MemoryRecall preview and durable evidence">
       <div class="card-title-row card-title-row-tight">
         <strong>MemoryRecall Preview</strong>
         ${createToken('response-only', 'accent')}
@@ -11880,6 +11971,66 @@ function renderMemoryRecallPreview(durableItem, durableCandidate) {
               <p><strong>Negative evidence</strong> ${escapeHtml(currentPreview.negativeEvidenceRefs.join(' · '))}</p>
               <div class="delivery-package-authority" aria-label="Blocked recall authority">
                 ${(currentPreview.blockedActions || [])
+                  .map((action) => createToken(`${action}:blocked`, 'neutral'))
+                  .join('')}
+              </div>
+            </div>
+          `
+          : ''
+      }
+      ${
+        currentPreview && !durableRecall
+          ? `
+            <form class="memory-recall-record-form" data-form="persist-memory-recall">
+              <div class="memory-candidate-grid">
+                <label class="field memory-candidate-grid-wide">
+                  <span class="field-label">Record rationale</span>
+                  <textarea class="text-input" name="rationale" rows="3" ${state.loading || state.mutating ? 'disabled' : ''}>${escapeHtml(recordDraft.rationale)}</textarea>
+                </label>
+                <label class="field memory-candidate-grid-wide">
+                  <span class="field-label">Record acknowledgement</span>
+                  <select class="text-input" name="acknowledgement" ${state.loading || state.mutating ? 'disabled' : ''}>
+                    <option value="reviewed-exact-memory-recall-for-local-audit">reviewed-exact-memory-recall-for-local-audit</option>
+                  </select>
+                </label>
+              </div>
+              <div class="relation-button-row memory-candidate-actions">
+                <button
+                  class="primary-button"
+                  type="button"
+                  data-action="persist-memory-recall"
+                  data-id="${escapeHtml(durableItem.id)}"
+                  ${state.loading || state.mutating || !summary.canPersist ? 'disabled' : ''}
+                >
+                  MemoryRecall 기록
+                </button>
+              </div>
+            </form>
+          `
+          : ''
+      }
+      ${
+        durableRecall
+          ? `
+            <div class="memory-recall-record" aria-label="Durable MemoryRecall evidence">
+              <div class="card-title-row card-title-row-tight">
+                <strong>${escapeHtml(durableRecall.id)}</strong>
+                ${createToken(durableRecall.status, 'success')}
+                ${createToken(`retrieval:${durableRecall.retrievalMode}`, 'neutral')}
+                ${createToken(`application:${durableRecall.applicationStatus}`, 'neutral')}
+                ${createToken(`mission-injection:${durableRecall.missionInjectionStatus}`, 'neutral')}
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(`digest:${durableRecall.recordDigest}`, 'neutral')}
+                ${createToken(`preview:${durableRecall.sourceMemoryRecallPreviewId}`, 'success')}
+                ${createToken(`scope:${durableRecall.workspaceScope.projectId}`, 'neutral')}
+              </div>
+              <p><strong>Purpose</strong> ${escapeHtml(durableRecall.purpose)}</p>
+              <p><strong>Summary</strong> ${escapeHtml(durableRecall.summary)}</p>
+              <p><strong>Record approval</strong> ${escapeHtml(durableRecall.recordApproval.rationale)}</p>
+              <p><strong>Negative evidence</strong> ${escapeHtml(durableRecall.negativeEvidenceRefs.join(' · '))}</p>
+              <div class="delivery-package-authority" aria-label="Blocked durable recall authority">
+                ${(durableRecall.blockedActions || [])
                   .map((action) => createToken(`${action}:blocked`, 'neutral'))
                   .join('')}
               </div>
@@ -17356,6 +17507,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'persist-memory-recall') {
+        await persistMemoryItemRecall(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'resume-workflow-checkpoint') {
         await submitWorkflowCheckpointAction(
           actionButton.dataset.id,
@@ -17536,6 +17692,9 @@ function handleFormInput(event) {
   const memoryRecallForm = event.target.closest(
     '[data-form="preview-memory-recall"]',
   );
+  const memoryRecallRecordForm = event.target.closest(
+    '[data-form="persist-memory-recall"]',
+  );
 
   if (runHarnessOperatorActionForm) {
     if (event.target.name === 'inputPath') {
@@ -17575,6 +17734,18 @@ function handleFormInput(event) {
         .closest('.memory-recall-panel')
         ?.querySelector('.memory-recall-result')
         ?.remove();
+    }
+    return;
+  }
+
+  if (memoryRecallRecordForm) {
+    if (
+      Object.prototype.hasOwnProperty.call(
+        state.missionMemoryRecallRecordDraft,
+        event.target.name,
+      )
+    ) {
+      state.missionMemoryRecallRecordDraft[event.target.name] = event.target.value;
     }
     return;
   }

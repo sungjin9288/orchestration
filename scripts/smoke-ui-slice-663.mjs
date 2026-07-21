@@ -128,7 +128,7 @@ async function main() {
     const snapshotResult = await fetchJson('/api/snapshot');
     assert.equal(snapshotResult.response.status, 200);
     const snapshot = snapshotResult.payload.snapshot;
-    assert.equal(snapshot.schemaVersion, 14);
+    assert.equal(snapshot.schemaVersion, 15);
     assert.equal(
       Object.prototype.hasOwnProperty.call(snapshot, 'memoryCandidates'),
       false,

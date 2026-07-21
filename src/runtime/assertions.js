@@ -84,6 +84,14 @@ function assertMemoryItem(memoryItemId, state) {
   return memoryItem;
 }
 
+function assertMemoryRecall(memoryRecallId, state) {
+  const memoryRecall = state.memoryRecalls[memoryRecallId];
+  if (!memoryRecall) {
+    throw new Error(`MemoryRecall not found: ${memoryRecallId}`);
+  }
+  return memoryRecall;
+}
+
 module.exports = {
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
@@ -92,6 +100,7 @@ module.exports = {
   assertLearningCandidate,
   assertLearningCandidateReview,
   assertMemoryItem,
+  assertMemoryRecall,
   assertMissionCloseOut,
   assertRun,
   assertWorkOrder,

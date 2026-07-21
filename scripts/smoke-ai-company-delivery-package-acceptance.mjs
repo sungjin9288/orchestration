@@ -98,7 +98,7 @@ async function main() {
     const stateBefore = runtime.getSnapshot();
     const packageBefore = structuredClone(stateBefore.deliveryPackages[deliveryPackage.id]);
     const sourceBefore = fs.readFileSync(sourcePath, 'utf8');
-    assert.equal(stateBefore.schemaVersion, 14);
+    assert.equal(stateBefore.schemaVersion, 15);
     assert.equal(stateBefore.sequences.deliveryPackageAcceptance, 0);
     assert.deepEqual(stateBefore.deliveryPackageAcceptances, {});
 
@@ -109,7 +109,7 @@ async function main() {
     const migrationRoot = path.join(tempRoot, 'migration-v9');
     writeState(migrationRoot, schema9);
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 14);
+    assert.equal(migrated.schemaVersion, 15);
     assert.equal(migrated.sequences.deliveryPackageAcceptance, 0);
     assert.deepEqual(migrated.deliveryPackageAcceptances, {});
     assert.equal(migrated.sequences.missionCloseOut, 0);
@@ -251,7 +251,7 @@ async function main() {
       /missing DeliveryPackageAcceptance fields/,
     );
     const futureRoot = path.join(tempRoot, 'future');
-    writeState(futureRoot, { ...stateAfter, schemaVersion: 15 });
+    writeState(futureRoot, { ...stateAfter, schemaVersion: 16 });
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadState(),
       /Unsupported runtime state/,

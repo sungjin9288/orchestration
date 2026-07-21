@@ -155,7 +155,7 @@ assert.match(
 );
 
 // Pin both the reusable waiting-gate baseline and the consumed exact implementation surface.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 14/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 15/);
 assert.match(contracts, /WAITING_GATE: 'waiting-gate'/);
 assert.match(contracts, /QA_EVIDENCE: 'qa-evidence'/);
 assert.match(contracts, /DELIVERY_READY: 'delivery-ready'/);

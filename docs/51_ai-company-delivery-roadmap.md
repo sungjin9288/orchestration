@@ -420,11 +420,14 @@ recommend, inject Mission or WorkOrder context, apply memory, create a durable r
 providers, mutate source, or schedule work.
 
 Durable MemoryRecall persistence planning-only authority는 `DEC-125`, complete fielded implementation
-handoff는 `DEC-126`으로 기록됐다. The proposed schema-v15 slice may retain one immutable
-`MemoryRecall(status=recorded)` audit fact only after runtime recomputes DEC-124 and validates a separate
-record approval. Implementation, list/history/index, automatic retrieval/search/ranking/recommendation,
-context injection, application, providers, source/Git/release, scheduling, policy, bypass, and connectors
-remain blocked pending the complete fielded decision.
+handoff는 `DEC-126`, exact implementation은 `DEC-127`로 기록됐다.
+`docs/84_ai-company-durable-memory-recall-persistence-plan.md` and
+`docs/85_ai-company-durable-memory-recall-implementation-decision-handoff.md` preserve the consumed
+plan and decision provenance. The schema-v15 slice retains one
+immutable `MemoryRecall(status=recorded)` audit fact only after runtime recomputes DEC-124 and validates
+a separate record approval. Exact inspection is available, while list/history/index, automatic
+retrieval/search/ranking/recommendation, context injection, application, providers, source/Git/release,
+scheduling, policy, bypass, and connectors remain blocked.
 
 ## Phase 9: Dogfood And Productization
 
@@ -509,12 +512,12 @@ LearningCandidate review planning/handoff/implementation은 `DEC-113`/`DEC-114`/
 accepted됐다. MemoryCandidate response-only preview planning/handoff/implementation은
 `DEC-116`/`DEC-117`/`DEC-118`, Durable MemoryItem persistence planning/handoff/implementation은
 `DEC-119`/`DEC-120`/`DEC-121`, MemoryRecall response-only planning/handoff/implementation은
-`DEC-122`/`DEC-123`/`DEC-124`로 accepted됐다. Durable MemoryRecall planning과 implementation
-handoff는 `DEC-125`/`DEC-126`으로 accepted됐다. Current next authority gate는
-`docs/85_ai-company-durable-memory-recall-implementation-decision-handoff.md`의 complete fielded
-schema-v15 implementation decision이다. Durable MemoryRecall creation, list/history, automatic
+`DEC-122`/`DEC-123`/`DEC-124`로 accepted됐다. Durable MemoryRecall planning/handoff/implementation은
+`DEC-125`/`DEC-126`/`DEC-127`로 accepted됐다. Current runtime is schema v15 with one exact
+source-bound recorded audit path. Any schema-v16 change, recall lifecycle, list/history, automatic
 retrieval/search/ranking/recommendation, Mission/WorkOrder injection, memory application, providers,
-source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+source/Git/release, scheduling, next-Mission, policy, bypass, or connectors requires a separate complete
+fielded decision.
 
 Implemented acceptance target:
 
@@ -631,6 +634,8 @@ node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/smoke-ai-company-memory-recall-preview.mjs
 node scripts/smoke-ui-slice-665.mjs
 node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
+node scripts/smoke-ai-company-durable-memory-recall.mjs
+node scripts/smoke-ui-slice-666.mjs
 node scripts/verification_status.mjs
 ```
 

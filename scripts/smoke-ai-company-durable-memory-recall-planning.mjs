@@ -43,7 +43,7 @@ assert.match(plan, /GET  \/api\/memory-items\/:memoryItemId\/memory-recall/);
 assert.match(plan, /POST \/api\/memory-items\/:memoryItemId\/persist-memory-recall/);
 assert.match(plan, /Planning-only authority: accepted as `DEC-125`/);
 assert.match(plan, /Complete fielded implementation handoff: documented as `DEC-126`/);
-assert.match(plan, /implementation: blocked pending that exact complete decision/);
+assert.match(plan, /implementation: accepted as `DEC-127` and implemented as the exact bounded slice/);
 
 assert.match(handoff, /^# AI Company Durable MemoryRecall Implementation Decision Handoff$/m);
 assert.match(handoff, /operator-decision-ai-company-durable-memory-recall-implementation-001/);
@@ -51,10 +51,12 @@ assert.match(handoff, /approve-ai-company-durable-memory-recall-implementation-s
 assert.match(handoff, /src\/runtime\/memory-recalls\.js/);
 assert.match(handoff, /scripts\/smoke-ui-slice-666\.mjs/);
 assert.match(handoff, /delegated self-approval for schema migration/);
-assert.match(handoff, /Until one complete valid outcome is supplied/);
+assert.match(handoff, /The complete approval was supplied and consumed as `DEC-127`/);
+assert.match(handoff, /^## Implementation Outcome$/m);
 
 assert.match(decisionLog, /^### DEC-125$/m);
 assert.match(decisionLog, /^### DEC-126$/m);
+assert.match(decisionLog, /^### DEC-127$/m);
 assert.match(masterPlan, /Durable MemoryRecall persistence planning-only authority는 `DEC-125`/);
 assert.match(runtimeContract, /Durable MemoryRecall persistence planning은 `DEC-125`/);
 assert.match(councilProtocol, /Durable MemoryRecall persistence planning은 `DEC-125`/);
@@ -64,14 +66,18 @@ assert.match(
   /docs\/85_ai-company-durable-memory-recall-implementation-decision-handoff\.md/,
 );
 assert.match(inventory, /AI Company durable MemoryRecall persistence planning \| pass/);
-assert.match(readme, /Durable MemoryRecall persistence planning-only authority is accepted by `DEC-125`/);
+assert.match(inventory, /AI Company durable MemoryRecall persistence implementation \| pass/);
+assert.match(readme, /exact implementation is accepted by\s+`DEC-127`/);
 assert.match(readme, /docs\/84_ai-company-durable-memory-recall-persistence-plan\.md/);
 assert.match(
   readme,
   /docs\/85_ai-company-durable-memory-recall-implementation-decision-handoff\.md/,
 );
 assert.match(readme, /scripts\/smoke-ai-company-durable-memory-recall-planning\.mjs/);
+assert.match(readme, /scripts\/smoke-ai-company-durable-memory-recall\.mjs/);
+assert.match(readme, /scripts\/smoke-ui-slice-666\.mjs/);
 assert.match(taskLedger, /ai-company-durable-memory-recall-planning-post-m7-1970/);
+assert.match(taskLedger, /ai-company-durable-memory-recall-implementation-post-m7-1971/);
 assert.match(
   lessons,
   /A response-only recall preview and a durable recall audit record are different authorities/,
@@ -81,21 +87,24 @@ assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-durable-memory-recall-planning\.mjs'/,
 );
+assert.match(verification, /id: 'ai-company-durable-memory-recall-implementation'/);
+assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-memory-recall\.mjs'/);
+assert.match(verification, /script: 'scripts\/smoke-ui-slice-666\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 14/);
-assert.doesNotMatch(contracts, /memoryRecall/);
-assert.doesNotMatch(fileStore, /memoryRecalls/);
-assert.doesNotMatch(runtimeService, /persistMemoryRecall/);
-assert.doesNotMatch(server, /persistMemoryRecallMatch/);
-assert.doesNotMatch(ui, /data-action="persist-memory-recall"/);
-assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/memory-recalls.js')), false);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 15/);
+assert.match(contracts, /memoryRecall/);
+assert.match(fileStore, /memoryRecalls/);
+assert.match(runtimeService, /persistMemoryItemRecall/);
+assert.match(server, /memoryItemPersistRecallMatch/);
+assert.match(ui, /data-action="persist-memory-recall"/);
+assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/memory-recalls.js')), true);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-durable-memory-recall.mjs')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-666.mjs')),
-  false,
+  true,
 );
 
 process.stdout.write(
@@ -106,7 +115,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-125',
         handoff: 'documented-dec-126',
-        implementation: 'blocked-complete-fielded-decision-required',
+        implementation: 'accepted-dec-127',
       },
       plannedPath: {
         fromSchemaVersion: 14,
@@ -118,18 +127,18 @@ process.stdout.write(
         oneRecordPerMemoryItem: true,
       },
       currentRuntime: {
-        schemaVersion: 14,
+        schemaVersion: 15,
         responseOnlyRecallPreview: true,
-        durableMemoryRecall: false,
+        durableMemoryRecall: true,
         recallListOrHistory: false,
         automaticRetrieval: false,
         memoryApplication: false,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        schemaMigrationAllowed: false,
-        durableRecallAllowed: false,
+        implementationAllowed: true,
+        schemaMigrationAllowed: true,
+        durableRecallAllowed: true,
         listHistoryAllowed: false,
         automaticRetrievalAllowed: false,
         recommendationAllowed: false,

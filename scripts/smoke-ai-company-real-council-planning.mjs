@@ -167,7 +167,7 @@ for (const relativePath of [
 }
 
 assert.match(blueprint, /"maxProviderCalls": 5/);
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 14/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 15/);
 assert.match(fileStore, /councilSession\.transcript = Array\.isArray/);
 assert.match(fileStore, /status: councilSession\.alignment\.status \|\| 'pending'/);
 assert.match(runtimeService, /function buildCouncilSessionRecord\(state, mission, project, now\)/);

@@ -629,7 +629,17 @@ const informationalChecks = [
   {
     id: 'ai-company-durable-memory-recall-planning',
     script: 'scripts/smoke-ai-company-durable-memory-recall-planning.mjs',
-    purpose: 'AI Company durable MemoryRecall planning fixes one schema v15 sequence and map only immutable recorded audit target with exact DEC-124 recomputation and separate record approval while implementation record creation list history index automatic retrieval search ranking recommendation Mission or WorkOrder injection application provider source Git release scheduling policy and connector authority remain blocked',
+    purpose: 'AI Company durable MemoryRecall planning preserves the consumed schema v15 sequence and map only recorded audit contract, exact DEC-124 recomputation, separate record approval, and still-blocked list history index automatic retrieval search ranking recommendation Mission or WorkOrder injection application provider source Git release scheduling policy and connector authority',
+  },
+  {
+    id: 'ai-company-durable-memory-recall-implementation',
+    script: 'scripts/smoke-ai-company-durable-memory-recall.mjs',
+    purpose: 'AI Company durable MemoryRecall runtime proves one atomic schema v14 to v15 migration and immutable recorded audit append from exact DEC-124 recomputation and separate approval, plus no-write failures, idempotent replay, exact inspection, reload, rollback retention, source immutability, and blocked downstream authority',
+  },
+  {
+    id: 'ai-company-durable-memory-recall-ui-api',
+    script: 'scripts/smoke-ui-slice-666.mjs',
+    purpose: 'AI Company durable MemoryRecall UI and API prove explicit record approval, exact bounded persistence and inspection, safe stale malformed content-type credential and cross-workspace failures, idempotent replay, responsive fit, source-record immutability, and absent list history search ranking recommendation application or Mission injection controls',
   },
   {
     id: 'coordinator-path-containment-smoke',

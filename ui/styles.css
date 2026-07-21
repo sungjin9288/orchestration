@@ -9064,7 +9064,9 @@ h3 {
 .memory-item-record,
 .memory-item-storage-form,
 .memory-recall-panel,
-.memory-recall-result {
+.memory-recall-result,
+.memory-recall-record-form,
+.memory-recall-record {
   margin-top: 12px;
 }
 
@@ -9080,7 +9082,9 @@ h3 {
 
 .memory-item-storage-form,
 .memory-recall-form,
-.memory-recall-result {
+.memory-recall-result,
+.memory-recall-record-form,
+.memory-recall-record {
   display: grid;
   gap: 10px;
 }
@@ -9099,7 +9103,10 @@ h3 {
 .memory-recall-panel > *,
 .memory-recall-form > *,
 .memory-recall-result > *,
-.memory-recall-result p {
+.memory-recall-result p,
+.memory-recall-record-form > *,
+.memory-recall-record > *,
+.memory-recall-record p {
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;

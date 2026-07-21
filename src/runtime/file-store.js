@@ -16,6 +16,7 @@ const {
   LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION,
   LEARNING_CANDIDATE_STATE_SCHEMA_VERSION,
   MEMORY_ITEM_STATE_SCHEMA_VERSION,
+  MEMORY_RECALL_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
@@ -60,6 +61,14 @@ const {
   STORAGE_APPROVAL_DECISION,
   computeMemoryItemRecordDigest,
 } = require('./memory-items');
+const {
+  MEMORY_RECALL_BLOCKED_ACTIONS,
+  MEMORY_RECALL_NON_APPLICATION_STATEMENT,
+  MEMORY_RECALL_STATUS,
+  RECORD_APPROVAL_ACKNOWLEDGEMENT,
+  RECORD_APPROVAL_DECISION,
+  computeMemoryRecallRecordDigest,
+} = require('./memory-recalls');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 
 function assertStringField(record, field, label) {
@@ -1267,6 +1276,225 @@ function validateMemoryItemRecords(state) {
   }
 }
 
+function validateMemoryRecallRecords(state) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const sourceMemoryItemIds = new Set();
+
+  for (const [key, recall] of Object.entries(state.memoryRecalls)) {
+    const label = `MemoryRecall ${key}`;
+    if (!recall || typeof recall !== 'object' || Array.isArray(recall) || recall.id !== key) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      recall,
+      [
+        'id',
+        'persisted',
+        'status',
+        'projectId',
+        'workspaceScope',
+        'sourceMemoryItemId',
+        'sourceMemoryItemRecordDigest',
+        'sourceMemoryCandidatePreviewId',
+        'sourceLearningCandidateId',
+        'sourceLearningCandidateReviewId',
+        'sourceMemoryRecallPreviewId',
+        'sourceMemoryRecallPreviewDigest',
+        'retrievalMode',
+        'purpose',
+        'summary',
+        'applicability',
+        'sourceRefs',
+        'evidenceRefs',
+        'negativeEvidenceRefs',
+        'redactionRefs',
+        'reviewRefs',
+        'recordApproval',
+        'recommendationStatus',
+        'applicationStatus',
+        'missionInjectionStatus',
+        'expiresAt',
+        'blockedActions',
+        'nonApplicationStatement',
+        'recordDigest',
+        'createdAt',
+        'updatedAt',
+      ],
+      label,
+    );
+    for (const field of [
+      'projectId',
+      'sourceMemoryItemId',
+      'sourceMemoryItemRecordDigest',
+      'sourceMemoryCandidatePreviewId',
+      'sourceLearningCandidateId',
+      'sourceLearningCandidateReviewId',
+      'sourceMemoryRecallPreviewId',
+      'sourceMemoryRecallPreviewDigest',
+      'retrievalMode',
+      'purpose',
+      'summary',
+      'recommendationStatus',
+      'applicationStatus',
+      'missionInjectionStatus',
+      'expiresAt',
+      'nonApplicationStatement',
+      'recordDigest',
+      'createdAt',
+      'updatedAt',
+    ]) {
+      assertStringField(recall, field, label);
+    }
+    for (const field of [
+      'sourceRefs',
+      'evidenceRefs',
+      'negativeEvidenceRefs',
+      'redactionRefs',
+      'reviewRefs',
+      'blockedActions',
+    ]) {
+      assertStringArrayField(recall, field, label);
+    }
+    if (
+      recall.persisted !== true ||
+      recall.status !== MEMORY_RECALL_STATUS ||
+      recall.retrievalMode !== 'exact-id-operator-selected' ||
+      recall.recommendationStatus !== 'blocked' ||
+      recall.applicationStatus !== 'blocked' ||
+      recall.missionInjectionStatus !== 'blocked' ||
+      recall.nonApplicationStatement !== MEMORY_RECALL_NON_APPLICATION_STATEMENT ||
+      recall.blockedActions.length !== MEMORY_RECALL_BLOCKED_ACTIONS.length ||
+      recall.blockedActions.some(
+        (action, index) => action !== MEMORY_RECALL_BLOCKED_ACTIONS[index],
+      )
+    ) {
+      throw new Error(`${label} has invalid immutable status or blocked authority`);
+    }
+    for (const field of [
+      'sourceMemoryItemRecordDigest',
+      'sourceMemoryRecallPreviewDigest',
+      'recordDigest',
+    ]) {
+      if (!digestPattern.test(recall[field])) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      recall.sourceMemoryRecallPreviewId !==
+      `memory-recall-preview-${recall.sourceMemoryRecallPreviewDigest.slice(0, 16)}`
+    ) {
+      throw new Error(`${label} has invalid MemoryRecall preview identity`);
+    }
+    for (const field of ['createdAt', 'updatedAt', 'expiresAt']) {
+      if (
+        Number.isNaN(Date.parse(recall[field])) ||
+        new Date(recall[field]).toISOString() !== recall[field]
+      ) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      !recall.recordApproval ||
+      typeof recall.recordApproval !== 'object' ||
+      Array.isArray(recall.recordApproval)
+    ) {
+      throw new Error(`${label} has invalid recordApproval`);
+    }
+    assertExactObjectKeys(
+      recall.recordApproval,
+      ['decision', 'acknowledgement', 'rationale', 'reviewedAt'],
+      `${label} recordApproval`,
+    );
+    assertStringField(recall.recordApproval, 'rationale', `${label} recordApproval`);
+    if (
+      recall.recordApproval.decision !== RECORD_APPROVAL_DECISION ||
+      recall.recordApproval.acknowledgement !== RECORD_APPROVAL_ACKNOWLEDGEMENT ||
+      recall.recordApproval.reviewedAt !== recall.createdAt ||
+      recall.updatedAt !== recall.createdAt ||
+      Date.parse(recall.expiresAt) <= Date.parse(recall.createdAt)
+    ) {
+      throw new Error(`${label} has invalid record approval timing or decision`);
+    }
+    if (
+      !recall.workspaceScope ||
+      typeof recall.workspaceScope !== 'object' ||
+      Array.isArray(recall.workspaceScope)
+    ) {
+      throw new Error(`${label} has invalid workspaceScope`);
+    }
+    assertExactObjectKeys(recall.workspaceScope, ['projectId'], `${label} workspaceScope`);
+    if (recall.workspaceScope.projectId !== recall.projectId) {
+      throw new Error(`${label} has invalid project-only workspace scope`);
+    }
+    if (
+      !recall.applicability ||
+      typeof recall.applicability !== 'object' ||
+      Array.isArray(recall.applicability)
+    ) {
+      throw new Error(`${label} has invalid applicability`);
+    }
+    assertExactObjectKeys(
+      recall.applicability,
+      ['summary', 'targetPathAllowlist', 'verificationCommands'],
+      `${label} applicability`,
+    );
+    assertStringField(recall.applicability, 'summary', `${label} applicability`);
+    assertStringArrayField(
+      recall.applicability,
+      'targetPathAllowlist',
+      `${label} applicability`,
+    );
+    assertStringArrayField(
+      recall.applicability,
+      'verificationCommands',
+      `${label} applicability`,
+    );
+
+    const item = state.memoryItems[recall.sourceMemoryItemId];
+    const expectedSourceRefs = item
+      ? [...new Set([item.id, ...item.sourceRefs])].sort()
+      : [];
+    const expectedNegativeEvidenceRefs = item
+      ? [...new Set(item.negativeEvidenceRefs)].sort()
+      : [];
+    if (
+      !item ||
+      item.projectId !== recall.projectId ||
+      item.recordDigest !== recall.sourceMemoryItemRecordDigest ||
+      item.sourceMemoryCandidatePreviewId !== recall.sourceMemoryCandidatePreviewId ||
+      item.sourceLearningCandidateId !== recall.sourceLearningCandidateId ||
+      item.sourceLearningCandidateReviewId !== recall.sourceLearningCandidateReviewId ||
+      item.summary !== recall.summary ||
+      item.expiresAt !== recall.expiresAt ||
+      Date.parse(recall.createdAt) < Date.parse(item.createdAt) ||
+      recall.sourceRefs.length !== expectedSourceRefs.length ||
+      recall.sourceRefs.some((ref, index) => ref !== expectedSourceRefs[index]) ||
+      recall.evidenceRefs.some((ref) => !item.evidenceRefs.includes(ref)) ||
+      recall.negativeEvidenceRefs.length !== expectedNegativeEvidenceRefs.length ||
+      recall.negativeEvidenceRefs.some(
+        (ref, index) => ref !== expectedNegativeEvidenceRefs[index],
+      ) ||
+      recall.redactionRefs.some((ref) => !item.redactionRefs.includes(ref)) ||
+      recall.reviewRefs.some((ref) => !item.reviewRefs.includes(ref)) ||
+      recall.applicability.targetPathAllowlist.some(
+        (entry) => !item.applicability.targetPathAllowlist.includes(entry),
+      ) ||
+      recall.applicability.verificationCommands.some(
+        (entry) => !item.applicability.verificationCommands.includes(entry),
+      )
+    ) {
+      throw new Error(`${label} has invalid source MemoryItem binding`);
+    }
+    if (sourceMemoryItemIds.has(item.id)) {
+      throw new Error(`${label} duplicates MemoryItem recall evidence`);
+    }
+    sourceMemoryItemIds.add(item.id);
+    if (computeMemoryRecallRecordDigest(recall) !== recall.recordDigest) {
+      throw new Error(`${label} recordDigest does not match its immutable payload`);
+    }
+  }
+}
+
 function validateDurableWorkOrderRecords(state) {
   const planStatuses = new Set(Object.values(EXECUTION_PLAN_STATUS));
   const workOrderStatuses = new Set(Object.values(WORK_ORDER_STATUS));
@@ -1464,6 +1692,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== LEARNING_CANDIDATE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== MEMORY_ITEM_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -1586,6 +1815,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= MEMORY_RECALL_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.memoryRecall) ||
+        !state.memoryRecalls ||
+        typeof state.memoryRecalls !== 'object' ||
+        Array.isArray(state.memoryRecalls)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing MemoryRecall fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -1615,6 +1857,7 @@ function createFileStore(options = {}) {
       learningCandidates: state.learningCandidates || {},
       learningCandidateReviews: state.learningCandidateReviews || {},
       memoryItems: state.memoryItems || {},
+      memoryRecalls: state.memoryRecalls || {},
     };
 
     if (sourceSchemaVersion < WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION) {
@@ -1884,6 +2127,7 @@ function createFileStore(options = {}) {
     validateLearningCandidateRecords(normalizedState);
     validateLearningCandidateReviewRecords(normalizedState);
     validateMemoryItemRecords(normalizedState);
+    validateMemoryRecallRecords(normalizedState);
     return normalizedState;
   }
 

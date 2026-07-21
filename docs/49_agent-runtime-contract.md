@@ -514,16 +514,16 @@ MemoryRecall preview planning은 `DEC-122`, complete fielded implementation hand
 exact response-only runtime/API/UI implementation은 `DEC-124`로 문서화됐다. The contract는 one exact unexpired stored item과 operator-owned recallSpec을
 project-only scope, source-contained applicability/evidence/negative-evidence/redaction/review refs,
 exact-id selection, and explicit non-application statement에 결속하고 deeply frozen `persisted=false`
-preview만 반환한다. `loadStateReadonly()` path는 schema v14를 유지하고 save/snapshot mutation을 만들지 않는다. Automatic search/ranking/
+preview만 반환한다. `loadStateReadonly()` path는 current schema v15를 요구하고 save/record mutation을 만들지 않는다. Automatic search/ranking/
 recommendation, Mission injection, memory application, durable recall, provider, source/Git/release,
 scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
 
 Durable MemoryRecall persistence planning은 `DEC-125`, complete fielded implementation handoff는
-`DEC-126`으로 문서화됐다. Planned contract는 exact current MemoryItem과 recallSpec에서 DEC-124를
-recompute하고 separate record approval에 결속된 one immutable `status=recorded` audit fact를 정의한다.
-One source item당 one record만 허용하며 exact GET 외 list/history/index/search/recommendation/injection/
-application authority는 만들지 않는다. Schema-v15 implementation과 every downstream authority는
-complete fielded decision 전까지 blocked다.
+`DEC-126`, exact implementation은 `DEC-127`로 문서화됐다. Runtime은 supported schema-v14 state를
+write 없이 normalize하고 exact current MemoryItem과 recallSpec에서 DEC-124를 recompute한 뒤 separate
+record approval까지 검증한다. 첫 valid command만 schema v15 migration과 one immutable
+`status=recorded` append를 한 번에 저장한다. Exact replay와 GET은 read-only이고, one source item당
+one record만 허용한다. List/history/index/search/recommendation/injection/application authority는 없다.
 
 ## Verification
 
@@ -576,6 +576,8 @@ node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/smoke-ai-company-memory-recall-preview.mjs
 node scripts/smoke-ui-slice-665.mjs
 node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
+node scripts/smoke-ai-company-durable-memory-recall.mjs
+node scripts/smoke-ui-slice-666.mjs
 node scripts/verification_status.mjs
 ```
 

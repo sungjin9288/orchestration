@@ -10,10 +10,26 @@ schema- and persistence-sensitive operator decision으로 전달한다. 대상�
 
 - Planning-only authority is accepted as `DEC-125`.
 - This complete fielded implementation handoff is recorded as `DEC-126`.
-- Current runtime remains schema v14 with immutable MemoryItems and response-only MemoryRecallPreview.
-- No schema-v15 memoryRecall storage, durable contract, persistence method, exact inspection route,
-  durable UI action, or focused persistence smoke exists.
-- Broad continuation and delegated self-approval do not open this critical schema migration.
+- The complete fielded operator decision is accepted as `DEC-127`.
+- Current runtime is schema v15 with exact DEC-124 recomputation, one immutable recorded MemoryRecall,
+  bounded persistence and exact inspection routes, Deliverables audit evidence, and focused runtime/UI
+  smokes.
+- List/history/index, automatic retrieval/search/ranking/recommendation, context injection, memory
+  application, provider/source/Git/release/scheduling/policy/bypass/connectors remain closed.
+
+## Implementation Outcome
+
+- `src/runtime/memory-recalls.js` normalizes the separate record approval and computes the immutable
+  record digest.
+- File-store migration adds only `sequences.memoryRecall` and `memoryRecalls`; passive migration creates
+  no record, while the authorized persistence command validates the full tuple before one atomic save.
+- Runtime recomputes DEC-124 from the current MemoryItem and recallSpec, distrusts browser preview state,
+  returns exact replay without saving, and rejects a divergent second record for the same MemoryItem.
+- API and Deliverables expose only exact inspection and one explicit record action. No list, history,
+  search, ranking, recommendation, Mission/WorkOrder injection, or application control exists.
+- `scripts/smoke-ai-company-durable-memory-recall.mjs` and `scripts/smoke-ui-slice-666.mjs` prove migration,
+  no-write failures, record integrity, reload, rollback retention, source immutability, responsive fit,
+  and unchanged DEC-124 response-only behavior.
 
 ## Required Decision Fields
 
@@ -107,6 +123,5 @@ approvalStatement=I defer durable MemoryRecall implementation. No schema, record
 
 ## Stop Condition
 
-Until one complete valid outcome is supplied, stop after planning docs, source checks, planning smoke,
-README, inventory, roadmap, and task-ledger evidence. Do not edit schema/runtime/API/UI persistence
-surfaces or create MemoryRecall records.
+The complete approval was supplied and consumed as `DEC-127`. This handoff remains provenance for the
+implemented slice and does not authorize any authority listed in `stillBlockedAuthorities`.

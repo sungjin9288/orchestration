@@ -274,12 +274,12 @@ async function main() {
     delete v7.workflowCheckpoints;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(v7));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 14);
+    assert.equal(migrated.schemaVersion, 15);
     assert.equal(migrated.sequences.workflowCheckpoint, 0);
     assert.deepEqual(migrated.workflowCheckpoints, {});
     assert.equal(
       JSON.parse(fs.readFileSync(path.join(migrationRoot, 'state.json'), 'utf8')).schemaVersion,
-      14,
+      15,
     );
 
     const populatedMigration = createContext('populated-migration');
@@ -289,7 +289,7 @@ async function main() {
     const populatedMigrated = createFileStore({
       runtimeRoot: populatedMigration.runtimeRoot,
     }).loadState();
-    assert.equal(populatedMigrated.schemaVersion, 14);
+    assert.equal(populatedMigrated.schemaVersion, 15);
     assert.deepEqual(asSchemaV7(populatedMigrated), populatedV7);
     assert.deepEqual(
       JSON.parse(fs.readFileSync(populatedStatePath, 'utf8')),
@@ -302,7 +302,7 @@ async function main() {
         delete value.workflowCheckpoints;
         return value;
       })(), /missing WorkflowCheckpoint fields/],
-      ['future-v15', { ...createEmptyState(), schemaVersion: 15 }, /Unsupported runtime state/],
+      ['future-v16', { ...createEmptyState(), schemaVersion: 16 }, /Unsupported runtime state/],
     ]) {
       const root = path.join(tempRoot, name);
       fs.mkdirSync(root, { recursive: true });
@@ -539,7 +539,7 @@ async function main() {
     const persistedState = JSON.parse(
       fs.readFileSync(path.join(success.runtimeRoot, 'state.json'), 'utf8'),
     );
-    assert.equal(persistedState.schemaVersion, 14);
+    assert.equal(persistedState.schemaVersion, 15);
     assert.equal(Object.keys(persistedState.workflowCheckpoints).length, 4);
     assert.equal(persistedState.executionPlans[executionPlanId].checkpointRefs.length, 4);
     assert.deepEqual(persistedState.deliveryPackages, {});
@@ -550,7 +550,7 @@ async function main() {
       ok: true,
       mode: MODE,
       schema: {
-        version: 14,
+        version: 15,
         v7Migration: true,
         partialAndFutureRejected: true,
         rollbackRetention: true,

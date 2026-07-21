@@ -399,16 +399,18 @@ provider, source/Git/release, scheduling, next-Mission, policy, bypass, and conn
 MemoryRecall preview planning-only authority는 `DEC-122`, complete fielded implementation decision
 handoff는 `DEC-123`, exact response-only implementation은 `DEC-124`로 기록됐다. One exact operator-
 selected unexpired MemoryItem과 bounded project-scoped recallSpec을 검증해 deeply frozen response/
-browser-memory `MemoryRecallPreview`에서 멈춘다. Schema v14와 durable records/snapshot은 unchanged며 automatic enumeration/search/ranking/
-recommendation, Mission injection, memory application, durable recall, provider, source/Git/release,
+browser-memory `MemoryRecallPreview`에서 멈춘다. Current schema v15에서도 preview generation은
+state를 저장하거나 durable record를 만들지 않는다. Automatic enumeration/search/ranking/
+recommendation, Mission injection, memory application, provider, source/Git/release,
 scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 Durable MemoryRecall persistence planning-only authority는 `DEC-125`, complete fielded implementation
-handoff는 `DEC-126`으로 기록됐다. Planned schema-v15 slice는 current DEC-124 preview를 runtime에서
-recompute하고 separate `recordApproval.decision=record`를 요구해 one immutable
-`MemoryRecall(status=recorded)` audit fact만 append한다. Schema/runtime/API/UI implementation, recall
-list/history, automatic retrieval/search/ranking/recommendation, Mission/WorkOrder injection, memory
-application, provider, source/Git/release, scheduling, policy, bypass, and connectors remain blocked.
+handoff는 `DEC-126`, exact implementation은 `DEC-127`로 기록됐다. Current schema-v15 runtime은
+DEC-124 preview를 현재 MemoryItem과 recallSpec에서 다시 계산하고 separate
+`recordApproval.decision=record`를 검증한 뒤 one immutable `MemoryRecall(status=recorded)` audit fact만
+append한다. Exact GET은 이 source-bound record만 보여 준다. Recall list/history/index, automatic
+retrieval/search/ranking/recommendation, Mission/WorkOrder injection, memory application, provider,
+source/Git/release, scheduling, policy, bypass, and connectors remain blocked.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -462,6 +464,8 @@ node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/smoke-ai-company-memory-recall-preview.mjs
 node scripts/smoke-ui-slice-665.mjs
 node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
+node scripts/smoke-ai-company-durable-memory-recall.mjs
+node scripts/smoke-ui-slice-666.mjs
 node scripts/verification_status.mjs
 ```
 

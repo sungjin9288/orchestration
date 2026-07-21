@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 14;
+const STATE_SCHEMA_VERSION = 15;
+const MEMORY_RECALL_STATE_SCHEMA_VERSION = 15;
 const MEMORY_ITEM_STATE_SCHEMA_VERSION = 14;
 const LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION = 13;
 const LEARNING_CANDIDATE_STATE_SCHEMA_VERSION = 12;
@@ -388,6 +389,7 @@ function createEmptyState() {
       learningCandidate: 0,
       learningCandidateReview: 0,
       memoryItem: 0,
+      memoryRecall: 0,
     },
     missions: {},
     councilSessions: {},
@@ -410,6 +412,7 @@ function createEmptyState() {
     learningCandidates: {},
     learningCandidateReviews: {},
     memoryItems: {},
+    memoryRecalls: {},
   };
 }
 
@@ -453,6 +456,7 @@ module.exports = {
   LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION,
   LEARNING_CANDIDATE_STATE_SCHEMA_VERSION,
   MEMORY_ITEM_STATE_SCHEMA_VERSION,
+  MEMORY_RECALL_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,

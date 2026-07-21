@@ -112,7 +112,7 @@ try {
   const initialSession = initialSnapshot.councilSessions[success.session.id];
   const initialAttempt = initialSession.attempts[0];
 
-  assert.equal(initialSnapshot.schemaVersion, 14);
+  assert.equal(initialSnapshot.schemaVersion, 15);
   assert.deepEqual(initialAttempt.synthesis.unresolvedQuestions, []);
   assert.equal(initialSession.phase, 'awaiting-alignment');
   assertNoDownstreamRecords(initialSnapshot);
@@ -178,7 +178,7 @@ try {
   assert.ok(preview.workOrders.every((entry) => entry.authority.persistenceAllowed === false));
 
   const approvedSnapshot = success.runtime.getSnapshot();
-  assert.equal(approvedSnapshot.schemaVersion, 14);
+  assert.equal(approvedSnapshot.schemaVersion, 15);
   assertNoDownstreamRecords(approvedSnapshot);
   const stateBeforeReload = clone(approvedSnapshot);
   const reloaded = createRuntimeService({

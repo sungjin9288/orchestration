@@ -217,6 +217,7 @@ assert.match(decisionLog, /^### DEC-123$/m);
 assert.match(decisionLog, /^### DEC-124$/m);
 assert.match(decisionLog, /^### DEC-125$/m);
 assert.match(decisionLog, /^### DEC-126$/m);
+assert.match(decisionLog, /^### DEC-127$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -263,7 +264,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 14/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 15/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -335,9 +336,10 @@ process.stdout.write(
         'DEC-124',
         'DEC-125',
         'DEC-126',
+        'DEC-127',
       ],
       currentRuntime: {
-        schemaVersion: 14,
+        schemaVersion: 15,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -353,7 +355,7 @@ process.stdout.write(
         memoryCandidatePreview: 'schema-v13-response-only-review-ready',
         durableMemoryItem: 'schema-v14-exact-stored-record',
         memoryRecallPreview: 'schema-v14-response-only-exact-id-recall-ready',
-        durableMemoryRecall: 'planning-only-schema-v15-recorded-audit',
+        durableMemoryRecall: 'schema-v15-exact-recorded-audit',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -386,7 +388,7 @@ process.stdout.write(
         memoryRecallPreviewPlanningAllowed: true,
         memoryRecallPreviewImplementationAllowed: true,
         durableMemoryRecallPlanningAllowed: true,
-        durableMemoryRecallPersistenceAllowed: false,
+        durableMemoryRecallPersistenceAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -395,7 +397,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded schema-v15 durable MemoryRecall implementation decision required',
+      nextGate: 'Separate decision required for recall list, automatic retrieval, or application',
     },
     null,
     2,
