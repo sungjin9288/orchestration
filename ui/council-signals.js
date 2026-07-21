@@ -441,6 +441,57 @@ export function getMemoryItemPersistenceSummary(
   };
 }
 
+export function getMemoryRecallPreviewSummary(durableItem, preview, durableCandidate) {
+  if (
+    !durableItem ||
+    durableItem.persisted !== true ||
+    durableItem.status !== 'stored' ||
+    durableItem.applicationStatus !== 'blocked' ||
+    durableItem.promotionStatus !== 'blocked' ||
+    durableItem.projectId !== durableItem.workspaceScope?.projectId ||
+    durableItem.sourceLearningCandidateId !== durableCandidate?.id ||
+    durableItem.projectId !== durableCandidate?.projectId
+  ) {
+    return null;
+  }
+  const unexpired = Date.parse(durableItem.expiresAt) > Date.now();
+  const currentPreview =
+    preview?.persisted === false &&
+    preview.status === 'recall-ready' &&
+    preview.retrievalMode === 'exact-id-operator-selected' &&
+    preview.sourceMemoryItemId === durableItem.id &&
+    preview.sourceMemoryItemRecordDigest === durableItem.recordDigest &&
+    preview.projectId === durableItem.projectId
+      ? preview
+      : null;
+
+  return {
+    canPreview: Boolean(
+      unexpired &&
+        durableItem.applicability?.targetPathAllowlist?.length > 0 &&
+        durableItem.applicability?.verificationCommands?.length > 0 &&
+        durableItem.evidenceRefs?.length > 0 &&
+        durableItem.negativeEvidenceRefs?.length > 0 &&
+        durableItem.redactionRefs?.length > 0 &&
+        durableItem.reviewRefs?.length > 0,
+    ),
+    currentPreview,
+    item: durableItem,
+    unexpired,
+    workspaceProjectId: durableItem.projectId,
+    targetPathAllowlist: [...new Set(
+      durableItem.applicability?.targetPathAllowlist || [],
+    )],
+    verificationCommands: [...new Set(
+      durableItem.applicability?.verificationCommands || [],
+    )],
+    evidenceRefs: [...new Set(durableItem.evidenceRefs || [])],
+    negativeEvidenceRefs: [...new Set(durableItem.negativeEvidenceRefs || [])],
+    redactionRefs: [...new Set(durableItem.redactionRefs || [])],
+    reviewRefs: [...new Set(durableItem.reviewRefs || [])],
+  };
+}
+
 export function getMissionDeliveryPackageAcceptanceSummary(
   preview,
   bundle,

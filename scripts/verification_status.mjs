@@ -614,7 +614,17 @@ const informationalChecks = [
   {
     id: 'ai-company-memory-recall-preview-planning',
     script: 'scripts/smoke-ai-company-memory-recall-preview-planning.mjs',
-    purpose: 'AI Company MemoryRecall preview planning fixes one schema v14 preserving exact-id operator-selected project-local response-only review target while implementation automatic retrieval search ranking recommendation Mission injection memory application durable recall provider source Git release scheduling policy and connector authority remain blocked',
+    purpose: 'AI Company MemoryRecall preview planning fixes one schema v14 preserving exact-id operator-selected project-local response-only review target and records the complete fielded gate consumed by DEC-124',
+  },
+  {
+    id: 'ai-company-memory-recall-preview-implementation',
+    script: 'scripts/smoke-ai-company-memory-recall-preview.mjs',
+    purpose: 'AI Company MemoryRecall runtime proves exact current unexpired stored item and record digest binding, bounded project-local source-contained recallSpec, complete negative evidence preservation, deterministic deep-frozen exact-id response-only output, zero saveState and byte mutation, stale expired malformed credential cross-workspace and authority-widening refusal, and blocked automatic retrieval recommendation Mission injection application durable recall provider source Git release scheduling policy and connectors',
+  },
+  {
+    id: 'ai-company-memory-recall-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-665.mjs',
+    purpose: 'AI Company MemoryRecall UI and API prove bounded JSON-only exact-id operator-selected preview, response and browser-memory-only recall-ready evidence, source input and refresh invalidation, safe stale malformed wrong-content-type cross-workspace negative-evidence-dropping and credential failures, unchanged schema-v14 snapshot and state bytes, responsive fit, and absent search ranking recommendation application or Mission injection controls',
   },
   {
     id: 'coordinator-path-containment-smoke',

@@ -35,8 +35,8 @@ assert.match(plan, /recall-preview-not-runtime-application/);
 assert.match(plan, /automatic search, ranking, recommendation/);
 assert.match(plan, /Runtime schema, durable record, Mission, task/);
 assert.match(plan, /Planning-only authority: accepted as `DEC-122`/);
-assert.match(plan, /Complete fielded implementation handoff: documented as `DEC-123`/);
-assert.match(plan, /implementation: blocked pending the complete fielded decision/);
+assert.match(plan, /documented as `DEC-123` and consumed by `DEC-124`/);
+assert.match(plan, /implementation: accepted and completed/);
 assert.match(plan, /POST \/api\/memory-items\/:memoryItemId\/recall-preview/);
 assert.match(plan, /calls no\s+`saveState`/);
 assert.match(plan, /schema v14 unchanged/);
@@ -46,22 +46,24 @@ assert.match(handoff, /operator-decision-ai-company-memory-recall-preview-implem
 assert.match(handoff, /approve-ai-company-memory-recall-preview-implementation-slice/);
 assert.match(handoff, /src\/runtime\/memory-recall-preview\.js/);
 assert.match(handoff, /scripts\/smoke-ui-slice-665\.mjs/);
-assert.match(handoff, /General continuation, broad approval/);
+assert.match(handoff, /The exact implementation outcome was supplied and consumed by `DEC-124`/);
 assert.match(handoff, /delegated self-approval for retrieval-sensitive runtime or UI implementation/);
-assert.match(handoff, /Until one valid complete outcome is supplied/);
+assert.match(handoff, /consumed by the exact/);
 
 assert.match(decisionLog, /^### DEC-122$/m);
 assert.match(decisionLog, /^### DEC-123$/m);
+assert.match(decisionLog, /^### DEC-124$/m);
 assert.match(masterPlan, /MemoryRecall preview planning-only authority는 `DEC-122`/);
 assert.match(runtimeContract, /MemoryRecall preview planning은 `DEC-122`/);
 assert.match(councilProtocol, /MemoryRecall preview planning은 `DEC-122`/);
 assert.match(deliveryRoadmap, /MemoryRecall preview planning-only authority는 `DEC-122`/);
-assert.match(inventory, /AI Company MemoryRecall preview planning \| pass/);
-assert.match(readme, /MemoryRecall preview planning-only authority is accepted by `DEC-122`/);
+assert.match(inventory, /AI Company MemoryRecall preview implementation \| pass/);
+assert.match(readme, /exact response-only implementation is accepted by `DEC-124`/);
 assert.match(readme, /docs\/82_ai-company-memory-recall-preview-plan\.md/);
 assert.match(readme, /docs\/83_ai-company-memory-recall-preview-implementation-decision-handoff\.md/);
 assert.match(readme, /scripts\/smoke-ai-company-memory-recall-preview-planning\.mjs/);
 assert.match(taskLedger, /ai-company-memory-recall-preview-planning-post-m7-1968/);
+assert.match(taskLedger, /ai-company-memory-recall-preview-implementation-post-m7-1969/);
 assert.match(
   lessons,
   /Exact record inspection and retrieval eligibility are different authorities/,
@@ -73,20 +75,20 @@ assert.match(
 );
 
 assert.match(contracts, /const STATE_SCHEMA_VERSION = 14/);
-assert.doesNotMatch(runtimeService, /function previewMemoryItemRecall\(/);
-assert.doesNotMatch(server, /memoryItemRecallPreviewMatch/);
-assert.doesNotMatch(ui, /data-action="preview-memory-recall"/);
+assert.match(runtimeService, /function previewMemoryItemRecall\(/);
+assert.match(server, /memoryItemRecallPreviewMatch/);
+assert.match(ui, /data-action="preview-memory-recall"/);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'src/runtime/memory-recall-preview.js')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-memory-recall-preview.mjs')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-665.mjs')),
-  false,
+  true,
 );
 
 process.stdout.write(
@@ -97,7 +99,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-122',
         handoff: 'documented-dec-123',
-        implementation: 'blocked-complete-fielded-decision-required',
+        implementation: 'accepted-dec-124',
       },
       plannedPath: {
         schemaVersion: 14,
@@ -111,13 +113,13 @@ process.stdout.write(
         schemaVersion: 14,
         durableMemoryItems: true,
         exactInspection: true,
-        recallPreview: false,
+        recallPreview: true,
         automaticSearchRankingRecommendation: false,
         memoryApplication: false,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
+        implementationAllowed: true,
         schemaMigrationAllowed: false,
         durableRecallAllowed: false,
         automaticRetrievalAllowed: false,

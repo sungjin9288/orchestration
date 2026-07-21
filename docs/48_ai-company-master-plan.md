@@ -397,9 +397,9 @@ application, import/export/delete/refresh/expiry mutation, cross-workspace use, 
 provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 MemoryRecall preview planning-only authority는 `DEC-122`, complete fielded implementation decision
-handoff는 `DEC-123`으로 기록됐다. Planned slice는 one exact operator-selected unexpired MemoryItem과
-bounded project-scoped recallSpec을 검증해 response/browser-memory `MemoryRecallPreview`에서 멈춘다.
-Current schema-v14 runtime/API/UI는 변경되지 않았으며 automatic enumeration/search/ranking/
+handoff는 `DEC-123`, exact response-only implementation은 `DEC-124`로 기록됐다. One exact operator-
+selected unexpired MemoryItem과 bounded project-scoped recallSpec을 검증해 deeply frozen response/
+browser-memory `MemoryRecallPreview`에서 멈춘다. Schema v14와 durable records/snapshot은 unchanged며 automatic enumeration/search/ranking/
 recommendation, Mission injection, memory application, durable recall, provider, source/Git/release,
 scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
@@ -452,6 +452,8 @@ node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/smoke-ai-company-durable-memory-item.mjs
 node scripts/smoke-ui-slice-664.mjs
 node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
+node scripts/smoke-ai-company-memory-recall-preview.mjs
+node scripts/smoke-ui-slice-665.mjs
 node scripts/verification_status.mjs
 ```
 

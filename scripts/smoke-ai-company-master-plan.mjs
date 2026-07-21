@@ -214,6 +214,7 @@ assert.match(decisionLog, /^### DEC-120$/m);
 assert.match(decisionLog, /^### DEC-121$/m);
 assert.match(decisionLog, /^### DEC-122$/m);
 assert.match(decisionLog, /^### DEC-123$/m);
+assert.match(decisionLog, /^### DEC-124$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -239,6 +240,10 @@ assert.match(masterPlanText, /MemoryRecall preview planning-only authority는 `D
 assert.match(runtimeContractText, /MemoryRecall preview planning은 `DEC-122`/);
 assert.match(councilProtocolText, /MemoryRecall preview planning은 `DEC-122`/);
 assert.match(deliveryRoadmapText, /MemoryRecall preview planning-only authority는 `DEC-122`/);
+assert.match(masterPlanText, /exact response-only implementation은 `DEC-124`/);
+assert.match(runtimeContractText, /exact response-only runtime\/API\/UI implementation은 `DEC-124`/);
+assert.match(councilProtocolText, /exact response-only implementation은 `DEC-124`/);
+assert.match(deliveryRoadmapText, /exact response-only implementation은 `DEC-124`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -318,9 +323,10 @@ process.stdout.write(
         'DEC-118',
         'DEC-119',
         'DEC-120',
-        'DEC-121',
-        'DEC-122',
-        'DEC-123',
+    'DEC-121',
+    'DEC-122',
+    'DEC-123',
+    'DEC-124',
       ],
       currentRuntime: {
         schemaVersion: 14,
@@ -336,8 +342,9 @@ process.stdout.write(
         learningCandidatePreview: 'schema-v11-response-only-review-required',
         durableLearningCandidate: 'schema-v12-exact-review-required-record',
         learningCandidateReview: 'schema-v13-exact-append-only-outcome',
-        memoryCandidatePreview: 'schema-v13-response-only-review-ready',
-        durableMemoryItem: 'schema-v14-exact-stored-record',
+    memoryCandidatePreview: 'schema-v13-response-only-review-ready',
+    durableMemoryItem: 'schema-v14-exact-stored-record',
+    memoryRecallPreview: 'schema-v14-response-only-exact-id-recall-ready',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -368,7 +375,7 @@ process.stdout.write(
         durableMemoryItemPlanningAllowed: true,
         durableMemoryItemPersistenceAllowed: true,
         memoryRecallPreviewPlanningAllowed: true,
-        memoryRecallPreviewImplementationAllowed: false,
+        memoryRecallPreviewImplementationAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -377,7 +384,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded MemoryRecallPreview implementation decision required',
+      nextGate: 'Separate complete fielded decision required for durable or automatic memory recall application',
     },
     null,
     2,

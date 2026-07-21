@@ -10,12 +10,23 @@ application 권한은 포함하지 않는다.
 ## Current Gate
 
 - Planning-only authority is accepted as `DEC-122`.
-- This complete fielded implementation handoff is recorded as `DEC-123`.
-- Current runtime remains schema v14 with immutable stored MemoryItems and exact inspection only.
-- No MemoryRecallPreview module, runtime method, POST route, browser-memory recall preview, focused
-  implementation smoke, search, ranking, recommendation, Mission injection, or application exists.
-- General continuation, broad approval, or delegated non-critical self-approval does not open this
-  retrieval-sensitive runtime implementation.
+- This complete fielded implementation handoff is recorded as `DEC-123` and consumed by the exact
+  operator decision accepted as `DEC-124`.
+- Current runtime remains schema v14 and implements only the deterministic exact-id response/browser-
+  memory preview, with focused runtime and UI smoke evidence.
+- Automatic enumeration, search, ranking, recommendation, Mission/WorkOrder injection, application,
+  durable recall, and every listed downstream authority remain blocked.
+
+## Implementation Outcome
+
+- `src/runtime/memory-recall-preview.js` validates and deeply freezes the exact source-bound preview.
+- `runtime-service` uses `loadStateReadonly()` and performs no migration or `saveState` call.
+- `POST /api/memory-items/:memoryItemId/recall-preview` accepts one bounded exact JSON body.
+- Deliverables keeps the preview in browser memory and invalidates it on refresh, source/input change,
+  and failed recomputation.
+- `scripts/smoke-ai-company-memory-recall-preview.mjs` and `scripts/smoke-ui-slice-665.mjs` prove
+  deterministic replay, byte-stable failure paths, exact selection, responsive fit, and absent
+  downstream controls.
 
 ## Minimum Required Decision Fields
 
@@ -109,7 +120,7 @@ The following do not open implementation authority:
 
 ## Stop Condition
 
-Until one valid complete outcome is supplied, stop after planning docs, read-only smoke, README,
-inventory, roadmap, and task-ledger evidence. Do not create runtime, API, UI, schema, record, retrieval,
-search, ranking, recommendation, Mission injection, memory application, provider, source, Git,
+The exact implementation outcome was supplied and consumed by `DEC-124`. Stop after the response-only
+runtime/API/UI preview and focused evidence. Do not create schema, durable recall records, automatic
+retrieval/search/ranking/recommendation, Mission injection, memory application, provider, source, Git,
 release, schedule, policy, bypass, or connector behavior.

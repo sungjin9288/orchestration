@@ -146,6 +146,7 @@ import {
   getLearningCandidateReviewSummary,
   getMemoryCandidatePreviewSummary,
   getMemoryItemPersistenceSummary,
+  getMemoryRecallPreviewSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -393,6 +394,20 @@ const state = {
     acknowledgement: 'reviewed-memory-candidate-for-local-project-storage',
   },
   missionMemoryItem: null,
+  missionMemoryRecallDraft: {
+    purpose: '',
+    applicabilitySummary: '',
+    targetPathAllowlist: '',
+    verificationCommands: '',
+    evidenceRefs: '',
+    negativeEvidenceRefs: '',
+    redactionRefs: '',
+    reviewRefs: '',
+    workspaceProjectId: '',
+    acknowledgement: 'operator-selected-exact-memory-item-for-read-only-recall',
+    nonApplicationStatement: 'recall-preview-not-runtime-application',
+  },
+  missionMemoryRecallPreview: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4773,7 +4788,16 @@ function applySnapshotPayload(payload) {
     state.missionMemoryCandidatePreview = null;
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'memoryItem')) {
-    state.missionMemoryItem = payload.memoryItem || null;
+    const memoryItem = payload.memoryItem || null;
+    if (
+      state.missionMemoryRecallPreview &&
+      (state.missionMemoryRecallPreview.sourceMemoryItemId !== memoryItem?.id ||
+        state.missionMemoryRecallPreview.sourceMemoryItemRecordDigest !==
+          memoryItem?.recordDigest)
+    ) {
+      state.missionMemoryRecallPreview = null;
+    }
+    state.missionMemoryItem = memoryItem;
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
@@ -4850,6 +4874,7 @@ async function hydrateSelectedDetails() {
   state.missionLearningCandidateReview = null;
   state.missionMemoryCandidatePreview = null;
   state.missionMemoryItem = null;
+  state.missionMemoryRecallPreview = null;
   state.missionLearningCandidateDraft = {
     lesson: '',
     applicabilitySummary: '',
@@ -4882,6 +4907,19 @@ async function hydrateSelectedDetails() {
   state.missionMemoryItemStorageDraft = {
     rationale: '',
     acknowledgement: 'reviewed-memory-candidate-for-local-project-storage',
+  };
+  state.missionMemoryRecallDraft = {
+    purpose: '',
+    applicabilitySummary: '',
+    targetPathAllowlist: '',
+    verificationCommands: '',
+    evidenceRefs: '',
+    negativeEvidenceRefs: '',
+    redactionRefs: '',
+    reviewRefs: '',
+    workspaceProjectId: '',
+    acknowledgement: 'operator-selected-exact-memory-item-for-read-only-recall',
+    nonApplicationStatement: 'recall-preview-not-runtime-application',
   };
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
@@ -6339,6 +6377,7 @@ async function reviewLearningCandidate(actionButton) {
       payload.learningCandidateReview || null;
     state.missionMemoryCandidatePreview = null;
     state.missionMemoryItem = null;
+    state.missionMemoryRecallPreview = null;
     state.surface = 'deliverables';
     render();
     elements.refreshStatus.textContent =
@@ -6500,10 +6539,93 @@ async function persistLearningCandidateMemoryItem(actionButton) {
     );
     state.missionMemoryCandidatePreview = payload.memoryCandidatePreview || preview;
     state.missionMemoryItem = payload.memoryItem || null;
+    state.missionMemoryRecallPreview = null;
     state.surface = 'deliverables';
     render();
     elements.refreshStatus.textContent =
       `${payload.memoryItem.id}를 project-local stored evidence로 기록했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+function readMemoryRecallDraft(form) {
+  const formData = new FormData(form);
+  const draft = {
+    purpose: String(formData.get('purpose') || ''),
+    applicabilitySummary: String(formData.get('applicabilitySummary') || ''),
+    targetPathAllowlist: String(formData.get('targetPathAllowlist') || ''),
+    verificationCommands: String(formData.get('verificationCommands') || ''),
+    evidenceRefs: String(formData.get('evidenceRefs') || ''),
+    negativeEvidenceRefs: String(formData.get('negativeEvidenceRefs') || ''),
+    redactionRefs: String(formData.get('redactionRefs') || ''),
+    reviewRefs: String(formData.get('reviewRefs') || ''),
+    workspaceProjectId: String(formData.get('workspaceProjectId') || ''),
+    acknowledgement: String(formData.get('acknowledgement') || ''),
+    nonApplicationStatement: String(
+      formData.get('nonApplicationStatement') || '',
+    ),
+  };
+  state.missionMemoryRecallDraft = draft;
+  return {
+    purpose: draft.purpose,
+    workspaceScope: { projectId: draft.workspaceProjectId },
+    applicability: {
+      summary: draft.applicabilitySummary,
+      targetPathAllowlist: parseMissionWorkOrderCompileList(
+        draft.targetPathAllowlist,
+      ),
+      verificationCommands: parseMissionWorkOrderCompileList(
+        draft.verificationCommands,
+      ),
+    },
+    evidenceRefs: parseMissionWorkOrderCompileList(draft.evidenceRefs),
+    negativeEvidenceRefs: parseMissionWorkOrderCompileList(
+      draft.negativeEvidenceRefs,
+    ),
+    redactionRefs: parseMissionWorkOrderCompileList(draft.redactionRefs),
+    reviewRefs: parseMissionWorkOrderCompileList(draft.reviewRefs),
+    acknowledgement: draft.acknowledgement,
+    nonApplicationStatement: draft.nonApplicationStatement,
+  };
+}
+
+async function previewMemoryItemRecall(actionButton) {
+  const form = actionButton?.closest?.('[data-form="preview-memory-recall"]');
+  const memoryItemId = String(actionButton?.dataset.id || '').trim();
+  const item = state.missionMemoryItem;
+  const candidate = state.missionLearningCandidate;
+  const summary = getMemoryRecallPreviewSummary(
+    item,
+    state.missionMemoryRecallPreview,
+    candidate,
+  );
+  if (!form || !item || item.id !== memoryItemId || !summary?.canPreview) {
+    throw new Error('recall 가능한 exact current MemoryItem을 찾을 수 없습니다.');
+  }
+  const recallSpec = readMemoryRecallDraft(form);
+
+  state.error = null;
+  state.mutating = true;
+  state.missionMemoryRecallPreview = null;
+  elements.refreshStatus.textContent = `${item.id} recall eligibility를 검증하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/memory-items/${encodeURIComponent(item.id)}/recall-preview`,
+      {
+        memoryItemRecordDigest: item.recordDigest,
+        evaluatedAt: new Date().toISOString(),
+        recallSpec,
+      },
+    );
+    state.missionMemoryRecallPreview = payload.memoryRecallPreview || null;
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.memoryRecallPreview.id}를 response-only로 계산했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -11622,6 +11744,153 @@ function renderMissionLearningCandidatePreview(
   `;
 }
 
+function renderMemoryRecallPreview(durableItem, durableCandidate) {
+  const summary = getMemoryRecallPreviewSummary(
+    durableItem,
+    state.missionMemoryRecallPreview,
+    durableCandidate,
+  );
+  if (!summary) return '';
+
+  const draft = state.missionMemoryRecallDraft;
+  const currentPreview = summary.currentPreview;
+  const workspaceProjectId =
+    draft.workspaceProjectId || summary.workspaceProjectId;
+  const applicabilitySummary =
+    draft.applicabilitySummary || durableItem.applicability.summary;
+  const targetPathAllowlist =
+    draft.targetPathAllowlist || summary.targetPathAllowlist.join('\n');
+  const verificationCommands =
+    draft.verificationCommands || summary.verificationCommands.join('\n');
+  const evidenceRefs = draft.evidenceRefs || summary.evidenceRefs.join('\n');
+  const negativeEvidenceRefs =
+    draft.negativeEvidenceRefs || summary.negativeEvidenceRefs.join('\n');
+  const redactionRefs = draft.redactionRefs || summary.redactionRefs.join('\n');
+  const reviewRefs = draft.reviewRefs || summary.reviewRefs.join('\n');
+
+  return `
+    <section class="memory-recall-panel" aria-label="Response-only MemoryRecall preview">
+      <div class="card-title-row card-title-row-tight">
+        <strong>MemoryRecall Preview</strong>
+        ${createToken('response-only', 'accent')}
+        ${createToken('exact-id', 'neutral')}
+        ${createToken(summary.unexpired ? 'source-current' : 'expired', summary.unexpired ? 'success' : 'danger')}
+      </div>
+      <form class="memory-recall-form" data-form="preview-memory-recall">
+        <div class="memory-candidate-grid">
+          <label class="field memory-candidate-grid-wide">
+            <span class="field-label">Recall purpose</span>
+            <input
+              class="text-input"
+              name="purpose"
+              type="text"
+              value="${escapeHtml(draft.purpose)}"
+              placeholder="이 evidence를 다시 검토할 구체적인 목적"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Workspace project</span>
+            <input
+              class="text-input"
+              name="workspaceProjectId"
+              type="text"
+              value="${escapeHtml(workspaceProjectId)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Applicability summary</span>
+            <input
+              class="text-input"
+              name="applicabilitySummary"
+              type="text"
+              value="${escapeHtml(applicabilitySummary)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Target path allowlist</span>
+            <textarea class="text-input" name="targetPathAllowlist" rows="3" ${state.loading || state.mutating ? 'disabled' : ''}>${escapeHtml(targetPathAllowlist)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Verification commands</span>
+            <textarea class="text-input" name="verificationCommands" rows="3" ${state.loading || state.mutating ? 'disabled' : ''}>${escapeHtml(verificationCommands)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Evidence refs</span>
+            <textarea class="text-input" name="evidenceRefs" rows="3" ${state.loading || state.mutating ? 'disabled' : ''}>${escapeHtml(evidenceRefs)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Negative evidence refs</span>
+            <textarea class="text-input" name="negativeEvidenceRefs" rows="3" ${state.loading || state.mutating ? 'disabled' : ''}>${escapeHtml(negativeEvidenceRefs)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Redaction refs</span>
+            <textarea class="text-input" name="redactionRefs" rows="3" ${state.loading || state.mutating ? 'disabled' : ''}>${escapeHtml(redactionRefs)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Review refs</span>
+            <textarea class="text-input" name="reviewRefs" rows="3" ${state.loading || state.mutating ? 'disabled' : ''}>${escapeHtml(reviewRefs)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Recall acknowledgement</span>
+            <select class="text-input" name="acknowledgement" ${state.loading || state.mutating ? 'disabled' : ''}>
+              <option value="operator-selected-exact-memory-item-for-read-only-recall">operator-selected-exact-memory-item-for-read-only-recall</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Non-application statement</span>
+            <select class="text-input" name="nonApplicationStatement" ${state.loading || state.mutating ? 'disabled' : ''}>
+              <option value="recall-preview-not-runtime-application">recall-preview-not-runtime-application</option>
+            </select>
+          </label>
+        </div>
+        <div class="relation-button-row memory-candidate-actions">
+          <button
+            class="primary-button"
+            type="button"
+            data-action="preview-memory-recall"
+            data-id="${escapeHtml(durableItem.id)}"
+            ${state.loading || state.mutating || !summary.canPreview ? 'disabled' : ''}
+          >
+            MemoryRecall 미리보기
+          </button>
+        </div>
+      </form>
+      ${
+        currentPreview
+          ? `
+            <div class="memory-recall-result" aria-label="MemoryRecall response evidence">
+              <div class="card-title-row card-title-row-tight">
+                <strong>${escapeHtml(currentPreview.id)}</strong>
+                ${createToken(currentPreview.status, 'warning')}
+                ${createToken(`retrieval:${currentPreview.retrievalMode}`, 'neutral')}
+                ${createToken(`application:${currentPreview.applicationStatus}`, 'neutral')}
+                ${createToken(`mission-injection:${currentPreview.missionInjectionStatus}`, 'neutral')}
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(`digest:${currentPreview.previewDigest}`, 'neutral')}
+                ${createToken(`source:${currentPreview.sourceMemoryItemId}`, 'success')}
+                ${createToken(`scope:${currentPreview.workspaceScope.projectId}`, 'neutral')}
+              </div>
+              <p><strong>Purpose</strong> ${escapeHtml(currentPreview.purpose)}</p>
+              <p><strong>Summary</strong> ${escapeHtml(currentPreview.summary)}</p>
+              <p><strong>Applicability</strong> ${escapeHtml(currentPreview.applicability.summary)}</p>
+              <p><strong>Negative evidence</strong> ${escapeHtml(currentPreview.negativeEvidenceRefs.join(' · '))}</p>
+              <div class="delivery-package-authority" aria-label="Blocked recall authority">
+                ${(currentPreview.blockedActions || [])
+                  .map((action) => createToken(`${action}:blocked`, 'neutral'))
+                  .join('')}
+              </div>
+            </div>
+          `
+          : ''
+      }
+    </section>
+  `;
+}
+
 function renderMemoryCandidatePreview(
   preview,
   durableMemoryItem,
@@ -11917,6 +12186,7 @@ function renderMemoryCandidatePreview(
                   .map((action) => createToken(`${action}:blocked`, 'neutral'))
                   .join('')}
               </div>
+              ${renderMemoryRecallPreview(durableItem, durableCandidate)}
             </div>
           `
           : ''
@@ -17081,6 +17351,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'preview-memory-recall') {
+        await previewMemoryItemRecall(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'resume-workflow-checkpoint') {
         await submitWorkflowCheckpointAction(
           actionButton.dataset.id,
@@ -17258,6 +17533,9 @@ function handleFormInput(event) {
   const memoryCandidateForm = event.target.closest(
     '[data-form="preview-memory-candidate"]',
   );
+  const memoryRecallForm = event.target.closest(
+    '[data-form="preview-memory-recall"]',
+  );
 
   if (runHarnessOperatorActionForm) {
     if (event.target.name === 'inputPath') {
@@ -17280,9 +17558,22 @@ function handleFormInput(event) {
     if (Object.prototype.hasOwnProperty.call(state.missionMemoryCandidateDraft, event.target.name)) {
       state.missionMemoryCandidateDraft[event.target.name] = event.target.value;
       state.missionMemoryCandidatePreview = null;
+      state.missionMemoryRecallPreview = null;
       event.target
         .closest('.memory-candidate-panel')
         ?.querySelector('.memory-candidate-result')
+        ?.remove();
+    }
+    return;
+  }
+
+  if (memoryRecallForm) {
+    if (Object.prototype.hasOwnProperty.call(state.missionMemoryRecallDraft, event.target.name)) {
+      state.missionMemoryRecallDraft[event.target.name] = event.target.value;
+      state.missionMemoryRecallPreview = null;
+      event.target
+        .closest('.memory-recall-panel')
+        ?.querySelector('.memory-recall-result')
         ?.remove();
     }
     return;

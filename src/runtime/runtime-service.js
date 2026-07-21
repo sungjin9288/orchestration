@@ -152,6 +152,9 @@ const {
 } = require('./memory-candidate-preview');
 const { createMemoryItem } = require('./memory-items');
 const {
+  previewMemoryItemRecall: compileMemoryRecallPreview,
+} = require('./memory-recall-preview');
+const {
   assertSupportedArtifactType,
   cloneJsonValue,
   compareByCreatedDesc,
@@ -4129,6 +4132,48 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  function assertExactMemoryRecallPreviewInput(input) {
+    const expectedFields = [
+      'memoryItemId',
+      'memoryItemRecordDigest',
+      'evaluatedAt',
+      'recallSpec',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('MemoryRecall preview request has unexpected or missing fields');
+    }
+  }
+
+  function previewMemoryItemRecall(input) {
+    assertExactMemoryRecallPreviewInput(input);
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`MemoryRecall preview requires current state: ${error.message}`);
+    }
+    const item = assertMemoryItem(input.memoryItemId, state);
+    if (String(input.memoryItemRecordDigest || '').trim() !== item.recordDigest) {
+      throw conflict('MemoryRecall preview recordDigest does not match current evidence');
+    }
+    try {
+      return compileMemoryRecallPreview({
+        item,
+        evaluatedAt: input.evaluatedAt,
+        recallSpec: input.recallSpec,
+      });
+    } catch (error) {
+      if (/source MemoryItem|expired|widened downstream authority/.test(error.message)) {
+        throw conflict(error.message);
+      }
+      throw error;
+    }
+  }
+
   function assertExactDeliveryPackageTuple(input, preview) {
     const exactFields = [
       ['previewId', preview.id],
@@ -5975,6 +6020,7 @@ function createRuntimeService(options = {}) {
     preflightMissionWorkOrderPreview,
     previewMissionLearningCandidate,
     previewLearningCandidateMemory,
+    previewMemoryItemRecall,
     previewMissionWorkOrders,
     previewExecutionPlanDelivery,
     persistExecutionPlanDeliveryPackage,

@@ -257,17 +257,19 @@ policy mutation, bypass, or connectors.
 ## Current Gate
 
 - Planning-only authority: accepted as `DEC-122`.
-- Complete fielded implementation handoff: documented as `DEC-123`.
-- Runtime/API/UI implementation: blocked pending the complete fielded decision.
-- Current runtime remains schema v14 with immutable stored MemoryItems and exact inspection only.
+- Complete fielded implementation handoff: documented as `DEC-123` and consumed by `DEC-124`.
+- Runtime/API/UI implementation: accepted and completed as the exact response-only slice in `DEC-124`.
+- Current runtime remains schema v14 and now exposes one exact-id operator-selected response/browser-memory preview without durable recall, automatic retrieval, recommendation, injection, or application authority.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
+node scripts/smoke-ai-company-memory-recall-preview.mjs
 node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/smoke-ai-company-durable-memory-item.mjs
 node scripts/smoke-ui-slice-664.mjs
+node scripts/smoke-ui-slice-665.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```

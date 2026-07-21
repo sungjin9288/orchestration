@@ -244,6 +244,12 @@ const smokeChecks = [
     purpose:
       'Durable MemoryItem UI and API preserve exact recomputation and separate storage approval, one immutable stored record, read-only exact hydration, response-only preview compatibility, safe stale malformed and content-type failures, idempotent replay, responsive fit, and absent retrieval application export deletion promotion or downstream controls',
   },
+  {
+    id: 'ai-company-memory-recall-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-665.mjs',
+    purpose:
+      'MemoryRecall UI and API preserve exact-id operator selection, bounded project-local source-contained recallSpec, response and browser-memory-only recall-ready evidence, refresh source input and failure invalidation, safe stale malformed content-type cross-workspace negative-evidence-dropping and credential refusal, responsive fit, and absent search ranking recommendation application or Mission injection controls',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
