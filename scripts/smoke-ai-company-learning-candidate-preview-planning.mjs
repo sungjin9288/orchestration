@@ -170,7 +170,7 @@ assert.match(
 assert.match(verification, /id: 'ai-company-learning-candidate-preview-implementation'/);
 assert.match(verification, /id: 'ai-company-learning-candidate-preview-ui-api'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 13/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 14/);
 assert.match(contracts, /learningCandidate: 0/);
 assert.match(learningCandidateCompiler, /function compileLearningCandidatePreview\(/);
 assert.match(runtimeService, /function previewMissionLearningCandidate\(/);

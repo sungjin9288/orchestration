@@ -400,6 +400,47 @@ export function getMemoryCandidatePreviewSummary(
   };
 }
 
+export function getMemoryItemPersistenceSummary(
+  preview,
+  durableItem,
+  durableCandidate,
+  durableReview,
+  missionId,
+) {
+  const source = getMemoryCandidatePreviewSummary(
+    durableCandidate,
+    durableReview,
+    missionId,
+  );
+  if (!source) return null;
+  const item =
+    durableItem?.persisted === true &&
+    durableItem.status === 'stored' &&
+    durableItem.sourceLearningCandidateId === durableCandidate.id &&
+    durableItem.sourceLearningCandidateReviewId === durableReview.id &&
+    durableItem.projectId === durableCandidate.projectId
+      ? durableItem
+      : null;
+  const currentPreview =
+    preview?.persisted === false &&
+    preview.sourceLearningCandidateId === durableCandidate.id &&
+    preview.sourceLearningCandidateReviewId === durableReview.id &&
+    preview.previewId === durableCandidate.previewId &&
+    preview.candidateDigest === durableCandidate.candidateDigest &&
+    preview.candidateRecordDigest === durableCandidate.recordDigest &&
+    preview.reviewDigest === durableReview.reviewDigest
+      ? preview
+      : null;
+
+  return {
+    canPersist: Boolean(source.canPreview && currentPreview && !item),
+    currentPreview,
+    item,
+    persisted: Boolean(item),
+    source,
+  };
+}
+
 export function getMissionDeliveryPackageAcceptanceSummary(
   preview,
   bundle,

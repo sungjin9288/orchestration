@@ -15,6 +15,7 @@ const {
   LEGACY_STATE_SCHEMA_VERSION,
   LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION,
   LEARNING_CANDIDATE_STATE_SCHEMA_VERSION,
+  MEMORY_ITEM_STATE_SCHEMA_VERSION,
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
@@ -51,6 +52,14 @@ const {
   assertLearningCandidateReviewRecordContent,
   computeLearningCandidateReviewDigest,
 } = require('./learning-candidate-reviews');
+const {
+  MEMORY_ITEM_BLOCKED_ACTIONS,
+  MEMORY_ITEM_NON_PERSISTENCE_STATEMENT,
+  MEMORY_ITEM_STATUS,
+  STORAGE_APPROVAL_ACKNOWLEDGEMENT,
+  STORAGE_APPROVAL_DECISION,
+  computeMemoryItemRecordDigest,
+} = require('./memory-items');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 
 function assertStringField(record, field, label) {
@@ -1039,6 +1048,225 @@ function validateLearningCandidateReviewRecords(state) {
   }
 }
 
+function validateMemoryItemRecords(state) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const sourceReviewIds = new Set();
+
+  for (const [key, item] of Object.entries(state.memoryItems)) {
+    const label = `MemoryItem ${key}`;
+    if (!item || typeof item !== 'object' || Array.isArray(item) || item.id !== key) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      item,
+      [
+        'id',
+        'persisted',
+        'status',
+        'projectId',
+        'workspaceScope',
+        'sourceMissionId',
+        'sourceLearningCandidateId',
+        'sourceLearningCandidateReviewId',
+        'sourceMemoryCandidatePreviewId',
+        'sourceMemoryCandidatePreviewDigest',
+        'sourceLearningPreviewId',
+        'candidateDigest',
+        'candidateRecordDigest',
+        'reviewDigest',
+        'summary',
+        'applicability',
+        'sourceRefs',
+        'evidenceRefs',
+        'negativeEvidenceRefs',
+        'redactionRefs',
+        'reviewRefs',
+        'storageApproval',
+        'redactionStatus',
+        'applicationStatus',
+        'promotionStatus',
+        'expiresAt',
+        'exportRefs',
+        'deletionRefs',
+        'blockedActions',
+        'nonPersistenceStatement',
+        'recordDigest',
+        'createdAt',
+        'updatedAt',
+      ],
+      label,
+    );
+    for (const field of [
+      'projectId',
+      'sourceMissionId',
+      'sourceLearningCandidateId',
+      'sourceLearningCandidateReviewId',
+      'sourceMemoryCandidatePreviewId',
+      'sourceMemoryCandidatePreviewDigest',
+      'sourceLearningPreviewId',
+      'candidateDigest',
+      'candidateRecordDigest',
+      'reviewDigest',
+      'summary',
+      'redactionStatus',
+      'applicationStatus',
+      'promotionStatus',
+      'expiresAt',
+      'nonPersistenceStatement',
+      'recordDigest',
+      'createdAt',
+      'updatedAt',
+    ]) {
+      assertStringField(item, field, label);
+    }
+    for (const field of [
+      'sourceRefs',
+      'evidenceRefs',
+      'negativeEvidenceRefs',
+      'redactionRefs',
+      'reviewRefs',
+      'exportRefs',
+      'deletionRefs',
+      'blockedActions',
+    ]) {
+      assertStringArrayField(item, field, label);
+    }
+    if (
+      item.persisted !== true ||
+      item.status !== MEMORY_ITEM_STATUS ||
+      item.redactionStatus !== 'review-required' ||
+      item.applicationStatus !== 'blocked' ||
+      item.promotionStatus !== 'blocked' ||
+      item.nonPersistenceStatement !== MEMORY_ITEM_NON_PERSISTENCE_STATEMENT ||
+      item.exportRefs.length !== 0 ||
+      item.deletionRefs.length !== 0 ||
+      item.blockedActions.length !== MEMORY_ITEM_BLOCKED_ACTIONS.length ||
+      item.blockedActions.some(
+        (action, index) => action !== MEMORY_ITEM_BLOCKED_ACTIONS[index],
+      )
+    ) {
+      throw new Error(`${label} has invalid immutable status or blocked authority`);
+    }
+    for (const field of [
+      'sourceMemoryCandidatePreviewDigest',
+      'candidateDigest',
+      'candidateRecordDigest',
+      'reviewDigest',
+      'recordDigest',
+    ]) {
+      if (!digestPattern.test(item[field])) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      item.sourceMemoryCandidatePreviewId !==
+      `memory-candidate-preview-${item.sourceMemoryCandidatePreviewDigest.slice(0, 16)}`
+    ) {
+      throw new Error(`${label} has invalid MemoryCandidate preview identity`);
+    }
+    for (const field of ['createdAt', 'updatedAt', 'expiresAt']) {
+      if (
+        Number.isNaN(Date.parse(item[field])) ||
+        new Date(item[field]).toISOString() !== item[field]
+      ) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      !item.storageApproval ||
+      typeof item.storageApproval !== 'object' ||
+      Array.isArray(item.storageApproval)
+    ) {
+      throw new Error(`${label} has invalid storageApproval`);
+    }
+    assertExactObjectKeys(
+      item.storageApproval,
+      ['decision', 'acknowledgement', 'rationale', 'reviewedAt'],
+      `${label} storageApproval`,
+    );
+    assertStringField(item.storageApproval, 'rationale', `${label} storageApproval`);
+    if (
+      item.storageApproval.decision !== STORAGE_APPROVAL_DECISION ||
+      item.storageApproval.acknowledgement !== STORAGE_APPROVAL_ACKNOWLEDGEMENT ||
+      item.storageApproval.reviewedAt !== item.createdAt ||
+      item.updatedAt !== item.createdAt ||
+      Date.parse(item.expiresAt) <= Date.parse(item.createdAt)
+    ) {
+      throw new Error(`${label} has invalid storage approval timing or decision`);
+    }
+    if (
+      !item.workspaceScope ||
+      typeof item.workspaceScope !== 'object' ||
+      Array.isArray(item.workspaceScope)
+    ) {
+      throw new Error(`${label} has invalid workspaceScope`);
+    }
+    assertExactObjectKeys(item.workspaceScope, ['projectId'], `${label} workspaceScope`);
+    if (item.workspaceScope.projectId !== item.projectId) {
+      throw new Error(`${label} has invalid project-only workspace scope`);
+    }
+    if (
+      !item.applicability ||
+      typeof item.applicability !== 'object' ||
+      Array.isArray(item.applicability)
+    ) {
+      throw new Error(`${label} has invalid applicability`);
+    }
+    assertExactObjectKeys(
+      item.applicability,
+      ['summary', 'targetPathAllowlist', 'verificationCommands'],
+      `${label} applicability`,
+    );
+    assertStringField(item.applicability, 'summary', `${label} applicability`);
+    assertStringArrayField(
+      item.applicability,
+      'targetPathAllowlist',
+      `${label} applicability`,
+    );
+    assertStringArrayField(
+      item.applicability,
+      'verificationCommands',
+      `${label} applicability`,
+    );
+
+    const candidate = state.learningCandidates[item.sourceLearningCandidateId];
+    const review = state.learningCandidateReviews[item.sourceLearningCandidateReviewId];
+    const candidateNegativeEvidenceRefs = new Set(
+      (candidate?.negativeEvidence || []).map((entry) => entry.sourceEvidenceRef),
+    );
+    if (
+      !candidate ||
+      !review ||
+      review.decision !== LEARNING_CANDIDATE_REVIEW_DECISION.ACCEPT ||
+      candidate.projectId !== item.projectId ||
+      candidate.sourceMissionId !== item.sourceMissionId ||
+      candidate.previewId !== item.sourceLearningPreviewId ||
+      candidate.candidateDigest !== item.candidateDigest ||
+      candidate.recordDigest !== item.candidateRecordDigest ||
+      review.learningCandidateId !== candidate.id ||
+      review.reviewDigest !== item.reviewDigest ||
+      item.expiresAt > candidate.expiry.expiresAt ||
+      !item.sourceRefs.includes(candidate.id) ||
+      !item.sourceRefs.includes(review.id) ||
+      item.evidenceRefs.some((ref) => !candidate.sourceEvidenceRefs.includes(ref)) ||
+      item.negativeEvidenceRefs.some((ref) => !candidateNegativeEvidenceRefs.has(ref)) ||
+      item.redactionRefs.some((ref) => !item.sourceRefs.includes(ref)) ||
+      item.reviewRefs.some(
+        (ref) => ref !== candidate.id && ref !== review.id && !review.evidenceRefs.includes(ref),
+      )
+    ) {
+      throw new Error(`${label} has invalid source evidence binding`);
+    }
+    if (sourceReviewIds.has(review.id)) {
+      throw new Error(`${label} duplicates accepted review storage evidence`);
+    }
+    sourceReviewIds.add(review.id);
+    if (computeMemoryItemRecordDigest(item) !== item.recordDigest) {
+      throw new Error(`${label} recordDigest does not match its immutable payload`);
+    }
+  }
+}
+
 function validateDurableWorkOrderRecords(state) {
   const planStatuses = new Set(Object.values(EXECUTION_PLAN_STATUS));
   const workOrderStatuses = new Set(Object.values(WORK_ORDER_STATUS));
@@ -1235,6 +1463,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== LEARNING_CANDIDATE_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -1344,6 +1573,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= MEMORY_ITEM_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.memoryItem) ||
+        !state.memoryItems ||
+        typeof state.memoryItems !== 'object' ||
+        Array.isArray(state.memoryItems)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing MemoryItem fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -1372,6 +1614,7 @@ function createFileStore(options = {}) {
       missionCloseOuts: state.missionCloseOuts || {},
       learningCandidates: state.learningCandidates || {},
       learningCandidateReviews: state.learningCandidateReviews || {},
+      memoryItems: state.memoryItems || {},
     };
 
     if (sourceSchemaVersion < WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION) {
@@ -1640,6 +1883,7 @@ function createFileStore(options = {}) {
     validateMissionCloseOutRecords(normalizedState);
     validateLearningCandidateRecords(normalizedState);
     validateLearningCandidateReviewRecords(normalizedState);
+    validateMemoryItemRecords(normalizedState);
     return normalizedState;
   }
 

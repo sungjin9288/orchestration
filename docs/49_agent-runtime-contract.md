@@ -503,12 +503,12 @@ memory, retrieval/import/apply/export/delete, skill promotion, provider, source/
 scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
 
 Durable MemoryItem persistence planning은 `DEC-119`, complete fielded implementation handoff는
-`DEC-120`으로 문서화됐다. Future schema-v14 path는 current accepted-review source tuple와
-operator-owned memorySpec에서 DEC-118 preview를 recompute하고 separate
-`storageApproval.decision=store`를 검증한 뒤 immutable `status=stored` record 하나만 append하는
-target이다. Current runtime은 schema v13이며 persistence, exact durable inspection, recommendation
-retrieval/application, import/export/delete/refresh, cross-workspace use, skill, provider,
-source/Git/release, scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
+`DEC-120`, exact implementation은 `DEC-121`로 문서화됐다. Schema-v14 runtime은 current accepted-
+review source tuple와 operator-owned memorySpec에서 DEC-118 preview를 recompute하고 separate
+`storageApproval.decision=store`를 검증한 뒤 immutable `status=stored` record 하나만 append한다.
+GET은 exact source-bound inspection만 제공한다. Recommendation retrieval/application,
+import/export/delete/refresh, cross-workspace use, skill, provider, source/Git/release, scheduling,
+next-Mission, policy, bypass, and connectors는 blocked다.
 
 ## Verification
 
@@ -555,6 +555,8 @@ node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-memory-candidate-preview.mjs
 node scripts/smoke-ui-slice-663.mjs
 node scripts/smoke-ai-company-durable-memory-item-planning.mjs
+node scripts/smoke-ai-company-durable-memory-item.mjs
+node scripts/smoke-ui-slice-664.mjs
 node scripts/verification_status.mjs
 ```
 

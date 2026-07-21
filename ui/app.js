@@ -145,6 +145,7 @@ import {
   getMissionLearningCandidatePersistenceSummary,
   getLearningCandidateReviewSummary,
   getMemoryCandidatePreviewSummary,
+  getMemoryItemPersistenceSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -387,6 +388,11 @@ const state = {
     nonPersistenceStatement: 'readiness-only-not-durable-memory',
   },
   missionMemoryCandidatePreview: null,
+  missionMemoryItemStorageDraft: {
+    rationale: '',
+    acknowledgement: 'reviewed-memory-candidate-for-local-project-storage',
+  },
+  missionMemoryItem: null,
   missionExecutionPlanRecovery: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
@@ -4766,6 +4772,9 @@ function applySnapshotPayload(payload) {
   } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.missionMemoryCandidatePreview = null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'memoryItem')) {
+    state.missionMemoryItem = payload.memoryItem || null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
   }
@@ -4840,6 +4849,7 @@ async function hydrateSelectedDetails() {
   state.missionLearningCandidate = null;
   state.missionLearningCandidateReview = null;
   state.missionMemoryCandidatePreview = null;
+  state.missionMemoryItem = null;
   state.missionLearningCandidateDraft = {
     lesson: '',
     applicabilitySummary: '',
@@ -4868,6 +4878,10 @@ async function hydrateSelectedDetails() {
     workspaceProjectId: '',
     redactionAcknowledgement: 'source-summary-only',
     nonPersistenceStatement: 'readiness-only-not-durable-memory',
+  };
+  state.missionMemoryItemStorageDraft = {
+    rationale: '',
+    acknowledgement: 'reviewed-memory-candidate-for-local-project-storage',
   };
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
@@ -4940,6 +4954,12 @@ async function hydrateSelectedDetails() {
             );
             state.missionLearningCandidateReview =
               reviewPayload.learningCandidateReview || null;
+            if (state.missionLearningCandidateReview?.decision === 'accepted') {
+              const memoryItemPayload = await fetchJson(
+                `/api/learning-candidates/${encodeURIComponent(state.missionLearningCandidate.id)}/memory-item`,
+              );
+              state.missionMemoryItem = memoryItemPayload.memoryItem || null;
+            }
           }
         }
       }
@@ -6318,6 +6338,7 @@ async function reviewLearningCandidate(actionButton) {
     state.missionLearningCandidateReview =
       payload.learningCandidateReview || null;
     state.missionMemoryCandidatePreview = null;
+    state.missionMemoryItem = null;
     state.surface = 'deliverables';
     render();
     elements.refreshStatus.textContent =
@@ -6420,6 +6441,69 @@ async function previewLearningCandidateMemory(actionButton) {
     render();
     elements.refreshStatus.textContent =
       `${payload.memoryCandidatePreview.id}를 response-only로 계산했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function persistLearningCandidateMemoryItem(actionButton) {
+  const panel = actionButton?.closest?.('.memory-candidate-panel');
+  const previewForm = panel?.querySelector?.('[data-form="preview-memory-candidate"]');
+  const storageForm = actionButton?.closest?.('[data-form="persist-memory-item"]');
+  const candidate = state.missionLearningCandidate;
+  const review = state.missionLearningCandidateReview;
+  const preview = state.missionMemoryCandidatePreview;
+  const summary = getMemoryItemPersistenceSummary(
+    preview,
+    state.missionMemoryItem,
+    candidate,
+    review,
+    candidate?.sourceMissionId,
+  );
+  if (!previewForm || !storageForm || !candidate || !review || !summary?.canPersist) {
+    throw new Error('저장할 exact current MemoryCandidate preview가 없습니다.');
+  }
+  const storageFormData = new FormData(storageForm);
+  const storageApproval = {
+    decision: 'store',
+    acknowledgement: String(storageFormData.get('acknowledgement') || ''),
+    rationale: String(storageFormData.get('rationale') || ''),
+    reviewedAt: new Date().toISOString(),
+  };
+  state.missionMemoryItemStorageDraft = {
+    rationale: storageApproval.rationale,
+    acknowledgement: storageApproval.acknowledgement,
+  };
+  const memorySpec = readMemoryCandidateDraft(previewForm);
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${preview.id} storage approval을 검증하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/learning-candidates/${encodeURIComponent(candidate.id)}/persist-memory-item`,
+      {
+        learningCandidateReviewId: review.id,
+        previewId: candidate.previewId,
+        candidateDigest: candidate.candidateDigest,
+        candidateRecordDigest: candidate.recordDigest,
+        reviewDigest: review.reviewDigest,
+        evaluatedAt: preview.evaluatedAt,
+        memorySpec,
+        memoryCandidatePreviewId: preview.id,
+        memoryCandidatePreviewDigest: preview.previewDigest,
+        storageApproval,
+      },
+    );
+    state.missionMemoryCandidatePreview = payload.memoryCandidatePreview || preview;
+    state.missionMemoryItem = payload.memoryItem || null;
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.memoryItem.id}를 project-local stored evidence로 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -11540,6 +11624,7 @@ function renderMissionLearningCandidatePreview(
 
 function renderMemoryCandidatePreview(
   preview,
+  durableMemoryItem,
   durableCandidate,
   durableReview,
   mission,
@@ -11549,7 +11634,7 @@ function renderMemoryCandidatePreview(
     durableReview,
     mission?.id,
   );
-  if (!summary?.canPreview) return '';
+  if (!summary) return '';
 
   const draft = state.missionMemoryCandidateDraft;
   const workspaceProjectId =
@@ -11573,6 +11658,15 @@ function renderMemoryCandidatePreview(
     preview?.sourceLearningCandidateReviewId === durableReview.id
       ? preview
       : null;
+  const persistenceSummary = getMemoryItemPersistenceSummary(
+    currentPreview,
+    durableMemoryItem,
+    durableCandidate,
+    durableReview,
+    mission?.id,
+  );
+  const durableItem = persistenceSummary?.item || null;
+  const storageDraft = state.missionMemoryItemStorageDraft;
   const blockedActionTokens = (currentPreview?.blockedActions || [])
     .map((action) => createToken(`${action}:blocked`, 'neutral'))
     .join('');
@@ -11720,7 +11814,7 @@ function renderMemoryCandidatePreview(
             type="button"
             data-action="preview-memory-candidate"
             data-id="${escapeHtml(durableCandidate.id)}"
-            ${state.loading || state.mutating ? 'disabled' : ''}
+            ${state.loading || state.mutating || !summary.canPreview ? 'disabled' : ''}
           >
             MemoryCandidate 미리보기
           </button>
@@ -11749,6 +11843,79 @@ function renderMemoryCandidatePreview(
               <p><strong>Negative evidence</strong> ${escapeHtml(currentPreview.negativeEvidenceRefs.join(' · '))}</p>
               <div class="delivery-package-authority" aria-label="Blocked memory authority">
                 ${blockedActionTokens}
+              </div>
+              ${
+                persistenceSummary?.canPersist
+                  ? `
+                    <form class="memory-item-storage-form" data-form="persist-memory-item">
+                      <p class="detail-copy detail-copy-compact">
+                        Project-only scope와 negative evidence를 검토하고, readiness preview가
+                        storage approval이 아님을 확인한 뒤 별도 저장 승인을 기록합니다.
+                      </p>
+                      <label class="field">
+                        <span class="field-label">Storage rationale</span>
+                        <textarea
+                          class="text-input"
+                          name="rationale"
+                          rows="3"
+                          ${state.loading || state.mutating ? 'disabled' : ''}
+                        >${escapeHtml(storageDraft.rationale)}</textarea>
+                      </label>
+                      <label class="field">
+                        <span class="field-label">Storage acknowledgement</span>
+                        <select
+                          class="text-input"
+                          name="acknowledgement"
+                          ${state.loading || state.mutating ? 'disabled' : ''}
+                        >
+                          <option value="reviewed-memory-candidate-for-local-project-storage">
+                            reviewed-memory-candidate-for-local-project-storage
+                          </option>
+                        </select>
+                      </label>
+                      <div class="relation-button-row memory-candidate-actions">
+                        <button
+                          class="primary-button"
+                          type="button"
+                          data-action="persist-memory-item"
+                          data-id="${escapeHtml(durableCandidate.id)}"
+                          ${state.loading || state.mutating ? 'disabled' : ''}
+                        >
+                          MemoryItem 저장
+                        </button>
+                      </div>
+                    </form>
+                  `
+                  : ''
+              }
+            </div>
+          `
+          : ''
+      }
+      ${
+        durableItem
+          ? `
+            <div class="memory-item-record" aria-label="Durable MemoryItem evidence">
+              <div class="card-title-row card-title-row-tight">
+                <strong>${escapeHtml(durableItem.id)}</strong>
+                ${createToken(durableItem.status, 'success')}
+                ${createToken('persisted:true', 'success')}
+                ${createToken(`application:${durableItem.applicationStatus}`, 'neutral')}
+                ${createToken(`promotion:${durableItem.promotionStatus}`, 'neutral')}
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(`record:${durableItem.recordDigest}`, 'neutral')}
+                ${createToken(`preview:${durableItem.sourceMemoryCandidatePreviewId}`, 'neutral')}
+                ${createToken(`scope:${durableItem.workspaceScope.projectId}`, 'neutral')}
+              </div>
+              <p><strong>Summary</strong> ${escapeHtml(durableItem.summary)}</p>
+              <p><strong>Storage approval</strong> ${escapeHtml(durableItem.storageApproval.rationale)}</p>
+              <p><strong>Negative evidence</strong> ${escapeHtml(durableItem.negativeEvidenceRefs.join(' · '))}</p>
+              <p><strong>Expires</strong> ${escapeHtml(durableItem.expiresAt)}</p>
+              <div class="delivery-package-authority" aria-label="Blocked durable memory authority">
+                ${(durableItem.blockedActions || [])
+                  .map((action) => createToken(`${action}:blocked`, 'neutral'))
+                  .join('')}
               </div>
             </div>
           `
@@ -13355,6 +13522,7 @@ function renderDeliverables(data) {
       )}
       ${renderMemoryCandidatePreview(
         state.missionMemoryCandidatePreview,
+        state.missionMemoryItem,
         state.missionLearningCandidate,
         state.missionLearningCandidateReview,
         selectedMission,
@@ -16905,6 +17073,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'preview-memory-candidate') {
         await previewLearningCandidateMemory(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'persist-memory-item') {
+        await persistLearningCandidateMemoryItem(actionButton);
         return;
       }
 

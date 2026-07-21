@@ -319,7 +319,7 @@ scripts/ui_qa_status.mjs
 
 ## Exclusions
 
-- schema-v14 or runtime/API/UI implementation before a complete fielded decision
+- downstream memory lifecycle implementation beyond the accepted exact storage slice
 - memory recommendation retrieval, search, ranking, import, apply, export, deletion, expiry
   mutation, refresh, garbage collection, quarantine, supersession, or replacement
 - cross-workspace/global memory or policy/profile learning
@@ -333,15 +333,18 @@ scripts/ui_qa_status.mjs
 
 - Planning-only authority: accepted as `DEC-119`.
 - Complete fielded implementation handoff: documented as `DEC-120`.
-- Schema/runtime/API/UI implementation: blocked pending the complete fielded decision.
-- Current runtime remains schema v13 with DEC-118 response/browser-memory preview only.
-- Durable MemoryItem creation and every retrieval/application/export/delete/skill/provider/
-  downstream authority remain blocked.
+- Schema/runtime/API/UI implementation: accepted as `DEC-121` and implemented as the exact bounded slice.
+- Current runtime is schema v14 with additive `memoryItem` sequence/map, DEC-118 response/browser-
+  memory preview, one exact durable persistence command, and exact source-bound inspection.
+- Recommendation retrieval/search/ranking/import/application/export/delete/refresh/expiry mutation/
+  cross-workspace use/skill/provider and every other downstream authority remain blocked.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-durable-memory-item-planning.mjs
+node scripts/smoke-ai-company-durable-memory-item.mjs
+node scripts/smoke-ui-slice-664.mjs
 node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-memory-candidate-preview.mjs
 node scripts/smoke-ui-slice-663.mjs

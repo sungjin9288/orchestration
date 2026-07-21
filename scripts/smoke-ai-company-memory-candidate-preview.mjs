@@ -199,7 +199,7 @@ async function main() {
     const stateBytesBefore = fs.readFileSync(statePath, 'utf8');
     const sourceBytesBefore = fs.readFileSync(sourcePath, 'utf8');
 
-    assert.equal(stateBefore.schemaVersion, 13);
+    assert.equal(stateBefore.schemaVersion, 14);
     assert.equal(seed.review.decision, 'accepted');
     assert.equal(
       Object.prototype.hasOwnProperty.call(stateBefore, 'memoryCandidates'),
@@ -239,7 +239,7 @@ async function main() {
     assertNoWrite(
       legacyRoot,
       () => createRuntime(legacyRoot).previewLearningCandidateMemory(request),
-      /current state|schema v13|missing/,
+      /current state|schema v14|missing/,
     );
 
     let saveCount = 0;
@@ -488,7 +488,7 @@ async function main() {
             deepFrozen: true,
           },
           safety: {
-            schemaVersion: 13,
+            schemaVersion: 14,
             saveStateCount: saveCount,
             stateBytesUnchanged: true,
             sourceBytesUnchanged: true,

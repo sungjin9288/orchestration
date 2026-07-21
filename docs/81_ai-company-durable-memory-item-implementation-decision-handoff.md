@@ -14,11 +14,24 @@ provider, source, Git, release, scheduling, next Mission, policy, bypass, and co
 
 - Planning-only authority is accepted as `DEC-119`.
 - This complete fielded implementation handoff is recorded as `DEC-120`.
-- Current runtime remains schema v13 with DEC-118 response/browser-memory-only previews.
-- No memoryItem sequence/map, durable record, storage approval payload, persistence route, exact
-  inspection route, durable UI, or focused persistence smoke exists.
-- General continuation, broad approval, or delegated non-critical self-approval does not open this
-  schema- and persistence-sensitive implementation.
+- The complete fielded operator decision is accepted as `DEC-121`.
+- Current runtime is schema v14 with exact DEC-118 recomputation, one immutable stored MemoryItem,
+  bounded persistence and exact inspection routes, Deliverables storage evidence, and focused
+  runtime/UI smokes.
+- Recommendation retrieval/application, export/delete/refresh, cross-workspace use, skill,
+  provider, source/Git/release, scheduling, policy, bypass, and connectors remain closed.
+
+## Implementation Outcome
+
+- `src/runtime/memory-items.js` normalizes the separate storage approval and computes the immutable
+  record digest.
+- File-store migration adds only `sequences.memoryItem` and `memoryItems`; passive paths create no
+  item and partial/corrupt schema-v14 records fail closed.
+- Runtime and transport recompute the exact current DEC-118 preview before one atomic append.
+- GET and Deliverables expose source-bound stored evidence without making it eligible to steer
+  recommendations or execution.
+- `scripts/smoke-ai-company-durable-memory-item.mjs` and `scripts/smoke-ui-slice-664.mjs` pin the
+  migration, no-write, idempotency, reload, API, UI, responsive-fit, and blocked-authority boundary.
 
 ## Minimum Required Decision Fields
 

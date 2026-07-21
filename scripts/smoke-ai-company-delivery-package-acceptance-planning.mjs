@@ -150,7 +150,7 @@ assert.match(verification, /id: 'ai-company-delivery-package-acceptance-implemen
 assert.match(verification, /id: 'ai-company-delivery-package-acceptance-ui-api'/);
 
 // Preserve planning provenance while pinning the exact implementation boundary it authorized.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 13/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 14/);
 assert.match(contracts, /const DELIVERY_PACKAGE_STATUS = \{\s+REVIEW_REQUIRED: 'review-required'/);
 assert.match(contracts, /deliveryPackageAcceptance/);
 assert.match(fileStore, /validateDeliveryPackageAcceptanceRecords/);

@@ -211,6 +211,7 @@ assert.match(decisionLog, /^### DEC-117$/m);
 assert.match(decisionLog, /^### DEC-118$/m);
 assert.match(decisionLog, /^### DEC-119$/m);
 assert.match(decisionLog, /^### DEC-120$/m);
+assert.match(decisionLog, /^### DEC-121$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -231,7 +232,7 @@ assert.match(masterPlanText, /Durable MemoryItem persistence planning-only autho
 assert.match(runtimeContractText, /Durable MemoryItem persistence planning은 `DEC-119`/);
 assert.match(councilProtocolText, /Durable MemoryItem persistence planning은 `DEC-119`/);
 assert.match(deliveryRoadmapText, /Durable MemoryItem persistence planning-only authority는 `DEC-119`/);
-assert.match(deliveryRoadmapText, /Schema-v14 implementation은 complete fielded decision 전까지 blocked/);
+assert.match(deliveryRoadmapText, /exact implementation은 `DEC-121`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -245,7 +246,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 13/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 14/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -311,9 +312,10 @@ process.stdout.write(
         'DEC-118',
         'DEC-119',
         'DEC-120',
+        'DEC-121',
       ],
       currentRuntime: {
-        schemaVersion: 13,
+        schemaVersion: 14,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -327,6 +329,7 @@ process.stdout.write(
         durableLearningCandidate: 'schema-v12-exact-review-required-record',
         learningCandidateReview: 'schema-v13-exact-append-only-outcome',
         memoryCandidatePreview: 'schema-v13-response-only-review-ready',
+        durableMemoryItem: 'schema-v14-exact-stored-record',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -355,15 +358,16 @@ process.stdout.write(
         memoryCandidatePreviewPlanningAllowed: true,
         memoryCandidatePreviewImplementationAllowed: true,
         durableMemoryItemPlanningAllowed: true,
+        durableMemoryItemPersistenceAllowed: true,
         providerRoleExpansionAllowed: false,
-        memoryPersistenceAllowed: false,
+        memoryApplicationAllowed: false,
         autonomousSchedulingAllowed: false,
         agentSourceMutationAllowed: false,
         approvalBypassAllowed: false,
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded schema-v14 durable MemoryItem implementation decision required',
+      nextGate: 'Separate complete fielded durable memory retrieval or application decision required',
     },
     null,
     2,

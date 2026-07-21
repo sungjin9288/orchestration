@@ -128,7 +128,7 @@ try {
   const session = started.councilSession;
   const firstAttempt = session.attempts[0];
 
-  assert.equal(success.runtime.getSnapshot().schemaVersion, 13);
+  assert.equal(success.runtime.getSnapshot().schemaVersion, 14);
   assert.equal(session.mode, 'real-local-stub');
   assert.equal(session.phase, 'awaiting-alignment');
   assert.equal(session.status, 'pending-alignment');
@@ -181,7 +181,7 @@ try {
   });
   const reloadedSession = reloaded.getCouncilSession(session.id);
 
-  assert.equal(reloaded.getSnapshot().schemaVersion, 13);
+  assert.equal(reloaded.getSnapshot().schemaVersion, 14);
   assert.equal(reloadedSession.mode, 'real-local-stub');
   assert.equal(reloadedSession.attempts.length, 2);
   assert.equal(reloadedSession.currentAttemptId, revised.attempt.id);

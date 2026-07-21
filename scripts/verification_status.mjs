@@ -602,6 +602,16 @@ const informationalChecks = [
     purpose: 'AI Company durable MemoryItem planning fixes one schema v14 sequence and map only stored-record target with exact DEC-118 recomputation and separate project-scoped storage approval while implementation recommendation retrieval application import export deletion refresh cross-workspace skill provider source Git release scheduling policy and connector authority remain blocked',
   },
   {
+    id: 'ai-company-durable-memory-item-implementation',
+    script: 'scripts/smoke-ai-company-durable-memory-item.mjs',
+    purpose: 'AI Company durable MemoryItem runtime proves one-save schema v13 to v14 migration and exact immutable stored append, DEC-118 recomputation, separate project-scoped storage approval, canonical record digest, replay idempotency, stale divergent expired malformed credential corrupt and cross-workspace no-write refusal, passive read absence, reload, source stability, and blocked retrieval application export deletion skill provider Git release scheduling policy and connectors',
+  },
+  {
+    id: 'ai-company-durable-memory-item-ui-api',
+    script: 'scripts/smoke-ui-slice-664.mjs',
+    purpose: 'AI Company durable MemoryItem UI and API prove exact-gated explicit storage approval, read-only exact durable hydration, response-only preview compatibility, safe stale malformed and content-type failures, idempotent replay, immutable source records, responsive fit, and absent retrieval application export deletion promotion or downstream controls',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

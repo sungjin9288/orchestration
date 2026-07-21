@@ -93,7 +93,7 @@ assertAll(planText, [
   /POST \/api\/learning-candidates\/:learningCandidateId\/persist-memory-item/,
   /Planning-only authority: accepted as `DEC-119`/,
   /Complete fielded implementation handoff: documented as `DEC-120`/,
-  /implementation: blocked pending the complete fielded decision/,
+  /implementation: accepted as `DEC-121`/,
 ]);
 
 assert.match(
@@ -124,22 +124,23 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-119$/m);
 assert.match(decisionLog, /^### DEC-120$/m);
+assert.match(decisionLog, /^### DEC-121$/m);
 assert.match(masterPlan, /Durable MemoryItem persistence planning-only authority는 `DEC-119`/);
 assert.match(runtimeContract, /Durable MemoryItem persistence planning은 `DEC-119`/);
 assert.match(councilProtocol, /Durable MemoryItem persistence planning은 `DEC-119`/);
 assertAll(roadmapText, [
   /Durable MemoryItem persistence planning-only authority는 `DEC-119`/,
   /implementation decision handoff는 `DEC-120`/,
-  /Schema-v14 implementation은 complete fielded decision 전까지 blocked/,
+  /exact implementation은 `DEC-121`/,
 ]);
 assert.match(
   completionInventory,
-  /AI Company durable MemoryItem persistence planning \| pass/,
+  /AI Company durable MemoryItem persistence \| pass/,
 );
 assertAll(readmeText, [
   /Durable MemoryItem persistence planning-only authority is accepted by `DEC-119`/,
   /complete fielded implementation handoff is recorded by `DEC-120`/,
-  /Schema-v14 implementation remains blocked/,
+  /`DEC-121` accepts the exact schema-v14 implementation/,
 ]);
 assert.match(taskLedger, /ai-company-durable-memory-item-planning-post-m7-1966/);
 assert.match(
@@ -152,14 +153,14 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-memory-item-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 13/);
-assert.doesNotMatch(contracts, /memoryItem: 0/);
-assert.doesNotMatch(fileStore, /validateMemoryItemRecords/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 14/);
+assert.match(contracts, /memoryItem: 0/);
+assert.match(fileStore, /validateMemoryItemRecords/);
 assert.match(runtimeService, /function previewLearningCandidateMemory\(/);
-assert.doesNotMatch(runtimeService, /function persistLearningCandidateMemoryItem\(/);
-assert.doesNotMatch(server, /persist-memory-item/);
-assert.doesNotMatch(server, /memoryItemMatch/);
-assert.doesNotMatch(ui, /data-action="persist-memory-item"/);
+assert.match(runtimeService, /function persistLearningCandidateMemoryItem\(/);
+assert.match(server, /persist-memory-item/);
+assert.match(server, /learningCandidateMemoryItemMatch/);
+assert.match(ui, /data-action="persist-memory-item"/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -169,7 +170,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-119',
         handoff: 'documented-dec-120',
-        implementation: 'blocked-complete-fielded-decision-required',
+        implementation: 'accepted-dec-121',
       },
       plannedPath: {
         sourceSchemaVersion: 13,
@@ -181,17 +182,17 @@ process.stdout.write(
         runtimeRecomputationRequired: true,
       },
       currentRuntime: {
-        schemaVersion: 13,
+        schemaVersion: 14,
         responseOnlyMemoryCandidate: true,
-        durableMemoryItems: false,
-        persistenceRoutes: false,
-        durableUi: false,
+        durableMemoryItems: true,
+        persistenceRoutes: true,
+        durableUi: true,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        schemaMigrationAllowed: false,
-        durableRecordAllowed: false,
+        implementationAllowed: true,
+        schemaMigrationAllowed: true,
+        durableRecordAllowed: true,
         recommendationRetrievalAllowed: false,
         memoryApplicationAllowed: false,
         exportAllowed: false,

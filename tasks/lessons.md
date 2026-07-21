@@ -1,4 +1,5 @@
 # lessons
+- A persistence command that is also the first schema migration trigger must validate the entire source tuple, recomputed preview, and operator approval through a supported-schema read-only normalization before incrementing a sequence. Build the candidate item with the prospective deterministic id, compare exact replay before mutation, and perform one save only after every stale, divergent, expiry, redaction, credential, and scope guard passes; this keeps migration and append atomic without allowing passive GET or boot to create evidence.
 
 ## direction resets
 

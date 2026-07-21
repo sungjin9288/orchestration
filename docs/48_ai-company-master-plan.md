@@ -389,12 +389,12 @@ retrieval/import/apply/export/delete, cross-workspace memory, skill promotion, p
 source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 Durable MemoryItem persistence planning-only authority는 `DEC-119`, complete fielded implementation
-decision handoff는 `DEC-120`으로 기록됐다. The plan separates the response-only MemoryCandidate
-from a future immutable `MemoryItem(status=stored)`, requires runtime DEC-118 recomputation and one
-explicit project-scoped storage approval, and limits schema v14 to an additive sequence/map. Current
-runtime remains schema v13. Schema-v14 implementation, recommendation retrieval, application,
-import/export/delete/refresh, cross-workspace use, skill promotion, provider, source/Git/release,
-scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+decision handoff는 `DEC-120`, exact implementation은 `DEC-121`로 기록됐다. Current schema-v14
+runtime은 response-only MemoryCandidate를 다시 계산하고 별도 project-scoped storage approval을
+검증한 뒤 immutable `MemoryItem(status=stored)` 하나만 append한다. Exact inspection은 저장 사실을
+보여 줄 뿐 runtime behavior를 steer하지 않는다. Recommendation retrieval, search/ranking,
+application, import/export/delete/refresh/expiry mutation, cross-workspace use, skill promotion,
+provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -442,6 +442,8 @@ node scripts/smoke-ai-company-memory-candidate-preview-planning.mjs
 node scripts/smoke-ai-company-memory-candidate-preview.mjs
 node scripts/smoke-ui-slice-663.mjs
 node scripts/smoke-ai-company-durable-memory-item-planning.mjs
+node scripts/smoke-ai-company-durable-memory-item.mjs
+node scripts/smoke-ui-slice-664.mjs
 node scripts/verification_status.mjs
 ```
 

@@ -9060,19 +9060,36 @@ h3 {
 }
 
 .memory-candidate-actions,
-.memory-candidate-result {
+.memory-candidate-result,
+.memory-item-record,
+.memory-item-storage-form {
   margin-top: 12px;
 }
 
-.memory-candidate-result {
+.memory-candidate-result,
+.memory-item-record,
+.memory-item-storage-form {
   min-width: 0;
   padding-top: 12px;
   border-top: 1px solid var(--surface-control-border);
 }
 
+.memory-item-storage-form {
+  display: grid;
+  gap: 10px;
+}
+
+.memory-item-record {
+  display: grid;
+  gap: 8px;
+}
+
 .memory-candidate-panel > *,
 .memory-candidate-result > *,
-.memory-candidate-result p {
+.memory-candidate-result p,
+.memory-item-record > *,
+.memory-item-record p,
+.memory-item-storage-form > * {
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;

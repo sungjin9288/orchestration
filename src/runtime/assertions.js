@@ -76,6 +76,14 @@ function assertLearningCandidateReview(learningCandidateReviewId, state) {
   return review;
 }
 
+function assertMemoryItem(memoryItemId, state) {
+  const memoryItem = state.memoryItems[memoryItemId];
+  if (!memoryItem) {
+    throw new Error(`MemoryItem not found: ${memoryItemId}`);
+  }
+  return memoryItem;
+}
+
 module.exports = {
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
@@ -83,6 +91,7 @@ module.exports = {
   assertHandoffPacket,
   assertLearningCandidate,
   assertLearningCandidateReview,
+  assertMemoryItem,
   assertMissionCloseOut,
   assertRun,
   assertWorkOrder,

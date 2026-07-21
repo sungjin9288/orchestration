@@ -110,6 +110,7 @@ const {
   assertHandoffPacket,
   assertLearningCandidate,
   assertLearningCandidateReview,
+  assertMemoryItem,
   assertMissionCloseOut,
   assertRun,
   assertWorkOrder,
@@ -149,6 +150,7 @@ const {
 const {
   previewLearningCandidateMemory: compileMemoryCandidatePreview,
 } = require('./memory-candidate-preview');
+const { createMemoryItem } = require('./memory-items');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -217,6 +219,11 @@ function createRuntimeService(options = {}) {
     return `learning-candidate-review-${String(
       state.sequences.learningCandidateReview,
     ).padStart(4, '0')}`;
+  }
+
+  function nextMemoryItemId(state) {
+    state.sequences.memoryItem += 1;
+    return `memory-item-${String(state.sequences.memoryItem).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -3944,15 +3951,7 @@ function createRuntimeService(options = {}) {
     }
   }
 
-  function previewLearningCandidateMemory(input) {
-    assertExactMemoryCandidatePreviewInput(input);
-    let state;
-    try {
-      state = store.loadStateReadonly();
-    } catch (error) {
-      throw conflict(`MemoryCandidate preview requires current state: ${error.message}`);
-    }
-
+  function buildLearningCandidateMemoryPreviewFromState(state, input) {
     const candidate = assertLearningCandidate(input.learningCandidateId, state);
     const review = assertLearningCandidateReview(
       input.learningCandidateReviewId,
@@ -3994,6 +3993,140 @@ function createRuntimeService(options = {}) {
       }
       throw error;
     }
+  }
+
+  function previewLearningCandidateMemory(input) {
+    assertExactMemoryCandidatePreviewInput(input);
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`MemoryCandidate preview requires current state: ${error.message}`);
+    }
+
+    return buildLearningCandidateMemoryPreviewFromState(state, input);
+  }
+
+  function findMemoryItem(state, learningCandidateReviewId) {
+    return (
+      Object.values(state.memoryItems).find(
+        (item) => item.sourceLearningCandidateReviewId === learningCandidateReviewId,
+      ) || null
+    );
+  }
+
+  function getLearningCandidateMemoryItem(learningCandidateId) {
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`MemoryItem inspection requires current state: ${error.message}`);
+    }
+    const candidate = assertLearningCandidate(learningCandidateId, state);
+    assertLearningCandidateReviewSourceCurrent(state, candidate);
+    const review = findLearningCandidateReview(state, candidate.id);
+    const item = review ? findMemoryItem(state, review.id) : null;
+    return {
+      learningCandidate: candidate,
+      learningCandidateReview: review,
+      memoryItem: item ? assertMemoryItem(item.id, state) : null,
+      persisted: Boolean(item),
+    };
+  }
+
+  function assertExactMemoryItemPersistenceInput(input) {
+    const expectedFields = [
+      'learningCandidateId',
+      'learningCandidateReviewId',
+      'previewId',
+      'candidateDigest',
+      'candidateRecordDigest',
+      'reviewDigest',
+      'evaluatedAt',
+      'memorySpec',
+      'memoryCandidatePreviewId',
+      'memoryCandidatePreviewDigest',
+      'storageApproval',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('MemoryItem persistence request has unexpected or missing fields');
+    }
+  }
+
+  function persistLearningCandidateMemoryItem(input) {
+    assertExactMemoryItemPersistenceInput(input);
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`MemoryItem persistence requires supported state: ${error.message}`);
+    }
+    const preview = buildLearningCandidateMemoryPreviewFromState(state, input);
+    for (const [field, expected] of [
+      ['memoryCandidatePreviewId', preview.id],
+      ['memoryCandidatePreviewDigest', preview.previewDigest],
+    ]) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`MemoryItem ${field} does not match current recomputation`);
+      }
+    }
+    const reviewedAtMs = Date.parse(input.storageApproval?.reviewedAt);
+    if (
+      Number.isFinite(reviewedAtMs) &&
+      reviewedAtMs > Date.now() + 5 * 60 * 1000
+    ) {
+      throw conflict('storageApproval.reviewedAt is too far in the future');
+    }
+
+    const existing = findMemoryItem(state, input.learningCandidateReviewId);
+    let memoryItem;
+    try {
+      memoryItem = createMemoryItem({
+        id: existing?.id || `memory-item-${String(state.sequences.memoryItem + 1).padStart(4, '0')}`,
+        preview,
+        storageApproval: input.storageApproval,
+      });
+    } catch (error) {
+      throw conflict(error.message);
+    }
+    if (existing) {
+      if (existing.recordDigest !== memoryItem.recordDigest) {
+        throw conflict(
+          `LearningCandidateReview ${input.learningCandidateReviewId} already has a different MemoryItem`,
+        );
+      }
+      return {
+        learningCandidate: assertLearningCandidate(input.learningCandidateId, state),
+        learningCandidateReview: assertLearningCandidateReview(
+          input.learningCandidateReviewId,
+          state,
+        ),
+        memoryCandidatePreview: preview,
+        memoryItem: assertMemoryItem(existing.id, state),
+        idempotent: true,
+      };
+    }
+
+    const id = nextMemoryItemId(state);
+    if (id !== memoryItem.id) {
+      throw new Error('MemoryItem sequence is not deterministic');
+    }
+    state.memoryItems[memoryItem.id] = memoryItem;
+    store.saveState(state);
+    return {
+      learningCandidate: assertLearningCandidate(input.learningCandidateId, state),
+      learningCandidateReview: assertLearningCandidateReview(
+        input.learningCandidateReviewId,
+        state,
+      ),
+      memoryCandidatePreview: preview,
+      memoryItem,
+      idempotent: false,
+    };
   }
 
   function assertExactDeliveryPackageTuple(input, preview) {
@@ -5829,6 +5962,7 @@ function createRuntimeService(options = {}) {
     getMissionCloseOut,
     getMissionLearningCandidate,
     getLearningCandidateReview,
+    getLearningCandidateMemoryItem,
     getProposalApplicationAttempt,
     getProposalSourceMutation,
     getProposalRecord,
@@ -5845,6 +5979,7 @@ function createRuntimeService(options = {}) {
     previewExecutionPlanDelivery,
     persistExecutionPlanDeliveryPackage,
     persistMissionLearningCandidate,
+    persistLearningCandidateMemoryItem,
     reviewLearningCandidate,
     persistMissionWorkOrderPlan,
     listApprovals,
