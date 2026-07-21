@@ -510,6 +510,14 @@ GET은 exact source-bound inspection만 제공한다. Recommendation retrieval/a
 import/export/delete/refresh, cross-workspace use, skill, provider, source/Git/release, scheduling,
 next-Mission, policy, bypass, and connectors는 blocked다.
 
+MemoryRecall preview planning은 `DEC-122`, complete fielded implementation handoff는 `DEC-123`으로
+문서화됐다. Planned contract는 one exact unexpired stored item과 operator-owned recallSpec을
+project-only scope, source-contained applicability/evidence/negative-evidence/redaction/review refs,
+exact-id selection, and explicit non-application statement에 결속한다. Current runtime에는 recall
+method/route/UI가 없고 schema v14 exact inspection만 authoritative하다. Automatic search/ranking/
+recommendation, Mission injection, memory application, durable recall, provider, source/Git/release,
+scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
+
 ## Verification
 
 ```bash
@@ -557,6 +565,7 @@ node scripts/smoke-ui-slice-663.mjs
 node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/smoke-ai-company-durable-memory-item.mjs
 node scripts/smoke-ui-slice-664.mjs
+node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 

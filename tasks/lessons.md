@@ -1,4 +1,5 @@
 # lessons
+- Exact record inspection and retrieval eligibility are different authorities. A stored MemoryItem GET may prove identity and provenance, but a reusable recall path still needs an explicit operator-selected exact-id tuple, current project and expiry checks, preserved negative evidence, bounded applicability, deterministic response-only output, and a separate implementation decision before any search, ranking, recommendation, Mission injection, or application can open.
 - A persistence command that is also the first schema migration trigger must validate the entire source tuple, recomputed preview, and operator approval through a supported-schema read-only normalization before incrementing a sequence. Build the candidate item with the prospective deterministic id, compare exact replay before mutation, and perform one save only after every stale, divergent, expiry, redaction, credential, and scope guard passes; this keeps migration and append atomic without allowing passive GET or boot to create evidence.
 
 ## direction resets

@@ -412,6 +412,13 @@ expiry mutation, cross-workspace use, skill,
 provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain
 blocked.
 
+MemoryRecall preview planning-only authority는 `DEC-122`, complete fielded implementation decision
+handoff는 `DEC-123`으로 기록됐다. The next proposed slice is schema-preserving and response-only:
+one exact operator-selected unexpired stored item plus bounded project-local recallSpec can produce a
+reviewable preview, but cannot enumerate, search, rank, recommend, inject Mission or WorkOrder
+context, apply memory, create a durable recall record, call providers, mutate source, or schedule work.
+Implementation remains blocked pending the complete fielded decision.
+
 ## Phase 9: Dogfood And Productization
 
 ### Objective
@@ -612,6 +619,7 @@ node scripts/smoke-ui-slice-663.mjs
 node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/smoke-ai-company-durable-memory-item.mjs
 node scripts/smoke-ui-slice-664.mjs
+node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 

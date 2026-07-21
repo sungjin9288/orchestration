@@ -389,6 +389,12 @@ recomputation과 별도 operator storage approval을 요구하고 `status=stored
 Recommendation retrieval/application, export/delete/refresh, skill, provider, source/Git/release,
 scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
 
+MemoryRecall preview planning은 `DEC-122`, complete fielded implementation handoff는 `DEC-123`으로
+기록됐다. Council은 recall item을 선택하거나 relevance를 score/rank/recommend하지 않는다.
+Future bounded slice도 operator-selected exact item과 project-local recallSpec의 response-only
+review에서 멈추며 Council/Mission/Execution context injection이나 application authority를 만들지
+않는다. Current runtime/UI behavior는 unchanged다.
+
 ## Verification
 
 ```bash
@@ -433,6 +439,7 @@ node scripts/smoke-ui-slice-663.mjs
 node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/smoke-ai-company-durable-memory-item.mjs
 node scripts/smoke-ui-slice-664.mjs
+node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -455,3 +462,5 @@ planning/runtime/UI smokes는 Council evidence가 memory scope, redaction, expir
 authority를 생성하지 않고 source-contained refs로만 사용되는 경계를 고정한다.
 Durable MemoryItem planning smoke는 Council evidence와 explicit storage approval을 분리하고
 schema-v14 implementation 및 every downstream memory authority를 blocked로 고정한다.
+MemoryRecall planning smoke는 exact inspection과 recall eligibility를 분리하고 Council selection,
+ranking, recommendation, Mission injection, and application authority를 blocked로 고정한다.

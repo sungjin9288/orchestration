@@ -269,6 +269,16 @@ retrieval/search/ranking/application, import/export/delete/refresh/expiry mutati
 cross-workspace use, skill promotion, providers, raw evidence, source/Git/release, scheduling,
 next-Mission, policy, bypass, and connectors remain blocked.
 
+MemoryRecall preview planning-only authority is accepted by `DEC-122`, and the complete fielded
+implementation handoff is recorded by `DEC-123` in
+`docs/82_ai-company-memory-recall-preview-plan.md` and
+`docs/83_ai-company-memory-recall-preview-implementation-decision-handoff.md`. The plan permits no
+runtime change: it defines one future deterministic response-only review from an operator-selected
+exact unexpired stored item and bounded project-local recallSpec. Current schema v14 exact inspection
+remains authoritative. Automatic enumeration/search/ranking/recommendation, Mission injection,
+memory application, durable recall, providers, source/Git/release, scheduling, next-Mission, policy,
+bypass, and connectors remain blocked pending the complete fielded implementation decision.
+
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
 `scripts/loop-readiness-status.mjs` verifies that a proposed loop names a goal, boundary,
@@ -333,7 +343,7 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `223/223`, total `224/224`; UI QA is required `42/42`.
+`1/1`, informational `224/224`, total `225/225`; UI QA is required `42/42`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -394,7 +404,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `224/224`, UI QA `42/42`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `225/225`, UI QA `42/42`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -454,6 +464,14 @@ Current source-backed evidence:
   DEC-118 recomputation, immutable `stored` record, project scope, negative/redaction/review
   evidence, one-save migration-and-append, exact replay, safe no-write failures, read-only hydration,
   and still-blocked retrieval/application/export/delete/refresh/skill/provider/downstream authority.
+- MemoryRecall preview planning: `DEC-122`, `DEC-123`,
+  `docs/82_ai-company-memory-recall-preview-plan.md`,
+  `docs/83_ai-company-memory-recall-preview-implementation-decision-handoff.md`, and
+  `scripts/smoke-ai-company-memory-recall-preview-planning.mjs` define one schema-v14-preserving,
+  exact-id operator-selected, project-local, response-only recall review contract. No runtime/API/UI
+  implementation exists; automatic search/ranking/recommendation, Mission injection, application,
+  durable recall, provider, source/Git/release, scheduling, policy, and connector authority remain
+  blocked pending the complete fielded decision.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
   draft planning target, the full operator decision fields, rollback and focused smoke requirements,
@@ -1901,7 +1919,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 902 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 903 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 664 UI smoke files
 ```
@@ -2049,6 +2067,7 @@ node scripts/smoke-ui-slice-663.mjs
 node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/smoke-ai-company-durable-memory-item.mjs
 node scripts/smoke-ui-slice-664.mjs
+node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -2057,7 +2076,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `224/224`, UI QA `42/42`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `225/225`, UI QA `42/42`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2377,7 +2396,7 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `42/42`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `223/223`, total `224/224`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `224/224`, total `225/225`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2408,7 +2427,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `224/224`, UI QA `42/42`, and zero-open backlog are local source-backed checks.
+  aggregate `225/225`, UI QA `42/42`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
@@ -2481,6 +2500,12 @@ Playwright CLI:
   sequence/map-only migration. Recommendation retrieval/application, import/export/delete/
   refresh, cross-workspace use, skill promotion, providers, source/Git/release, scheduling,
   next-Mission, policy mutation, approval bypass, and connectors remain blocked.
+- `DEC-122` permits planning only for one exact-id operator-selected response-only MemoryRecall
+  preview, and `DEC-123` records the complete fielded implementation handoff. Current schema v14,
+  stored MemoryItems, exact GET, and Deliverables inspection remain unchanged. No recall runtime/API/UI
+  implementation exists; automatic enumeration/search/ranking/recommendation, Mission injection,
+  memory application, durable recall, providers, source/Git/release, scheduling, next-Mission, policy
+  mutation, approval bypass, and connectors remain blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

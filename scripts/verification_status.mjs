@@ -612,6 +612,11 @@ const informationalChecks = [
     purpose: 'AI Company durable MemoryItem UI and API prove exact-gated explicit storage approval, read-only exact durable hydration, response-only preview compatibility, safe stale malformed and content-type failures, idempotent replay, immutable source records, responsive fit, and absent retrieval application export deletion promotion or downstream controls',
   },
   {
+    id: 'ai-company-memory-recall-preview-planning',
+    script: 'scripts/smoke-ai-company-memory-recall-preview-planning.mjs',
+    purpose: 'AI Company MemoryRecall preview planning fixes one schema v14 preserving exact-id operator-selected project-local response-only review target while implementation automatic retrieval search ranking recommendation Mission injection memory application durable recall provider source Git release scheduling policy and connector authority remain blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

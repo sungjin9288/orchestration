@@ -396,6 +396,13 @@ runtime은 response-only MemoryCandidate를 다시 계산하고 별도 project-s
 application, import/export/delete/refresh/expiry mutation, cross-workspace use, skill promotion,
 provider, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
+MemoryRecall preview planning-only authority는 `DEC-122`, complete fielded implementation decision
+handoff는 `DEC-123`으로 기록됐다. Planned slice는 one exact operator-selected unexpired MemoryItem과
+bounded project-scoped recallSpec을 검증해 response/browser-memory `MemoryRecallPreview`에서 멈춘다.
+Current schema-v14 runtime/API/UI는 변경되지 않았으며 automatic enumeration/search/ranking/
+recommendation, Mission injection, memory application, durable recall, provider, source/Git/release,
+scheduling, next-Mission, policy, bypass, and connectors remain blocked.
+
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
@@ -444,6 +451,7 @@ node scripts/smoke-ui-slice-663.mjs
 node scripts/smoke-ai-company-durable-memory-item-planning.mjs
 node scripts/smoke-ai-company-durable-memory-item.mjs
 node scripts/smoke-ui-slice-664.mjs
+node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 

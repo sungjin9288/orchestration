@@ -212,6 +212,8 @@ assert.match(decisionLog, /^### DEC-118$/m);
 assert.match(decisionLog, /^### DEC-119$/m);
 assert.match(decisionLog, /^### DEC-120$/m);
 assert.match(decisionLog, /^### DEC-121$/m);
+assert.match(decisionLog, /^### DEC-122$/m);
+assert.match(decisionLog, /^### DEC-123$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -233,6 +235,10 @@ assert.match(runtimeContractText, /Durable MemoryItem persistence planning은 `D
 assert.match(councilProtocolText, /Durable MemoryItem persistence planning은 `DEC-119`/);
 assert.match(deliveryRoadmapText, /Durable MemoryItem persistence planning-only authority는 `DEC-119`/);
 assert.match(deliveryRoadmapText, /exact implementation은 `DEC-121`/);
+assert.match(masterPlanText, /MemoryRecall preview planning-only authority는 `DEC-122`/);
+assert.match(runtimeContractText, /MemoryRecall preview planning은 `DEC-122`/);
+assert.match(councilProtocolText, /MemoryRecall preview planning은 `DEC-122`/);
+assert.match(deliveryRoadmapText, /MemoryRecall preview planning-only authority는 `DEC-122`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -313,6 +319,8 @@ process.stdout.write(
         'DEC-119',
         'DEC-120',
         'DEC-121',
+        'DEC-122',
+        'DEC-123',
       ],
       currentRuntime: {
         schemaVersion: 14,
@@ -359,6 +367,8 @@ process.stdout.write(
         memoryCandidatePreviewImplementationAllowed: true,
         durableMemoryItemPlanningAllowed: true,
         durableMemoryItemPersistenceAllowed: true,
+        memoryRecallPreviewPlanningAllowed: true,
+        memoryRecallPreviewImplementationAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -367,7 +377,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Separate complete fielded durable memory retrieval or application decision required',
+      nextGate: 'Complete fielded MemoryRecallPreview implementation decision required',
     },
     null,
     2,
