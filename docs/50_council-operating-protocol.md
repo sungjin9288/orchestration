@@ -395,6 +395,12 @@ relevance를 score/rank/recommend하지 않는다. Runtime은 operator-selected 
 recallSpec의 response/browser-memory review에서 멈추며 Council/Mission/Execution context injection이나
 application authority를 만들지 않는다. Schema v14와 Council behavior는 unchanged다.
 
+Durable MemoryRecall persistence planning은 `DEC-125`, complete fielded implementation handoff는
+`DEC-126`으로 기록됐다. Planned record는 Council output이나 selection이 아니라 operator-selected
+exact item, current DEC-124 recomputation, and separate record approval만 source로 삼는다. Council은
+record approval을 생성하지 않으며 recall list/history, relevance scoring, recommendation, context
+injection, or application authority를 얻지 않는다.
+
 ## Verification
 
 ```bash
@@ -442,6 +448,7 @@ node scripts/smoke-ui-slice-664.mjs
 node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/smoke-ai-company-memory-recall-preview.mjs
 node scripts/smoke-ui-slice-665.mjs
+node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
 node scripts/verification_status.mjs
 ```
 
@@ -466,3 +473,5 @@ Durable MemoryItem planning smoke는 Council evidence와 explicit storage approv
 schema-v14 implementation 및 every downstream memory authority를 blocked로 고정한다.
 MemoryRecall planning/runtime/UI smokes는 exact inspection과 recall eligibility를 분리하고 Council
 selection, ranking, recommendation, Mission injection, and application authority를 blocked로 고정한다.
+Durable MemoryRecall planning smoke는 response-only eligibility와 separate record approval을 분리하고
+schema-v15 implementation, list/history, and every downstream authority를 blocked로 고정한다.

@@ -419,6 +419,13 @@ recallSpec produce a reviewable response/browser-memory preview, but cannot enum
 recommend, inject Mission or WorkOrder context, apply memory, create a durable recall record, call
 providers, mutate source, or schedule work.
 
+Durable MemoryRecall persistence planning-only authority는 `DEC-125`, complete fielded implementation
+handoff는 `DEC-126`으로 기록됐다. The proposed schema-v15 slice may retain one immutable
+`MemoryRecall(status=recorded)` audit fact only after runtime recomputes DEC-124 and validates a separate
+record approval. Implementation, list/history/index, automatic retrieval/search/ranking/recommendation,
+context injection, application, providers, source/Git/release, scheduling, policy, bypass, and connectors
+remain blocked pending the complete fielded decision.
+
 ## Phase 9: Dogfood And Productization
 
 ### Objective
@@ -500,13 +507,14 @@ complete fielded decision 전까지 blocked다. Phase 8 LearningCandidate respon
 Durable LearningCandidate planning/handoff/implementation은 `DEC-110`/`DEC-111`/`DEC-112`,
 LearningCandidate review planning/handoff/implementation은 `DEC-113`/`DEC-114`/`DEC-115`로
 accepted됐다. MemoryCandidate response-only preview planning/handoff/implementation은
-`DEC-116`/`DEC-117`/`DEC-118`로 accepted됐다. Durable MemoryItem persistence planning과
-implementation handoff는 `DEC-119`/`DEC-120`으로 accepted됐다. Current next authority gate는
-`docs/81_ai-company-durable-memory-item-implementation-decision-handoff.md`의 complete fielded
-schema-v14 implementation decision이다. Durable MemoryItem creation, recommendation
-retrieval/application, import/export/delete/refresh, cross-workspace memory, skill promotion,
-providers, source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain
-blocked.
+`DEC-116`/`DEC-117`/`DEC-118`, Durable MemoryItem persistence planning/handoff/implementation은
+`DEC-119`/`DEC-120`/`DEC-121`, MemoryRecall response-only planning/handoff/implementation은
+`DEC-122`/`DEC-123`/`DEC-124`로 accepted됐다. Durable MemoryRecall planning과 implementation
+handoff는 `DEC-125`/`DEC-126`으로 accepted됐다. Current next authority gate는
+`docs/85_ai-company-durable-memory-recall-implementation-decision-handoff.md`의 complete fielded
+schema-v15 implementation decision이다. Durable MemoryRecall creation, list/history, automatic
+retrieval/search/ranking/recommendation, Mission/WorkOrder injection, memory application, providers,
+source/Git/release, scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
 Implemented acceptance target:
 
@@ -622,6 +630,7 @@ node scripts/smoke-ui-slice-664.mjs
 node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/smoke-ai-company-memory-recall-preview.mjs
 node scripts/smoke-ui-slice-665.mjs
+node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
 node scripts/verification_status.mjs
 ```
 

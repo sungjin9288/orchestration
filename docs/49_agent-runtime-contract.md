@@ -518,6 +518,13 @@ preview만 반환한다. `loadStateReadonly()` path는 schema v14를 유지하�
 recommendation, Mission injection, memory application, durable recall, provider, source/Git/release,
 scheduling, next-Mission, policy, bypass, and connectors는 blocked다.
 
+Durable MemoryRecall persistence planning은 `DEC-125`, complete fielded implementation handoff는
+`DEC-126`으로 문서화됐다. Planned contract는 exact current MemoryItem과 recallSpec에서 DEC-124를
+recompute하고 separate record approval에 결속된 one immutable `status=recorded` audit fact를 정의한다.
+One source item당 one record만 허용하며 exact GET 외 list/history/index/search/recommendation/injection/
+application authority는 만들지 않는다. Schema-v15 implementation과 every downstream authority는
+complete fielded decision 전까지 blocked다.
+
 ## Verification
 
 ```bash
@@ -568,6 +575,7 @@ node scripts/smoke-ui-slice-664.mjs
 node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/smoke-ai-company-memory-recall-preview.mjs
 node scripts/smoke-ui-slice-665.mjs
+node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
 node scripts/verification_status.mjs
 ```
 

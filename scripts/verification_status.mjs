@@ -627,6 +627,11 @@ const informationalChecks = [
     purpose: 'AI Company MemoryRecall UI and API prove bounded JSON-only exact-id operator-selected preview, response and browser-memory-only recall-ready evidence, source input and refresh invalidation, safe stale malformed wrong-content-type cross-workspace negative-evidence-dropping and credential failures, unchanged schema-v14 snapshot and state bytes, responsive fit, and absent search ranking recommendation application or Mission injection controls',
   },
   {
+    id: 'ai-company-durable-memory-recall-planning',
+    script: 'scripts/smoke-ai-company-durable-memory-recall-planning.mjs',
+    purpose: 'AI Company durable MemoryRecall planning fixes one schema v15 sequence and map only immutable recorded audit target with exact DEC-124 recomputation and separate record approval while implementation record creation list history index automatic retrieval search ranking recommendation Mission or WorkOrder injection application provider source Git release scheduling policy and connector authority remain blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

@@ -403,6 +403,13 @@ browser-memory `MemoryRecallPreview`에서 멈춘다. Schema v14와 durable reco
 recommendation, Mission injection, memory application, durable recall, provider, source/Git/release,
 scheduling, next-Mission, policy, bypass, and connectors remain blocked.
 
+Durable MemoryRecall persistence planning-only authority는 `DEC-125`, complete fielded implementation
+handoff는 `DEC-126`으로 기록됐다. Planned schema-v15 slice는 current DEC-124 preview를 runtime에서
+recompute하고 separate `recordApproval.decision=record`를 요구해 one immutable
+`MemoryRecall(status=recorded)` audit fact만 append한다. Schema/runtime/API/UI implementation, recall
+list/history, automatic retrieval/search/ranking/recommendation, Mission/WorkOrder injection, memory
+application, provider, source/Git/release, scheduling, policy, bypass, and connectors remain blocked.
+
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
@@ -454,6 +461,7 @@ node scripts/smoke-ui-slice-664.mjs
 node scripts/smoke-ai-company-memory-recall-preview-planning.mjs
 node scripts/smoke-ai-company-memory-recall-preview.mjs
 node scripts/smoke-ui-slice-665.mjs
+node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
 node scripts/verification_status.mjs
 ```
 
