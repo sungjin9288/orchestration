@@ -218,6 +218,8 @@ assert.match(decisionLog, /^### DEC-124$/m);
 assert.match(decisionLog, /^### DEC-125$/m);
 assert.match(decisionLog, /^### DEC-126$/m);
 assert.match(decisionLog, /^### DEC-127$/m);
+assert.match(decisionLog, /^### DEC-128$/m);
+assert.match(decisionLog, /^### DEC-129$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -251,6 +253,10 @@ assert.match(masterPlanText, /Durable MemoryRecall persistence planning-only aut
 assert.match(runtimeContractText, /Durable MemoryRecall persistence planning은 `DEC-125`/);
 assert.match(councilProtocolText, /Durable MemoryRecall persistence planning은 `DEC-125`/);
 assert.match(deliveryRoadmapText, /Durable MemoryRecall persistence planning-only authority는 `DEC-125`/);
+assert.match(masterPlanText, /Mission memory context preview planning-only authority는 `DEC-128`/);
+assert.match(runtimeContractText, /Mission memory context preview planning은 `DEC-128`/);
+assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
+assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -337,6 +343,8 @@ process.stdout.write(
         'DEC-125',
         'DEC-126',
         'DEC-127',
+        'DEC-128',
+        'DEC-129',
       ],
       currentRuntime: {
         schemaVersion: 15,
@@ -356,6 +364,7 @@ process.stdout.write(
         durableMemoryItem: 'schema-v14-exact-stored-record',
         memoryRecallPreview: 'schema-v14-response-only-exact-id-recall-ready',
         durableMemoryRecall: 'schema-v15-exact-recorded-audit',
+        missionMemoryContextPreview: 'planning-only-response-only-exact-recorded-recall',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -389,6 +398,8 @@ process.stdout.write(
         memoryRecallPreviewImplementationAllowed: true,
         durableMemoryRecallPlanningAllowed: true,
         durableMemoryRecallPersistenceAllowed: true,
+        missionMemoryContextPreviewPlanningAllowed: true,
+        missionMemoryContextPreviewImplementationAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -397,7 +408,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Separate decision required for recall list, automatic retrieval, or application',
+      nextGate: 'Complete fielded response-only MissionMemoryContextPreview implementation decision required',
     },
     null,
     2,

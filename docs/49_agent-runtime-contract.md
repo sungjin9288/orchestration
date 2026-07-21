@@ -525,6 +525,14 @@ record approval까지 검증한다. 첫 valid command만 schema v15 migration과
 `status=recorded` append를 한 번에 저장한다. Exact replay와 GET은 read-only이고, one source item당
 one record만 허용한다. List/history/index/search/recommendation/injection/application authority는 없다.
 
+Mission memory context preview planning은 `DEC-128`, complete fielded implementation handoff는
+`DEC-129`로 문서화됐다. Planned runtime은 schema-v15 no-migration read에서 one exact recorded recall,
+its current stored item, and one exact same-project draft Mission을 검증하고 current Mission stable
+fields로 `targetMissionDigest`를 계산한다. Output은 deeply frozen deterministic
+`persisted=false`/`context-review-ready` response/browser-memory preview only다. Runtime/API/UI
+implementation, Mission/WorkOrder/prompt/policy injection, memory application, automatic selection,
+provider, schema, source/Git/release, scheduling, policy, bypass, and connectors는 blocked다.
+
 ## Verification
 
 ```bash
@@ -578,6 +586,7 @@ node scripts/smoke-ui-slice-665.mjs
 node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
 node scripts/smoke-ai-company-durable-memory-recall.mjs
 node scripts/smoke-ui-slice-666.mjs
+node scripts/smoke-ai-company-mission-memory-context-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 

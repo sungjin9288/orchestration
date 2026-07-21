@@ -624,7 +624,7 @@ const informationalChecks = [
   {
     id: 'ai-company-memory-recall-preview-ui-api',
     script: 'scripts/smoke-ui-slice-665.mjs',
-    purpose: 'AI Company MemoryRecall UI and API prove bounded JSON-only exact-id operator-selected preview, response and browser-memory-only recall-ready evidence, source input and refresh invalidation, safe stale malformed wrong-content-type cross-workspace negative-evidence-dropping and credential failures, unchanged schema-v14 snapshot and state bytes, responsive fit, and absent search ranking recommendation application or Mission injection controls',
+    purpose: 'AI Company MemoryRecall UI and API prove bounded JSON-only exact-id operator-selected preview, response and browser-memory-only recall-ready evidence, source input and refresh invalidation, safe stale malformed wrong-content-type cross-workspace negative-evidence-dropping and credential failures, zero schema-v15 snapshot or state-byte mutation, responsive fit, and absent search ranking recommendation application or Mission injection controls',
   },
   {
     id: 'ai-company-durable-memory-recall-planning',
@@ -640,6 +640,11 @@ const informationalChecks = [
     id: 'ai-company-durable-memory-recall-ui-api',
     script: 'scripts/smoke-ui-slice-666.mjs',
     purpose: 'AI Company durable MemoryRecall UI and API prove explicit record approval, exact bounded persistence and inspection, safe stale malformed content-type credential and cross-workspace failures, idempotent replay, responsive fit, source-record immutability, and absent list history search ranking recommendation application or Mission injection controls',
+  },
+  {
+    id: 'ai-company-mission-memory-context-preview-planning',
+    script: 'scripts/smoke-ai-company-mission-memory-context-preview-planning.mjs',
+    purpose: 'AI Company Mission memory context preview planning fixes one schema v15 preserving exact operator-selected recorded recall plus exact same-project draft Mission response-only context review target and records the complete fielded implementation gate while injection application automatic retrieval recommendation provider schema source Git release scheduling policy and connector authority remain blocked',
   },
   {
     id: 'coordinator-path-containment-smoke',

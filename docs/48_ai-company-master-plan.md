@@ -412,6 +412,14 @@ append한다. Exact GET은 이 source-bound record만 보여 준다. Recall list
 retrieval/search/ranking/recommendation, Mission/WorkOrder injection, memory application, provider,
 source/Git/release, scheduling, policy, bypass, and connectors remain blocked.
 
+Mission memory context preview planning-only authority는 `DEC-128`, complete fielded implementation
+handoff는 `DEC-129`로 기록됐다. 계획된 path는 one exact current recorded recall과 그 source item,
+one exact same-project draft Mission, current target Mission digest, bounded operator contextSpec을
+검증해 `persisted=false`/`context-review-ready` response/browser-memory preview 하나에서 멈춘다.
+Current runtime에는 이 preview가 없으며 Mission/Council/ExecutionPlan/WorkOrder/prompt/policy
+injection, memory application, automatic selection, provider, schema, source/Git/release, scheduling,
+policy, bypass, and connectors remain blocked.
+
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
@@ -466,6 +474,7 @@ node scripts/smoke-ui-slice-665.mjs
 node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
 node scripts/smoke-ai-company-durable-memory-recall.mjs
 node scripts/smoke-ui-slice-666.mjs
+node scripts/smoke-ai-company-mission-memory-context-preview-planning.mjs
 node scripts/verification_status.mjs
 ```
 
