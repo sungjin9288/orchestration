@@ -10607,25 +10607,7 @@ function renderLlmMissionWorkstream(options = {}) {
   const nextAction = options.nextAction || {};
   const linkedTask = options.linkedTask || null;
   const councilSession = council.councilSession || null;
-  const councilStatus = councilSession
-    ? `${getAlignmentStatusDisplay(council.alignmentStatus)} · ${council.participantCount || 0} roles`
-    : '대기 중';
-  const councilCopy = councilSession
-    ? council.recommendationPreview || council.selectedPlanTitle || '회의 합의안을 검토하고 있습니다.'
-    : '목표를 역할별 관점으로 나눌 Council session이 아직 열리지 않았습니다.';
-  const executionStatus = linkedTask
-    ? getTaskLifecycleDisplay(linkedTask.lifecycleState)
-    : '실행 전';
-  const executionCopy = linkedTask
-    ? execution.stagePreview || `${linkedTask.id}의 bounded execution 상태를 확인합니다.`
-    : '합의된 계획과 operator gate가 준비되면 WorkOrder 실행이 이어집니다.';
   const currentArtifact = deliverables.currentDeliverableArtifact || null;
-  const deliveryStatus = currentArtifact
-    ? getArtifactTypeDisplay(currentArtifact.type)
-    : '결과 대기';
-  const deliveryCopy = currentArtifact
-    ? `현재 결과 ${currentArtifact.id} · 리뷰 ${getReviewStatusDisplay(deliverables.latestReviewStatus)}`
-    : '검증과 리뷰를 통과한 결과 패킷이 여기에 이어집니다.';
   const nextSurface = nextAction.surface || 'mission';
   const nextLabel = nextAction.actionLabel || '현재 상태 확인';
   const workstreamEntries = [
@@ -10634,42 +10616,51 @@ function renderLlmMissionWorkstream(options = {}) {
       mark: 'U',
       tone: 'operator',
       status: getMissionStatusDisplay(mission.status),
-      title: mission.title,
+      title: null,
       copy: mission.goal || '기록된 미션 목표가 없습니다.',
     },
-    {
+  ];
+
+  if (councilSession) {
+    workstreamEntries.push({
       role: 'Council',
       mark: 'C',
       tone: 'council',
-      status: councilStatus,
-      title: councilSession ? council.selectedPlanTitle || '역할별 정렬' : '역할별 정렬 대기',
-      copy: councilCopy,
-    },
-    {
+      status: `${getAlignmentStatusDisplay(council.alignmentStatus)} · ${council.participantCount || 0} roles`,
+      title: council.selectedPlanTitle || '역할별 정렬',
+      copy:
+        council.recommendationPreview ||
+        council.selectedPlanTitle ||
+        '회의 합의안을 검토하고 있습니다.',
+    });
+  }
+
+  if (linkedTask) {
+    workstreamEntries.push({
       role: 'Execution',
       mark: 'E',
       tone: 'execution',
-      status: executionStatus,
-      title: linkedTask ? linkedTask.title || linkedTask.id : 'WorkOrder 실행 대기',
-      copy: executionCopy,
-    },
-    {
+      status: getTaskLifecycleDisplay(linkedTask.lifecycleState),
+      title: linkedTask.title || linkedTask.id,
+      copy: execution.stagePreview || `${linkedTask.id}의 bounded execution 상태를 확인합니다.`,
+    });
+  }
+
+  if (currentArtifact) {
+    workstreamEntries.push({
       role: 'Deliverables',
       mark: 'D',
       tone: 'deliverables',
-      status: deliveryStatus,
-      title: currentArtifact ? '검증된 결과 패킷' : '결과 패킷 대기',
-      copy: deliveryCopy,
-    },
-  ];
+      status: getArtifactTypeDisplay(currentArtifact.type),
+      title: '검증된 결과 패킷',
+      copy: `현재 결과 ${currentArtifact.id} · 리뷰 ${getReviewStatusDisplay(deliverables.latestReviewStatus)}`,
+    });
+  }
 
   return `
     <section class="llm-workstream" aria-labelledby="llm-workstream-title">
       <div class="llm-section-heading">
-        <div>
-          <p>Current thread</p>
-          <h3 id="llm-workstream-title">${escapeHtml(mission.title)}</h3>
-        </div>
+        <h3 id="llm-workstream-title">진행 기록</h3>
         ${createToken(`다음:${getSurfaceDisplayName(nextSurface)}`, nextAction.tone || 'neutral')}
       </div>
       <ol class="llm-turn-list">
@@ -10683,7 +10674,7 @@ function renderLlmMissionWorkstream(options = {}) {
                     <strong>${escapeHtml(entry.role)}</strong>
                     <span>${escapeHtml(entry.status)}</span>
                   </div>
-                  <h4>${escapeHtml(entry.title)}</h4>
+                  ${entry.title ? `<h4>${escapeHtml(entry.title)}</h4>` : ''}
                   <p>${escapeHtml(entry.copy)}</p>
                 </div>
               </li>

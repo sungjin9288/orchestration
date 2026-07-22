@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `249\/249`, total `250\/250`/,
-  /UI QA is required `54\/54`/,
+  /required `1\/1`, informational `250\/250`, total `251\/251`/,
+  /UI QA is required `55\/55`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `250\/250`, UI QA `54\/54`, zero-open backlog/,
+  /aggregate `251\/251`, UI QA `55\/55`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1407,6 +1407,19 @@ const firstRunProjectConnectionEvidence = [
 
 assertReadmeHasAll(firstRunProjectConnectionEvidence);
 
+const sourceBackedMissionThreadEvidence = [
+  /docs\/94_llm-native-source-backed-mission-thread-plan\.md/,
+  /LLM-native source-backed Mission thread is accepted by `DEC-143`/,
+  /renders only the\s+Operator, Council, Execution, and Deliverables turns supported by current records/,
+  /Future stages no\s+longer appear as synthetic conversation rows/,
+  /node scripts\/smoke-ui-slice-677\.mjs/,
+  /output\/playwright\/orchestration-source-backed-mission-thread-desktop\.png/,
+  /output\/playwright\/orchestration-source-backed-mission-thread-mobile\.png/,
+  /`DEC-143` permits only source-backed Mission Thread presentation[\s\S]*connectors remain outside/,
+];
+
+assertReadmeHasAll(sourceBackedMissionThreadEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1455,7 +1468,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `250\/250`, UI QA `54\/54`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `251\/251`, UI QA `55\/55`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

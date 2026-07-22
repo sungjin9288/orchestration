@@ -149,6 +149,14 @@ opens the unchanged Mission composer. Project creation/selection APIs, absolute 
 validation, local-stub and pack defaults, schema v16, dependencies, runtime state, and authority
 boundaries are unchanged.
 
+LLM-native source-backed Mission thread is accepted by `DEC-143` and implemented from
+`docs/94_llm-native-source-backed-mission-thread-plan.md`. The selected Mission now renders only the
+Operator, Council, Execution, and Deliverables turns supported by current records. Future stages no
+longer appear as synthetic conversation rows; the existing next gate explains the first pending
+action. The active lead remains the conversation title, while the thread uses one neutral `진행 기록`
+heading. Thread/Graph behavior, API routes, schema v16, dependencies, runtime state, provider gates,
+and every execution or approval authority remain unchanged.
+
 Phase 2 Real Council implementation is accepted by `DEC-082` against
 `docs/54_ai-company-real-council-implementation-plan.md` and the complete fielded decision in
 `docs/55_ai-company-real-council-implementation-decision-handoff.md`. The opt-in `real-local-stub`
@@ -438,7 +446,7 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `249/249`, total `250/250`; UI QA is required `54/54`.
+`1/1`, informational `250/250`, total `251/251`; UI QA is required `55/55`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -499,7 +507,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `250/250`, UI QA `54/54`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `251/251`, UI QA `55/55`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -2079,9 +2087,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 928 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 929 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 676 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 677 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2242,6 +2250,7 @@ node scripts/smoke-ui-slice-673.mjs
 node scripts/smoke-ui-slice-674.mjs
 node scripts/smoke-ui-slice-675.mjs
 node scripts/smoke-ui-slice-676.mjs
+node scripts/smoke-ui-slice-677.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -2250,7 +2259,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `250/250`, UI QA `54/54`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `251/251`, UI QA `55/55`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2568,9 +2577,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `54/54`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `55/55`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `249/249`, total `250/250`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `250/250`, total `251/251`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2596,6 +2605,8 @@ Playwright CLI:
 - `output/playwright/orchestration-mission-mode-control-mobile.png`
 - `output/playwright/orchestration-first-run-project-connection-desktop.png`
 - `output/playwright/orchestration-first-run-project-connection-mobile.png`
+- `output/playwright/orchestration-source-backed-mission-thread-desktop.png`
+- `output/playwright/orchestration-source-backed-mission-thread-mobile.png`
 - `output/playwright/vnext-desktop-top-final.png`
 - `output/playwright/vnext-mobile.png`
 - `output/playwright/vnext-p1-desktop.png`
@@ -2613,7 +2624,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `250/250`, UI QA `54/54`, and zero-open backlog are local source-backed checks.
+  aggregate `251/251`, UI QA `55/55`, and zero-open backlog are local source-backed checks.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.
@@ -2633,6 +2644,10 @@ Playwright CLI:
   browsing, recent-path enumeration, provider/worktree actions, automatic Mission creation,
   runtime/API/schema/dependency changes, source mutation, commit, push, release, scheduling, policy
   bypass, and connectors remain outside the implemented scope.
+- `DEC-143` permits only source-backed Mission Thread presentation. Durable or generated chat,
+  hidden inference, synthetic future-stage messages, automatic stage advancement, runtime/API/schema/
+  dependency changes, provider/source/Git/release authority, scheduling, policy bypass, and
+  connectors remain outside the implemented scope.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,

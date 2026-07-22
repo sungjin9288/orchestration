@@ -93,6 +93,11 @@ Hierarchy:
 
 - Render work chronologically: operator goal, Council positions and synthesis, execution progress,
   review/QA, delivery, and the next operator gate.
+- Render only turns backed by current Mission evidence. Do not present future Execution or
+  Deliverables stages as if they were completed conversation turns; the next gate owns that pending
+  state.
+- The active Mission lead is the conversation title. Do not repeat that title in the thread heading
+  or the Operator turn.
 - Each turn has a small role marker, role label, status, content, and source/evidence affordance.
 - Use unframed rows and dividers instead of chat bubbles or nested cards.
 - Tool and run activity uses compact inline status rather than fake typing animation.

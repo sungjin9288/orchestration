@@ -316,6 +316,12 @@ const smokeChecks = [
     purpose:
       'Honest project prerequisite, unframed first-run connection form, one-line command, stable responsive fields, bootstrap runner compatibility, and unchanged project/runtime authority contracts',
   },
+  {
+    id: 'llm-native-source-backed-mission-thread',
+    script: 'scripts/smoke-ui-slice-677.mjs',
+    purpose:
+      'Source-backed chronological Mission turns, absent future-stage placeholders, one active conversation title, first-viewport next gate, unchanged Thread and Graph behavior, and zero generated-message or runtime authority expansion',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

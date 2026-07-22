@@ -914,6 +914,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/93_llm-native-first-run-project-connection-plan.md` adds one pure Mission bootstrap view model, honest lead copy, concise labels/default evidence, stable desktop/mobile form layout, and compatible browser runner targets. Existing project create/select APIs, absolute path validation, pack/provider defaults, schema v16, runtime state, Mission handoff, Advanced Ops controls, approval gates, source mutation, and Git authority remain unchanged.
 - Needed Before: Project discovery, filesystem browsing, recent-path enumeration, automatic Mission creation, provider/worktree actions, runtime/API/schema/dependency changes, scheduling, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
 
+### DEC-143
+- Status: `Accepted`
+- Decision: Accept the delegated non-critical source-backed Mission thread slice that renders only recorded Operator, Council, Execution, and Deliverables turns and leaves future work to the existing next-gate row.
+- Why: The fixed four-row thread displayed Execution and Deliverables placeholders before those events existed, repeated the active Mission title in the lead, thread heading, and Operator turn, and pushed the real next gate below the first mobile viewport. A conversation should show what happened, not convert future workflow stages into synthetic messages.
+- Impact: `docs/94_llm-native-source-backed-mission-thread-plan.md` changes only the browser renderer and compact thread spacing. Operator is always present for a selected Mission; Council, Execution, and Deliverables appear only when their existing source evidence exists. The active lead remains the one conversation title, `Thread | Graph` stays unchanged, and no runtime/API/schema/dependency/persistence/provider/approval/execution/source/Git authority changes.
+- Needed Before: Durable chat history, generated messages, hidden inference, automatic stage advancement, provider calls, runtime/API/schema/dependency changes, scheduling, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
