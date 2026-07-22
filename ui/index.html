@@ -67,7 +67,32 @@
           <div id="company-directory-shell" class="company-directory-shell" aria-label="회사 인력 명부"></div>
         </section>
 
-        <nav class="primary-nav office-sidebar-nav" aria-label="주요 표면">
+        <nav class="llm-primary-nav" aria-label="Orchestration navigation">
+          <div class="llm-primary-nav-list" aria-label="Primary workstream">
+            <button class="nav-button is-active" data-surface="mission" type="button" aria-controls="surface-mission">미션</button>
+            <button class="nav-button" data-surface="council" type="button" aria-controls="surface-council">협의회</button>
+            <button class="nav-button" data-surface="execution" type="button" aria-controls="surface-execution">실행</button>
+            <button class="nav-button" data-surface="deliverables" type="button" aria-controls="surface-deliverables">산출물</button>
+          </div>
+          <details
+            id="llm-advanced-ops-nav"
+            class="llm-advanced-ops-nav"
+            data-advanced-ops-navigation="true"
+          >
+            <summary>
+              <span>Advanced Ops</span>
+              <span id="llm-advanced-ops-status" class="llm-advanced-ops-status">inspect</span>
+            </summary>
+            <div class="llm-advanced-ops-list" aria-label="Advanced Ops surfaces">
+              <button class="nav-button" data-surface="decision-inbox" type="button" aria-controls="surface-decision-inbox">결정함</button>
+              <button class="nav-button" data-surface="artifacts" type="button" aria-controls="surface-artifacts">아티팩트</button>
+              <button class="nav-button" data-surface="logs" type="button" aria-controls="surface-logs">로그</button>
+              <button class="nav-button" data-surface="taskboard" type="button" aria-controls="surface-taskboard">작업판</button>
+            </div>
+          </details>
+        </nav>
+
+        <nav class="primary-nav office-sidebar-nav legacy-primary-nav" aria-label="Legacy grouped navigation">
           <div class="nav-group-tabs" role="tablist" aria-label="주요 메뉴 그룹">
             <button
               id="nav-group-tab-workflows"

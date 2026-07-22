@@ -340,6 +340,12 @@ const smokeChecks = [
     purpose:
       'Source-backed current delivery state, one readiness-bound command, ordered result verification package acceptance and close-out progress, collapsed exact evidence and controls, and zero runtime authority expansion',
   },
+  {
+    id: 'llm-native-advanced-ops-navigation',
+    script: 'scripts/smoke-ui-slice-681.mjs',
+    purpose:
+      'Four primary workflow surfaces, one native Advanced Ops disclosure with four exact authoritative surfaces, visible pending-gate status, preserved routing/count/current semantics, and zero runtime API schema dependency storage or authority expansion',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

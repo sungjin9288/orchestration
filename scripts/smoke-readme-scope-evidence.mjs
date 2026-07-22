@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `253\/253`, total `254\/254`/,
-  /UI QA is required `58\/58`/,
+  /required `1\/1`, informational `254\/254`, total `255\/255`/,
+  /UI QA is required `59\/59`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `254\/254`, UI QA `58\/58`, zero-open backlog/,
+  /aggregate `255\/255`, UI QA `59\/59`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1461,6 +1461,21 @@ const sourceBackedDeliverablesFlowEvidence = [
 
 assertReadmeHasAll(sourceBackedDeliverablesFlowEvidence);
 
+const llmNativeAdvancedOpsNavigationEvidence = [
+  /docs\/98_llm-native-advanced-ops-navigation-plan\.md/,
+  /LLM-native Advanced Ops navigation is accepted by `DEC-147`/,
+  /Mission, Council, Execution, and Deliverables\s+remain continuously visible as the primary workstream/,
+  /Decision Inbox, Artifacts, Logs, and Taskboard\s+remain the exact authoritative operator surfaces inside one native Advanced Ops disclosure/,
+  /pending Decision Inbox gate count visible/,
+  /Existing routes, dynamic\s+counts, `aria-current` state, handlers,[\s\S]*remain\s+unchanged/,
+  /node scripts\/smoke-ui-slice-681\.mjs/,
+  /output\/playwright\/orchestration-llm-advanced-ops-navigation-desktop\.png/,
+  /output\/playwright\/orchestration-llm-advanced-ops-navigation-mobile\.png/,
+  /`DEC-147` permits only browser navigation hierarchy[\s\S]*connector\s+authority/,
+];
+
+assertReadmeHasAll(llmNativeAdvancedOpsNavigationEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1509,7 +1524,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `254\/254`, UI QA `58\/58`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `255\/255`, UI QA `59\/59`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

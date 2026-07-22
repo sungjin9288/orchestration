@@ -747,6 +747,11 @@ const informationalChecks = [
     purpose: 'LLM-native Deliverables flow proves one source-backed current delivery state and readiness-bound command, ordered result verification package acceptance and close-out progress, collapsed exact evidence and existing controls, and zero runtime API schema dependency inferred completion or authority expansion',
   },
   {
+    id: 'llm-native-advanced-ops-navigation',
+    script: 'scripts/smoke-ui-slice-681.mjs',
+    purpose: 'LLM-native navigation proves four primary workflow surfaces and one native Advanced Ops disclosure with four exact authoritative surfaces, visible pending-gate status, preserved routing count and current semantics, and zero runtime API schema dependency storage automatic-selection or authority expansion',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

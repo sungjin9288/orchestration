@@ -10381,6 +10381,10 @@ body[data-evidence-density='compact'] .control-overview-stack {
 }
 
 /* LLM-native primary shell. The legacy selectors above remain the Advanced Ops baseline. */
+.llm-primary-nav {
+  display: none;
+}
+
 body {
   background: #f7f7f8;
   color: #18181b;
@@ -10509,6 +10513,81 @@ body .llm-app-shell .office-brand-subcopy {
 
 body .llm-app-shell .primary-nav {
   gap: 8px;
+}
+
+body .llm-app-shell .legacy-primary-nav {
+  display: none;
+}
+
+body .llm-app-shell .llm-primary-nav {
+  display: grid;
+  gap: 12px;
+}
+
+body .llm-app-shell .llm-primary-nav-list,
+body .llm-app-shell .llm-advanced-ops-list {
+  display: grid;
+  gap: 2px;
+}
+
+body .llm-app-shell .llm-advanced-ops-nav {
+  border-top: 1px solid #e4e4e7;
+  padding-top: 10px;
+}
+
+body .llm-app-shell .llm-advanced-ops-nav summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  color: #52525b;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 650;
+  list-style: none;
+}
+
+body .llm-app-shell .llm-advanced-ops-nav summary::-webkit-details-marker {
+  display: none;
+}
+
+body .llm-app-shell .llm-advanced-ops-nav summary::before {
+  content: ">";
+  color: #a1a1aa;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.68rem;
+  transition: transform 120ms ease;
+}
+
+body .llm-app-shell .llm-advanced-ops-nav[open] summary::before {
+  transform: rotate(90deg);
+}
+
+body .llm-app-shell .llm-advanced-ops-nav summary:hover,
+body .llm-app-shell .llm-advanced-ops-nav summary:focus-visible,
+body .llm-app-shell .llm-advanced-ops-nav.is-active summary {
+  background: #ececef;
+  color: #18181b;
+  outline: none;
+}
+
+body .llm-app-shell .llm-advanced-ops-status {
+  margin-left: auto;
+  color: #a1a1aa;
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
+body .llm-app-shell .llm-advanced-ops-status.has-pending-gate {
+  color: #b45309;
+}
+
+body .llm-app-shell .llm-advanced-ops-list {
+  margin-top: 4px;
+  padding-left: 12px;
 }
 
 body .llm-app-shell .nav-group-tabs {
@@ -12927,6 +13006,31 @@ body .llm-app-shell .project-bootstrap-defaults {
 
   body .llm-app-shell .primary-nav {
     gap: 6px;
+  }
+
+  body .llm-app-shell .llm-primary-nav {
+    gap: 8px;
+  }
+
+  body .llm-app-shell .llm-primary-nav-list,
+  body .llm-app-shell .llm-advanced-ops-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  body .llm-app-shell .llm-advanced-ops-nav {
+    padding-top: 7px;
+  }
+
+  body .llm-app-shell .llm-advanced-ops-nav summary {
+    width: fit-content;
+    min-height: 30px;
+    padding: 4px 7px;
+  }
+
+  body .llm-app-shell .llm-advanced-ops-list {
+    margin-top: 5px;
+    padding-left: 0;
   }
 
   body .llm-app-shell .nav-group-tabs {

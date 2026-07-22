@@ -67,6 +67,11 @@ Hierarchy:
 - Recent Mission context and `Mission / Council / Execution / Deliverables` are the primary links.
 - Company directory and deep runtime controls are demoted to optional inspection.
 - `Taskboard / Logs / Artifacts / Decision Inbox` remain available as Advanced Ops.
+- Advanced Ops uses one native disclosure below the primary links, not `workflows / review / ops`
+  tabs with equal visual weight. Entering an Advanced Ops surface opens it; returning to the primary
+  workstream closes it.
+- Pending gate count may remain visible on the disclosure summary, but deep surface counts and controls
+  appear only after the operator opens Advanced Ops.
 
 ### Workspace Header
 

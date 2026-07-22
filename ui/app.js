@@ -323,6 +323,8 @@ const state = {
   uiPreferences: readUiPreferences(),
   opsEditorGroup: 'all',
   menuGroup: 'workflows',
+  advancedOpsExpanded: false,
+  lastRenderedNavGroup: 'workflows',
   surface: 'mission',
   payload: null,
   loading: false,
@@ -502,6 +504,8 @@ const elements = {
   workspaceLiveStatus: document.querySelector('#workspace-live-status'),
   navGroups: [...document.querySelectorAll('.nav-group')],
   navGroupTabs: [...document.querySelectorAll('.nav-group-tab')],
+  advancedOpsNav: document.querySelector('#llm-advanced-ops-nav'),
+  advancedOpsStatus: document.querySelector('#llm-advanced-ops-status'),
   surfaces: {
     mission: document.querySelector('#surface-mission'),
     council: document.querySelector('#surface-council'),
@@ -10221,6 +10225,32 @@ function renderControlOverview(data) {
 
 function renderNav(data) {
   const activeGroupId = getActiveNavGroupId();
+  const advancedOpsActive = activeGroupId !== 'workflows';
+
+  if (advancedOpsActive) {
+    state.advancedOpsExpanded = true;
+  } else if (state.lastRenderedNavGroup !== 'workflows') {
+    state.advancedOpsExpanded = false;
+  }
+
+  state.lastRenderedNavGroup = activeGroupId;
+
+  if (elements.advancedOpsNav) {
+    elements.advancedOpsNav.open = advancedOpsActive || state.advancedOpsExpanded;
+    elements.advancedOpsNav.classList.toggle('is-active', advancedOpsActive);
+  }
+
+  if (elements.advancedOpsStatus) {
+    const pendingGateCount = getSurfaceDockCount(data, 'decision-inbox');
+    elements.advancedOpsStatus.textContent = pendingGateCount > 0 ? `${pendingGateCount} pending` : 'inspect';
+    elements.advancedOpsStatus.classList.toggle('has-pending-gate', pendingGateCount > 0);
+    elements.advancedOpsNav?.setAttribute(
+      'aria-label',
+      pendingGateCount > 0
+        ? `Advanced Ops, pending gates ${pendingGateCount}`
+        : 'Advanced Ops, no pending gates',
+    );
+  }
 
   for (const tab of elements.navGroupTabs) {
     const groupId = tab.dataset.navGroupTab;
@@ -20677,9 +20707,14 @@ document.addEventListener(
   'toggle',
   (event) => {
     const disclosure = event.target.closest?.(
-      '[data-council-disclosure], [data-execution-disclosure], [data-deliverables-disclosure]',
+      '[data-advanced-ops-navigation], [data-council-disclosure], [data-execution-disclosure], [data-deliverables-disclosure]',
     );
     if (!disclosure) {
+      return;
+    }
+
+    if (disclosure.dataset.advancedOpsNavigation) {
+      state.advancedOpsExpanded = disclosure.open;
       return;
     }
 
