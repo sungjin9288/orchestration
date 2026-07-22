@@ -1418,7 +1418,7 @@ export async function runQaSlice05SyntheticSmoke(options = {}) {
     const landingSnapshot = await waitForSnapshotText({
       outputRoot,
       overrideEnvVar,
-      pattern: /등록된 프로젝트 없음/,
+      pattern: /등록된 프로젝트 없음|작업할 프로젝트를 연결하세요/,
       sessionName: harness.sessionName,
       label: 'project bootstrap landing',
     });
@@ -1683,7 +1683,7 @@ export async function runQaSlice05RealSmoke(options = {}) {
     const landingSnapshot = await waitForSnapshotText({
       outputRoot,
       overrideEnvVar,
-      pattern: /등록된 프로젝트 없음/,
+      pattern: /등록된 프로젝트 없음|작업할 프로젝트를 연결하세요/,
       sessionName: harness.sessionName,
       label: 'real live project bootstrap landing',
     });

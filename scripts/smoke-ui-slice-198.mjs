@@ -211,6 +211,7 @@ async function main() {
     assert.match(deskStatus, /export function getDeliverablesDeskNext\(task, artifact, pendingGateCount\)/);
     assert.match(formatters, /export function escapeHtml\(value\) \{/);
     assert.match(formatters, /export function formatDate\(value\) \{/);
+    assert.match(projectBootstrap, /export function getMissionProjectBootstrapState\(data\) \{/);
     assert.match(growthConfig, /export const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
     assert.match(growthConfig, /export const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object\.freeze\(\[/);
     assert.match(growthLearning, /export function getGrowthLearningSnapshot\(data, context, formatters = \{\}\) \{/);

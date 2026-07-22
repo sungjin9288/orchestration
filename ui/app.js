@@ -191,7 +191,11 @@ import {
   getKnowledgeWorkDeliverableDisplayName,
   getPackDisplayName,
 } from './pack-config.js';
-import { getProjectBootstrapState, getProjectGateCopy } from './project-bootstrap.js';
+import {
+  getMissionProjectBootstrapState,
+  getProjectBootstrapState,
+  getProjectGateCopy,
+} from './project-bootstrap.js';
 import {
   GROWTH_AUTHORITY_BOUNDARY,
   MEMORY_STORE_OPEN_REQUIREMENTS,
@@ -10245,16 +10249,9 @@ function renderProjectBootstrapPanel(data, options = {}) {
   const mode = options.mode === 'mission' ? 'mission' : 'advanced';
   const missionMode = mode === 'mission';
   const bootstrapState = missionMode
-    ? data.projects.length === 0
-      ? {
-          copy: '여기서 첫 로컬 프로젝트를 등록한 뒤 바로 미션 생성으로 넘어갑니다.',
-          title: '미션 시작',
-        }
-      : {
-          copy: '여기서 등록된 프로젝트를 고르거나 새로 등록한 뒤 미션 경로를 이어갑니다.',
-          title: '미션 프로젝트 진입',
-        }
+    ? options.bootstrapState || getMissionProjectBootstrapState(data)
     : getProjectBootstrapState(data);
+  const bootstrapPanelCopy = missionMode ? bootstrapState.panelCopy : bootstrapState.copy;
   const projectActionDisabled = state.loading || state.mutating;
   const linkedWorktreeActionDisabled = projectActionDisabled || !data.activeProject;
   const linkedWorktreePanel = missionMode
@@ -10330,7 +10327,9 @@ function renderProjectBootstrapPanel(data, options = {}) {
             .join('')}
         </div>
       `
-    : `
+    : missionMode
+      ? ''
+      : `
         <div class="empty-state">
           <strong>등록된 프로젝트 없음</strong>
           <p>로컬 프로젝트 경로를 먼저 등록하세요.</p>
@@ -10338,11 +10337,11 @@ function renderProjectBootstrapPanel(data, options = {}) {
       `;
 
   return `
-    <section class="project-bootstrap">
+    <section class="project-bootstrap ${missionMode ? 'project-bootstrap-mission' : ''} ${data.projects.length === 0 ? 'is-first-project' : 'has-projects'}">
       <div class="panel-header">
         <div>
           <h3>${escapeHtml(bootstrapState.title)}</h3>
-          <p class="panel-copy">${escapeHtml(bootstrapState.copy)}</p>
+          ${bootstrapPanelCopy ? `<p class="panel-copy">${escapeHtml(bootstrapPanelCopy)}</p>` : ''}
         </div>
           ${
             data.activeProject
@@ -10461,10 +10460,10 @@ function renderProjectBootstrapPanel(data, options = {}) {
           `
           : ''
       }
-      <form class="task-create-form project-create-form" data-form="${missionMode ? 'create-project-from-mission' : 'create-project'}">
-        <div class="field-grid">
+      <form class="task-create-form project-create-form ${missionMode ? 'project-create-form-mission' : ''}" data-form="${missionMode ? 'create-project-from-mission' : 'create-project'}">
+        <div class="field-grid ${missionMode ? 'project-bootstrap-fields' : ''}">
           <label class="field">
-            <span class="field-label">프로젝트 이름</span>
+            <span class="field-label">${missionMode ? '이름' : '프로젝트 이름'}</span>
             <input
               type="text"
               name="projectName"
@@ -10474,7 +10473,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
             >
           </label>
           <label class="field">
-            <span class="field-label">프로젝트 경로 (project_path)</span>
+            <span class="field-label">${missionMode ? '로컬 경로' : '프로젝트 경로 (project_path)'}</span>
             <input
               type="text"
               name="projectPath"
@@ -10484,13 +10483,13 @@ function renderProjectBootstrapPanel(data, options = {}) {
             >
           </label>
           <label class="field">
-            <span class="field-label">팩</span>
+            <span class="field-label">${missionMode ? '작업 유형' : '팩'}</span>
             <select
               name="projectPack"
               ${projectActionDisabled ? 'disabled' : ''}
             >
-              <option value="development" ${createProjectPack === 'development' ? 'selected' : ''}>개발 (development)</option>
-              <option value="knowledge-work" ${createProjectPack === 'knowledge-work' ? 'selected' : ''}>지식 작업 (knowledge-work)</option>
+              <option value="development" ${createProjectPack === 'development' ? 'selected' : ''}>${missionMode ? '개발' : '개발 (development)'}</option>
+              <option value="knowledge-work" ${createProjectPack === 'knowledge-work' ? 'selected' : ''}>${missionMode ? '지식 작업' : '지식 작업 (knowledge-work)'}</option>
             </select>
           </label>
           ${
@@ -10537,13 +10536,13 @@ function renderProjectBootstrapPanel(data, options = {}) {
           }
         </div>
         <div class="form-actions">
-          <button class="secondary-button" type="submit" ${projectActionDisabled ? 'disabled' : ''}>
-            ${missionMode ? '이 프로젝트로 시작' : '프로젝트 등록'}
+          <button class="${missionMode ? 'primary-button project-connect-button' : 'secondary-button'}" type="submit" ${projectActionDisabled ? 'disabled' : ''}>
+            ${missionMode ? escapeHtml(bootstrapState.actionLabel) : '프로젝트 등록'}
           </button>
-          <p class="form-help">
+          <p class="form-help ${missionMode ? 'project-bootstrap-defaults' : ''}">
             ${
               missionMode
-                ? `${PACK_HELP_COPY[createProjectPack]} 미션 진입은 항상 로컬 스텁(local-stub) 기본값으로 시작합니다. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다.`
+                ? `${escapeHtml(getPackDisplayName(createProjectPack))} · local-stub · review + approval gated`
                 : createProjectProviderMode === 'live'
                 ? `${PACK_HELP_COPY[createProjectPack]} 라이브 모드는 비밀이 아닌 설정 정보만 저장합니다. 모델과 환경변수가 유효할 때 기획 셀, 설계 셀, 분해 셀, 사전 점검, 라이브 변경, 리뷰 검토가 라이브 모드로 실행되고, 커밋 패키지, 로컬 커밋, 릴리스 패키지, 종료 정리는 계속 명시적인 로컬 후속 단계로 남습니다.`
                 : `${PACK_HELP_COPY[createProjectPack]} 프로젝트를 등록하고 로컬 스텁(local-stub)을 기본 실행 프로바이더로 유지한 채 해당 프로젝트를 활성 상태로 만듭니다.`
@@ -10556,17 +10555,24 @@ function renderProjectBootstrapPanel(data, options = {}) {
 }
 
 function renderLlmMissionLead(data, selectedMission = null, options = {}) {
-  const projectName = data.activeProject?.name || '프로젝트 선택 필요';
+  const projectBootstrap = options.projectBootstrap || null;
+  const projectName = data.activeProject?.name || 'local workspace';
   const composingNew = options.composingNew === true || !selectedMission;
-  const missionState = selectedMission && !composingNew
-    ? `${getMissionStatusDisplay(selectedMission.status)} · ${selectedMission.id}`
-    : '새 미션';
-  const heading = selectedMission && !composingNew
-    ? selectedMission.title
-    : '무엇을 진행할까요?';
-  const supportingCopy = selectedMission && !composingNew
-    ? selectedMission.goal || '현재 미션의 역할 정렬과 실행 근거를 이어서 확인합니다.'
-    : '목표와 필요한 경계를 적으면 역할별 검토부터 시작합니다.';
+  const missionState = projectBootstrap
+    ? projectBootstrap.contextLabel
+    : selectedMission && !composingNew
+      ? `${getMissionStatusDisplay(selectedMission.status)} · ${selectedMission.id}`
+      : '새 미션';
+  const heading = projectBootstrap
+    ? projectBootstrap.heading
+    : selectedMission && !composingNew
+      ? selectedMission.title
+      : '무엇을 진행할까요?';
+  const supportingCopy = projectBootstrap
+    ? projectBootstrap.copy
+    : selectedMission && !composingNew
+      ? selectedMission.goal || '현재 미션의 역할 정렬과 실행 근거를 이어서 확인합니다.'
+      : '목표와 필요한 경계를 적으면 역할별 검토부터 시작합니다.';
 
   return `
     <section class="llm-mission-lead ${selectedMission && !composingNew ? 'is-active-mission' : ''}" aria-labelledby="llm-mission-prompt-title">
@@ -10781,47 +10787,16 @@ function renderLlmMissionInspector(options = {}) {
 
 function renderMission(data) {
   if (!data.activeProject) {
+    const projectBootstrap = getMissionProjectBootstrapState(data);
+
     elements.surfaces.mission.innerHTML = `
       <div class="llm-project-entry">
-        ${renderLlmMissionLead(data)}
+        ${renderLlmMissionLead(data, null, { projectBootstrap })}
       </div>
       <div class="surface-grid llm-project-bootstrap-layout">
-        <section class="surface-panel">
-          <div class="panel-header">
-            <div>
-              <h2>미션</h2>
-              <p class="panel-copy">프로젝트를 먼저 고른 뒤 미션을 만듭니다.</p>
-            </div>
-            <div class="token-row">
-              ${createToken(`등록 프로젝트:${data.projects.length}`, data.projects.length > 0 ? 'neutral' : 'warning')}
-            </div>
-          </div>
-          ${renderProjectBootstrapPanel(data, { mode: 'mission' })}
+        <section class="llm-project-bootstrap-surface" aria-label="프로젝트 연결">
+          ${renderProjectBootstrapPanel(data, { mode: 'mission', bootstrapState: projectBootstrap })}
         </section>
-        <aside class="detail-card">
-          <div class="panel-header">
-            <div>
-              <h2>미션 진입</h2>
-              <p class="panel-copy">프로젝트 선택은 여기서 시작하고, 프로바이더와 워크트리 같은 세부 제어는 고급 운영 모드에 남깁니다.</p>
-            </div>
-          </div>
-          <div class="stack">
-            <section class="relation-strip">
-              <div class="card-title-row">
-                <strong>권장 첫 단계</strong>
-                ${createToken('오케스트레이션 우선', 'success')}
-              </div>
-              <p class="detail-copy">위에서 프로젝트를 고른 뒤 첫 미션을 만드세요.</p>
-            </section>
-            <section class="relation-strip">
-              <div class="card-title-row">
-                <strong>고급 운영에 남는 것</strong>
-                ${createToken('프로바이더/워크트리/세부 제어', 'warning')}
-              </div>
-              <p class="detail-copy">프로바이더, 워크트리, 로그, 아티팩트, 결정함은 고급 운영 모드에 남습니다.</p>
-            </section>
-          </div>
-        </aside>
       </div>
     `;
     return;

@@ -98,9 +98,11 @@ async function main() {
     assert.equal(projectBootstrapResponse.status, 200);
     assert.match(appJsSource, /from '\.\/project-bootstrap\.js'/);
     assert.match(projectBootstrapSource, /export function getProjectBootstrapState\(data\)/);
+    assert.match(projectBootstrapSource, /export function getMissionProjectBootstrapState\(data\)/);
     assert.match(projectBootstrapSource, /export function getProjectGateCopy\(data, surfaceName\)/);
     assert.match(projectBootstrapSource, /title: '최초 진입 준비'/);
     assert.match(projectBootstrapSource, /title: '프로젝트 등록부'/);
+    assert.match(projectBootstrapSource, /heading: '작업할 프로젝트를 연결하세요'/);
     assert.match(projectBootstrapSource, /고급 운영 모드에서 프로젝트를 등록한 뒤/);
     assert.match(appJsSource, /select-project/);
     assert.match(serveUiSource, /\/project-bootstrap\.js/);

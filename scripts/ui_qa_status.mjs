@@ -310,6 +310,12 @@ const smokeChecks = [
     purpose:
       'Native segmented Council mode selection, provider-readiness fallback, one Mission submit command, exact radio focus restoration, knowledge-work compatibility, and unchanged runtime authority contracts',
   },
+  {
+    id: 'llm-native-first-run-project-connection',
+    script: 'scripts/smoke-ui-slice-676.mjs',
+    purpose:
+      'Honest project prerequisite, unframed first-run connection form, one-line command, stable responsive fields, bootstrap runner compatibility, and unchanged project/runtime authority contracts',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

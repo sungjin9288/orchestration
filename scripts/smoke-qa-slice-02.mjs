@@ -18,9 +18,9 @@ const PLAYWRIGHT_CLI_VERSION = '0.1.1';
 const playwrightConfigPath = path.join(outputRoot, 'playwright-cli.json');
 const sentinelSecret = 'qa-slice-02-secret-sentinel-explicit';
 const liveProviderEnvVar = 'QA_SLICE_02_LIVE_PROVIDER_API_KEY';
-const MISSION_BOOTSTRAP_LANDING_PATTERN = /Start With This Project|이 프로젝트로 시작/i;
+const MISSION_BOOTSTRAP_LANDING_PATTERN = /Start With This Project|이 프로젝트로 시작|프로젝트 연결|새 프로젝트 연결/i;
 const MISSION_BOOTSTRAP_CONTEXT_PATTERN =
-  /Mission Start|Mission Project Access|Start With This Project|미션 시작|프로젝트를 먼저 고른 뒤 미션을 만듭니다|로컬 프로젝트 경로를 먼저 등록하세요/i;
+  /Mission Start|Mission Project Access|Start With This Project|미션 시작|작업할 프로젝트를 연결하세요|작업할 프로젝트를 선택하세요|프로젝트 연결/i;
 const MISSION_READY_PATTERN = /Create Mission|Mission title|신규 안건 등록|접수 인계/i;
 const TASKBOARD_READY_PATTERN = /provider readiness:ready|프로바이더준비:준비됨/i;
 const TASK_CREATE_PATTERN = /Create Task|새 실행 셀|실행 셀 추가/i;

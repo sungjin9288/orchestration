@@ -907,6 +907,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/92_llm-native-mission-mode-control-plan.md` adds one pure browser view model, its explicit local static asset route, one browser-memory selected-mode field, accessible radio segments, current readiness help, and one submit handoff through the unchanged mode values and API routes. Knowledge-work, provider readiness, Council behavior, schema v16, dependencies, runtime state, approval gates, source mutation, and Git authority remain unchanged.
 - Needed Before: New provider/Council modes, automatic mode selection, durable preferences or drafts, automatic dispatch, runtime/API/schema/dependency changes, provider fallback, scheduling, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
 
+### DEC-142
+- Status: `Accepted`
+- Decision: Accept the delegated non-critical first-run project connection slice that states the real project prerequisite, removes nested Mission bootstrap cards, and exposes one unframed local project form with one connection command.
+- Why: The prior screen asked for a Mission before an active project existed, repeated the same empty state across three framed layers, pushed the actual command below the first mobile viewport, and allowed its label to wrap. The first screen should make the next valid action immediately legible.
+- Impact: `docs/93_llm-native-first-run-project-connection-plan.md` adds one pure Mission bootstrap view model, honest lead copy, concise labels/default evidence, stable desktop/mobile form layout, and compatible browser runner targets. Existing project create/select APIs, absolute path validation, pack/provider defaults, schema v16, runtime state, Mission handoff, Advanced Ops controls, approval gates, source mutation, and Git authority remain unchanged.
+- Needed Before: Project discovery, filesystem browsing, recent-path enumeration, automatic Mission creation, provider/worktree actions, runtime/API/schema/dependency changes, scheduling, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

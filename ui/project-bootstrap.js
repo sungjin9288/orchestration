@@ -19,6 +19,30 @@ export function getProjectBootstrapState(data) {
   };
 }
 
+export function getMissionProjectBootstrapState(data) {
+  const hasProjects = data.projects.length > 0;
+
+  if (hasProjects) {
+    return {
+      actionLabel: '새 프로젝트 연결',
+      contextLabel: '프로젝트 선택',
+      copy: '등록된 경로를 선택하거나 새 프로젝트를 연결합니다.',
+      heading: '작업할 프로젝트를 선택하세요',
+      panelCopy: '현재 작업 문맥을 하나 선택합니다.',
+      title: '등록된 프로젝트',
+    };
+  }
+
+  return {
+    actionLabel: '프로젝트 연결',
+    contextLabel: '첫 설정',
+    copy: 'Orchestration이 사용할 로컬 경로를 먼저 확인합니다.',
+    heading: '작업할 프로젝트를 연결하세요',
+    panelCopy: '',
+    title: '프로젝트 연결',
+  };
+}
+
 export function getProjectGateCopy(data, surfaceName) {
   if (data.projects.length === 0) {
     return `고급 운영 모드에서 프로젝트를 등록한 뒤 ${surfaceName}을 엽니다.`;

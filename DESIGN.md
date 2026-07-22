@@ -86,6 +86,8 @@ Hierarchy:
   hero CTAs.
 - Council mode uses one native segmented control and one Mission submit command; disabled provider
   modes keep their readiness reason visible without becoming a second action.
+- Before a project exists, the first screen states that prerequisite directly and uses one unframed
+  local-path form. Do not place project connection inside nested panels or repeat an empty-state card.
 
 ### Agent Workstream
 

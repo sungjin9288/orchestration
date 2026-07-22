@@ -27,7 +27,7 @@ const flowTwoRuntimeRoot = path.join(repoRoot, 'var', 'runtime-qa-slice-01-flow-
 const PLAYWRIGHT_BROWSER = process.env.QA_SLICE_01_PLAYWRIGHT_BROWSER || 'chrome';
 const PLAYWRIGHT_CLI_VERSION = '0.1.1';
 const playwrightConfigPath = path.join(outputRoot, 'playwright-cli.json');
-const MISSION_BOOTSTRAP_BUTTON_PATTERN = /Start With This Project|이 프로젝트로 시작/i;
+const MISSION_BOOTSTRAP_BUTTON_PATTERN = /Start With This Project|이 프로젝트로 시작|프로젝트 연결|새 프로젝트 연결/i;
 const CLOSE_OUT_BUTTON_PATTERN = /Resume Approved Close Out|승인된 종료 정리 이어가기/i;
 
 function ensureCleanDir(dirPath) {
