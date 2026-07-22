@@ -68,6 +68,8 @@ assert.match(restoreFocusSource, /setSelectionRange\(selection\.selectionStart, 
 assert.match(captureFocusSource, /\[data-form="create-mission"\]/);
 assert.match(captureFocusSource, /selectionStart/);
 assert.match(captureFocusSource, /selectionEnd/);
+assert.match(captureFocusSource, /targetValue: activeElement\.value/);
+assert.match(restoreFocusSource, /element\.value === selection\.targetValue/);
 assert.match(appSource, /const missionComposerFocus = captureMissionComposerFocus\(\)/);
 assert.match(
   appSource,
@@ -87,7 +89,7 @@ for (const browserOnlySource of [
 }
 
 assert.match(appSource, /postJson\('\/api\/missions'/);
-assert.match(appSource, /councilMode: event\.submitter\?\.value \|\| 'legacy-deterministic'/);
+assert.match(appSource, /formData\.get\('missionCouncilMode'\)/);
 assert.match(stylesSource, /\.llm-mission-lead\.is-active-mission/);
 assert.match(stylesSource, /\.llm-mission-compose-trigger/);
 assert.match(stylesSource, /@media \(max-width: 820px\)[\s\S]*\.llm-mission-lead\.is-active-mission/);

@@ -73,12 +73,18 @@ async function main() {
     await waitForServer();
     const appSource = await (await fetch(`${baseUrl}/app.js`)).text();
     const signalSource = await (await fetch(`${baseUrl}/council-signals.js`)).text();
+    const modeSource = fs.readFileSync(
+      path.join(repoRoot, 'ui', 'mission-council-mode.js'),
+      'utf8',
+    );
     const serverSource = fs.readFileSync(
       path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs'),
       'utf8',
     );
 
-    assert.match(appSource, /OpenAI 역할 회의 등록/);
+    assert.match(appSource, /createMissionCouncilModeView/);
+    assert.match(modeSource, /label: 'OpenAI'/);
+    assert.match(modeSource, /value: 'real-openai-responses'/);
     assert.match(appSource, /start-provider-council-for-mission/);
     assert.match(appSource, /councilProviderReadinessSummaries/);
     assert.match(appSource, /providerEvidence/);

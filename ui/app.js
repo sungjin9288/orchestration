@@ -168,6 +168,7 @@ import {
   createMissionGraphExplorerView,
   renderMissionEvidenceGraph,
 } from './mission-evidence-graph.js';
+import { createMissionCouncilModeView } from './mission-council-mode.js';
 import {
   parseChangeSummaryFileUpdates,
   parseIntegerValue,
@@ -362,6 +363,7 @@ const state = {
   missionDraftGoal: '',
   missionDraftConstraints: '',
   missionDraftDeliverableType: 'decision-memo',
+  missionDraftCouncilMode: 'legacy-deterministic',
   missionWorkOrderCompileDraft: {
     targetPathAllowlist: '',
     expectedArtifacts: '',
@@ -5388,6 +5390,7 @@ function captureMissionComposerFocus() {
       ? activeElement.selectionStart
       : null,
     targetName,
+    targetValue: activeElement.value ?? null,
   };
 }
 
@@ -5396,7 +5399,13 @@ function restoreMissionComposerFocus(targetName = 'missionTitle', selection = nu
     const candidates = targetName === 'newMissionAction'
       ? [...document.querySelectorAll('[data-action="start-new-mission"]')]
       : [...document.querySelectorAll(`[name="${targetName}"]`)];
-    const target = candidates.find((element) => element.getClientRects().length > 0) || null;
+    const visibleCandidates = candidates.filter((element) => element.getClientRects().length > 0);
+    const target =
+      (selection?.targetValue != null
+        ? visibleCandidates.find((element) => element.value === selection.targetValue)
+        : null) ||
+      visibleCandidates[0] ||
+      null;
     target?.focus();
     if (
       target &&
@@ -5984,6 +5993,7 @@ async function submitCreateMission(options = {}) {
     state.missionDraftGoal = '';
     state.missionDraftConstraints = '';
     state.missionDraftDeliverableType = 'decision-memo';
+    state.missionDraftCouncilMode = 'legacy-deterministic';
     state.selectionSeeded = true;
     await hydrateSelectedDetails();
     // Keep the prompt-first thread authoritative after submit. Council remains an explicit deep view.
@@ -10956,6 +10966,12 @@ function renderMission(data) {
   const missionCouncilProviderReadiness =
     data.councilProviderReadinessSummaries?.[data.activeProject?.id] || null;
   const missionCouncilProviderReady = missionCouncilProviderReadiness?.allowed === true;
+  const missionCouncilModeView = createMissionCouncilModeView({
+    knowledgeWork: missionUsesKnowledgeWork,
+    providerBlockedReason: missionCouncilProviderReadiness?.reasons?.[0],
+    providerReady: missionCouncilProviderReady,
+    requestedMode: state.missionDraftCouncilMode,
+  });
   const linkedTaskCreateDisabled =
     state.loading || state.mutating || !selectedMission || Boolean(selectedMission.linkedTaskId);
   const missionEntries = data.missions.map((mission) => ({
@@ -11270,6 +11286,57 @@ function renderMission(data) {
                 ${missionCreateDisabled ? 'disabled' : ''}
               >${escapeHtml(state.missionDraftConstraints)}</textarea>
             </label>
+            <div class="mission-council-mode-control">
+              ${
+                missionCouncilModeView.options.length === 1
+                  ? `
+                    <div class="mission-council-mode-fixed">
+                      <span class="field-label">회의 방식</span>
+                      <strong>${escapeHtml(missionCouncilModeView.options[0].label)}</strong>
+                      <input type="hidden" name="missionCouncilMode" value="legacy-deterministic">
+                    </div>
+                  `
+                  : `
+                    <fieldset class="mission-council-mode-selector" aria-describedby="mission-council-mode-help">
+                      <legend>회의 방식</legend>
+                      <div class="mission-council-mode-options">
+                        ${missionCouncilModeView.options
+                          .map(
+                            (option) => `
+                              <label class="mission-council-mode-option" ${
+                                option.disabled
+                                  ? `title="${escapeHtml(missionCouncilModeView.providerBlockedReason)}"`
+                                  : ''
+                              }>
+                                <input
+                                  type="radio"
+                                  name="missionCouncilMode"
+                                  value="${escapeHtml(option.value)}"
+                                  ${option.value === missionCouncilModeView.selectedMode ? 'checked' : ''}
+                                  ${missionCreateDisabled || option.disabled ? 'disabled' : ''}
+                                >
+                                <span>${escapeHtml(option.label)}</span>
+                              </label>
+                            `,
+                          )
+                          .join('')}
+                      </div>
+                    </fieldset>
+                  `
+              }
+              <p class="form-help" id="mission-council-mode-help">
+                ${
+                  missionUsesKnowledgeWork
+                    ? `등록 즉시 ${getKnowledgeWorkDeliverableDisplayName(state.missionDraftDeliverableType)} 기준 회의 초안이 열리고, 승인 전까지는 실행 셀로 넘어가지 않습니다.`
+                    : escapeHtml(missionCouncilModeView.help)
+                }
+              </p>
+              ${
+                missionCouncilModeView.providerBlockedReason
+                  ? `<p class="mission-council-mode-blocked">OpenAI 사용 불가 · ${escapeHtml(missionCouncilModeView.providerBlockedReason)}</p>`
+                  : ''
+              }
+            </div>
             <div class="form-actions form-actions-inline form-actions-compact mission-order-actions">
               <button class="primary-button" type="submit" ${missionCreateDisabled ? 'disabled' : ''}>안건 등록</button>
               ${
@@ -11286,33 +11353,6 @@ function renderMission(data) {
                   `
                   : ''
               }
-              <button
-                class="secondary-button"
-                type="submit"
-                name="councilMode"
-                value="real-local-stub"
-                ${missionCreateDisabled || missionUsesKnowledgeWork ? 'disabled' : ''}
-              >
-                독립 역할 회의 등록
-              </button>
-              <button
-                class="secondary-button"
-                type="submit"
-                name="councilMode"
-                value="real-openai-responses"
-                ${missionCreateDisabled || missionUsesKnowledgeWork || !missionCouncilProviderReady ? 'disabled' : ''}
-              >
-                OpenAI 역할 회의 등록
-              </button>
-              <p class="form-help">
-                ${
-                  missionUsesKnowledgeWork
-                    ? `등록 즉시 ${getKnowledgeWorkDeliverableDisplayName(state.missionDraftDeliverableType)} 기준 회의 초안이 열리고, 승인 전까지는 실행 셀로 넘어가지 않습니다.`
-                    : missionCouncilProviderReady
-                      ? '로컬 역할 회의 또는 명시적 OpenAI 역할 회의를 선택할 수 있으며, 승인 전까지는 실행 셀로 넘어가지 않습니다.'
-                      : `OpenAI 역할 회의 차단: ${escapeHtml(missionCouncilProviderReadiness?.reasons?.[0] || 'provider readiness가 준비되지 않았습니다.')}`
-                }
-              </p>
             </div>
           </div>
         </form>
@@ -19315,6 +19355,10 @@ function handleFormInput(event) {
           : 'decision-memo';
     }
 
+    if (event.target.name === 'missionCouncilMode') {
+      state.missionDraftCouncilMode = event.target.value;
+    }
+
     return;
   }
 
@@ -19457,8 +19501,9 @@ document.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     try {
+      const formData = new FormData(createMissionForm);
       await submitCreateMission({
-        councilMode: event.submitter?.value || 'legacy-deterministic',
+        councilMode: String(formData.get('missionCouncilMode') || 'legacy-deterministic'),
       });
     } catch (error) {
       elements.refreshStatus.textContent = error.message || '미션 생성에 실패했습니다.';

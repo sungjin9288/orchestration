@@ -304,6 +304,12 @@ const smokeChecks = [
     purpose:
       'Active Mission workstream-first hierarchy, explicit new-Mission compose and cancel behavior, browser-memory draft continuity, refresh-stable focus, responsive Thread and Graph access, and unchanged submit and authority contracts',
   },
+  {
+    id: 'llm-native-mission-mode-control',
+    script: 'scripts/smoke-ui-slice-675.mjs',
+    purpose:
+      'Native segmented Council mode selection, provider-readiness fallback, one Mission submit command, exact radio focus restoration, knowledge-work compatibility, and unchanged runtime authority contracts',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

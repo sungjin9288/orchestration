@@ -717,6 +717,11 @@ const informationalChecks = [
     purpose: 'LLM-native active Mission focus proves compact-by-default current workstream, explicit full composer mode, cancel and selection collapse, refresh-stable field focus, existing Mission submit compatibility, and zero runtime schema dependency persistence or authority expansion',
   },
   {
+    id: 'llm-native-mission-mode-control',
+    script: 'scripts/smoke-ui-slice-675.mjs',
+    purpose: 'LLM-native Mission mode control proves one native segmented configuration choice, readiness-gated OpenAI fallback, one submit command, exact radio focus restoration, pack compatibility, and zero runtime API schema dependency persistence or authority expansion',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

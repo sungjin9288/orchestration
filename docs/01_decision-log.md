@@ -900,6 +900,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/91_llm-native-active-mission-focus-plan.md` adds one browser-memory compose flag, explicit compose/cancel focus behavior, conditional rendering of the unchanged Mission form, and selected-Mission lead styling. Existing Mission routes, POST payloads, Council modes, provider gates, Thread/Graph behavior, schema v16, dependencies, runtime state, approvals, source mutation, and Git authority remain unchanged.
 - Needed Before: Durable drafts, autosave, draft history, automatic Mission creation or dispatch, runtime/API/schema/dependency changes, scheduling, provider expansion, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
 
+### DEC-141
+- Status: `Accepted`
+- Decision: Accept the delegated non-critical LLM-native Mission mode-control slice that replaces three competing composer submit buttons with one native segmented Council mode control and one existing Mission submit command.
+- Why: Basic, independent local-role, and OpenAI Council choices are configuration for one Mission request, not three primary actions. Presenting each as a submit button weakens the prompt hierarchy and makes provider mode appear to carry separate authority.
+- Impact: `docs/92_llm-native-mission-mode-control-plan.md` adds one pure browser view model, its explicit local static asset route, one browser-memory selected-mode field, accessible radio segments, current readiness help, and one submit handoff through the unchanged mode values and API routes. Knowledge-work, provider readiness, Council behavior, schema v16, dependencies, runtime state, approval gates, source mutation, and Git authority remain unchanged.
+- Needed Before: New provider/Council modes, automatic mode selection, durable preferences or drafts, automatic dispatch, runtime/API/schema/dependency changes, provider fallback, scheduling, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

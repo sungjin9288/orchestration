@@ -87,10 +87,16 @@ async function main() {
     const appSource = await appResponse.text();
     const signalResponse = await fetch(`${baseUrl}/council-signals.js`);
     const signalSource = await signalResponse.text();
+    const modeSource = fs.readFileSync(
+      path.join(repoRoot, 'ui', 'mission-council-mode.js'),
+      'utf8',
+    );
 
     assert.equal(appResponse.status, 200);
     assert.equal(signalResponse.status, 200);
-    assert.match(appSource, /독립 역할 회의 등록/);
+    assert.match(appSource, /createMissionCouncilModeView/);
+    assert.match(modeSource, /label: '독립 역할'/);
+    assert.match(modeSource, /value: 'real-local-stub'/);
     assert.match(appSource, /renderRealCouncilEvidence/);
     assert.match(appSource, /Conflict와 dissent/);
     assert.match(appSource, /Conductor synthesis/);

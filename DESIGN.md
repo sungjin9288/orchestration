@@ -84,6 +84,8 @@ Hierarchy:
 - The composer remains an explicit submit boundary. Typing never starts provider or mutation work.
 - Use a clear command button; mode selection should read as a compact control, not three competing
   hero CTAs.
+- Council mode uses one native segmented control and one Mission submit command; disabled provider
+  modes keep their readiness reason visible without becoming a second action.
 
 ### Agent Workstream
 

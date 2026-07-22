@@ -4006,6 +4006,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/mission-council-mode.js') {
+    await serveStaticAsset(response, 'mission-council-mode.js');
+    return;
+  }
+
   if (url.pathname === '/artifact-preview.js') {
     await serveStaticAsset(response, 'artifact-preview.js');
     return;
