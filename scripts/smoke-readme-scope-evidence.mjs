@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `257\/257`, total `258\/258`/,
-  /UI QA is required `62\/62`/,
+  /required `1\/1`, informational `258\/258`, total `259\/259`/,
+  /UI QA is required `63\/63`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `258\/258`, UI QA `62\/62`, zero-open backlog/,
+  /aggregate `259\/259`, UI QA `63\/63`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1517,6 +1517,19 @@ const llmNativeMobileNavigationEvidence = [
 
 assertReadmeHasAll(llmNativeMobileNavigationEvidence);
 
+const llmNativeSparseMissionGraphEvidence = [
+  /docs\/102_llm-native-sparse-mission-graph-density-plan\.md/,
+  /LLM-native sparse Mission Graph density is accepted by `DEC-151`/,
+  /derive[\s\S]*canvas height from the densest visible lifecycle stage/,
+  /mobile semantic fallback[\s\S]*all six stage headings and counts/,
+  /node scripts\/smoke-ui-slice-685\.mjs/,
+  /output\/playwright\/orchestration-current-graph-desktop\.png/,
+  /output\/playwright\/orchestration-current-graph-mobile\.png/,
+  /`DEC-151` permits only source-density-derived Mission Graph presentation[\s\S]*connectors remain outside/,
+];
+
+assertReadmeHasAll(llmNativeSparseMissionGraphEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1565,7 +1578,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `258\/258`, UI QA `62\/62`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `259\/259`, UI QA `63\/63`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

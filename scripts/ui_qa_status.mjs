@@ -364,6 +364,12 @@ const smokeChecks = [
     purpose:
       'Three-row collapsed mobile rail, full-width native disclosure expansion, current Mission and pending-gate visibility, unchanged desktop navigation, and zero route runtime API schema dependency persistence or authority change',
   },
+  {
+    id: 'llm-native-sparse-mission-graph-density',
+    script: 'scripts/smoke-ui-slice-685.mjs',
+    purpose:
+      'Source-density-derived sparse desktop Graph height, count-only empty mobile stages, unchanged dense layout and six-stage semantics, and zero projection runtime API schema dependency persistence or authority change',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

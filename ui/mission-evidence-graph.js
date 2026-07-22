@@ -17,6 +17,7 @@ export const MISSION_GRAPH_STATUS_TONES = Object.freeze([
 ]);
 
 const GRAPH_WIDTH = 1060;
+const MIN_GRAPH_HEIGHT = 220;
 const STAGE_LEFT = 80;
 const STAGE_GAP = 180;
 const NODE_ROW_GAP = 52;
@@ -168,7 +169,7 @@ function buildLayout(view) {
   });
 
   return {
-    height: Math.max(360, 140 + largestRowCount * NODE_ROW_GAP),
+    height: Math.max(MIN_GRAPH_HEIGHT, 140 + largestRowCount * NODE_ROW_GAP),
     positionedNodes,
   };
 }
@@ -244,7 +245,7 @@ function renderSemanticFallback(view) {
         ${MISSION_GRAPH_STAGES.map((stage) => {
           const nodes = view.visibleNodesByStage.get(stage.id) || [];
           return `
-            <section>
+            <section class="mission-evidence-graph-fallback-stage ${nodes.length === 0 ? 'is-empty' : ''}">
               <h4>${escapeHtml(stage.label)} <span>${nodes.length}</span></h4>
               ${
                 nodes.length > 0

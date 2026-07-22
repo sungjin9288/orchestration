@@ -10824,6 +10824,7 @@ body .llm-app-shell .nav-button-help {
 
 body .llm-app-shell .workspace-shell {
   min-height: 100vh;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 0;
   background: #fff;
 }
@@ -11646,6 +11647,10 @@ body .llm-app-shell .llm-mission-composer .form-help {
 
 .mission-evidence-graph-fallback-body li {
   min-width: 0;
+}
+
+.mission-evidence-graph-fallback-stage.is-empty p {
+  display: none;
 }
 
 .mission-evidence-graph-fallback-body li button {
@@ -13602,6 +13607,16 @@ body .llm-app-shell .project-bootstrap-defaults {
 
   .mission-evidence-graph-fallback > summary {
     min-height: 42px;
+  }
+
+  .mission-evidence-graph-fallback-body {
+    gap: 12px;
+  }
+
+  .mission-evidence-graph-fallback-stage.is-empty h4 {
+    margin-bottom: 0;
+    color: #71717a;
+    font-weight: 500;
   }
 
   .mission-graph-detail-heading {

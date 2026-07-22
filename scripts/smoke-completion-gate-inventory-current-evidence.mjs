@@ -36,10 +36,10 @@ function assertReadmeHas(pattern) {
 }
 
 const inventoryGateRows = [
-  /Recent evidence refresh head checked before this document update: `d5b4a2b`/,
+  /Recent evidence refresh head checked before this document update: `13ea74d`/,
   /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current aggregate count is source-checked by this inventory smoke\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| `ok=true`; required `62\/62`; snapshot reachability informational skipped when the local UI server is not running \| Treat snapshot reachability as optional unless a UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate registration, UI QA `62\/62`, zero-open backlog, post-completion router, proposal-record lifecycle review alias boundaries, AI Company durable lifecycle evidence, schema-v16 acceptance\/proof evidence, bounded continuation, optional exact fetch, context telemetry, the LLM-native primary shell, Mission evidence graph exploration, active Mission focus, the single-submit Mission mode control, first-run project connection, the source-backed Mission thread, the source-backed Council meeting, the source-backed Execution flow, the source-backed Deliverables flow, the LLM-native Advanced Ops navigation hierarchy, the exact source-backed Mission history navigation, the single-band source-backed Workspace Header, and the compact three-row mobile navigation \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| `ok=true`; required `63\/63`; snapshot reachability informational skipped when the local UI server is not running \| Treat snapshot reachability as optional unless a UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate registration, UI QA `63\/63`, zero-open backlog, post-completion router, proposal-record lifecycle review alias boundaries, AI Company durable lifecycle evidence, schema-v16 acceptance\/proof evidence, bounded continuation, optional exact fetch, context telemetry, the LLM-native primary shell, Mission evidence graph exploration, active Mission focus, the single-submit Mission mode control, first-run project connection, the source-backed Mission thread, the source-backed Council meeting, the source-backed Execution flow, the source-backed Deliverables flow, the LLM-native Advanced Ops navigation hierarchy, the exact source-backed Mission history navigation, the single-band source-backed Workspace Header, the compact three-row mobile navigation, and the source-density-derived sparse Mission Graph \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -101,6 +101,7 @@ const inventoryGateRows = [
   /\| LLM-native Mission history navigation \| pass \| `DEC-148`, `docs\/99_llm-native-mission-history-navigation-plan\.md`, `node scripts\/smoke-ui-slice-682\.mjs` \|/,
   /\| LLM-native Workspace Header \| pass \| `DEC-149`, `docs\/100_llm-native-workspace-header-plan\.md`, `node scripts\/smoke-ui-slice-683\.mjs` \|/,
   /\| LLM-native mobile navigation \| pass \| `DEC-150`, `docs\/101_llm-native-mobile-navigation-plan\.md`, `node scripts\/smoke-ui-slice-684\.mjs` \|/,
+  /\| LLM-native sparse Mission Graph density \| pass \| `DEC-151`, `docs\/102_llm-native-sparse-mission-graph-density-plan\.md`, `node scripts\/smoke-ui-slice-685\.mjs` \|/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -130,7 +131,7 @@ for (const pattern of staleInventoryEvidence) {
 
 assertReadmeHas(new RegExp(`${smokeFileCount} smoke files`));
 assertReadmeHas(new RegExp(`${uiSmokeFileCount} UI smoke files`));
-assertReadmeHas(/total `258\/258`/);
+assertReadmeHas(/total `259\/259`/);
 assert.match(verificationStatus, /completion-gate-inventory-current-evidence/);
 assert.match(verificationStatus, /smoke-completion-gate-inventory-current-evidence\.mjs/);
 assert.match(verificationStatus, /ai-company-workorder-persistence-execution-planning/);
@@ -205,6 +206,7 @@ assert.match(uiQaStatus, /smoke-ui-slice-681\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-682\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-683\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-684\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-685\.mjs/);
 assert.match(verificationStatus, /smoke-state-transaction-guard\.mjs/);
 assert.match(verificationStatus, /smoke-wigolo-exact-fetch-adapter\.mjs/);
 assert.match(verificationStatus, /smoke-context-budget-telemetry\.mjs/);
@@ -222,7 +224,8 @@ assert.match(verificationStatus, /smoke-ui-slice-681\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-682\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-683\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-684\.mjs/);
-assertReadmeHas(/total `258\/258`/);
+assert.match(verificationStatus, /smoke-ui-slice-685\.mjs/);
+assertReadmeHas(/total `259\/259`/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -233,8 +236,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '257/257',
-        total: '258/258',
+        informational: '258/258',
+        total: '259/259',
       },
     },
     null,
