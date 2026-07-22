@@ -104,6 +104,16 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
   const missionCloseOuts = Object.values(snapshot.missionCloseOuts || {}).filter(
     (closeOut) => closeOut.executionPlanId === executionPlan.id,
   );
+  const acceptanceCriteria = workOrders.flatMap((workOrder) =>
+    (workOrder.acceptanceCriterionRefs || [])
+      .map((id) => snapshot.acceptanceCriteria?.[id] || null)
+      .filter(Boolean),
+  );
+  const verificationProofs = Object.values(snapshot.verificationProofs || {}).filter(
+    (proof) => acceptanceCriteria.some(
+      (criterion) => criterion.id === proof.acceptanceCriterionId,
+    ),
+  );
 
   if (
     workOrders.length !== executionPlan.workOrderIds.length ||
@@ -125,6 +135,8 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
     deliveryPackages,
     deliveryPackageAcceptances,
     missionCloseOuts,
+    acceptanceCriteria,
+    verificationProofs,
     latestCheckpoint: executionPlan.latestCheckpointId
       ? snapshot.workflowCheckpoints?.[executionPlan.latestCheckpointId] || null
       : null,
@@ -570,6 +582,35 @@ export async function computeMissionMemoryContextTargetDigest(mission) {
   return [...new Uint8Array(digest)]
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
+}
+
+async function computeCanonicalRecordDigest(record, label) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) {
+    throw new Error(`${label} digest source가 필요합니다.`);
+  }
+  const subtle = globalThis.crypto?.subtle;
+  if (!subtle) {
+    throw new Error(`${label} digest를 계산할 Web Crypto를 사용할 수 없습니다.`);
+  }
+  const bytes = new TextEncoder().encode(
+    JSON.stringify(canonicalizeDigestValue(record)),
+  );
+  const digest = await subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+export function computeExecutionPlanRecordDigest(executionPlan) {
+  return computeCanonicalRecordDigest(executionPlan, 'ExecutionPlan');
+}
+
+export function computeWorkOrderRecordDigest(workOrder) {
+  if (!workOrder || typeof workOrder !== 'object' || Array.isArray(workOrder)) {
+    throw new Error('WorkOrder digest source가 필요합니다.');
+  }
+  const { acceptanceCriterionRefs: _acceptanceCriterionRefs, ...sourceRecord } = workOrder;
+  return computeCanonicalRecordDigest(sourceRecord, 'WorkOrder');
 }
 
 export function getMissionMemoryContextPreviewSummary(

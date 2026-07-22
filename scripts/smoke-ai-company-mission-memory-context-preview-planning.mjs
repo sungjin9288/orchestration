@@ -88,7 +88,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-mission-memory-context-preview-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 15/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 16/);
 assert.match(runtimeService, /function createMission\(input\)/);
 assert.match(runtimeService, /status: 'draft'/);
 assert.equal(

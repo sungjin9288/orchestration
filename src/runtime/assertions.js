@@ -92,7 +92,24 @@ function assertMemoryRecall(memoryRecallId, state) {
   return memoryRecall;
 }
 
+function assertAcceptanceCriterion(acceptanceCriterionId, state) {
+  const criterion = state.acceptanceCriteria[acceptanceCriterionId];
+  if (!criterion) {
+    throw new Error(`AcceptanceCriterion not found: ${acceptanceCriterionId}`);
+  }
+  return criterion;
+}
+
+function assertVerificationProof(verificationProofId, state) {
+  const proof = state.verificationProofs[verificationProofId];
+  if (!proof) {
+    throw new Error(`VerificationProof not found: ${verificationProofId}`);
+  }
+  return proof;
+}
+
 module.exports = {
+  assertAcceptanceCriterion,
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,
@@ -105,4 +122,5 @@ module.exports = {
   assertRun,
   assertWorkOrder,
   assertWorkflowCheckpoint,
+  assertVerificationProof,
 };

@@ -89,6 +89,7 @@ Planning source files:
 - `docs/85_ai-company-durable-memory-recall-implementation-decision-handoff.md`
 - `docs/86_ai-company-mission-memory-context-preview-plan.md`
 - `docs/87_ai-company-mission-memory-context-preview-implementation-decision-handoff.md`
+- `docs/88_external-pattern-native-adoption-plan.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -102,7 +103,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v15 after the additive MemoryRecall migration, while `companyRuntime` remains an
+execution state is schema v16 after the additive AcceptanceCriterion and VerificationProof migration, while `companyRuntime` remains an
 additive read-only snapshot on the configured local server path. The editable company roster remains
 browser presentation only.
 
@@ -309,6 +310,28 @@ deterministic `persisted=false`/`context-review-ready` response/browser-memory p
 application, automatic retrieval/ranking/recommendation, providers, schema migration, source/Git/
 release, scheduling, policy, bypass, and connectors remain blocked.
 
+The external-pattern native adoption sequence is accepted by `DEC-131` through `DEC-136` and recorded
+in `docs/88_external-pattern-native-adoption-plan.md`. Durable Builder WorkOrders can first produce a
+response-only verification plan, then persist exact reviewed AcceptanceCriteria under schema v16.
+Append-only VerificationProof attempts preserve failed and passed history; review/manual evidence
+requires exact artifacts and operator rationale, while automatic command evidence is limited to
+shell-free allowlisted `node --check`. Reviewer resume remains blocked until every essential proof is
+current and passed. Criteria-free plans preserve the earlier reviewed-delivery compatibility path.
+
+One response-only bounded continuation preview now sits before the UI's explicit Reviewer or QA
+checkpoint action. It binds current checkpoint/source/input/authority digests, completed units, and
+artifacts to one progress digest, permits exactly one requested step and a deadline no more than 15
+minutes after evaluation, and returns `no-progress`, `deadline-exceeded`, or `cancelled` without
+writing state. The existing resume path still independently validates checkpoint, approval, source,
+Decision Inbox, and proof evidence.
+
+Optional exact research and context telemetry remain isolated support surfaces. The wigolo adapter is
+disabled unless an operator enables it and supplies a repo-external executable; it performs only one
+no-shell exact-URL fetch and returns bounded untrusted response evidence. Context telemetry measures
+operator-supplied JSON by UTF-8 bytes, characters, leaf fields, and exact/gist classification without
+returning raw values or rewriting the payload. Neither surface persists evidence, injects Mission or
+provider context, schedules work, compresses payloads, or makes token/cost claims.
+
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
 `scripts/loop-readiness-status.mjs` verifies that a proposed loop names a goal, boundary,
@@ -373,7 +396,7 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `232/232`, total `233/233`; UI QA is required `45/45`.
+`1/1`, informational `242/242`, total `243/243`; UI QA is required `48/48`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -434,7 +457,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `233/233`, UI QA `45/45`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `243/243`, UI QA `48/48`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -1689,6 +1712,10 @@ Current source-backed evidence:
 | Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
 | Opt-in knowledge-work pack | `packs/knowledge-work/pack.md` defines an explicit opt-in path for bounded non-coding deliverables such as decision memos, plans, checklists, and research briefs; it does not replace the `development` pack or open a pack marketplace. |
 | Review and approval gates | Review-before-done and approval-before-commit/release follow-up are enforced through runtime/coordinator state and surfaced in Decision Inbox. |
+| Acceptance and proof ledger | Schema v16 stores immutable Builder AcceptanceCriteria and append-only failed/passed VerificationProof attempts; current essential proof gates Reviewer resume. |
+| Bounded continuation preflight | A response/browser-memory preview detects unchanged progress, deadline, or cancellation before exposing one existing Reviewer/QA checkpoint action; it grants no resume authority. |
+| Optional exact research fetch | One explicitly enabled repo-external wigolo sidecar can fetch one public exact URL into bounded untrusted response evidence; crawl, search, cache control, persistence, synthesis, and Mission injection are absent. |
+| Context budget telemetry | A bounded response-only report measures JSON UTF-8 bytes, characters, leaf fields, and exact/gist eligibility without returning raw values, rewriting payloads, calling providers, or persisting history. |
 | Local artifact store | Runtime state and artifacts are persisted through `src/runtime/file-store.js`; no external database is required. |
 | Provider boundary | `local-stub` is the default. `openai-responses` exists as an explicit opt-in adapter for planner-through-reviewer roles. |
 | Local UI/API server | `scripts/serve-ui-slice-01.mjs` serves the static UI plus local JSON endpoints for demo and smoke flows. |
@@ -1726,6 +1753,9 @@ src/execution/providers/
   local-stub default adapter
   openai-responses explicit opt-in adapter
         |
+src/research/wigolo-exact-fetch-adapter.js
+  optional repo-external exact URL fetch; disabled by default
+        |
 src/runtime/file-store.js
   local state and artifact persistence under the selected runtime root
 ```
@@ -1742,6 +1772,14 @@ src/runtime/file-store.js
 - Review before done: task completion depends on review evidence, not just a successful run.
 - Approval before commit and release follow-up: commit-package and release-package prepare approval
   records; local commit and close-out consume the approved provenance later.
+- Acceptance is not proof: reviewed immutable criteria and append-only current evidence are separate;
+  no WorkOrder can infer completion from intended checks alone.
+- Continuation preview is not resume authority: no-progress/deadline/cancellation telemetry remains
+  response-only, and the existing resume gate revalidates current durable evidence before dispatch.
+- External evidence stays untrusted and opt-in: exact wigolo fetch is disabled by default, invokes no
+  shell, persists nothing, and cannot crawl, search, synthesize, or inject Mission context.
+- Context metrics are not compression: exact/gist measurement exposes eligibility only; payload
+  rewriting, tokenizer claims, provider calls, and token or cost claims remain outside the slice.
 - Reference-driven design without cloning: the current shell borrows low-noise navigation, traceable
   operator state, permission-aware density, and human approval posture from adjacent tools while
   keeping Orchestration's local project and evidence boundary intact.
@@ -1927,13 +1965,19 @@ Observed result:
 | `POST` | `/api/council-sessions/:sessionId/resume` | Resume a failed position or synthesis attempt. |
 | `POST` | `/api/council-sessions/:sessionId/decision` | Approve, request a targeted revision, or stop a Real Council session. |
 | `POST` | `/api/council-sessions/:sessionId/work-order-preview` | Recompute one response-only source-current WorkOrder preview. |
-| `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview plan bundle and pending approval in current schema v11 state. |
+| `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview plan bundle and pending approval in current schema state. |
 | `GET` | `/api/execution-plans/:executionPlanId` | Inspect one durable plan, WorkOrders, handoffs, approval, and control task. |
 | `POST` | `/api/execution-plans/:executionPlanId/start-sequential` | Start only the approved local Builder preflight path and stop at live-mutation approval. |
 | `POST` | `/api/execution-plans/:executionPlanId/continue-reviewed-delivery` | Continue one exact approved local Builder gate through Reviewer and constrained syntax QA. |
-| `GET` | `/api/execution-plans/:executionPlanId/recovery` | Recompute one read-only schema-v8 checkpoint recovery classification. |
+| `GET` | `/api/execution-plans/:executionPlanId/recovery` | Recompute one read-only current checkpoint recovery classification. |
+| `POST` | `/api/execution-plans/:executionPlanId/continuation-preview` | Measure one bounded response-only next-step/no-progress/deadline/cancellation outcome. |
 | `POST` | `/api/execution-plans/:executionPlanId/resume-from-checkpoint` | Resume one exact current Reviewer-ready or QA-ready checkpoint and stop at the next boundary. |
 | `POST` | `/api/execution-plans/:executionPlanId/cancel-checkpoint` | Record cancellation for one exact current checkpoint without deleting evidence. |
+| `POST` | `/api/execution-plans/:executionPlanId/work-orders/:workOrderId/verification-plan-preview` | Return source-bound response-only happy-path, risk, regression, and manual verification criteria. |
+| `POST` | `/api/execution-plans/:executionPlanId/work-orders/:workOrderId/acceptance-criteria` | Persist one exact reviewed Builder criterion set under separate operator approval. |
+| `GET` | `/api/execution-plans/:executionPlanId/work-orders/:workOrderId/verification-status` | Read current/stale proof status for durable criteria. |
+| `POST` | `/api/execution-plans/:executionPlanId/work-orders/:workOrderId/acceptance-criteria/:criterionId/proofs` | Append one exact operator review/manual proof attempt. |
+| `POST` | `/api/execution-plans/:executionPlanId/work-orders/:workOrderId/acceptance-criteria/:criterionId/run-node-check` | Run and append one source-bound shell-free allowlisted `node --check` proof. |
 | `GET` | `/api/execution-plans/:executionPlanId/delivery-preview` | Recompute the response-only DeliveryPackage from delivery-ready evidence. |
 | `GET` | `/api/execution-plans/:executionPlanId/delivery-package` | Read the current durable `review-required` DeliveryPackage record, if present. |
 | `POST` | `/api/execution-plans/:executionPlanId/persist-delivery-package` | Persist one exact preview/source/package/checkpoint tuple as a durable review-required record. |
@@ -1947,6 +1991,9 @@ Observed result:
 | `GET` | `/api/learning-candidates/:learningCandidateId/review` | Read the separate append-only review event without rewriting the source candidate. |
 | `POST` | `/api/learning-candidates/:learningCandidateId/review` | Append one exact human-reviewed accepted, rejected, or changes-requested event. |
 | `POST` | `/api/learning-candidates/:learningCandidateId/memory-candidate-preview` | Return one accepted-review-only project-scoped response-only MemoryCandidate preview without state or source writes. |
+| `GET` | `/api/research/exact-fetch/readiness` | Inspect disabled-by-default wigolo exact-fetch readiness without a network call. |
+| `POST` | `/api/research/exact-fetch` | Fetch one explicit public exact URL into bounded untrusted response evidence when enabled. |
+| `POST` | `/api/telemetry/context-budget-report` | Measure one bounded JSON payload without raw-value output, rewrite, truncation, compression, provider call, or persistence. |
 | `POST` | `/api/tasks` | Create a task under the active project. |
 | `POST` | `/api/tasks/:taskId/run-planner` | Run planner. |
 | `POST` | `/api/tasks/:taskId/run-architect` | Run architect. |
@@ -1970,6 +2017,9 @@ Optional live-provider environment variables used by source:
 | `OPENAI_RESPONSES_TIMEOUT_MS` | Optional adapter timeout override. |
 | `OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS` | Optional retry attempt override. |
 | `OPENAI_RESPONSES_RETRY_DELAY_MS` | Optional retry delay override. |
+| `ORCHESTRATION_WIGOLO_EXACT_FETCH_ENABLED` | Must equal `1` to open the optional exact-fetch adapter. |
+| `ORCHESTRATION_WIGOLO_SIDECAR_PATH` | Absolute executable path for an operator-installed repo-external wigolo sidecar. |
+| `ORCHESTRATION_WIGOLO_LIVE_URL` | Optional exact URL used only by the opt-in live smoke. |
 
 ## Testing
 
@@ -1977,9 +2027,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 911 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 921 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 667 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 670 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2142,7 +2192,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `233/233`, UI QA `45/45`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `243/243`, UI QA `48/48`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2460,9 +2510,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `45/45`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `48/48`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `232/232`, total `233/233`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `242/242`, total `243/243`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2493,7 +2543,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `233/233`, UI QA `45/45`, and zero-open backlog are local source-backed checks.
+  aggregate `243/243`, UI QA `48/48`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
@@ -2586,6 +2636,21 @@ Playwright CLI:
   non-injection language. Mission/WorkOrder/prompt/policy injection, durable context, memory
   application, automatic selection, providers, schema/source/Git/release/scheduling/policy/bypass/
   connectors remain blocked.
+- `DEC-131` through `DEC-133` add response-only WorkOrder verification planning, process-safe
+  optimistic state commits, and schema-v16 immutable AcceptanceCriteria plus append-only
+  VerificationProof attempts. Only current passed essential Builder proof opens Reviewer resume;
+  automatic proof, generic shell execution, retry, completion, scheduling, provider expansion,
+  commit, push, and release remain blocked.
+- `DEC-134` adds a response-only one-step continuation preview with exact progress digest, deadline,
+  cancellation, and no-progress outcomes. It does not replace current checkpoint/approval/source/
+  Decision Inbox/proof validation or create automatic loop, retry, replay, or background authority.
+- `DEC-135` adds one disabled-by-default exact-URL wigolo adapter. The repository does not install or
+  vendor wigolo; synthetic smoke uses a local fake sidecar and real network evidence remains optional
+  and unconfigured unless all explicit environment values are present. Crawl, search, cache control,
+  authenticated fetch, persistence, synthesis, and Mission/provider injection remain blocked.
+- `DEC-136` adds measurement-only context telemetry. It reports no raw values and performs no payload
+  rewrite, truncation, compression, tokenizer estimate, provider call, persistence, Mission injection,
+  or token/cost claim.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

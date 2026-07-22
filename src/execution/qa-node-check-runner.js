@@ -199,11 +199,84 @@ async function runQaNodeChecks(input, options = {}) {
   };
 }
 
+function prepareSourceBoundNodeChecks(input, options = {}) {
+  const projectRoot = fs.realpathSync(String(input.projectRoot || ''));
+  const targetPathAllowlist = new Set(
+    (input.targetPathAllowlist || []).map((value) =>
+      normalizeRelativePath(value, 'Verification target allowlist path')),
+  );
+  const commands = Array.isArray(input.commands) ? input.commands : [];
+  const maxChecks = Math.min(
+    DEFAULT_MAX_CHECKS,
+    Math.max(1, Number(options.maxChecks || DEFAULT_MAX_CHECKS)),
+  );
+  if (commands.length === 0 || commands.length > maxChecks) {
+    throw new Error(`Verification requires between 1 and ${maxChecks} node checks`);
+  }
+  const checks = commands.map(parseNodeCheckCommand);
+  for (const check of checks) {
+    if (!targetPathAllowlist.has(check.relativePath)) {
+      throw new Error(`Verification path is outside the target allowlist: ${check.relativePath}`);
+    }
+    resolveContainedFile(projectRoot, check.relativePath);
+  }
+  return {
+    projectRoot,
+    checks,
+    relativePaths: [...new Set(checks.map((check) => check.relativePath))].sort(),
+  };
+}
+
+function computeSourceBoundVerificationInputDigest(input, options = {}) {
+  const prepared = prepareSourceBoundNodeChecks(input, options);
+  const fileDigests = captureFileDigests(prepared.projectRoot, prepared.relativePaths);
+  return digest(JSON.stringify(fileDigests));
+}
+
+async function runSourceBoundNodeChecks(input, options = {}) {
+  const prepared = prepareSourceBoundNodeChecks(input, options);
+  const baselineDigests = captureFileDigests(prepared.projectRoot, prepared.relativePaths);
+  const checks = [];
+  for (const check of prepared.checks) {
+    checks.push(
+      await runNodeCheck(
+        { projectRoot: prepared.projectRoot, relativePath: check.relativePath },
+        options,
+      ),
+    );
+  }
+  const finalDigests = captureFileDigests(prepared.projectRoot, prepared.relativePaths);
+  const mutationDetected = !sameDigestEntries(baselineDigests, finalDigests);
+  const reasons = checks
+    .filter((check) => !check.passed)
+    .map((check) =>
+      check.timedOut
+        ? `${check.argv.at(-1)} timed out`
+        : check.truncated
+          ? `${check.argv.at(-1)} exceeded the output cap`
+          : `${check.argv.at(-1)} exited with ${check.exitCode ?? 'spawn-error'}`,
+    );
+  if (mutationDetected) reasons.push('Verification mutated its source files');
+
+  return {
+    schemaVersion: 1,
+    kind: 'source-bound-node-syntax-check',
+    verificationInputDigest: digest(JSON.stringify(baselineDigests)),
+    fileDigests: baselineDigests,
+    checks,
+    mutationDetected,
+    reasons,
+    verdict: reasons.length === 0 ? 'passed' : 'failed',
+  };
+}
+
 module.exports = {
   DEFAULT_MAX_CHECKS,
   DEFAULT_OUTPUT_CAP_BYTES,
   DEFAULT_TIMEOUT_MS,
   parseNodeCheckCommand,
+  computeSourceBoundVerificationInputDigest,
   runNodeCheck,
   runQaNodeChecks,
+  runSourceBoundNodeChecks,
 };

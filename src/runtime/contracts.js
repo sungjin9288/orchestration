@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 15;
+const STATE_SCHEMA_VERSION = 16;
+const ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION = 16;
 const MEMORY_RECALL_STATE_SCHEMA_VERSION = 15;
 const MEMORY_ITEM_STATE_SCHEMA_VERSION = 14;
 const LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION = 13;
@@ -390,6 +391,8 @@ function createEmptyState() {
       learningCandidateReview: 0,
       memoryItem: 0,
       memoryRecall: 0,
+      acceptanceCriterion: 0,
+      verificationProof: 0,
     },
     missions: {},
     councilSessions: {},
@@ -413,10 +416,13 @@ function createEmptyState() {
     learningCandidateReviews: {},
     memoryItems: {},
     memoryRecalls: {},
+    acceptanceCriteria: {},
+    verificationProofs: {},
   };
 }
 
 module.exports = {
+  ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION,
   APPROVAL_STATUS,
   ARTIFACT_CATALOG,
   ARTIFACT_PREVIEW_MODE,

@@ -1,9 +1,29 @@
 'use strict';
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
+const STATE_REVISION = Symbol('orchestration.stateRevision');
+
+class StateConflictError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'StateConflictError';
+    this.statusCode = 409;
+  }
+}
+
+class StateLockTimeoutError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'StateLockTimeoutError';
+    this.statusCode = 409;
+  }
+}
+
 const {
+  ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION,
   APPROVAL_STATUS,
   ARTIFACT_TYPE,
   DECISION_INBOX_STATUS,
@@ -31,6 +51,13 @@ const {
   WORKFLOW_TYPE,
   createEmptyState,
 } = require('./contracts');
+const {
+  ACCEPTANCE_CRITERION_STATUS,
+  BLOCKED_ACTIONS: ACCEPTANCE_CRITERION_BLOCKED_ACTIONS,
+  PERSISTENCE_APPROVAL_ACKNOWLEDGEMENT,
+  PERSISTENCE_APPROVAL_DECISION,
+  computeAcceptanceCriterionRecordDigest,
+} = require('./acceptance-criteria');
 const {
   ACCEPTANCE_AUTHORITY_SUMMARY,
   computeDeliveryPackageAcceptanceDigest,
@@ -70,6 +97,13 @@ const {
   computeMemoryRecallRecordDigest,
 } = require('./memory-recalls');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
+const {
+  BLOCKED_ACTIONS: VERIFICATION_PROOF_BLOCKED_ACTIONS,
+  PROOF_APPROVAL_ACKNOWLEDGEMENT,
+  PROOF_APPROVAL_DECISION,
+  VERIFICATION_PROOF_STATUS,
+  computeVerificationProofRecordDigest,
+} = require('./verification-proofs');
 
 function assertStringField(record, field, label) {
   if (typeof record[field] !== 'string' || !record[field]) {
@@ -1549,7 +1583,12 @@ function validateDurableWorkOrderRecords(state) {
     for (const field of ['executionPlanId', 'handoffPacketId', 'role', 'sourceDigest']) {
       assertStringField(workOrder, field, label);
     }
-    for (const field of ['dependencyIds', 'runRefs', 'artifactRefs']) {
+    for (const field of [
+      'dependencyIds',
+      'runRefs',
+      'artifactRefs',
+      'acceptanceCriterionRefs',
+    ]) {
       assertStringArrayField(workOrder, field, label);
     }
     for (const field of ['approvalRefs', 'changedFiles', 'inboxItemRefs']) {
@@ -1592,6 +1631,394 @@ function validateDurableWorkOrderRecords(state) {
       workOrder.handoffPacketId !== packet.id
     ) {
       throw new Error(`${label} has invalid plan or WorkOrder references`);
+    }
+  }
+}
+
+function validateAcceptanceCriterionRecords(state) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const sourceCriterionKeys = new Set();
+
+  for (const [key, criterion] of Object.entries(state.acceptanceCriteria)) {
+    const label = `AcceptanceCriterion ${key}`;
+    if (
+      !criterion ||
+      typeof criterion !== 'object' ||
+      Array.isArray(criterion) ||
+      criterion.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      criterion,
+      [
+        'id',
+        'persisted',
+        'status',
+        'projectId',
+        'missionId',
+        'executionPlanId',
+        'workOrderId',
+        'sourcePreviewId',
+        'sourcePreviewDigest',
+        'sourceExecutionPlanDigest',
+        'sourceWorkOrderDigest',
+        'sourceDigest',
+        'sourceCriterionId',
+        'kind',
+        'title',
+        'essential',
+        'proofMode',
+        'sourceField',
+        'sourceValues',
+        'requiredEvidenceKinds',
+        'newInformationRequired',
+        'persistenceApproval',
+        'blockedActions',
+        'createdAt',
+        'recordDigest',
+      ],
+      label,
+    );
+    for (const field of [
+      'projectId',
+      'missionId',
+      'executionPlanId',
+      'workOrderId',
+      'sourcePreviewId',
+      'sourcePreviewDigest',
+      'sourceExecutionPlanDigest',
+      'sourceWorkOrderDigest',
+      'sourceDigest',
+      'sourceCriterionId',
+      'kind',
+      'title',
+      'proofMode',
+      'sourceField',
+      'createdAt',
+      'recordDigest',
+    ]) {
+      assertStringField(criterion, field, label);
+    }
+    for (const field of ['sourceValues', 'requiredEvidenceKinds', 'blockedActions']) {
+      assertStringArrayField(criterion, field, label);
+    }
+    if (
+      criterion.persisted !== true ||
+      criterion.status !== ACCEPTANCE_CRITERION_STATUS ||
+      criterion.essential !== true ||
+      criterion.newInformationRequired !== true
+    ) {
+      throw new Error(`${label} has invalid immutable status`);
+    }
+    for (const field of [
+      'sourcePreviewDigest',
+      'sourceExecutionPlanDigest',
+      'sourceWorkOrderDigest',
+      'sourceDigest',
+      'recordDigest',
+    ]) {
+      if (!digestPattern.test(criterion[field])) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      Number.isNaN(Date.parse(criterion.createdAt)) ||
+      new Date(criterion.createdAt).toISOString() !== criterion.createdAt
+    ) {
+      throw new Error(`${label} has invalid createdAt`);
+    }
+    if (
+      !criterion.persistenceApproval ||
+      typeof criterion.persistenceApproval !== 'object' ||
+      Array.isArray(criterion.persistenceApproval)
+    ) {
+      throw new Error(`${label} has invalid persistenceApproval`);
+    }
+    assertExactObjectKeys(
+      criterion.persistenceApproval,
+      ['decision', 'acknowledgement', 'rationale', 'reviewedAt'],
+      `${label} persistenceApproval`,
+    );
+    assertStringField(
+      criterion.persistenceApproval,
+      'rationale',
+      `${label} persistenceApproval`,
+    );
+    if (
+      criterion.persistenceApproval.decision !== PERSISTENCE_APPROVAL_DECISION ||
+      criterion.persistenceApproval.acknowledgement !==
+        PERSISTENCE_APPROVAL_ACKNOWLEDGEMENT ||
+      criterion.persistenceApproval.reviewedAt !== criterion.createdAt
+    ) {
+      throw new Error(`${label} has invalid persistence approval evidence`);
+    }
+    if (
+      criterion.blockedActions.length !== ACCEPTANCE_CRITERION_BLOCKED_ACTIONS.length ||
+      criterion.blockedActions.some(
+        (action, index) => action !== ACCEPTANCE_CRITERION_BLOCKED_ACTIONS[index],
+      )
+    ) {
+      throw new Error(`${label} has invalid blockedActions`);
+    }
+    const plan = state.executionPlans[criterion.executionPlanId];
+    const workOrder = state.workOrders[criterion.workOrderId];
+    if (
+      !plan ||
+      !workOrder ||
+      plan.projectId !== criterion.projectId ||
+      plan.missionId !== criterion.missionId ||
+      plan.sourceDigest !== criterion.sourceDigest ||
+      workOrder.executionPlanId !== plan.id ||
+      workOrder.sourceDigest !== criterion.sourceDigest ||
+      !workOrder.acceptanceCriterionRefs.includes(criterion.id)
+    ) {
+      throw new Error(`${label} has invalid ExecutionPlan or WorkOrder binding`);
+    }
+    const allowedSourceFields = new Set([
+      'acceptanceCriteria',
+      'expectedArtifacts',
+      'stopConditions',
+      'verificationCommands',
+    ]);
+    if (
+      !allowedSourceFields.has(criterion.sourceField) ||
+      JSON.stringify(criterion.sourceValues) !==
+        JSON.stringify(workOrder[criterion.sourceField])
+    ) {
+      throw new Error(`${label} has invalid source values`);
+    }
+    const sourceKey = `${criterion.workOrderId}:${criterion.sourceCriterionId}`;
+    if (sourceCriterionKeys.has(sourceKey)) {
+      throw new Error(`${label} duplicates one source criterion`);
+    }
+    sourceCriterionKeys.add(sourceKey);
+    if (computeAcceptanceCriterionRecordDigest(criterion) !== criterion.recordDigest) {
+      throw new Error(`${label} recordDigest does not match its immutable payload`);
+    }
+  }
+}
+
+function validateVerificationProofRecords(state) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const requestKeys = new Set();
+  const attemptsByCriterion = new Map();
+
+  for (const [key, proof] of Object.entries(state.verificationProofs)) {
+    const label = `VerificationProof ${key}`;
+    if (!proof || typeof proof !== 'object' || Array.isArray(proof) || proof.id !== key) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      proof,
+      [
+        'id',
+        'persisted',
+        'status',
+        'proofKind',
+        'attempt',
+        'projectId',
+        'missionId',
+        'executionPlanId',
+        'workOrderId',
+        'acceptanceCriterionId',
+        'acceptanceCriterionRecordDigest',
+        'sourceDigest',
+        'sourceWorkOrderDigest',
+        'verificationInputDigest',
+        'commandResults',
+        'evidenceArtifactIds',
+        'requiredEvidenceKinds',
+        'newInformationClass',
+        'proofApproval',
+        'requestDigest',
+        'blockedActions',
+        'createdAt',
+        'recordDigest',
+      ],
+      label,
+    );
+    for (const field of [
+      'proofKind',
+      'projectId',
+      'missionId',
+      'executionPlanId',
+      'workOrderId',
+      'acceptanceCriterionId',
+      'acceptanceCriterionRecordDigest',
+      'sourceDigest',
+      'sourceWorkOrderDigest',
+      'verificationInputDigest',
+      'newInformationClass',
+      'requestDigest',
+      'createdAt',
+      'recordDigest',
+    ]) {
+      assertStringField(proof, field, label);
+    }
+    for (const field of [
+      'evidenceArtifactIds',
+      'requiredEvidenceKinds',
+      'blockedActions',
+    ]) {
+      assertStringArrayField(proof, field, label);
+    }
+    if (!Array.isArray(proof.commandResults)) {
+      throw new Error(`${label} has invalid commandResults`);
+    }
+    if (
+      proof.persisted !== true ||
+      !Object.values(VERIFICATION_PROOF_STATUS).includes(proof.status) ||
+      !Number.isInteger(proof.attempt) ||
+      proof.attempt < 1
+    ) {
+      throw new Error(`${label} has invalid immutable status or attempt`);
+    }
+    for (const field of [
+      'acceptanceCriterionRecordDigest',
+      'sourceDigest',
+      'sourceWorkOrderDigest',
+      'verificationInputDigest',
+      'requestDigest',
+      'recordDigest',
+    ]) {
+      if (!digestPattern.test(proof[field])) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      Number.isNaN(Date.parse(proof.createdAt)) ||
+      new Date(proof.createdAt).toISOString() !== proof.createdAt
+    ) {
+      throw new Error(`${label} has invalid createdAt`);
+    }
+    if (
+      !proof.proofApproval ||
+      typeof proof.proofApproval !== 'object' ||
+      Array.isArray(proof.proofApproval)
+    ) {
+      throw new Error(`${label} has invalid proofApproval`);
+    }
+    assertExactObjectKeys(
+      proof.proofApproval,
+      ['decision', 'acknowledgement', 'rationale', 'reviewedAt'],
+      `${label} proofApproval`,
+    );
+    assertStringField(proof.proofApproval, 'rationale', `${label} proofApproval`);
+    if (
+      proof.proofApproval.decision !== PROOF_APPROVAL_DECISION ||
+      proof.proofApproval.acknowledgement !== PROOF_APPROVAL_ACKNOWLEDGEMENT ||
+      proof.proofApproval.reviewedAt !== proof.createdAt
+    ) {
+      throw new Error(`${label} has invalid proof approval evidence`);
+    }
+    if (
+      proof.blockedActions.length !== VERIFICATION_PROOF_BLOCKED_ACTIONS.length ||
+      proof.blockedActions.some(
+        (action, index) => action !== VERIFICATION_PROOF_BLOCKED_ACTIONS[index],
+      )
+    ) {
+      throw new Error(`${label} has invalid blockedActions`);
+    }
+    const criterion = state.acceptanceCriteria[proof.acceptanceCriterionId];
+    const workOrder = state.workOrders[proof.workOrderId];
+    if (
+      !criterion ||
+      !workOrder ||
+      criterion.recordDigest !== proof.acceptanceCriterionRecordDigest ||
+      criterion.projectId !== proof.projectId ||
+      criterion.missionId !== proof.missionId ||
+      criterion.executionPlanId !== proof.executionPlanId ||
+      criterion.workOrderId !== proof.workOrderId ||
+      criterion.sourceDigest !== proof.sourceDigest ||
+      criterion.sourceWorkOrderDigest !== proof.sourceWorkOrderDigest
+    ) {
+      throw new Error(`${label} has invalid AcceptanceCriterion binding`);
+    }
+    if (
+      proof.evidenceArtifactIds.some(
+        (artifactId) =>
+          !state.artifacts[artifactId] || !workOrder.artifactRefs.includes(artifactId),
+      )
+    ) {
+      throw new Error(`${label} has invalid artifact evidence`);
+    }
+    if (
+      (proof.proofKind === 'command' &&
+        (criterion.proofMode !== 'command' ||
+          proof.commandResults.length === 0 ||
+          proof.evidenceArtifactIds.length !== 0)) ||
+      (proof.proofKind === 'review' &&
+        (criterion.proofMode === 'command' ||
+          proof.evidenceArtifactIds.length === 0 ||
+          proof.commandResults.length !== 0)) ||
+      JSON.stringify(proof.requiredEvidenceKinds) !==
+        JSON.stringify(criterion.requiredEvidenceKinds) ||
+      proof.newInformationClass !==
+        (proof.proofKind === 'command' ? 'execution' : 'human-review')
+    ) {
+      throw new Error(`${label} has invalid proof mode evidence`);
+    }
+    if (
+      proof.commandResults.some((result) => {
+        if (!result || typeof result !== 'object' || Array.isArray(result)) return true;
+        try {
+          assertExactObjectKeys(
+            result,
+            [
+              'kind',
+              'argv',
+              'exitCode',
+              'durationMs',
+              'stdoutDigest',
+              'stderrDigest',
+              'truncated',
+              'timedOut',
+              'error',
+              'passed',
+            ],
+            `${label} commandResult`,
+          );
+        } catch (_error) {
+          return true;
+        }
+        return (
+          result.kind !== 'node-check' ||
+          !Array.isArray(result.argv) ||
+          result.argv.length !== 3 ||
+          result.argv[1] !== '--check' ||
+          !Number.isInteger(result.durationMs) ||
+          result.durationMs < 0 ||
+          (result.exitCode !== null && !Number.isInteger(result.exitCode)) ||
+          !digestPattern.test(result.stdoutDigest) ||
+          !digestPattern.test(result.stderrDigest) ||
+          typeof result.truncated !== 'boolean' ||
+          typeof result.timedOut !== 'boolean' ||
+          (result.error !== null && typeof result.error !== 'string') ||
+          typeof result.passed !== 'boolean'
+        );
+      }) ||
+      new Set(proof.evidenceArtifactIds).size !== proof.evidenceArtifactIds.length
+    ) {
+      throw new Error(`${label} has invalid command or artifact evidence shape`);
+    }
+    const requestKey = `${proof.acceptanceCriterionId}:${proof.requestDigest}`;
+    if (requestKeys.has(requestKey)) {
+      throw new Error(`${label} duplicates one proof request`);
+    }
+    requestKeys.add(requestKey);
+    const attempts = attemptsByCriterion.get(proof.acceptanceCriterionId) || [];
+    attempts.push(proof.attempt);
+    attemptsByCriterion.set(proof.acceptanceCriterionId, attempts);
+    if (computeVerificationProofRecordDigest(proof) !== proof.recordDigest) {
+      throw new Error(`${label} recordDigest does not match its immutable payload`);
+    }
+  }
+
+  for (const [criterionId, attempts] of attemptsByCriterion) {
+    attempts.sort((left, right) => left - right);
+    if (attempts.some((attempt, index) => attempt !== index + 1)) {
+      throw new Error(`AcceptanceCriterion ${criterionId} has invalid proof attempt history`);
     }
   }
 }
@@ -1663,10 +2090,127 @@ function bootstrapMigratedWorkflowCheckpoints(state) {
 function createFileStore(options = {}) {
   const runtimeRoot = options.runtimeRoot || path.join(process.cwd(), 'var', 'runtime');
   const statePath = path.join(runtimeRoot, 'state.json');
+  const stateLockPath = `${statePath}.lock`;
   const logsDir = path.join(runtimeRoot, 'logs');
   const artifactsDir = path.join(runtimeRoot, 'artifacts');
   const archivedArtifactsDir = path.join(artifactsDir, 'archive');
   const deletedArtifactsDir = path.join(artifactsDir, 'deleted');
+  const lockTimeoutMs = options.stateLockTimeoutMs || 2_000;
+  const staleLockMs = options.stateStaleLockMs || 30_000;
+  const lockRetryMs = options.stateLockRetryMs || 10;
+
+  function digestStateBytes(bytes) {
+    return crypto.createHash('sha256').update(bytes).digest('hex');
+  }
+
+  function attachStateRevision(state, revision) {
+    Object.defineProperty(state, STATE_REVISION, {
+      configurable: true,
+      enumerable: false,
+      value: revision,
+      writable: true,
+    });
+    return state;
+  }
+
+  function assertRegularStateFile() {
+    const stat = fs.lstatSync(statePath);
+    if (stat.isSymbolicLink() || !stat.isFile()) {
+      throw new Error('state file must be a regular file');
+    }
+  }
+
+  function readStateBytes() {
+    assertRegularStateFile();
+    return fs.readFileSync(statePath, 'utf8');
+  }
+
+  function sleep(milliseconds) {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+  }
+
+  function isProcessAlive(pid) {
+    if (!Number.isInteger(pid) || pid < 1) return false;
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch (error) {
+      return error.code === 'EPERM';
+    }
+  }
+
+  function reclaimStaleLock() {
+    let lockStat;
+    let owner;
+    try {
+      lockStat = fs.lstatSync(stateLockPath);
+      if (lockStat.isSymbolicLink() || !lockStat.isFile()) return false;
+      owner = JSON.parse(fs.readFileSync(stateLockPath, 'utf8'));
+    } catch (_error) {
+      return false;
+    }
+    const createdAt = Date.parse(owner.createdAt);
+    if (
+      !Number.isFinite(createdAt) ||
+      Date.now() - createdAt <= staleLockMs ||
+      isProcessAlive(owner.pid)
+    ) {
+      return false;
+    }
+    try {
+      const current = fs.lstatSync(stateLockPath);
+      if (current.dev !== lockStat.dev || current.ino !== lockStat.ino) return false;
+      fs.unlinkSync(stateLockPath);
+      return true;
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function acquireStateLock() {
+    ensureDirs();
+    const startedAt = Date.now();
+    while (true) {
+      try {
+        const flags =
+          fs.constants.O_CREAT |
+          fs.constants.O_EXCL |
+          fs.constants.O_WRONLY |
+          (fs.constants.O_NOFOLLOW || 0);
+        const descriptor = fs.openSync(stateLockPath, flags, 0o600);
+        fs.writeFileSync(
+          descriptor,
+          `${JSON.stringify({ pid: process.pid, createdAt: new Date().toISOString() })}\n`,
+        );
+        fs.fsyncSync(descriptor);
+        return descriptor;
+      } catch (error) {
+        if (error.code !== 'EEXIST') throw error;
+        if (reclaimStaleLock()) continue;
+        if (Date.now() - startedAt >= lockTimeoutMs) {
+          throw new StateLockTimeoutError('Timed out waiting for the runtime state lock');
+        }
+        sleep(lockRetryMs);
+      }
+    }
+  }
+
+  function releaseStateLock(descriptor) {
+    let ownedStat = null;
+    try {
+      ownedStat = fs.fstatSync(descriptor);
+    } finally {
+      fs.closeSync(descriptor);
+    }
+    try {
+      const current = fs.lstatSync(stateLockPath);
+      if (current.dev === ownedStat.dev && current.ino === ownedStat.ino) {
+        fs.unlinkSync(stateLockPath);
+      }
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+  }
 
   function createDefaultArtifactRetentionState() {
     return {
@@ -1693,6 +2237,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== LEARNING_CANDIDATE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MEMORY_ITEM_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== MEMORY_RECALL_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -1828,6 +2373,26 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.acceptanceCriterion) ||
+        !Number.isInteger(state.sequences?.verificationProof) ||
+        !state.acceptanceCriteria ||
+        typeof state.acceptanceCriteria !== 'object' ||
+        Array.isArray(state.acceptanceCriteria) ||
+        !state.verificationProofs ||
+        typeof state.verificationProofs !== 'object' ||
+        Array.isArray(state.verificationProofs) ||
+        Object.values(state.workOrders).some(
+          (workOrder) => !Array.isArray(workOrder.acceptanceCriterionRefs),
+        )
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing AcceptanceCriterion fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -1858,7 +2423,15 @@ function createFileStore(options = {}) {
       learningCandidateReviews: state.learningCandidateReviews || {},
       memoryItems: state.memoryItems || {},
       memoryRecalls: state.memoryRecalls || {},
+      acceptanceCriteria: state.acceptanceCriteria || {},
+      verificationProofs: state.verificationProofs || {},
     };
+
+    if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
+      for (const workOrder of Object.values(normalizedState.workOrders)) {
+        workOrder.acceptanceCriterionRefs = [];
+      }
+    }
 
     if (sourceSchemaVersion < WORKFLOW_CHECKPOINT_STATE_SCHEMA_VERSION) {
       for (const executionPlan of Object.values(normalizedState.executionPlans)) {
@@ -2076,6 +2649,8 @@ function createFileStore(options = {}) {
 
     normalizedState.schemaVersion = STATE_SCHEMA_VERSION;
     validateDurableWorkOrderRecords(normalizedState);
+    validateAcceptanceCriterionRecords(normalizedState);
+    validateVerificationProofRecords(normalizedState);
     for (const [key, plan] of Object.entries(normalizedState.executionPlans)) {
       const label = `ExecutionPlan ${key}`;
       assertStringArrayField(plan, 'checkpointRefs', label);
@@ -2142,47 +2717,96 @@ function createFileStore(options = {}) {
     ensureDirs();
 
     if (!fs.existsSync(statePath)) {
-      fs.writeFileSync(statePath, `${JSON.stringify(createEmptyState(), null, 2)}\n`);
+      try {
+        fs.writeFileSync(
+          statePath,
+          `${JSON.stringify(createEmptyState(), null, 2)}\n`,
+          { flag: 'wx', mode: 0o600 },
+        );
+      } catch (error) {
+        if (error.code !== 'EEXIST') throw error;
+      }
     }
+    assertRegularStateFile();
   }
 
   function loadState() {
     ensureStateFile();
-    const sourceState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    const sourceBytes = readStateBytes();
+    const sourceState = JSON.parse(sourceBytes);
     const normalizedState = normalizeState(sourceState);
     if (sourceState.schemaVersion !== STATE_SCHEMA_VERSION) {
-      writeStateAtomically(normalizedState);
+      const revision = writeStateAtomically(
+        normalizedState,
+        digestStateBytes(sourceBytes),
+      );
+      return attachStateRevision(normalizedState, revision);
     }
-    return normalizedState;
+    return attachStateRevision(normalizedState, digestStateBytes(sourceBytes));
   }
 
   function loadStateReadonly() {
     if (!fs.existsSync(statePath)) {
       throw new Error('state file does not exist');
     }
-    const sourceState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    const sourceBytes = readStateBytes();
+    const sourceState = JSON.parse(sourceBytes);
     if (sourceState.schemaVersion !== STATE_SCHEMA_VERSION) {
       throw new Error(`state must use current schema v${STATE_SCHEMA_VERSION}`);
     }
-    return normalizeState(sourceState);
+    return attachStateRevision(normalizeState(sourceState), digestStateBytes(sourceBytes));
   }
 
   function loadStateSupportedReadonly() {
     if (!fs.existsSync(statePath)) {
       throw new Error('state file does not exist');
     }
-    return normalizeState(JSON.parse(fs.readFileSync(statePath, 'utf8')));
+    const sourceBytes = readStateBytes();
+    return attachStateRevision(
+      normalizeState(JSON.parse(sourceBytes)),
+      digestStateBytes(sourceBytes),
+    );
   }
 
-  function writeStateAtomically(state) {
+  function writeStateAtomically(state, expectedRevision) {
     ensureDirs();
-    const temporaryStatePath = `${statePath}.tmp-${process.pid}`;
-    fs.writeFileSync(temporaryStatePath, `${JSON.stringify(state, null, 2)}\n`);
-    fs.renameSync(temporaryStatePath, statePath);
+    const lock = acquireStateLock();
+    const temporaryStatePath = `${statePath}.tmp-${process.pid}-${crypto.randomBytes(8).toString('hex')}`;
+    try {
+      const currentBytes = readStateBytes();
+      if (expectedRevision !== digestStateBytes(currentBytes)) {
+        throw new StateConflictError(
+          'Runtime state changed after it was loaded; retry from current state',
+        );
+      }
+      const nextBytes = `${JSON.stringify(state, null, 2)}\n`;
+      const flags =
+        fs.constants.O_CREAT |
+        fs.constants.O_EXCL |
+        fs.constants.O_WRONLY |
+        (fs.constants.O_NOFOLLOW || 0);
+      const descriptor = fs.openSync(temporaryStatePath, flags, 0o600);
+      try {
+        fs.writeFileSync(descriptor, nextBytes);
+        fs.fsyncSync(descriptor);
+      } finally {
+        fs.closeSync(descriptor);
+      }
+      fs.renameSync(temporaryStatePath, statePath);
+      return digestStateBytes(nextBytes);
+    } finally {
+      fs.rmSync(temporaryStatePath, { force: true });
+      releaseStateLock(lock);
+    }
   }
 
   function saveState(state) {
-    writeStateAtomically(normalizeState(state));
+    const expectedRevision = state?.[STATE_REVISION];
+    if (!expectedRevision) {
+      throw new StateConflictError('Runtime state must be loaded before it can be saved');
+    }
+    const revision = writeStateAtomically(normalizeState(state), expectedRevision);
+    attachStateRevision(state, revision);
   }
 
   function appendLogRecord(runId, record) {
@@ -2291,11 +2915,14 @@ function createFileStore(options = {}) {
     runtimeRoot,
     saveState,
     statePath,
+    stateLockPath,
     writeArtifact,
     writeArtifactAtPath,
   };
 }
 
 module.exports = {
+  StateConflictError,
+  StateLockTimeoutError,
   createFileStore,
 };

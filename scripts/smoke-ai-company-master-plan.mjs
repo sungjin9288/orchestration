@@ -271,7 +271,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 15/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 16/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -349,7 +349,7 @@ process.stdout.write(
         'DEC-130',
       ],
       currentRuntime: {
-        schemaVersion: 15,
+        schemaVersion: 16,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',

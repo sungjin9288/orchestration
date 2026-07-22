@@ -147,7 +147,9 @@ import {
   getMemoryCandidatePreviewSummary,
   getMemoryItemPersistenceSummary,
   getMemoryRecallPersistenceSummary,
+  computeExecutionPlanRecordDigest,
   computeMissionMemoryContextTargetDigest,
+  computeWorkOrderRecordDigest,
   getMissionMemoryContextPreviewSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
@@ -432,7 +434,12 @@ const state = {
       'memory-context-preview-not-mission-or-prompt-injection',
   },
   missionMemoryContextPreview: null,
+  workOrderVerificationPlanPreview: null,
+  workOrderVerificationStatus: null,
+  workOrderAcceptanceCriteriaRationale: '',
+  workOrderProofDrafts: {},
   missionExecutionPlanRecovery: null,
+  executionContinuationPreview: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -4794,6 +4801,9 @@ function applySnapshotPayload(payload) {
   if (Object.prototype.hasOwnProperty.call(payload, 'missionCloseOut')) {
     state.missionCloseOut = payload.missionCloseOut || null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'verificationStatus')) {
+    state.workOrderVerificationStatus = payload.verificationStatus || null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'learningCandidatePreview')) {
     state.missionLearningCandidatePreview = payload.learningCandidatePreview || null;
   } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
@@ -4857,6 +4867,9 @@ function applySnapshotPayload(payload) {
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
+    state.executionContinuationPreview = null;
   }
 
   const snapshot = payload.snapshot || {};
@@ -4933,6 +4946,11 @@ async function hydrateSelectedDetails() {
   state.missionMemoryRecallPreview = null;
   state.missionMemoryRecall = null;
   state.missionMemoryContextPreview = null;
+  state.workOrderVerificationPlanPreview = null;
+  state.workOrderVerificationStatus = null;
+  state.workOrderAcceptanceCriteriaRationale = '';
+  state.workOrderProofDrafts = {};
+  state.executionContinuationPreview = null;
   state.missionLearningCandidateDraft = {
     lesson: '',
     applicabilitySummary: '',
@@ -5088,10 +5106,21 @@ async function hydrateSelectedDetails() {
     }
   }
   if (executionPlanBundle) {
-    const recoveryPayload = await fetchJson(
-      `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/recovery`,
+    const builderWorkOrder = executionPlanBundle.workOrders.find(
+      (workOrder) => workOrder.role === 'builder',
     );
+    const [recoveryPayload, verificationPayload] = await Promise.all([
+      fetchJson(
+        `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/recovery`,
+      ),
+      builderWorkOrder?.acceptanceCriterionRefs?.length > 0
+        ? fetchJson(
+            `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/work-orders/${encodeURIComponent(builderWorkOrder.id)}/verification-status`,
+          )
+        : Promise.resolve({ verificationStatus: null }),
+    ]);
     state.missionExecutionPlanRecovery = recoveryPayload.executionPlanRecovery || null;
+    state.workOrderVerificationStatus = verificationPayload.verificationStatus || null;
   }
 }
 
@@ -6023,6 +6052,178 @@ async function submitMissionWorkOrderPlan(councilSessionId) {
   }
 }
 
+async function previewWorkOrderVerificationPlan(executionPlanId, workOrderId) {
+  const snapshot = getActivePayload().snapshot || {};
+  const executionPlan = snapshot.executionPlans?.[executionPlanId] || null;
+  const workOrder = snapshot.workOrders?.[workOrderId] || null;
+  if (
+    !executionPlan ||
+    !workOrder ||
+    workOrder.executionPlanId !== executionPlan.id ||
+    !executionPlan.workOrderIds?.includes(workOrder.id)
+  ) {
+    throw new Error('현재 ExecutionPlan에 속한 exact WorkOrder가 필요합니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  state.workOrderVerificationPlanPreview = null;
+  elements.refreshStatus.textContent = `${workOrder.id} 검증 기준을 계산하는 중…`;
+  render();
+
+  try {
+    const [executionPlanDigest, workOrderDigest] = await Promise.all([
+      computeExecutionPlanRecordDigest(executionPlan),
+      computeWorkOrderRecordDigest(workOrder),
+    ]);
+    const payload = await postJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlan.id)}/work-orders/${encodeURIComponent(workOrder.id)}/verification-plan-preview`,
+      {
+        executionPlanDigest,
+        workOrderDigest,
+        sourceDigest: executionPlan.sourceDigest,
+        evaluatedAt: new Date().toISOString(),
+      },
+    );
+    state.workOrderVerificationPlanPreview =
+      payload.workOrderVerificationPlanPreview || null;
+    state.surface = 'execution';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.workOrderVerificationPlanPreview.id}를 response-only로 계산했습니다`;
+  } catch (error) {
+    state.workOrderVerificationPlanPreview = null;
+    throw error;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+function getWorkOrderProofDraft(acceptanceCriterionId) {
+  return state.workOrderProofDrafts[acceptanceCriterionId] || {
+    rationale: '',
+    status: 'passed',
+  };
+}
+
+async function persistWorkOrderAcceptanceCriteria(executionPlanId, workOrderId) {
+  const preview = state.workOrderVerificationPlanPreview;
+  if (
+    !preview ||
+    preview.executionPlanId !== executionPlanId ||
+    preview.workOrderId !== workOrderId
+  ) {
+    throw new Error('현재 WorkOrder의 exact verification preview가 필요합니다.');
+  }
+  const rationale = state.workOrderAcceptanceCriteriaRationale.trim();
+  if (!rationale) throw new Error('검증 기준을 durable record로 남기는 이유를 입력해야 합니다.');
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${workOrderId} 검증 기준을 기록하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanId)}/work-orders/${encodeURIComponent(workOrderId)}/acceptance-criteria`,
+      {
+        evaluatedAt: preview.evaluatedAt,
+        executionPlanDigest: preview.executionPlanDigest,
+        persistenceApproval: {
+          decision: 'persist',
+          acknowledgement: 'reviewed-workorder-verification-plan-for-durable-criteria',
+          rationale,
+          reviewedAt: new Date().toISOString(),
+        },
+        previewDigest: preview.previewDigest,
+        previewId: preview.id,
+        sourceDigest: preview.sourceDigest,
+        workOrderDigest: preview.workOrderDigest,
+      },
+    );
+    applySnapshotPayload(payload);
+    state.workOrderVerificationPlanPreview = null;
+    state.workOrderAcceptanceCriteriaRationale = '';
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'execution';
+    render();
+    elements.refreshStatus.textContent = `${payload.mutation.criterionIds.length}개 AcceptanceCriterion을 기록했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitWorkOrderVerificationProof(
+  executionPlanId,
+  workOrderId,
+  acceptanceCriterionId,
+  commandMode,
+) {
+  const snapshot = getActivePayload().snapshot || {};
+  const executionPlan = snapshot.executionPlans?.[executionPlanId] || null;
+  const workOrder = snapshot.workOrders?.[workOrderId] || null;
+  const criterion = snapshot.acceptanceCriteria?.[acceptanceCriterionId] || null;
+  if (
+    !executionPlan ||
+    !workOrder ||
+    !criterion ||
+    criterion.executionPlanId !== executionPlan.id ||
+    criterion.workOrderId !== workOrder.id ||
+    !workOrder.acceptanceCriterionRefs?.includes(criterion.id)
+  ) {
+    throw new Error('현재 Builder WorkOrder에 속한 exact AcceptanceCriterion이 필요합니다.');
+  }
+  const draft = getWorkOrderProofDraft(acceptanceCriterionId);
+  const rationale = draft.rationale.trim();
+  if (!rationale) throw new Error('현재 evidence를 판단한 이유를 입력해야 합니다.');
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${criterion.id} 증빙을 ${commandMode ? '실행' : '기록'}하는 중…`;
+  render();
+
+  try {
+    const workOrderDigest = await computeWorkOrderRecordDigest(workOrder);
+    const proofApproval = {
+      decision: 'record-proof',
+      acknowledgement: 'reviewed-current-workorder-evidence-for-verification-proof',
+      rationale,
+      reviewedAt: new Date().toISOString(),
+    };
+    const endpoint = commandMode
+      ? `/api/execution-plans/${encodeURIComponent(executionPlan.id)}/work-orders/${encodeURIComponent(workOrder.id)}/acceptance-criteria/${encodeURIComponent(criterion.id)}/run-node-check`
+      : `/api/execution-plans/${encodeURIComponent(executionPlan.id)}/work-orders/${encodeURIComponent(workOrder.id)}/acceptance-criteria/${encodeURIComponent(criterion.id)}/proofs`;
+    const body = commandMode
+      ? {
+          criterionRecordDigest: criterion.recordDigest,
+          proofApproval,
+          sourceDigest: executionPlan.sourceDigest,
+          workOrderDigest,
+        }
+      : {
+          criterionRecordDigest: criterion.recordDigest,
+          evidenceArtifactIds: [...workOrder.artifactRefs],
+          proofApproval,
+          sourceDigest: executionPlan.sourceDigest,
+          status: draft.status === 'failed' ? 'failed' : 'passed',
+          workOrderDigest,
+        };
+    const payload = await postJson(endpoint, body);
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'execution';
+    render();
+    elements.refreshStatus.textContent = `${payload.mutation.proofId}를 append-only evidence로 기록했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 async function submitSequentialWorkOrderPlan(executionPlanId) {
   const snapshot = getActivePayload().snapshot || {};
   const executionPlan = snapshot.executionPlans?.[executionPlanId] || null;
@@ -6904,6 +7105,18 @@ async function submitWorkflowCheckpointAction(executionPlanId, action) {
   }
 
   const checkpoint = summary.checkpoint;
+  const continuationPreview = state.executionContinuationPreview;
+  if (
+    action !== 'cancel' &&
+    (!continuationPreview ||
+      continuationPreview.status !== 'continuation-ready' ||
+      continuationPreview.executionPlanId !== executionPlanId ||
+      continuationPreview.nextStep?.checkpointId !== checkpoint.id ||
+      continuationPreview.nextStep?.action !== action ||
+      continuationPreview.progressEvidence?.checkpointDigest !== checkpoint.checkpointDigest)
+  ) {
+    throw new Error('현재 checkpoint에 대한 bounded continuation preview가 먼저 필요합니다.');
+  }
   const body = {
     checkpointId: checkpoint.id,
     checkpointDigest: checkpoint.checkpointDigest,
@@ -6927,6 +7140,7 @@ async function submitWorkflowCheckpointAction(executionPlanId, action) {
 
   try {
     const payload = await postJson(endpoint, body);
+    state.executionContinuationPreview = null;
     applySnapshotPayload(payload);
     syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
     await hydrateSelectedDetails();
@@ -6936,6 +7150,54 @@ async function submitWorkflowCheckpointAction(executionPlanId, action) {
       action === 'cancel'
         ? `${checkpoint.id} 취소 이력을 보존했습니다`
         : `${payload.mutation.resumedStage || action} 실행 후 ${payload.mutation.stoppedAt}에서 멈췄습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function previewExecutionPlanContinuation(executionPlanId) {
+  const recovery = state.missionExecutionPlanRecovery;
+  const summary = getMissionWorkflowCheckpointSummary(recovery, executionPlanId);
+  if (!summary?.checkpoint || !summary.canResume || !summary.action) {
+    throw new Error('현재 source와 authority에 맞는 checkpoint만 검토할 수 있습니다.');
+  }
+  const checkpoint = summary.checkpoint;
+  const evaluatedAt = new Date().toISOString();
+  const deadlineAt = new Date(Date.parse(evaluatedAt) + 5 * 60 * 1000).toISOString();
+
+  state.error = null;
+  state.mutating = true;
+  state.executionContinuationPreview = null;
+  elements.refreshStatus.textContent = `${checkpoint.id}의 다음 한 단계를 검토하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanId)}/continuation-preview`,
+      {
+        checkpointId: checkpoint.id,
+        checkpointDigest: checkpoint.checkpointDigest,
+        inputDigest: checkpoint.inputDigest,
+        authorityDigest: checkpoint.authorityDigest,
+        action: summary.action,
+        evaluatedAt,
+        continuationSpec: {
+          cancellationRequested: false,
+          deadlineAt,
+          maxSteps: 1,
+          previousProgressDigest: null,
+        },
+      },
+    );
+    state.executionContinuationPreview = payload.executionContinuationPreview || null;
+    elements.refreshStatus.textContent =
+      state.executionContinuationPreview?.status === 'continuation-ready'
+        ? `${checkpoint.id}의 다음 한 단계가 검토 준비됐습니다`
+        : `${checkpoint.id}: ${state.executionContinuationPreview?.stopReason || 'continuation 중단'}`;
+  } catch (error) {
+    state.executionContinuationPreview = null;
+    throw error;
   } finally {
     state.mutating = false;
     render();
@@ -11304,6 +11566,19 @@ function renderWorkflowCheckpointRecovery(recovery, executionPlan) {
   const summary = getMissionWorkflowCheckpointSummary(recovery, executionPlan.id);
   if (!summary) return '';
   const checkpoint = summary.checkpoint;
+  const verificationBlocksResume = Boolean(
+    checkpoint?.stage === 'reviewer-ready' &&
+      state.workOrderVerificationStatus?.criteriaRequired &&
+      !state.workOrderVerificationStatus.ready,
+  );
+  const continuationPreview = state.executionContinuationPreview;
+  const continuationReady = Boolean(
+    continuationPreview?.status === 'continuation-ready' &&
+      continuationPreview.executionPlanId === executionPlan.id &&
+      continuationPreview.nextStep?.checkpointId === checkpoint?.id &&
+      continuationPreview.nextStep?.action === summary.action &&
+      continuationPreview.progressEvidence?.checkpointDigest === checkpoint?.checkpointDigest,
+  );
   const classificationLabel = {
     ready: '재개 준비',
     consumed: '소비됨',
@@ -11360,20 +11635,43 @@ function renderWorkflowCheckpointRecovery(recovery, executionPlan) {
         </div>
       </div>
       <p class="form-help">${escapeHtml(summary.stopReason || 'durable boundary evidence current')}</p>
+      ${
+        continuationPreview && continuationPreview.executionPlanId === executionPlan.id
+          ? `
+            <div class="execution-continuation-preview" data-continuation-status="${escapeHtml(continuationPreview.status)}">
+              <div class="card-title-row card-title-row-tight">
+                <strong>Bounded continuation</strong>
+                ${createToken(continuationPreview.status, continuationReady ? 'success' : 'warning')}
+                ${createToken('max steps:1', 'neutral')}
+                ${createToken('response-only', 'neutral')}
+              </div>
+              <div class="workflow-checkpoint-grid">
+                <div><span>Progress</span><strong>${escapeHtml(continuationPreview.progressDigest.slice(0, 12))}</strong></div>
+                <div><span>Deadline</span><strong>${escapeHtml(continuationPreview.continuationSpec.deadlineAt)}</strong></div>
+                <div><span>Next</span><strong>${escapeHtml(continuationPreview.nextStep?.action || 'stop')}</strong></div>
+                <div><span>Persisted</span><strong>no</strong></div>
+              </div>
+              <p class="form-help">${escapeHtml(continuationPreview.stopReason || '기존 resume가 exact tuple과 Decision Inbox를 다시 검증합니다.')}</p>
+            </div>
+          `
+          : ''
+      }
       <div class="relation-button-row workflow-checkpoint-actions">
         <button
           class="primary-button"
           type="button"
-          data-action="resume-workflow-checkpoint"
+          data-action="${continuationReady ? 'resume-workflow-checkpoint' : 'preview-execution-continuation'}"
           data-checkpoint-action="${escapeHtml(summary.action || '')}"
           data-id="${escapeHtml(executionPlan.id)}"
-          ${state.loading || state.mutating || !summary.canResume ? 'disabled' : ''}
+          ${state.loading || state.mutating || !summary.canResume || verificationBlocksResume || (continuationPreview && !continuationReady) ? 'disabled' : ''}
         >
-          ${checkpoint.stage === 'qa-ready'
-            ? 'QA 재개'
-            : checkpoint.stage === 'reviewer-ready'
-              ? 'Reviewer 재개'
-              : '재개 불가'}
+          ${continuationReady
+            ? checkpoint.stage === 'qa-ready'
+              ? 'QA 재개: 1단계 실행'
+              : checkpoint.stage === 'reviewer-ready'
+                ? 'Reviewer 재개: 1단계 실행'
+                : '재개 불가'
+            : '다음 1단계 검토'}
         </button>
         <button
           class="secondary-button"
@@ -11423,6 +11721,18 @@ function renderMissionExecutionPlan(bundle, recovery) {
             ${createToken(`runs:${workOrder.runRefs.length}`, 'neutral')}
             ${createToken(`artifacts:${workOrder.artifactRefs.length}`, 'neutral')}
           </div>
+          <div class="relation-button-row">
+            <button
+              class="secondary-button"
+              type="button"
+              data-action="preview-workorder-verification-plan"
+              data-plan-id="${escapeHtml(executionPlan.id)}"
+              data-id="${escapeHtml(workOrder.id)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              검증 기준
+            </button>
+          </div>
         </div>
       `,
     )
@@ -11449,6 +11759,8 @@ function renderMissionExecutionPlan(bundle, recovery) {
         ${deliverySummary?.deliveryReady ? createToken('delivery:ready', 'success') : ''}
       </div>
       <div class="mission-workorder-list">${workOrderRows}</div>
+      ${renderWorkOrderVerificationPlanPreview(state.workOrderVerificationPlanPreview, bundle)}
+      ${renderDurableWorkOrderVerification(bundle, state.workOrderVerificationStatus)}
       ${renderWorkflowCheckpointRecovery(recovery, executionPlan)}
       <div class="relation-button-row mission-workorder-actions">
         <button
@@ -11483,6 +11795,193 @@ function renderMissionExecutionPlan(bundle, recovery) {
                 : `현재 계획 상태: ${executionPlan.status}`,
         )}</p>
       </div>
+    </section>
+  `;
+}
+
+function renderWorkOrderVerificationPlanPreview(preview, bundle) {
+  const { executionPlan } = bundle;
+  if (!preview || preview.executionPlanId !== executionPlan.id) return '';
+  const workOrder = bundle.workOrders.find((entry) => entry.id === preview.workOrderId) || null;
+  const canPersist = Boolean(
+    workOrder?.role === 'builder' &&
+      workOrder.status === 'waiting-gate' &&
+      workOrder.acceptanceCriterionRefs?.length === 0 &&
+      executionPlan.status === 'active' &&
+      executionPlan.activeWorkOrderId === workOrder.id &&
+      executionPlan.stoppedAt === 'request-builder-live-mutation-approval',
+  );
+  const criterionRows = preview.criteria
+    .map(
+      (criterion) => `
+        <div class="mission-workorder-row">
+          <div class="card-title-row card-title-row-tight">
+            <strong>${escapeHtml(criterion.title)}</strong>
+            ${createToken(criterion.kind, 'neutral')}
+            ${createToken(criterion.proofMode, criterion.proofMode === 'command' ? 'accent' : 'neutral')}
+            ${createToken(criterion.status, 'warning')}
+          </div>
+          <p class="form-help">${escapeHtml(criterion.sourceValues.join(' · '))}</p>
+        </div>
+      `,
+    )
+    .join('');
+
+  return `
+    <section
+      class="relation-strip workorder-verification-plan-preview"
+      aria-label="WorkOrder verification plan preview"
+    >
+      <div class="card-title-row card-title-row-tight">
+        <strong>검증 기준 검토</strong>
+        ${createToken('response-only', 'accent')}
+        ${createToken(`workorder:${preview.workOrderId}`, 'neutral')}
+        ${createToken(`digest:${preview.previewDigest.slice(0, 12)}`, 'neutral')}
+      </div>
+      <p class="detail-copy detail-copy-compact">
+        현재 WorkOrder의 acceptance, stop, command, artifact 기준을 그대로 묶었습니다. 아직 실행되거나 통과된 기준은 없습니다.
+      </p>
+      <div class="mission-workorder-list">${criterionRows}</div>
+      ${
+        canPersist
+          ? `
+            <div class="verification-approval-form" data-form="persist-workorder-acceptance-criteria">
+              <label class="form-field">
+                <span>기록 판단</span>
+                <input
+                  class="text-input"
+                  name="acceptanceCriteriaRationale"
+                  type="text"
+                  maxlength="1024"
+                  value="${escapeHtml(state.workOrderAcceptanceCriteriaRationale)}"
+                />
+              </label>
+              <button
+                class="primary-button"
+                type="button"
+                data-action="persist-workorder-acceptance-criteria"
+                data-plan-id="${escapeHtml(executionPlan.id)}"
+                data-id="${escapeHtml(workOrder.id)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                AcceptanceCriterion 기록
+              </button>
+            </div>
+          `
+          : ''
+      }
+    </section>
+  `;
+}
+
+function renderDurableWorkOrderVerification(bundle, verificationStatus) {
+  const criteria = bundle.acceptanceCriteria || [];
+  if (criteria.length === 0) return '';
+  const builder = bundle.workOrders.find((workOrder) => workOrder.role === 'builder');
+  if (!builder) return '';
+  const statusByCriterion = new Map(
+    (verificationStatus?.entries || []).map((entry) => [entry.criterion.id, entry]),
+  );
+  const proofControlsOpen = Boolean(
+    builder.status === 'completed' &&
+      bundle.executionPlan.activeWorkOrderId !== builder.id &&
+      bundle.latestCheckpoint?.stage === 'reviewer-ready',
+  );
+  const criterionRows = criteria
+    .map((criterion) => {
+      const statusEntry = statusByCriterion.get(criterion.id) || null;
+      const latestProof = statusEntry?.latestProof || null;
+      const draft = getWorkOrderProofDraft(criterion.id);
+      const commandMode = criterion.proofMode === 'command';
+      const currentLabel = latestProof
+        ? statusEntry?.current
+          ? 'current passed'
+          : latestProof.status === 'passed'
+            ? 'stale'
+            : latestProof.status
+        : 'proof required';
+      const currentTone = statusEntry?.current
+        ? 'success'
+        : latestProof?.status === 'failed'
+          ? 'danger'
+          : 'warning';
+      return `
+        <div class="mission-workorder-row verification-ledger-row">
+          <div class="card-title-row card-title-row-tight">
+            <strong>${escapeHtml(criterion.title)}</strong>
+            ${createToken(criterion.kind, 'neutral')}
+            ${createToken(criterion.proofMode, commandMode ? 'accent' : 'neutral')}
+            ${createToken(currentLabel, currentTone)}
+            ${createToken(`attempts:${statusEntry?.proofCount || 0}`, 'neutral')}
+          </div>
+          <p class="form-help">${escapeHtml(criterion.sourceValues.join(' · '))}</p>
+          ${
+            latestProof
+              ? `<p class="form-help">${escapeHtml(`${latestProof.id} · ${latestProof.proofApproval.rationale}`)}</p>`
+              : ''
+          }
+          ${
+            proofControlsOpen
+              ? `
+                <div
+                  class="verification-proof-form"
+                  data-form="workorder-verification-proof"
+                  data-criterion-id="${escapeHtml(criterion.id)}"
+                >
+                  ${
+                    commandMode
+                      ? ''
+                      : `
+                        <label class="form-field verification-status-field">
+                          <span>판정</span>
+                          <select name="proofStatus">
+                            <option value="passed" ${draft.status === 'passed' ? 'selected' : ''}>passed</option>
+                            <option value="failed" ${draft.status === 'failed' ? 'selected' : ''}>failed</option>
+                          </select>
+                        </label>
+                      `
+                  }
+                  <label class="form-field verification-rationale-field">
+                    <span>증빙 판단</span>
+                    <input
+                      class="text-input"
+                      name="proofRationale"
+                      type="text"
+                      maxlength="1024"
+                      value="${escapeHtml(draft.rationale)}"
+                    />
+                  </label>
+                  <button
+                    class="${commandMode ? 'primary-button' : 'secondary-button'}"
+                    type="button"
+                    data-action="${commandMode ? 'run-workorder-node-check-proof' : 'record-workorder-verification-proof'}"
+                    data-plan-id="${escapeHtml(bundle.executionPlan.id)}"
+                    data-work-order-id="${escapeHtml(builder.id)}"
+                    data-id="${escapeHtml(criterion.id)}"
+                    ${state.loading || state.mutating ? 'disabled' : ''}
+                  >
+                    ${commandMode ? 'Node check 실행' : 'Review proof 기록'}
+                  </button>
+                </div>
+              `
+              : ''
+          }
+        </div>
+      `;
+    })
+    .join('');
+
+  return `
+    <section class="workorder-verification-ledger" aria-label="Durable WorkOrder verification ledger">
+      <div class="card-title-row card-title-row-tight">
+        <strong>Acceptance & Proof Ledger</strong>
+        ${createToken('durable', 'accent')}
+        ${createToken(
+          verificationStatus?.ready ? 'reviewer ready' : 'proof required',
+          verificationStatus?.ready ? 'success' : 'warning',
+        )}
+      </div>
+      <div class="mission-workorder-list">${criterionRows}</div>
     </section>
   `;
 }
@@ -17861,11 +18360,45 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'preview-workorder-verification-plan') {
+        await previewWorkOrderVerificationPlan(
+          actionButton.dataset.planId,
+          actionButton.dataset.id,
+        );
+        return;
+      }
+
+      if (actionButton.dataset.action === 'persist-workorder-acceptance-criteria') {
+        await persistWorkOrderAcceptanceCriteria(
+          actionButton.dataset.planId,
+          actionButton.dataset.id,
+        );
+        return;
+      }
+
+      if (
+        actionButton.dataset.action === 'record-workorder-verification-proof' ||
+        actionButton.dataset.action === 'run-workorder-node-check-proof'
+      ) {
+        await submitWorkOrderVerificationProof(
+          actionButton.dataset.planId,
+          actionButton.dataset.workOrderId,
+          actionButton.dataset.id,
+          actionButton.dataset.action === 'run-workorder-node-check-proof',
+        );
+        return;
+      }
+
       if (actionButton.dataset.action === 'resume-workflow-checkpoint') {
         await submitWorkflowCheckpointAction(
           actionButton.dataset.id,
           actionButton.dataset.checkpointAction,
         );
+        return;
+      }
+
+      if (actionButton.dataset.action === 'preview-execution-continuation') {
+        await previewExecutionPlanContinuation(actionButton.dataset.id);
         return;
       }
 
@@ -18047,6 +18580,30 @@ function handleFormInput(event) {
   const missionMemoryContextForm = event.target.closest(
     '[data-form="preview-mission-memory-context"]',
   );
+  const acceptanceCriteriaForm = event.target.closest(
+    '[data-form="persist-workorder-acceptance-criteria"]',
+  );
+  const verificationProofForm = event.target.closest(
+    '[data-form="workorder-verification-proof"]',
+  );
+
+  if (acceptanceCriteriaForm) {
+    if (event.target.name === 'acceptanceCriteriaRationale') {
+      state.workOrderAcceptanceCriteriaRationale = event.target.value;
+    }
+    return;
+  }
+
+  if (verificationProofForm) {
+    const criterionId = verificationProofForm.dataset.criterionId;
+    const draft = getWorkOrderProofDraft(criterionId);
+    state.workOrderProofDrafts[criterionId] = {
+      rationale:
+        event.target.name === 'proofRationale' ? event.target.value : draft.rationale,
+      status: event.target.name === 'proofStatus' ? event.target.value : draft.status,
+    };
+    return;
+  }
 
   if (runHarnessOperatorActionForm) {
     if (event.target.name === 'inputPath') {

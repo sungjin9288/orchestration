@@ -8747,6 +8747,52 @@ h3 {
   border-top: 1px solid var(--surface-control-border);
 }
 
+.workorder-verification-ledger,
+.workorder-verification-plan-preview {
+  width: 100%;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.verification-approval-form,
+.verification-proof-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+}
+
+.verification-proof-form:has(.verification-status-field) {
+  grid-template-columns: minmax(112px, 0.25fr) minmax(0, 1fr) auto;
+}
+
+.verification-proof-form .form-field,
+.verification-approval-form .form-field {
+  min-width: 0;
+  margin: 0;
+}
+
+.verification-proof-form button,
+.verification-approval-form button {
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .verification-approval-form,
+  .verification-proof-form,
+  .verification-proof-form:has(.verification-status-field) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .verification-proof-form button,
+  .verification-approval-form button {
+    width: 100%;
+  }
+}
+
 .mission-workorder-actions {
   align-items: center;
   margin-top: 12px;
@@ -8805,6 +8851,12 @@ h3 {
   padding: 12px 0;
   border-top: 1px solid var(--surface-control-border);
   border-bottom: 1px solid var(--surface-control-border);
+}
+
+.execution-continuation-preview {
+  border-left: 3px solid var(--accent-strong);
+  margin-top: 12px;
+  padding: 10px 0 10px 12px;
 }
 
 .workflow-checkpoint-register > .card-title-row {

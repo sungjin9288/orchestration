@@ -10,11 +10,13 @@ import contractsModule from '../src/runtime/contracts.js';
 import executionCoordinatorModule from '../src/execution/execution-coordinator.js';
 import fileStoreModule from '../src/runtime/file-store.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
+import wigoloExactFetchModule from '../src/research/wigolo-exact-fetch-adapter.js';
 
 const { ARTIFACT_CATALOG } = contractsModule;
 const { createExecutionCoordinator } = executionCoordinatorModule;
 const { createFileStore } = fileStoreModule;
 const { createRuntimeService } = runtimeServiceModule;
+const { createWigoloExactFetchAdapter } = wigoloExactFetchModule;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -98,6 +100,10 @@ const runtime = createRuntimeService({
   runtimeRoot: options.runtimeRoot,
   companyBlueprintPath: path.join(repoRoot, 'company', 'blueprint.json'),
   companyRepoRoot: repoRoot,
+  exactResearchAdapter: createWigoloExactFetchAdapter({
+    enabled: process.env.ORCHESTRATION_WIGOLO_EXACT_FETCH_ENABLED === '1',
+    sidecarPath: process.env.ORCHESTRATION_WIGOLO_SIDECAR_PATH,
+  }),
 });
 const executionCoordinator = createExecutionCoordinator({
   repoRoot,
@@ -1003,6 +1009,46 @@ const server = createServer(async (request, response) => {
   const method = request.method || 'GET';
   const url = new URL(request.url || '/', `http://${request.headers.host || '127.0.0.1'}`);
 
+  if (method === 'GET' && url.pathname === '/api/research/exact-fetch/readiness') {
+    json(response, 200, {
+      exactResearchReadiness: runtime.getExactResearchReadiness(),
+      generatedAt: new Date().toISOString(),
+    });
+    return;
+  }
+
+  if (method === 'POST' && url.pathname === '/api/research/exact-fetch') {
+    try {
+      const input = await readBoundedJsonBody(request, 16 * 1024);
+      json(response, 200, {
+        exactResearchEvidence: await runtime.fetchExactResearchEvidence(input),
+        generatedAt: new Date().toISOString(),
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || 400, {
+        error: error.message || 'Exact research fetch에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  if (method === 'POST' && url.pathname === '/api/telemetry/context-budget-report') {
+    try {
+      const input = await readBoundedJsonBody(request, 128 * 1024);
+      json(response, 200, {
+        contextBudgetReport: runtime.reportContextBudget(input),
+        generatedAt: new Date().toISOString(),
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || 400, {
+        error: error.message || 'Context budget telemetry 계산에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   if (method === 'POST' && url.pathname === '/api/projects') {
     try {
       const input = await readJsonBody(request);
@@ -1677,6 +1723,37 @@ const server = createServer(async (request, response) => {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, {
         error: error.message || 'ExecutionPlan recovery 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const executionPlanContinuationPreviewMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/continuation-preview$/,
+  );
+  if (method === 'POST' && executionPlanContinuationPreviewMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanContinuationPreviewMatch[1]);
+      const input = await readBoundedJsonBody(request, 16 * 1024);
+      json(response, 200, {
+        executionContinuationPreview: runtime.previewExecutionPlanContinuation({
+          executionPlanId,
+          checkpointId: input.checkpointId,
+          checkpointDigest: input.checkpointDigest,
+          inputDigest: input.inputDigest,
+          authorityDigest: input.authorityDigest,
+          action: input.action,
+          evaluatedAt: input.evaluatedAt,
+          continuationSpec: input.continuationSpec,
+        }),
+        generatedAt: new Date().toISOString(),
+        runtimeRoot: options.runtimeRoot,
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Execution continuation preview 계산에 실패했습니다.',
       });
       return;
     }
@@ -2562,6 +2639,273 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const workOrderVerificationPlanPreviewMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/work-orders\/([^/]+)\/verification-plan-preview$/,
+  );
+  if (method === 'POST' && workOrderVerificationPlanPreviewMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(
+        workOrderVerificationPlanPreviewMatch[1],
+      );
+      const workOrderId = decodeURIComponent(
+        workOrderVerificationPlanPreviewMatch[2],
+      );
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'evaluatedAt',
+        'executionPlanDigest',
+        'sourceDigest',
+        'workOrderDigest',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'WorkOrderVerificationPlan preview body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const workOrderVerificationPlanPreview =
+        runtime.previewWorkOrderVerificationPlan({
+          executionPlanId,
+          workOrderId,
+          ...input,
+        });
+      json(response, 200, {
+        workOrderVerificationPlanPreview,
+        generatedAt: new Date().toISOString(),
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error:
+          error.message || 'WorkOrderVerificationPlan preview 생성에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const workOrderAcceptanceCriteriaMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/work-orders\/([^/]+)\/acceptance-criteria$/,
+  );
+  if (method === 'POST' && workOrderAcceptanceCriteriaMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(workOrderAcceptanceCriteriaMatch[1]);
+      const workOrderId = decodeURIComponent(workOrderAcceptanceCriteriaMatch[2]);
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'evaluatedAt',
+        'executionPlanDigest',
+        'persistenceApproval',
+        'previewDigest',
+        'previewId',
+        'sourceDigest',
+        'workOrderDigest',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'AcceptanceCriterion persistence body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.persistWorkOrderAcceptanceCriteria({
+        executionPlanId,
+        workOrderId,
+        ...input,
+      });
+      json(
+        response,
+        result.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          executionPlanBundle: result,
+          verificationPlanPreview: result.verificationPlanPreview,
+          mutation: {
+            executionPlanId,
+            workOrderId,
+            criterionIds: result.acceptanceCriteria.map((criterion) => criterion.id),
+            idempotent: result.idempotent,
+            kind: 'persist-workorder-acceptance-criteria',
+            stoppedAt: 'criteria-persisted-proof-required',
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'AcceptanceCriterion 기록에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const workOrderVerificationStatusMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/work-orders\/([^/]+)\/verification-status$/,
+  );
+  if (method === 'GET' && workOrderVerificationStatusMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(workOrderVerificationStatusMatch[1]);
+      const workOrderId = decodeURIComponent(workOrderVerificationStatusMatch[2]);
+      json(response, 200, {
+        verificationStatus: runtime.getWorkOrderVerificationStatus(
+          executionPlanId,
+          workOrderId,
+        ),
+        generatedAt: new Date().toISOString(),
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'WorkOrder verification status 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const workOrderVerificationProofMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/work-orders\/([^/]+)\/acceptance-criteria\/([^/]+)\/proofs$/,
+  );
+  if (method === 'POST' && workOrderVerificationProofMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(workOrderVerificationProofMatch[1]);
+      const workOrderId = decodeURIComponent(workOrderVerificationProofMatch[2]);
+      const acceptanceCriterionId = decodeURIComponent(workOrderVerificationProofMatch[3]);
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'criterionRecordDigest',
+        'evidenceArtifactIds',
+        'proofApproval',
+        'sourceDigest',
+        'status',
+        'workOrderDigest',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'VerificationProof body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.recordWorkOrderVerificationProof({
+        executionPlanId,
+        workOrderId,
+        acceptanceCriterionId,
+        ...input,
+      });
+      const verificationStatus = runtime.getWorkOrderVerificationStatus(
+        executionPlanId,
+        workOrderId,
+      );
+      json(
+        response,
+        result.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          executionPlanBundle: result,
+          verificationStatus,
+          mutation: {
+            acceptanceCriterionId,
+            executionPlanId,
+            idempotent: result.idempotent,
+            kind: 'record-workorder-verification-proof',
+            proofId: result.proof.id,
+            stoppedAt: verificationStatus.ready
+              ? 'reviewer-resume-ready'
+              : 'verification-proof-required',
+            workOrderId,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'VerificationProof 기록에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const workOrderNodeCheckProofMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/work-orders\/([^/]+)\/acceptance-criteria\/([^/]+)\/run-node-check$/,
+  );
+  if (method === 'POST' && workOrderNodeCheckProofMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(workOrderNodeCheckProofMatch[1]);
+      const workOrderId = decodeURIComponent(workOrderNodeCheckProofMatch[2]);
+      const acceptanceCriterionId = decodeURIComponent(workOrderNodeCheckProofMatch[3]);
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'criterionRecordDigest',
+        'proofApproval',
+        'sourceDigest',
+        'workOrderDigest',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'Command VerificationProof body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = await runtime.runWorkOrderVerificationProof({
+        executionPlanId,
+        workOrderId,
+        acceptanceCriterionId,
+        ...input,
+      });
+      const verificationStatus = runtime.getWorkOrderVerificationStatus(
+        executionPlanId,
+        workOrderId,
+      );
+      json(
+        response,
+        result.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          executionPlanBundle: result,
+          verificationStatus,
+          mutation: {
+            acceptanceCriterionId,
+            executionPlanId,
+            idempotent: result.idempotent,
+            kind: 'run-workorder-node-check-proof',
+            proofId: result.proof.id,
+            stoppedAt: verificationStatus.ready
+              ? 'reviewer-resume-ready'
+              : 'verification-proof-required',
+            workOrderId,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Command VerificationProof 실행에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );
@@ -2609,6 +2953,33 @@ const server = createServer(async (request, response) => {
         diffArtifactId: builderResult.artifacts.diff?.id,
         changedFiles: builderResult.changedFiles,
       });
+
+      const builderWorkOrder = executionPlanBundle.workOrders.find(
+        (workOrder) => workOrder.role === 'builder',
+      );
+      if (builderWorkOrder?.acceptanceCriterionRefs.length > 0) {
+        const verificationStatus = runtime.getWorkOrderVerificationStatus(
+          executionPlanId,
+          builderWorkOrder.id,
+        );
+        json(
+          response,
+          200,
+          buildSnapshotResponse({
+            deliveryPackagePreview: null,
+            executionPlanBundle,
+            verificationStatus,
+            mutation: {
+              executionPlanId,
+              idempotent: false,
+              kind: 'continue-reviewed-delivery',
+              stoppedAt: 'verification-proof-required',
+              workOrderId: builderWorkOrder.id,
+            },
+          }),
+        );
+        return;
+      }
 
       runtime.beginReviewedDeliveryReviewer({ executionPlanId });
       const reviewerResult = await executionCoordinator.runReviewer({

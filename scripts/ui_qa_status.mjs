@@ -262,6 +262,24 @@ const smokeChecks = [
     purpose:
       'MissionMemoryContext UI and API preserve explicit exact-id operator selection, current draft Mission and canonical digest binding, complete positive negative redaction and review evidence, bounded response and browser-memory-only context preview, refresh source input and failure invalidation, safe malformed stale content-type cross-project provider oversized and non-draft refusal, responsive fit, source-state stability, and absent apply inject recommend search persist or downstream controls',
   },
+  {
+    id: 'ai-company-workorder-verification-plan-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-668.mjs',
+    purpose:
+      'WorkOrder verification plan UI and API preserve explicit exact WorkOrder selection, current ExecutionPlan and WorkOrder digest binding, complete source-backed criterion coverage, bounded response and browser-memory-only evidence, refresh source and failure invalidation, safe malformed stale content-type crossed and oversized refusal, source-state stability, separate durable-criteria authority, and absent execute complete or downstream controls',
+  },
+  {
+    id: 'ai-company-acceptance-criterion-proof-ui-api',
+    script: 'scripts/smoke-ui-slice-669.mjs',
+    purpose:
+      'AcceptanceCriterion and VerificationProof UI and API preserve durable criterion rendering, explicit operator rationale and verdict controls, source-bound node checks, current-proof Reviewer gating, safe malformed stale content-type and oversized refusal, idempotent replay, responsive fit, and absent automatic completion or downstream controls',
+  },
+  {
+    id: 'ai-company-bounded-continuation-ui-api',
+    script: 'scripts/smoke-ui-slice-670.mjs',
+    purpose:
+      'Bounded continuation UI and API preserve preview-before-resume interaction, exact current checkpoint and progress digest evidence, one-step deadline and cancellation bounds, browser-memory-only lifecycle, safe stale malformed content-type and oversized refusal, responsive fit, and absent automatic continuation scheduling or retry controls',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

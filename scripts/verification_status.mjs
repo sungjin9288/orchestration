@@ -657,6 +657,56 @@ const informationalChecks = [
     purpose: 'AI Company Mission memory context UI and API prove one explicit exact-id operator selection form, browser canonical Mission digest parity, bounded JSON-only POST, response and browser-memory-only context-review-ready evidence, refresh source input and failure invalidation, safe malformed stale content-type cross-project provider oversized and non-draft failures, responsive fit, source-state byte stability, and absent apply inject recommend search persist or downstream controls',
   },
   {
+    id: 'ai-company-workorder-verification-plan-preview',
+    script: 'scripts/smoke-ai-company-workorder-verification-plan-preview.mjs',
+    purpose: 'AI Company WorkOrder verification plan runtime proves exact current ExecutionPlan and WorkOrder record digest binding, complete acceptance stop command and artifact source coverage, deterministic deep-frozen response-only replay, zero state mutation, safe stale malformed crossed and future input refusal, and blocked approval completion command execution persistence provider source Git scheduling and connector authority',
+  },
+  {
+    id: 'ai-company-workorder-verification-plan-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-668.mjs',
+    purpose: 'AI Company WorkOrder verification plan UI and API prove explicit exact WorkOrder selection, browser and runtime digest parity, bounded JSON-only POST, response and browser-memory-only criterion evidence, refresh source and failure invalidation, safe malformed stale content-type crossed and oversized failures, source-state byte stability, separate durable-criteria authority, and absent execute complete or downstream controls',
+  },
+  {
+    id: 'state-transaction-guard',
+    script: 'scripts/smoke-state-transaction-guard.mjs',
+    purpose: 'Runtime state commit guard proves source-revision conflict detection, lost-update prevention, bounded active-lock timeout, dead-owner stale-lock recovery, direct symlink-state refusal, valid schema-v16 atomic replacement, and owned lock and temporary-file cleanup without changing existing runtime method contracts',
+  },
+  {
+    id: 'ai-company-acceptance-criterion-proof',
+    script: 'scripts/smoke-ai-company-acceptance-criterion-proof.mjs',
+    purpose: 'AI Company AcceptanceCriterion and VerificationProof runtime proves additive schema v15-to-v16 migration, exact preview-bound durable criteria, append-only failed and passed review evidence, source-bound shell-free node checks, source drift invalidation, proof-gated Reviewer resume, idempotent requests, reload integrity, and blocked commit push release authority',
+  },
+  {
+    id: 'ai-company-acceptance-criterion-proof-ui-api',
+    script: 'scripts/smoke-ui-slice-669.mjs',
+    purpose: 'AI Company AcceptanceCriterion and VerificationProof UI and API prove durable criterion rendering, explicit operator rationale and verdict controls, bounded exact proof routes, current-proof Reviewer gating, safe malformed stale content-type and oversized failures, idempotent command replay, responsive fit, and absent automatic completion or downstream controls',
+  },
+  {
+    id: 'ai-company-bounded-continuation',
+    script: 'scripts/smoke-ai-company-bounded-continuation.mjs',
+    purpose: 'AI Company bounded continuation runtime proves one response-only current-checkpoint next-step preview, exact progress digest binding, deterministic ready no-progress deadline and cancellation outcomes, state-byte stability, existing resume revalidation, and blocked background scheduling retry or active mutation replay',
+  },
+  {
+    id: 'ai-company-bounded-continuation-ui-api',
+    script: 'scripts/smoke-ui-slice-670.mjs',
+    purpose: 'AI Company bounded continuation UI and API prove preview-before-resume interaction, one-step and five-minute browser-owned bounds, JSON-only bounded failures, browser-memory lifecycle, state-byte stability, responsive evidence, and absent automatic continuation controls',
+  },
+  {
+    id: 'wigolo-exact-fetch-adapter',
+    script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
+    purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',
+  },
+  {
+    id: 'wigolo-exact-fetch-live',
+    script: 'scripts/smoke-wigolo-exact-fetch-live.mjs',
+    purpose: 'Optional wigolo live exact-fetch evidence remains informational and reports skipped_missing_env unless the operator explicitly supplies enabled sidecar path and exact live URL configuration',
+  },
+  {
+    id: 'context-budget-telemetry',
+    script: 'scripts/smoke-context-budget-telemetry.mjs',
+    purpose: 'Context budget telemetry proves payload-preserving response-only UTF-8 byte character and leaf-field measurement, exact-by-default and explicit gist classification, protected authority evidence refusal, raw-value omission, deterministic digest parity, bounded API failures, and blocked rewrite truncation compression provider or persistence authority',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

@@ -264,7 +264,10 @@ async function main() {
     assert.match(appSource, /Checkpoint 취소/);
     assert.match(appSource, /격리됨/);
     assert.match(appSource, /오래됨/);
-    assert.match(appSource, /data-action="resume-workflow-checkpoint"/);
+    assert.match(
+      appSource,
+      /data-action="\$\{continuationReady \? 'resume-workflow-checkpoint' : 'preview-execution-continuation'\}"/,
+    );
     assert.match(appSource, /data-action="cancel-workflow-checkpoint"/);
     assert.doesNotMatch(appSource, /data-action="auto-resume-workflow"/);
     assert.doesNotMatch(appSource, /data-action="replay-builder-workorder"/);

@@ -104,6 +104,7 @@ const {
   uniqueReasons,
 } = require('./task-gates');
 const {
+  assertAcceptanceCriterion,
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,
@@ -116,7 +117,20 @@ const {
   assertRun,
   assertWorkOrder,
   assertWorkflowCheckpoint,
+  assertVerificationProof,
 } = require('./assertions');
+const {
+  createAcceptanceCriterion,
+} = require('./acceptance-criteria');
+const {
+  VERIFICATION_PROOF_STATUS,
+  computeVerificationProofRequestDigest,
+  createVerificationProof,
+} = require('./verification-proofs');
+const {
+  computeSourceBoundVerificationInputDigest,
+  runSourceBoundNodeChecks,
+} = require('../execution/qa-node-check-runner');
 const {
   compileMissionWorkOrderPreview,
   normalizeCompileSpec,
@@ -126,6 +140,15 @@ const {
   createWorkflowCheckpoint,
   recomputeWorkflowCheckpoint,
 } = require('./workflow-checkpoints');
+const {
+  compileExecutionContinuationPreview,
+} = require('./execution-continuation-preview');
+const {
+  compileContextBudgetTelemetry,
+} = require('./context-budget-telemetry');
+const {
+  createWigoloExactFetchAdapter,
+} = require('../research/wigolo-exact-fetch-adapter');
 const {
   computeDeliveryPackageDigest,
   createDeliveryPackage,
@@ -161,6 +184,11 @@ const {
   previewMissionMemoryContext: compileMissionMemoryContextPreview,
 } = require('./mission-memory-context-preview');
 const {
+  computeExecutionPlanRecordDigest,
+  computeWorkOrderRecordDigest,
+  previewWorkOrderVerificationPlan: compileWorkOrderVerificationPlanPreview,
+} = require('./workorder-verification-plan-preview');
+const {
   assertSupportedArtifactType,
   cloneJsonValue,
   compareByCreatedDesc,
@@ -186,6 +214,8 @@ function createRuntimeService(options = {}) {
     options.councilLiveAdapter ||
     createCouncilOpenAIResponsesAdapter({ repoRoot: options.companyRepoRoot });
   const councilLiveCoordinator = createCouncilCoordinator({ adapter: councilLiveAdapter });
+  const exactResearchAdapter =
+    options.exactResearchAdapter || createWigoloExactFetchAdapter({ enabled: false });
   const decisionInboxKinds = new Set(Object.values(DECISION_INBOX_KIND));
   const decisionInboxSourceTypes = new Set(Object.values(DECISION_INBOX_SOURCE_TYPE));
   const proposalRecordTypes = new Set(Object.values(PROPOSAL_RECORD_TYPE));
@@ -250,6 +280,16 @@ function createRuntimeService(options = {}) {
     return `proposal-application-attempt-${String(
       state.sequences.proposalApplicationAttempt,
     ).padStart(4, '0')}`;
+  }
+
+  function nextAcceptanceCriterionId(state) {
+    state.sequences.acceptanceCriterion += 1;
+    return `acceptance-criterion-${String(state.sequences.acceptanceCriterion).padStart(4, '0')}`;
+  }
+
+  function nextVerificationProofId(state) {
+    state.sequences.verificationProof += 1;
+    return `verification-proof-${String(state.sequences.verificationProof).padStart(4, '0')}`;
   }
 
   function nextProposalSourceMutationId(state) {
@@ -2157,6 +2197,11 @@ function createRuntimeService(options = {}) {
     const missionCloseOuts = Object.values(state.missionCloseOuts).filter(
       (closeOut) => closeOut.executionPlanId === executionPlan.id,
     );
+    const acceptanceCriteria = workOrders.flatMap((workOrder) =>
+      workOrder.acceptanceCriterionRefs.map((id) => assertAcceptanceCriterion(id, state)));
+    const verificationProofs = Object.values(state.verificationProofs).filter(
+      (proof) => acceptanceCriteria.some((criterion) => criterion.id === proof.acceptanceCriterionId),
+    );
 
     return {
       executionPlan,
@@ -2166,6 +2211,8 @@ function createRuntimeService(options = {}) {
       deliveryPackages,
       deliveryPackageAcceptances,
       missionCloseOuts,
+      acceptanceCriteria,
+      verificationProofs,
       latestCheckpoint: executionPlan.latestCheckpointId
         ? assertWorkflowCheckpoint(executionPlan.latestCheckpointId, state)
         : null,
@@ -2190,6 +2237,463 @@ function createRuntimeService(options = {}) {
 
   function getExecutionPlan(executionPlanId) {
     return getExecutionPlanBundleFromState(store.loadState(), executionPlanId);
+  }
+
+  function getExactResearchReadiness() {
+    return exactResearchAdapter.getReadiness();
+  }
+
+  async function fetchExactResearchEvidence(input) {
+    return exactResearchAdapter.fetchExact(input);
+  }
+
+  function reportContextBudget(input) {
+    return compileContextBudgetTelemetry(input);
+  }
+
+  function previewWorkOrderVerificationPlan(input) {
+    const expectedFields = [
+      'evaluatedAt',
+      'executionPlanDigest',
+      'executionPlanId',
+      'sourceDigest',
+      'workOrderDigest',
+      'workOrderId',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict(
+        'WorkOrderVerificationPlan preview request has unexpected or missing fields',
+      );
+    }
+
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(
+        `WorkOrderVerificationPlan preview requires current state: ${error.message}`,
+      );
+    }
+    const executionPlan = assertExecutionPlan(input.executionPlanId, state);
+    const workOrder = assertWorkOrder(input.workOrderId, state);
+    if (String(input.sourceDigest || '').trim() !== executionPlan.sourceDigest) {
+      throw conflict('WorkOrderVerificationPlan sourceDigest does not match current evidence');
+    }
+    if (
+      String(input.executionPlanDigest || '').trim() !==
+      computeExecutionPlanRecordDigest(executionPlan)
+    ) {
+      throw conflict(
+        'WorkOrderVerificationPlan executionPlanDigest does not match current evidence',
+      );
+    }
+    if (
+      String(input.workOrderDigest || '').trim() !== computeWorkOrderRecordDigest(workOrder)
+    ) {
+      throw conflict(
+        'WorkOrderVerificationPlan workOrderDigest does not match current evidence',
+      );
+    }
+
+    try {
+      return compileWorkOrderVerificationPlanPreview({
+        executionPlan,
+        workOrder,
+        evaluatedAt: input.evaluatedAt,
+      });
+    } catch (error) {
+      if (/source-current ExecutionPlan|sourceDigest/.test(error.message)) {
+        throw conflict(error.message);
+      }
+      throw error;
+    }
+  }
+
+  function persistWorkOrderAcceptanceCriteria(input) {
+    const expectedFields = [
+      'evaluatedAt',
+      'executionPlanDigest',
+      'executionPlanId',
+      'persistenceApproval',
+      'previewDigest',
+      'previewId',
+      'sourceDigest',
+      'workOrderDigest',
+      'workOrderId',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict(
+        'AcceptanceCriterion persistence request has unexpected or missing fields',
+      );
+    }
+
+    const state = store.loadStateSupportedReadonly();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const workOrder = assertWorkOrder(input.workOrderId, state);
+    if (
+      workOrder.id !== bundle.byRole.builder.id ||
+      workOrder.role !== 'builder' ||
+      bundle.executionPlan.status !== EXECUTION_PLAN_STATUS.ACTIVE ||
+      bundle.executionPlan.activeWorkOrderId !== workOrder.id ||
+      bundle.executionPlan.stoppedAt !== 'request-builder-live-mutation-approval' ||
+      workOrder.status !== WORK_ORDER_STATUS.WAITING_GATE
+    ) {
+      throw conflict(
+        'AcceptanceCriteria can only be persisted for the Builder waiting-gate',
+      );
+    }
+    if (String(input.sourceDigest || '').trim() !== bundle.executionPlan.sourceDigest) {
+      throw conflict('AcceptanceCriterion sourceDigest does not match current evidence');
+    }
+    if (
+      String(input.executionPlanDigest || '').trim() !==
+      computeExecutionPlanRecordDigest(bundle.executionPlan)
+    ) {
+      throw conflict('AcceptanceCriterion executionPlanDigest does not match current evidence');
+    }
+    if (
+      String(input.workOrderDigest || '').trim() !== computeWorkOrderRecordDigest(workOrder)
+    ) {
+      throw conflict('AcceptanceCriterion workOrderDigest does not match current evidence');
+    }
+
+    const preview = compileWorkOrderVerificationPlanPreview({
+      executionPlan: bundle.executionPlan,
+      workOrder,
+      evaluatedAt: input.evaluatedAt,
+    });
+    if (
+      String(input.previewId || '').trim() !== preview.id ||
+      String(input.previewDigest || '').trim() !== preview.previewDigest
+    ) {
+      throw conflict('AcceptanceCriterion preview does not match current evidence');
+    }
+
+    if (workOrder.acceptanceCriterionRefs.length > 0) {
+      const existingCriteria = workOrder.acceptanceCriterionRefs.map((id) =>
+        assertAcceptanceCriterion(id, state));
+      if (
+        existingCriteria.length === preview.criteria.length &&
+        existingCriteria.every(
+          (criterion, index) =>
+            criterion.sourcePreviewId === preview.id &&
+            criterion.sourcePreviewDigest === preview.previewDigest &&
+            criterion.sourceCriterionId === preview.criteria[index].id,
+        )
+      ) {
+        return {
+          ...bundle,
+          acceptanceCriteria: existingCriteria,
+          verificationPlanPreview: preview,
+          idempotent: true,
+        };
+      }
+      throw conflict(`WorkOrder ${workOrder.id} already has different AcceptanceCriteria`);
+    }
+
+    const criteria = preview.criteria.map((sourceCriterion) => {
+      const criterion = createAcceptanceCriterion({
+        id: nextAcceptanceCriterionId(state),
+        preview,
+        sourceCriterion,
+        persistenceApproval: input.persistenceApproval,
+      });
+      state.acceptanceCriteria[criterion.id] = criterion;
+      return criterion;
+    });
+    workOrder.acceptanceCriterionRefs = criteria.map((criterion) => criterion.id);
+    store.saveState(state);
+
+    return {
+      ...getExecutionPlanBundleFromState(state, bundle.executionPlan.id),
+      acceptanceCriteria: criteria,
+      verificationPlanPreview: preview,
+      idempotent: false,
+    };
+  }
+
+  function getCriterionProofs(state, acceptanceCriterionId) {
+    return Object.values(state.verificationProofs)
+      .filter((proof) => proof.acceptanceCriterionId === acceptanceCriterionId)
+      .sort((left, right) => left.attempt - right.attempt);
+  }
+
+  function assertCriterionWorkOrderBinding(state, input) {
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const workOrder = assertWorkOrder(input.workOrderId, state);
+    const criterion = assertAcceptanceCriterion(input.acceptanceCriterionId, state);
+    if (
+      workOrder.id !== bundle.byRole.builder.id ||
+      workOrder.role !== 'builder' ||
+      !workOrder.acceptanceCriterionRefs.includes(criterion.id) ||
+      criterion.executionPlanId !== bundle.executionPlan.id ||
+      criterion.workOrderId !== workOrder.id
+    ) {
+      throw conflict('VerificationProof source records do not share one Builder WorkOrder');
+    }
+    if (
+      String(input.criterionRecordDigest || '').trim() !== criterion.recordDigest ||
+      String(input.sourceDigest || '').trim() !== bundle.executionPlan.sourceDigest ||
+      String(input.workOrderDigest || '').trim() !== computeWorkOrderRecordDigest(workOrder)
+    ) {
+      throw conflict('VerificationProof source digest tuple does not match current evidence');
+    }
+    if (
+      workOrder.status !== WORK_ORDER_STATUS.COMPLETED ||
+      bundle.executionPlan.activeWorkOrderId !== bundle.byRole.reviewer.id ||
+      bundle.executionPlan.latestCheckpointId === null
+    ) {
+      throw conflict('VerificationProof requires Builder completion at reviewer-ready');
+    }
+    return { bundle, workOrder, criterion };
+  }
+
+  function buildManualVerificationInputDigest(state, artifactIds) {
+    const artifactEvidence = artifactIds.map((artifactId) => {
+      const artifact = assertArtifact(artifactId, state);
+      return {
+        id: artifact.id,
+        runId: artifact.runId,
+        taskId: artifact.taskId,
+        type: artifact.type,
+        createdAt: artifact.createdAt,
+        sizeBytes: artifact.sizeBytes || null,
+      };
+    });
+    return crypto
+      .createHash('sha256')
+      .update(JSON.stringify(artifactEvidence))
+      .digest('hex');
+  }
+
+  function recordWorkOrderVerificationProof(input) {
+    const expectedFields = [
+      'acceptanceCriterionId',
+      'criterionRecordDigest',
+      'evidenceArtifactIds',
+      'executionPlanId',
+      'proofApproval',
+      'sourceDigest',
+      'status',
+      'workOrderDigest',
+      'workOrderId',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('VerificationProof request has unexpected or missing fields');
+    }
+    const state = store.loadStateReadonly();
+    const { bundle, workOrder, criterion } = assertCriterionWorkOrderBinding(state, input);
+    if (criterion.proofMode === 'command') {
+      throw conflict('Command criterion must use the node-check proof path');
+    }
+    const evidenceArtifactIds = Array.isArray(input.evidenceArtifactIds)
+      ? [...new Set(input.evidenceArtifactIds.map((id) => String(id).trim()))]
+      : [];
+    if (
+      evidenceArtifactIds.length === 0 ||
+      evidenceArtifactIds.some((artifactId) => !workOrder.artifactRefs.includes(artifactId))
+    ) {
+      throw conflict('VerificationProof artifact evidence must belong to the Builder WorkOrder');
+    }
+    if (!Object.values(VERIFICATION_PROOF_STATUS).includes(input.status)) {
+      throw conflict('VerificationProof status must be passed or failed');
+    }
+    const requestDigest = computeVerificationProofRequestDigest({
+      acceptanceCriterionId: criterion.id,
+      criterionRecordDigest: criterion.recordDigest,
+      workOrderDigest: input.workOrderDigest,
+      status: input.status,
+      evidenceArtifactIds,
+      proofApproval: input.proofApproval,
+    });
+    const existing = getCriterionProofs(state, criterion.id).find(
+      (proof) => proof.requestDigest === requestDigest,
+    );
+    if (existing) {
+      return { ...bundle, criterion, proof: existing, idempotent: true };
+    }
+    const previousProofs = getCriterionProofs(state, criterion.id);
+    const proof = createVerificationProof({
+      id: nextVerificationProofId(state),
+      criterion,
+      workOrder,
+      attempt: previousProofs.length + 1,
+      status: input.status,
+      verificationInputDigest: buildManualVerificationInputDigest(
+        state,
+        evidenceArtifactIds,
+      ),
+      evidenceArtifactIds,
+      proofApproval: input.proofApproval,
+      requestDigest,
+    });
+    state.verificationProofs[proof.id] = proof;
+    store.saveState(state);
+    return {
+      ...getExecutionPlanBundleFromState(state, bundle.executionPlan.id),
+      criterion,
+      proof,
+      idempotent: false,
+    };
+  }
+
+  async function runWorkOrderVerificationProof(input) {
+    const expectedFields = [
+      'acceptanceCriterionId',
+      'criterionRecordDigest',
+      'executionPlanId',
+      'proofApproval',
+      'sourceDigest',
+      'workOrderDigest',
+      'workOrderId',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('Command VerificationProof request has unexpected or missing fields');
+    }
+    const initialState = store.loadStateReadonly();
+    const initial = assertCriterionWorkOrderBinding(initialState, input);
+    if (initial.criterion.proofMode !== 'command') {
+      throw conflict('Only command criteria can use the node-check proof path');
+    }
+    const project = assertProject(initial.bundle.executionPlan.projectId, initialState);
+    const verificationInputDigest = computeSourceBoundVerificationInputDigest({
+      projectRoot: project.projectPath,
+      targetPathAllowlist: initial.workOrder.targetPathAllowlist,
+      commands: initial.criterion.sourceValues,
+    });
+    const requestDigest = computeVerificationProofRequestDigest({
+      acceptanceCriterionId: initial.criterion.id,
+      criterionRecordDigest: initial.criterion.recordDigest,
+      workOrderDigest: input.workOrderDigest,
+      commands: initial.criterion.sourceValues,
+      verificationInputDigest,
+      proofApproval: input.proofApproval,
+    });
+    const existing = getCriterionProofs(initialState, initial.criterion.id).find(
+      (proof) => proof.requestDigest === requestDigest,
+    );
+    if (existing) {
+      return { ...initial.bundle, criterion: initial.criterion, proof: existing, idempotent: true };
+    }
+    const report = await runSourceBoundNodeChecks({
+      projectRoot: project.projectPath,
+      targetPathAllowlist: initial.workOrder.targetPathAllowlist,
+      commands: initial.criterion.sourceValues,
+    });
+    if (report.verificationInputDigest !== verificationInputDigest) {
+      throw conflict('Command VerificationProof source changed before execution');
+    }
+
+    const state = store.loadStateReadonly();
+    const current = assertCriterionWorkOrderBinding(state, input);
+    if (current.criterion.recordDigest !== initial.criterion.recordDigest) {
+      throw conflict('Command VerificationProof criterion changed during execution');
+    }
+    const previousProofs = getCriterionProofs(state, current.criterion.id);
+    const replay = previousProofs.find((proof) => proof.requestDigest === requestDigest);
+    if (replay) {
+      return { ...current.bundle, criterion: current.criterion, proof: replay, idempotent: true };
+    }
+    const proof = createVerificationProof({
+      id: nextVerificationProofId(state),
+      criterion: current.criterion,
+      workOrder: current.workOrder,
+      attempt: previousProofs.length + 1,
+      status:
+        report.verdict === 'passed'
+          ? VERIFICATION_PROOF_STATUS.PASSED
+          : VERIFICATION_PROOF_STATUS.FAILED,
+      verificationInputDigest: report.verificationInputDigest,
+      commandResults: report.checks,
+      proofApproval: input.proofApproval,
+      requestDigest,
+    });
+    state.verificationProofs[proof.id] = proof;
+    store.saveState(state);
+    return {
+      ...getExecutionPlanBundleFromState(state, current.bundle.executionPlan.id),
+      criterion: current.criterion,
+      proof,
+      idempotent: false,
+    };
+  }
+
+  function buildWorkOrderVerificationStatusFromState(state, executionPlanId, workOrderId) {
+    const bundle = getReviewedDeliveryRoleBundle(state, executionPlanId);
+    const workOrder = assertWorkOrder(workOrderId, state);
+    if (workOrder.executionPlanId !== bundle.executionPlan.id) {
+      throw conflict('WorkOrder does not belong to the requested ExecutionPlan');
+    }
+    const project = assertProject(bundle.executionPlan.projectId, state);
+    const criteria = workOrder.acceptanceCriterionRefs.map((id) =>
+      assertAcceptanceCriterion(id, state));
+    const entries = criteria.map((criterion) => {
+      const proofs = getCriterionProofs(state, criterion.id);
+      const latestProof = proofs.at(-1) || null;
+      let current = Boolean(latestProof?.status === VERIFICATION_PROOF_STATUS.PASSED);
+      if (current && criterion.proofMode === 'command') {
+        const currentDigest = computeSourceBoundVerificationInputDigest({
+          projectRoot: project.projectPath,
+          targetPathAllowlist: workOrder.targetPathAllowlist,
+          commands: criterion.sourceValues,
+        });
+        current = currentDigest === latestProof.verificationInputDigest;
+      }
+      return {
+        criterion,
+        latestProof,
+        proofCount: proofs.length,
+        current,
+      };
+    });
+    return {
+      executionPlanId,
+      workOrderId,
+      criteriaRequired: criteria.length > 0,
+      ready: criteria.length > 0 && entries.every((entry) => entry.current),
+      entries,
+    };
+  }
+
+  function getWorkOrderVerificationStatus(executionPlanId, workOrderId) {
+    return buildWorkOrderVerificationStatusFromState(
+      store.loadStateReadonly(),
+      executionPlanId,
+      workOrderId,
+    );
+  }
+
+  function assertBuilderVerificationReady(state, bundle) {
+    const builder = bundle.byRole.builder;
+    if (builder.acceptanceCriterionRefs.length === 0) return null;
+
+    const status = buildWorkOrderVerificationStatusFromState(
+      state,
+      bundle.executionPlan.id,
+      builder.id,
+    );
+    if (!status.ready) {
+      throw conflict(
+        `Builder WorkOrder ${builder.id} requires current passed VerificationProofs`,
+      );
+    }
+    return status;
   }
 
   function getReviewedDeliveryRoleBundle(state, executionPlanId) {
@@ -2362,6 +2866,82 @@ function createRuntimeService(options = {}) {
     return buildExecutionPlanRecoveryFromState(store.loadState(), executionPlanId);
   }
 
+  function previewExecutionPlanContinuation(input) {
+    const expectedFields = [
+      'action',
+      'authorityDigest',
+      'checkpointDigest',
+      'checkpointId',
+      'continuationSpec',
+      'evaluatedAt',
+      'executionPlanId',
+      'inputDigest',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('Execution continuation preview has unexpected or missing fields');
+    }
+    const continuationFields = [
+      'cancellationRequested',
+      'deadlineAt',
+      'maxSteps',
+      'previousProgressDigest',
+    ].sort();
+    const actualContinuationFields = Object.keys(input.continuationSpec || {}).sort();
+    if (
+      actualContinuationFields.length !== continuationFields.length ||
+      actualContinuationFields.some((field, index) => field !== continuationFields[index])
+    ) {
+      throw conflict('continuationSpec has unexpected or missing fields');
+    }
+
+    const state = store.loadStateReadonly();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const checkpoint = assertWorkflowCheckpoint(input.checkpointId, state);
+    if (
+      checkpoint.executionPlanId !== bundle.executionPlan.id ||
+      bundle.executionPlan.latestCheckpointId !== checkpoint.id
+    ) {
+      throw conflict('Execution continuation requires the latest checkpoint for this plan');
+    }
+    assertExactCheckpointTuple(input, checkpoint);
+    const action = String(input.action || '').trim();
+    if (!checkpoint.nextAllowedActions.includes(action)) {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} does not allow action ${action || 'empty'}`);
+    }
+    const recovery = buildExecutionPlanRecoveryFromState(state, bundle.executionPlan.id);
+    if (
+      recovery.classification !== WORKFLOW_CHECKPOINT_STATUS.READY ||
+      !recovery.current ||
+      !recovery.nextAllowedActions.includes(action)
+    ) {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} is stale or not resumable`);
+    }
+    assertReviewedDeliveryPlanApproval(bundle);
+    assertReviewedDeliverySourceCurrent(bundle, state);
+    if (listPendingBlockingDecisionItems(bundle.executionPlan.controlTaskId, state).length > 0) {
+      throw conflict('Execution continuation is blocked by an unresolved decision');
+    }
+    if (checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY) {
+      assertBuilderVerificationReady(state, bundle);
+    }
+
+    try {
+      return compileExecutionContinuationPreview({
+        action,
+        checkpoint,
+        continuationSpec: input.continuationSpec,
+        evaluatedAt: input.evaluatedAt,
+        executionPlanId: bundle.executionPlan.id,
+      });
+    } catch (error) {
+      throw conflict(error.message);
+    }
+  }
+
   function assertExactCheckpointTuple(input, checkpoint) {
     for (const field of ['checkpointDigest', 'inputDigest', 'authorityDigest']) {
       const requested = String(input[field] || '').trim();
@@ -2428,6 +3008,7 @@ function createRuntimeService(options = {}) {
       bundle.byRole.builder.status === WORK_ORDER_STATUS.COMPLETED &&
       bundle.byRole.reviewer.status === WORK_ORDER_STATUS.QUEUED
     ) {
+      assertBuilderVerificationReady(state, bundle);
       resumeStage = 'reviewer';
       bundle.executionPlan.status = EXECUTION_PLAN_STATUS.REVIEWING;
       bundle.byRole.reviewer.status = WORK_ORDER_STATUS.ACTIVE;
@@ -2689,6 +3270,7 @@ function createRuntimeService(options = {}) {
         throw conflict(`Reviewer checkpoint ${recovery.checkpoint.id} is not current`);
       }
     }
+    assertBuilderVerificationReady(state, bundle);
 
     const now = new Date().toISOString();
     consumeLatestCheckpoint(
@@ -4573,6 +5155,7 @@ function createRuntimeService(options = {}) {
         linkedTaskId: index === 0 ? controlTask.id : null,
         runRefs: [],
         artifactRefs: [],
+        acceptanceCriterionRefs: [],
         sourceDigest,
         authority: {
           ...workOrder.authority,
@@ -6192,6 +6775,7 @@ function createRuntimeService(options = {}) {
     getDecisionInboxItem,
     getDeliveryPackageAcceptance,
     getExecutionPlan,
+    getExactResearchReadiness,
     getExecutionPlanDeliveryPackage,
     getExecutionPlanRecovery,
     getLogs,
@@ -6210,13 +6794,21 @@ function createRuntimeService(options = {}) {
     getTask,
     getTaskGuardSummary,
     previewRetentionConsumer,
+    fetchExactResearchEvidence,
     preflightMissionWorkOrderPreview,
     previewMissionLearningCandidate,
     previewLearningCandidateMemory,
     previewMemoryItemRecall,
     previewMissionMemoryContext,
+    previewWorkOrderVerificationPlan,
+    persistWorkOrderAcceptanceCriteria,
+    recordWorkOrderVerificationProof,
+    reportContextBudget,
+    runWorkOrderVerificationProof,
+    getWorkOrderVerificationStatus,
     previewMissionWorkOrders,
     previewExecutionPlanDelivery,
+    previewExecutionPlanContinuation,
     persistExecutionPlanDeliveryPackage,
     persistMissionLearningCandidate,
     persistLearningCandidateMemoryItem,
