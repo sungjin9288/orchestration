@@ -334,6 +334,12 @@ const smokeChecks = [
     purpose:
       'Source-backed current Execution checkpoint, one readiness-bound command, ordered progress, conditional durable WorkOrders, collapsed harness and provenance evidence, and zero runtime authority expansion',
   },
+  {
+    id: 'llm-native-source-backed-deliverables-flow',
+    script: 'scripts/smoke-ui-slice-680.mjs',
+    purpose:
+      'Source-backed current delivery state, one readiness-bound command, ordered result verification package acceptance and close-out progress, collapsed exact evidence and controls, and zero runtime authority expansion',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

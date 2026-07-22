@@ -36,10 +36,10 @@ function assertReadmeHas(pattern) {
 }
 
 const inventoryGateRows = [
-  /Recent evidence refresh head checked before this document update: `bd6de57`/,
+  /Recent evidence refresh head checked before this document update: `36d647f`/,
   /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current aggregate count is source-checked by this inventory smoke\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| `ok=true`; required `57\/57`; snapshot reachability informational skipped when the local UI server is not running \| Treat snapshot reachability as optional unless a UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate registration, UI QA `57\/57`, zero-open backlog, post-completion router, proposal-record lifecycle review alias boundaries, AI Company durable lifecycle evidence, schema-v16 acceptance\/proof evidence, bounded continuation, optional exact fetch, context telemetry, the LLM-native primary shell, Mission evidence graph exploration, active Mission focus, the single-submit Mission mode control, first-run project connection, the source-backed Mission thread, the source-backed Council meeting, and the source-backed Execution flow \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| `ok=true`; required `58\/58`; snapshot reachability informational skipped when the local UI server is not running \| Treat snapshot reachability as optional unless a UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate registration, UI QA `58\/58`, zero-open backlog, post-completion router, proposal-record lifecycle review alias boundaries, AI Company durable lifecycle evidence, schema-v16 acceptance\/proof evidence, bounded continuation, optional exact fetch, context telemetry, the LLM-native primary shell, Mission evidence graph exploration, active Mission focus, the single-submit Mission mode control, first-run project connection, the source-backed Mission thread, the source-backed Council meeting, the source-backed Execution flow, and the source-backed Deliverables flow \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -96,6 +96,7 @@ const inventoryGateRows = [
   /\| LLM-native source-backed Mission thread \| pass \| `DEC-143`, `docs\/94_llm-native-source-backed-mission-thread-plan\.md`, `node scripts\/smoke-ui-slice-677\.mjs` \|/,
   /\| LLM-native source-backed Council meeting \| pass \| `DEC-144`, `docs\/95_llm-native-source-backed-council-meeting-plan\.md`, `node scripts\/smoke-ui-slice-678\.mjs` \|/,
   /\| LLM-native source-backed Execution flow \| pass \| `DEC-145`, `docs\/96_llm-native-source-backed-execution-flow-plan\.md`, `node scripts\/smoke-ui-slice-679\.mjs` \|/,
+  /\| LLM-native source-backed Deliverables flow \| pass \| `DEC-146`, `docs\/97_llm-native-source-backed-deliverables-flow-plan\.md`, `node scripts\/smoke-ui-slice-680\.mjs` \|/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -125,7 +126,7 @@ for (const pattern of staleInventoryEvidence) {
 
 assertReadmeHas(new RegExp(`${smokeFileCount} smoke files`));
 assertReadmeHas(new RegExp(`${uiSmokeFileCount} UI smoke files`));
-assertReadmeHas(/total `253\/253`/);
+assertReadmeHas(/total `254\/254`/);
 assert.match(verificationStatus, /completion-gate-inventory-current-evidence/);
 assert.match(verificationStatus, /smoke-completion-gate-inventory-current-evidence\.mjs/);
 assert.match(verificationStatus, /ai-company-workorder-persistence-execution-planning/);
@@ -195,6 +196,7 @@ assert.match(uiQaStatus, /smoke-ui-slice-676\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-677\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-678\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-679\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-680\.mjs/);
 assert.match(verificationStatus, /smoke-state-transaction-guard\.mjs/);
 assert.match(verificationStatus, /smoke-wigolo-exact-fetch-adapter\.mjs/);
 assert.match(verificationStatus, /smoke-context-budget-telemetry\.mjs/);
@@ -207,6 +209,7 @@ assert.match(verificationStatus, /smoke-ui-slice-676\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-677\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-678\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-679\.mjs/);
+assert.match(verificationStatus, /smoke-ui-slice-680\.mjs/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -217,8 +220,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '252/252',
-        total: '253/253',
+        informational: '253/253',
+        total: '254/254',
       },
     },
     null,

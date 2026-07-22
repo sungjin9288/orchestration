@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `252\/252`, total `253\/253`/,
-  /UI QA is required `57\/57`/,
+  /required `1\/1`, informational `253\/253`, total `254\/254`/,
+  /UI QA is required `58\/58`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `253\/253`, UI QA `57\/57`, zero-open backlog/,
+  /aggregate `254\/254`, UI QA `58\/58`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1447,6 +1447,20 @@ const sourceBackedExecutionFlowEvidence = [
 
 assertReadmeHasAll(sourceBackedExecutionFlowEvidence);
 
+const sourceBackedDeliverablesFlowEvidence = [
+  /docs\/97_llm-native-source-backed-deliverables-flow-plan\.md/,
+  /LLM-native source-backed Deliverables flow is accepted by `DEC-146`/,
+  /current source-backed delivery state,[\s\S]*one existing bounded\s+operator command/,
+  /Result, Verification, Package, Acceptance, and Close-out progress/,
+  /artifact and record refs,[\s\S]*post-close-out learning or memory\s+handoffs remain available under collapsed secondary details/,
+  /node scripts\/smoke-ui-slice-680\.mjs/,
+  /output\/playwright\/orchestration-source-backed-deliverables-flow-desktop\.png/,
+  /output\/playwright\/orchestration-source-backed-deliverables-flow-mobile\.png/,
+  /`DEC-146` permits only source-backed Deliverables presentation[\s\S]*connectors/,
+];
+
+assertReadmeHasAll(sourceBackedDeliverablesFlowEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1495,7 +1509,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `253\/253`, UI QA `57\/57`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `254\/254`, UI QA `58\/58`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

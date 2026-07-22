@@ -348,6 +348,11 @@ const state = {
     evidence: false,
     harness: false,
   },
+  deliverablesDisclosures: {
+    evidence: false,
+    controls: false,
+    learning: false,
+  },
   selectedTaskId: null,
   selectedRunId: null,
   selectedArtifactId: null,
@@ -5372,6 +5377,11 @@ function syncSelectionsFromMission(missionId) {
     state.executionDisclosures = {
       evidence: false,
       harness: false,
+    };
+    state.deliverablesDisclosures = {
+      evidence: false,
+      controls: false,
+      learning: false,
     };
   }
 
@@ -15828,6 +15838,405 @@ function renderExecution(data) {
   `;
 }
 
+function renderDeliverablesWaitingSurface(options = {}) {
+  return `
+    <div class="llm-deliverables-shell">
+      <section class="llm-deliverables-lead" aria-labelledby="llm-deliverables-title">
+        <div class="llm-mission-presence" aria-label="현재 Deliverables 문맥">
+          <span class="llm-presence-dot" aria-hidden="true"></span>
+          <span>${escapeHtml(options.projectName)}</span>
+          <span aria-hidden="true">/</span>
+          <span>delivery 대기</span>
+        </div>
+        <h2 id="llm-deliverables-title">${escapeHtml(options.mission.title)}</h2>
+        <p>${escapeHtml(options.mission.goal || '기록된 Mission 목표가 없습니다.')}</p>
+      </section>
+      <section class="llm-deliverables-current" aria-labelledby="llm-deliverables-current-title">
+        <span class="llm-deliverables-current-mark" aria-hidden="true">D</span>
+        <div class="llm-deliverables-current-copy">
+          <div class="llm-turn-meta">
+            <strong>Deliverables</strong>
+            <span>waiting</span>
+          </div>
+          <h3 id="llm-deliverables-current-title">연결된 execution task가 없습니다</h3>
+          <p>Council 결론과 bounded execution task가 연결되면 result evidence가 이 흐름에 나타납니다.</p>
+          <div class="relation-button-row llm-deliverables-secondary-actions">
+            <button class="secondary-button" type="button" data-action="open-council" data-id="${escapeHtml(options.mission.id)}" ${options.busy ? 'disabled' : ''}>Council</button>
+            <button class="secondary-button" type="button" data-action="open-advanced-ops" data-id="${escapeHtml(options.mission.id)}" ${options.busy ? 'disabled' : ''}>상세 운영</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function getDeliverablesSourceFlow(options = {}) {
+  const currentArtifact = options.currentArtifact || null;
+  const durablePackage = options.durablePackage || null;
+  const acceptance = options.acceptance || null;
+  const closeOut = options.closeOut || null;
+  const preview = options.preview || null;
+  const reviewPassed = options.latestReviewStatus === 'passed';
+  const completionReady = Boolean(options.completionReady && closeOut);
+  const packageAccepted = acceptance?.decision === 'accepted';
+
+  const steps = [
+    {
+      title: 'Result',
+      status: currentArtifact ? (reviewPassed ? 'complete' : 'current') : 'waiting',
+      evidence: currentArtifact ? `${currentArtifact.type} ${currentArtifact.id}` : 'result artifact not recorded',
+      note: currentArtifact
+        ? '현재 linked task가 가리키는 최신 결과 evidence입니다.'
+        : 'Execution에서 결과 artifact가 기록되면 이 단계가 열립니다.',
+    },
+    {
+      title: 'Verification',
+      status: reviewPassed ? 'complete' : currentArtifact ? 'current' : 'waiting',
+      evidence: reviewPassed ? 'review passed' : `review ${options.latestReviewStatus || 'pending'}`,
+      note: reviewPassed
+        ? '기록된 Reviewer 판정을 통과했습니다.'
+        : '기록된 Reviewer 통과 evidence가 아직 없습니다.',
+    },
+    {
+      title: 'Package',
+      status: durablePackage ? 'complete' : preview ? 'current' : 'waiting',
+      evidence: durablePackage?.id || preview?.id || 'delivery package not recorded',
+      note: durablePackage
+        ? `immutable ${durablePackage.status} record`
+        : preview
+          ? 'response-only preview is current'
+          : 'delivery-ready source tuple을 기다립니다.',
+    },
+    {
+      title: 'Acceptance',
+      status: packageAccepted ? 'complete' : durablePackage ? 'current' : 'waiting',
+      evidence: packageAccepted ? acceptance.id : 'acceptance not recorded',
+      note: packageAccepted
+        ? 'append-only acceptance evidence가 연결됐습니다.'
+        : durablePackage
+          ? 'operator package review를 기다립니다.'
+          : 'durable package 이후에만 열립니다.',
+    },
+    {
+      title: 'Close-out',
+      status: completionReady ? 'complete' : packageAccepted ? 'current' : 'waiting',
+      evidence: completionReady ? closeOut.id : 'close-out not recorded',
+      note: completionReady
+        ? 'Mission과 linked task의 종료 evidence가 연결됐습니다.'
+        : packageAccepted
+          ? '현재 source tuple의 close-out gate를 기다립니다.'
+          : 'accepted package 이후에만 열립니다.',
+    },
+  ];
+
+  if (completionReady) {
+    return {
+      currentTitle: 'Delivery close-out이 기록됐습니다',
+      currentCopy: `${closeOut.id}가 Mission과 linked task의 종료 evidence를 고정합니다.`,
+      currentStatus: 'closed-out',
+      currentTone: 'success',
+      steps,
+    };
+  }
+
+  if (packageAccepted) {
+    return {
+      currentTitle: 'Accepted package가 close-out을 기다립니다',
+      currentCopy: `${acceptance.id}가 ${durablePackage?.id || 'current package'} acceptance를 기록했습니다.`,
+      currentStatus: 'accepted',
+      currentTone: 'success',
+      steps,
+    };
+  }
+
+  if (durablePackage) {
+    return {
+      currentTitle: 'DeliveryPackage review가 필요합니다',
+      currentCopy: `${durablePackage.id}는 ${durablePackage.status} 상태이며 operator acceptance 전입니다.`,
+      currentStatus: durablePackage.status,
+      currentTone: 'warning',
+      steps,
+    };
+  }
+
+  if (preview) {
+    return {
+      currentTitle: 'DeliveryPackage preview가 준비됐습니다',
+      currentCopy: `${preview.id}는 response-only이며 별도 operator record action 전에는 저장되지 않습니다.`,
+      currentStatus: 'preview-ready',
+      currentTone: 'accent',
+      steps,
+    };
+  }
+
+  if (reviewPassed) {
+    return {
+      currentTitle: '검증된 결과가 package handoff를 기다립니다',
+      currentCopy: `${currentArtifact?.id || 'current result'}의 Reviewer 판정은 passed이며 durable package는 아직 없습니다.`,
+      currentStatus: 'review-passed',
+      currentTone: 'success',
+      steps,
+    };
+  }
+
+  if (currentArtifact) {
+    return {
+      currentTitle: 'Execution 결과가 아직 review 전입니다',
+      currentCopy: `${currentArtifact.id} (${currentArtifact.type})가 현재 source evidence이며 review는 ${options.latestReviewStatus || 'pending'} 상태입니다.`,
+      currentStatus: 'in-progress',
+      currentTone: 'warning',
+      steps,
+    };
+  }
+
+  return {
+    currentTitle: '기록된 delivery result가 없습니다',
+    currentCopy: 'Execution에서 source artifact가 생성되기 전까지 Deliverables는 대기 상태입니다.',
+    currentStatus: 'waiting',
+    currentTone: 'neutral',
+    steps,
+  };
+}
+
+function getDeliverablesPrimaryAction(options = {}) {
+  const bundle = options.bundle || null;
+  const preview = options.preview || null;
+  const durablePackage = options.durablePackage || null;
+  const acceptance = options.acceptance || null;
+  const closeOut = options.closeOut || null;
+  const persistence = getMissionDeliveryPackagePersistenceSummary(preview, bundle, durablePackage);
+  const acceptanceSummary = getMissionDeliveryPackageAcceptanceSummary(
+    preview,
+    bundle,
+    durablePackage,
+    acceptance,
+  );
+  const closeOutSummary = getMissionCloseOutSummary(
+    options.mission,
+    preview,
+    bundle,
+    durablePackage,
+    acceptance,
+    closeOut,
+  );
+
+  if (persistence?.canPersist) {
+    return {
+      action: 'persist-delivery-package',
+      id: preview.executionPlanId,
+      label: 'DeliveryPackage 기록',
+      description: '현재 response-only preview를 기존 exact source tuple로 다시 검증한 뒤 기록합니다.',
+    };
+  }
+
+  if (acceptanceSummary?.canAccept) {
+    return {
+      action: 'accept-delivery-package',
+      id: durablePackage.id,
+      label: '패키지 승인',
+      description: '현재 immutable package tuple에 append-only acceptance evidence를 기록합니다.',
+    };
+  }
+
+  if (closeOutSummary?.canCloseOut) {
+    return {
+      action: 'close-out-ai-company-mission',
+      id: options.mission.id,
+      label: '미션 종료',
+      description: 'Accepted package와 completed WorkOrders를 다시 검증한 뒤 기존 close-out을 실행합니다.',
+    };
+  }
+
+  if (closeOutSummary?.completed || options.completionReady) {
+    return {
+      action: 'open-mission',
+      id: options.mission.id,
+      label: 'Mission으로 돌아가기',
+      description: '완료 evidence를 유지한 채 Mission에서 다음 cycle을 준비합니다.',
+    };
+  }
+
+  return {
+    action: 'open-execution',
+    id: options.mission.id,
+    label: 'Execution 열기',
+    description: '현재 delivery가 멈춘 exact execution gate를 확인합니다.',
+  };
+}
+
+function renderDeliverablesPrimaryAction(command, busy) {
+  return `
+    <div class="llm-deliverables-command">
+      <button
+        class="primary-button"
+        type="button"
+        data-action="${escapeHtml(command.action)}"
+        data-id="${escapeHtml(command.id)}"
+        ${busy ? 'disabled' : ''}
+      >
+        ${escapeHtml(command.label)}
+      </button>
+      <p>${escapeHtml(command.description)}</p>
+    </div>
+  `;
+}
+
+function renderDeliverablesProgress(flow) {
+  return `
+    <ol class="llm-deliverables-progress-list" aria-label="Source-backed delivery progress">
+      ${flow.steps
+        .map(
+          (step) => `
+            <li class="llm-deliverables-progress-step llm-deliverables-progress-step-${escapeHtml(step.status)}">
+              <span class="llm-deliverables-progress-mark" aria-hidden="true">${escapeHtml(step.title.slice(0, 1))}</span>
+              <div class="llm-deliverables-progress-copy">
+                <div class="llm-turn-meta">
+                  <strong>${escapeHtml(step.title)}</strong>
+                  <span>${escapeHtml(step.status)}</span>
+                </div>
+                <p>${escapeHtml(step.evidence)}</p>
+                <p class="llm-deliverables-progress-note">${escapeHtml(step.note)}</p>
+              </div>
+            </li>
+          `,
+        )
+        .join('')}
+    </ol>
+  `;
+}
+
+function renderDeliverablesSourceProvenance(options = {}) {
+  const bundle = options.bundle || null;
+  const approval = options.approvalBridge?.currentApproval || null;
+  const inboxItem = options.approvalBridge?.pendingInboxItem || null;
+
+  return `
+    <div class="llm-deliverables-source-provenance">
+      <dl class="llm-context-list">
+        <div><dt>Mission</dt><dd>${escapeHtml(options.mission.id)}</dd></div>
+        <div><dt>Task</dt><dd>${escapeHtml(options.task.id)}</dd></div>
+        <div><dt>ExecutionPlan</dt><dd>${escapeHtml(bundle?.executionPlan.id || 'not-recorded')}</dd></div>
+        <div><dt>Checkpoint</dt><dd>${escapeHtml(bundle?.latestCheckpoint?.id || 'not-recorded')}</dd></div>
+        <div><dt>DeliveryPackage</dt><dd>${escapeHtml(options.durablePackage?.id || 'not-recorded')}</dd></div>
+        <div><dt>Acceptance</dt><dd>${escapeHtml(options.acceptance?.id || 'not-recorded')}</dd></div>
+        <div><dt>Close-out</dt><dd>${escapeHtml(options.closeOut?.id || 'not-recorded')}</dd></div>
+        <div><dt>Approval</dt><dd>${escapeHtml(approval ? `${approval.id} · ${approval.status}` : 'not-recorded')}</dd></div>
+        <div><dt>Decision Inbox</dt><dd>${escapeHtml(inboxItem?.id || 'not-recorded')}</dd></div>
+      </dl>
+      <ul class="llm-deliverables-source-list" aria-label="Delivery source artifacts">
+        ${
+          options.artifacts.length > 0
+            ? options.artifacts
+                .map(
+                  (artifact) => `
+                    <li>
+                      <span>${escapeHtml(artifact.type)}</span>
+                      <code>${escapeHtml(artifact.id)}</code>
+                    </li>
+                  `,
+                )
+                .join('')
+            : '<li><span>Artifacts</span><code>not-recorded</code></li>'
+        }
+      </ul>
+    </div>
+  `;
+}
+
+function renderDeliverablesConversationSurface(options = {}) {
+  const busy = Boolean(options.busy);
+
+  return `
+    <div class="llm-deliverables-shell">
+      <section class="llm-deliverables-lead" aria-labelledby="llm-deliverables-title">
+        <div class="llm-mission-presence" aria-label="현재 Deliverables 문맥">
+          <span class="llm-presence-dot" aria-hidden="true"></span>
+          <span>${escapeHtml(options.projectName)}</span>
+          <span aria-hidden="true">/</span>
+          <span>${escapeHtml(getMissionStatusDisplay(options.mission.status))}</span>
+        </div>
+        <h2 id="llm-deliverables-title">${escapeHtml(options.mission.title)}</h2>
+        <p>${escapeHtml(options.mission.goal || '기록된 Mission 목표가 없습니다.')}</p>
+        <div class="token-row token-row-compact">
+          ${createToken(`task:${options.task.id}`, 'accent')}
+          ${createToken(`review:${getReviewStatusDisplay(options.latestReviewStatus)}`, getReviewTone(options.latestReviewStatus))}
+          ${createToken(options.flow.currentStatus, options.flow.currentTone)}
+        </div>
+      </section>
+
+      <section class="llm-deliverables-current" aria-labelledby="llm-deliverables-current-title">
+        <span class="llm-deliverables-current-mark" aria-hidden="true">D</span>
+        <div class="llm-deliverables-current-copy">
+          <div class="llm-turn-meta">
+            <strong>Deliverables</strong>
+            <span>${escapeHtml(options.flow.currentStatus)}</span>
+          </div>
+          <h3 id="llm-deliverables-current-title">${escapeHtml(options.flow.currentTitle)}</h3>
+          <p>${escapeHtml(options.flow.currentCopy)}</p>
+          ${renderDeliverablesPrimaryAction(options.primaryAction, busy)}
+          <div class="relation-button-row llm-deliverables-secondary-actions">
+            ${
+              options.primaryAction.action === 'open-execution'
+                ? ''
+                : `<button class="secondary-button" type="button" data-action="open-execution" data-id="${escapeHtml(options.mission.id)}" ${busy ? 'disabled' : ''}>Execution</button>`
+            }
+            <button class="secondary-button" type="button" data-action="open-advanced-ops" data-id="${escapeHtml(options.mission.id)}" ${busy ? 'disabled' : ''}>상세 운영</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="llm-deliverables-progress" aria-labelledby="llm-deliverables-progress-title">
+        <div class="llm-section-heading">
+          <h3 id="llm-deliverables-progress-title">Delivery progress</h3>
+          ${createToken(`artifact:${options.artifacts.length}`, 'neutral')}
+        </div>
+        ${renderDeliverablesProgress(options.flow)}
+      </section>
+
+      <details
+        class="llm-deep-inspector llm-deliverables-inspector"
+        data-deliverables-disclosure="evidence"
+        ${state.deliverablesDisclosures.evidence ? 'open' : ''}
+      >
+        <summary>Source evidence와 exact refs</summary>
+        <div class="llm-deliverables-inspector-body">
+          ${renderDeliverablesSourceProvenance(options)}
+        </div>
+      </details>
+
+      ${
+        options.deliveryControls
+          ? `
+            <details
+              class="llm-deep-inspector llm-deliverables-inspector"
+              data-deliverables-disclosure="controls"
+              ${state.deliverablesDisclosures.controls ? 'open' : ''}
+            >
+              <summary>Package review와 close-out controls</summary>
+              <div class="llm-deliverables-inspector-body">${options.deliveryControls}</div>
+            </details>
+          `
+          : ''
+      }
+
+      ${
+        options.learningControls
+          ? `
+            <details
+              class="llm-deep-inspector llm-deliverables-inspector"
+              data-deliverables-disclosure="learning"
+              ${state.deliverablesDisclosures.learning ? 'open' : ''}
+            >
+              <summary>Learning과 memory handoff</summary>
+              <div class="llm-deliverables-inspector-body">${options.learningControls}</div>
+            </details>
+          `
+          : ''
+      }
+    </div>
+  `;
+}
+
 function renderDeliverables(data) {
   if (!data.activeProject) {
     elements.surfaces.deliverables.innerHTML = renderProjectGateSurface(
@@ -15857,6 +16266,15 @@ function renderDeliverables(data) {
       : null;
 
   if (!linkedTask) {
+    if (document.querySelector('.llm-app-shell')) {
+      elements.surfaces.deliverables.innerHTML = renderDeliverablesWaitingSurface({
+        mission: selectedMission,
+        projectName: data.activeProject.name,
+        busy: state.loading || state.mutating,
+      });
+      return;
+    }
+
     elements.surfaces.deliverables.innerHTML = `
       <div class="surface-grid">
         <section class="surface-panel">
@@ -16110,6 +16528,68 @@ function renderDeliverables(data) {
     },
   );
   const harnessBrief = getHarnessConsumerBrief(data);
+
+  if (document.querySelector('.llm-app-shell')) {
+    const deliveryControls = [
+      renderDeliveryPackagePreview(state.missionDeliveryPackagePreview, missionExecutionPlanBundle),
+      renderDurableDeliveryPackage(state.missionDurableDeliveryPackage, missionExecutionPlanBundle),
+    ].filter(Boolean).join('');
+    const learningControls = [
+      renderMissionLearningCandidatePreview(
+        state.missionLearningCandidatePreview,
+        state.missionLearningCandidate,
+        selectedMission,
+        missionExecutionPlanBundle,
+        state.missionDurableDeliveryPackage,
+        state.missionDeliveryPackageAcceptance,
+        state.missionCloseOut,
+      ),
+      renderMemoryCandidatePreview(
+        state.missionMemoryCandidatePreview,
+        state.missionMemoryItem,
+        state.missionLearningCandidate,
+        state.missionLearningCandidateReview,
+        selectedMission,
+      ),
+    ].filter(Boolean).join('');
+    const deliverablesFlow = getDeliverablesSourceFlow({
+      currentArtifact: currentDeliverableArtifact,
+      durablePackage: state.missionDurableDeliveryPackage,
+      acceptance: state.missionDeliveryPackageAcceptance,
+      closeOut: state.missionCloseOut,
+      preview: state.missionDeliveryPackagePreview,
+      latestReviewStatus,
+      completionReady: missionCompletionReady,
+    });
+    const deliverablesPrimaryAction = getDeliverablesPrimaryAction({
+      mission: selectedMission,
+      bundle: missionExecutionPlanBundle,
+      preview: state.missionDeliveryPackagePreview,
+      durablePackage: state.missionDurableDeliveryPackage,
+      acceptance: state.missionDeliveryPackageAcceptance,
+      closeOut: state.missionCloseOut,
+      completionReady: missionCompletionReady,
+    });
+
+    elements.surfaces.deliverables.innerHTML = renderDeliverablesConversationSurface({
+      mission: selectedMission,
+      task: linkedTask,
+      artifacts: taskArtifacts,
+      latestReviewStatus,
+      approvalBridge,
+      bundle: missionExecutionPlanBundle,
+      durablePackage: state.missionDurableDeliveryPackage,
+      acceptance: state.missionDeliveryPackageAcceptance,
+      closeOut: state.missionCloseOut,
+      flow: deliverablesFlow,
+      primaryAction: deliverablesPrimaryAction,
+      deliveryControls,
+      learningControls,
+      projectName: data.activeProject.name,
+      busy: state.loading || state.mutating,
+    });
+    return;
+  }
 
   elements.surfaces.deliverables.innerHTML = `
     <div class="stack">
@@ -20197,7 +20677,7 @@ document.addEventListener(
   'toggle',
   (event) => {
     const disclosure = event.target.closest?.(
-      '[data-council-disclosure], [data-execution-disclosure]',
+      '[data-council-disclosure], [data-execution-disclosure], [data-deliverables-disclosure]',
     );
     if (!disclosure) {
       return;
@@ -20212,6 +20692,12 @@ document.addEventListener(
     const executionKey = disclosure.dataset.executionDisclosure;
     if (executionKey && Object.hasOwn(state.executionDisclosures, executionKey)) {
       state.executionDisclosures[executionKey] = disclosure.open;
+      return;
+    }
+
+    const deliverablesKey = disclosure.dataset.deliverablesDisclosure;
+    if (deliverablesKey && Object.hasOwn(state.deliverablesDisclosures, deliverablesKey)) {
+      state.deliverablesDisclosures[deliverablesKey] = disclosure.open;
     }
   },
   true,

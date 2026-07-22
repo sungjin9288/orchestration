@@ -153,6 +153,23 @@ Hierarchy:
 - The visible command must reuse an existing action handler and exact readiness boolean. Rendering it
   never resolves an approval, advances a stage, or starts background work.
 
+### Deliverables Flow
+
+- Lead with the selected Mission and linked task, then show the current source-backed delivery state
+  and at most one existing bounded operator command.
+- Render Result, Verification, Package, Acceptance, and Close-out once in source order. A stage may
+  be complete, current, or waiting only from its current artifact, review, package, acceptance, and
+  close-out records; missing evidence must never look completed.
+- Do not repeat artifact, review, approval, and handoff state through a delivery board, completion
+  register, evidence rail, package shelf, and a second approval desk.
+- Keep exact record refs, approval and Decision Inbox ids, package review controls, close-out controls,
+  and post-close-out learning or memory handoffs in collapsed secondary details.
+- Deliverables must not place Harness tooling before the result. Harness commands remain part of
+  Execution or Advanced Ops.
+- The visible command must reuse existing package persistence, acceptance, close-out, Execution, or
+  Mission handlers and their current readiness contracts. Rendering it never infers acceptance,
+  closes a Mission, or advances a stage.
+
 ## 5. Surface Semantics
 
 - `Mission`: goal composer, current Mission thread or read-only evidence graph, recent Mission history
