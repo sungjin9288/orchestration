@@ -11748,6 +11748,352 @@ body .llm-app-shell .llm-mission-composer .form-help {
   font-size: 0.76rem;
 }
 
+.llm-council-shell {
+  display: grid;
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 18px 2px 32px;
+}
+
+.llm-council-lead {
+  padding: 4px 2px 22px;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.llm-council-lead h2 {
+  max-width: 24ch;
+  margin: 12px 0 8px;
+  overflow-wrap: anywhere;
+  color: #18181b;
+  font-size: 1.55rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.llm-council-lead > p {
+  max-width: 72ch;
+  margin: 0 0 14px;
+  overflow-wrap: anywhere;
+  color: #52525b;
+  font-size: 0.86rem;
+  line-height: 1.58;
+}
+
+.council-start-panel,
+.council-conversation {
+  display: grid;
+  margin-top: 24px;
+}
+
+.council-start-panel > p {
+  max-width: 70ch;
+  margin: 18px 2px 0;
+  color: #52525b;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.council-start-panel .form-actions {
+  margin-top: 18px;
+}
+
+.council-turn-list {
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.council-turn-accent .llm-turn-marker {
+  background: #2563eb;
+}
+
+.council-turn-success .llm-turn-marker {
+  background: #15803d;
+}
+
+.council-turn-warning .llm-turn-marker {
+  background: #b45309;
+}
+
+.council-turn-neutral .llm-turn-marker {
+  background: #52525b;
+}
+
+.council-turn-next,
+.council-turn-source {
+  margin-top: 8px !important;
+  color: #71717a !important;
+  font-size: 0.7rem !important;
+  line-height: 1.45 !important;
+}
+
+.council-turn-next strong {
+  margin-right: 5px;
+  color: #52525b;
+  font-size: inherit;
+}
+
+.council-conversation-empty {
+  margin: 0;
+  padding: 28px 2px;
+  border-bottom: 1px solid #ececef;
+  color: #71717a;
+  font-size: 0.78rem;
+}
+
+.council-synthesis {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  padding: 24px 2px;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.council-synthesis-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.council-synthesis-content {
+  min-width: 0;
+}
+
+.council-synthesis-content h3 {
+  margin: 8px 0 6px;
+  overflow-wrap: anywhere;
+  color: #18181b;
+  font-size: 1rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.council-synthesis-content > p {
+  max-width: 72ch;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #3f3f46;
+  font-size: 0.86rem;
+  line-height: 1.58;
+}
+
+.council-synthesis-content .council-synthesis-boundary {
+  margin-top: 8px;
+  color: #71717a;
+  font-size: 0.76rem;
+}
+
+.council-dissent {
+  padding: 20px 2px;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.council-dissent-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.council-dissent h3 {
+  margin: 0;
+  color: #27272a;
+  font-size: 0.82rem;
+  letter-spacing: 0;
+}
+
+.council-dissent ul {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0 0 0 18px;
+}
+
+.council-dissent li {
+  color: #52525b;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.council-alignment-gate {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.council-alignment-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.council-alignment-head span {
+  color: #71717a;
+  font-size: 0.64rem;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.council-alignment-head h3 {
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
+  color: #18181b;
+  font-size: 0.94rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.council-alignment-head p {
+  max-width: 68ch;
+  margin: 6px 0 0;
+  color: #71717a;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.council-secondary-actions {
+  margin-top: 10px;
+}
+
+.council-alignment-secondary {
+  margin-top: 12px;
+  border-top: 1px solid #e4e4e7;
+}
+
+.council-alignment-secondary > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  color: #52525b;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 650;
+  list-style: none;
+}
+
+.council-alignment-secondary > summary::-webkit-details-marker {
+  display: none;
+}
+
+.council-alignment-secondary > summary::after {
+  content: "+";
+  color: #71717a;
+  font-size: 0.9rem;
+}
+
+.council-alignment-secondary[open] > summary::after {
+  content: "-";
+}
+
+.council-alignment-secondary-body {
+  display: grid;
+  gap: 10px;
+  padding: 6px 0 2px;
+}
+
+.council-source-inspector {
+  margin-top: 20px;
+}
+
+.council-source-inspector-body {
+  display: grid;
+  gap: 14px;
+  padding: 14px 0 0;
+}
+
+.council-source-inspector-body > * {
+  min-width: 0;
+}
+
+.council-source-inspector .llm-context-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+.council-source-inspector .llm-context-list > div {
+  display: grid;
+  grid-template-columns: minmax(88px, 0.3fr) minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+
+.council-source-inspector .llm-context-list dt,
+.council-source-inspector .llm-context-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #71717a;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.council-source-inspector .llm-context-list dt {
+  color: #52525b;
+  font-weight: 650;
+}
+
+.council-source-provenance {
+  display: grid;
+  gap: 12px;
+}
+
+.council-source-ledger {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid #e4e4e7;
+  list-style: none;
+}
+
+.council-source-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #ececef;
+  color: #71717a;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.council-source-record > div {
+  display: grid;
+  min-width: 0;
+}
+
+.council-source-record strong {
+  color: #3f3f46;
+  font-size: 0.74rem;
+}
+
+.council-source-record span {
+  overflow-wrap: anywhere;
+}
+
+.council-source-record > span {
+  text-align: right;
+}
+
+.council-source-record-empty {
+  justify-content: flex-start;
+}
+
 .llm-mission-history,
 .llm-deep-inspector {
   margin-top: 22px;
@@ -12144,6 +12490,61 @@ body .llm-app-shell .project-bootstrap-defaults {
   .llm-turn-marker {
     width: 28px;
     height: 28px;
+  }
+
+  .llm-council-shell {
+    padding: 12px 0 24px;
+  }
+
+  .llm-council-lead {
+    padding-bottom: 18px;
+  }
+
+  .llm-council-lead h2 {
+    font-size: 1.32rem;
+  }
+
+  .council-synthesis {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 10px;
+    padding: 20px 0;
+  }
+
+  .council-synthesis-marker {
+    width: 28px;
+    height: 28px;
+  }
+
+  .council-alignment-head {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .council-alignment-gate {
+    padding: 14px;
+  }
+
+  .council-alignment-gate .relation-button-row,
+  .council-start-panel .form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .council-alignment-gate .primary-button,
+  .council-alignment-gate .secondary-button,
+  .council-start-panel .primary-button,
+  .council-start-panel .secondary-button {
+    width: 100%;
+  }
+
+  .council-source-record {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .council-source-record > span {
+    text-align: left;
   }
 
   .llm-next-gate {

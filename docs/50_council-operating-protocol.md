@@ -8,6 +8,12 @@
 Council은 group chat이나 역할극이 아니다. 같은 evidence packet에 대한 bounded independent
 review와 explicit synthesis workflow다.
 
+Primary LLM-native UI도 이 protocol 순서를 그대로 따른다. Mission context 다음에 source-backed
+independent positions, Conductor synthesis, recorded dissent, human alignment를 한 흐름으로 렌더하고,
+provider/source ids와 WorkOrder 준비 evidence는 접힌 secondary details로 내린다. Boardroom avatar,
+attendance simulation, typing indicator, synthetic agreement, 또는 미래 발언 placeholder는 Council
+record로 취급하지 않는다. 이 presentation rule은 runtime record나 alignment authority를 바꾸지 않는다.
+
 현재 runtime은 legacy deterministic Council transcript를 compatibility path로 유지하면서,
 `DEC-082`가 승인한 opt-in `mode=real-local-stub` path와 `DEC-085`의 explicit
 `mode=real-openai-responses` path에서 독립 role position, conflict summary, Conductor synthesis,

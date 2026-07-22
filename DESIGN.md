@@ -128,6 +128,18 @@ Hierarchy:
 - Deep IDs, logs, packets, and legacy controls remain available under a details disclosure or
   Advanced Ops.
 
+### Council Conversation
+
+- Council is a source-backed review flow, not a boardroom simulation or group chat.
+- Lead with the selected Mission, then render independent role positions, one Conductor synthesis,
+  recorded dissent, and the operator alignment gate in that order.
+- Do not repeat the same Mission, participant, recommendation, or gate evidence through hero cards,
+  attendance boards, heartbeat rails, handoff decks, and outcome shelves.
+- Keep source ids, provider attempts, execution evidence, revision input, and WorkOrder preparation in
+  collapsed secondary details. Approval and stop remain visible before those secondary controls.
+- Render no typing indicators, avatars, seating charts, synthetic agreement, future role turns, or
+  inferred messages.
+
 ## 5. Surface Semantics
 
 - `Mission`: goal composer, current Mission thread or read-only evidence graph, recent Mission history

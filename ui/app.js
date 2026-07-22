@@ -339,6 +339,11 @@ const state = {
   missionGraphStage: 'all',
   missionGraphStatusTone: 'all',
   missionGraphSelectedNodeId: null,
+  councilDisclosures: {
+    source: false,
+    revision: false,
+    workOrder: false,
+  },
   selectedTaskId: null,
   selectedRunId: null,
   selectedArtifactId: null,
@@ -5355,6 +5360,11 @@ function syncSelectionsFromMission(missionId) {
     state.missionEvidenceGraphError = null;
     state.missionEvidenceGraphLoading = false;
     resetMissionGraphExplorer();
+    state.councilDisclosures = {
+      source: false,
+      revision: false,
+      workOrder: false,
+    };
   }
 
   if (mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)) {
@@ -11854,7 +11864,7 @@ function renderRealCouncilEvidence(councilSession) {
   }
 
   const positions = getLatestRealCouncilPositions(councilSession);
-  const positionRows = positions
+  const sourceRows = positions
     .map((position) => {
       const participant = (councilSession.participants || []).find(
         (entry) => entry.agentId === position.agentId,
@@ -11862,74 +11872,56 @@ function renderRealCouncilEvidence(councilSession) {
       const providerEvidence = position.providerEvidence;
 
       return `
-        <section class="relation-strip transcript-card">
-          <div class="card-title-row card-title-row-tight transcript-card-head">
-            <strong class="transcript-card-role">${escapeHtml(participant?.role || position.role)}</strong>
-            ${createToken(position.confidence, position.confidence === 'high' ? 'success' : 'neutral')}
-            ${createToken(position.id, 'neutral')}
+        <li class="council-source-record">
+          <div>
+            <strong>${escapeHtml(participant?.role || position.role)}</strong>
+            <span>${escapeHtml(position.id)}</span>
           </div>
-          <p class="detail-copy detail-copy-compact transcript-card-copy">${escapeHtml(position.recommendation)}</p>
-          <p class="detail-copy detail-copy-compact">다음: ${escapeHtml(position.proposedNextStep)}</p>
-          ${providerEvidence
-            ? `<p class="detail-copy detail-copy-compact">provider ${escapeHtml(providerEvidence.model)} · ${escapeHtml(providerEvidence.outcome)} · attempts ${providerEvidence.providerAttemptCount}</p>`
-            : ''}
-        </section>
+          <span>${
+            providerEvidence
+              ? `provider ${escapeHtml(providerEvidence.model)} · ${escapeHtml(providerEvidence.outcome)} · attempts ${providerEvidence.providerAttemptCount}`
+              : 'deterministic local source'
+          }</span>
+        </li>
       `;
     })
     .join('');
-  const conflicts = attempt.conflictSummary || {};
-  const conflictRows = [
-    ...(conflicts.requiredRoleFailures || []).map(
-      (entry) => `${entry.role}: ${entry.code}`,
-    ),
-    ...(conflicts.uniqueObjections || []),
-  ];
   const synthesis = attempt.synthesis;
+  const synthesisEvidence = synthesis?.providerEvidence;
 
   return `
-    <section class="relation-strip">
-      <div class="card-title-row card-title-row-tight">
-        <strong>Real Council 상태</strong>
+    <section class="council-source-provenance" aria-labelledby="council-source-provenance-title">
+      <div class="llm-section-heading">
+        <h3 id="council-source-provenance-title">Real Council provenance</h3>
         ${createToken(`phase:${councilSession.phase}`, councilSession.status === 'failed' ? 'danger' : 'accent')}
-        ${createToken(`attempt:${attempt.sequence}`, 'neutral')}
-        ${createToken(`positions:${positions.length}`, 'neutral')}
-        ${createToken(councilSession.mode, councilSession.mode === 'real-openai-responses' ? 'accent' : 'neutral')}
-        ${attempt.providerCallCount ? createToken(`provider-calls:${attempt.providerCallCount}`, 'neutral') : ''}
       </div>
-      <p class="detail-copy detail-copy-compact">${escapeHtml(councilSession.agenda?.title || '')}</p>
-      <p class="detail-copy detail-copy-compact">source ${escapeHtml(String(councilSession.sourceDigest || '').slice(0, 12))}</p>
+      <dl class="llm-context-list">
+        <div><dt>Attempt</dt><dd>${escapeHtml(attempt.id || String(attempt.sequence))}</dd></div>
+        <div><dt>Mode</dt><dd>${escapeHtml(councilSession.mode)}</dd></div>
+        <div><dt>Source digest</dt><dd>${escapeHtml(councilSession.sourceDigest || 'not-recorded')}</dd></div>
+        <div><dt>Provider calls</dt><dd>provider-calls:${attempt.providerCallCount || 0}</dd></div>
+      </dl>
+      <ul class="council-source-ledger">
+        ${sourceRows || '<li class="council-source-record council-source-record-empty">유효한 position source가 없습니다.</li>'}
+        ${
+          synthesis
+            ? `
+              <li class="council-source-record">
+                <div>
+                  <strong>Conductor</strong>
+                  <span>${escapeHtml(synthesis.id || 'synthesis')}</span>
+                </div>
+                <span>${
+                  synthesisEvidence
+                    ? `provider ${escapeHtml(synthesisEvidence.model)} · ${escapeHtml(synthesisEvidence.outcome)}`
+                    : 'deterministic local source'
+                }</span>
+              </li>
+            `
+            : ''
+        }
+      </ul>
     </section>
-    <div class="stack">
-      ${positionRows || '<p class="detail-copy detail-copy-compact">유효한 position이 아직 없습니다.</p>'}
-    </div>
-    <section class="relation-strip council-outcome-card council-outcome-card-questions">
-      <div class="card-title-row card-title-row-tight council-outcome-head">
-        <strong class="council-outcome-title">Conflict와 dissent</strong>
-        ${createToken(conflicts.approvalReady ? 'synthesis-ready' : 'blocked', conflicts.approvalReady ? 'success' : 'danger')}
-      </div>
-      <div class="stack council-outcome-question-list">
-        ${conflictRows.length > 0
-          ? conflictRows
-              .map(
-                (entry) => `<p class="detail-copy detail-copy-compact council-outcome-copy council-outcome-question">${escapeHtml(entry)}</p>`,
-              )
-              .join('')
-          : '<p class="detail-copy detail-copy-compact">기록된 conflict가 없습니다.</p>'}
-      </div>
-    </section>
-    ${synthesis
-      ? `
-        <section class="relation-strip council-outcome-card council-outcome-card-recommendation">
-          <div class="card-title-row card-title-row-tight council-outcome-head">
-            <strong class="council-outcome-title">Conductor synthesis</strong>
-            ${createToken('human decision required', 'accent')}
-            ${synthesis.providerEvidence ? createToken(`${synthesis.providerEvidence.model}:${synthesis.providerEvidence.outcome}`, 'neutral') : ''}
-          </div>
-          <p class="detail-copy detail-copy-compact council-outcome-copy">${escapeHtml(synthesis.adoptedRecommendation)}</p>
-          <p class="detail-copy detail-copy-compact council-outcome-copy council-outcome-copy-muted">${escapeHtml(synthesis.proposedExecutionBoundary)}</p>
-        </section>
-      `
-      : ''}
   `;
 }
 
@@ -13717,10 +13709,19 @@ function renderRealCouncilAlignmentControls(councilSession) {
       </p>
       ${
         councilSession.alignment?.status === 'approved'
-          ? renderMissionWorkOrderCompileForm(councilSession, {
-              recompute: true,
-              blockedReason: previewBlockedReason,
-            })
+          ? `
+            <details
+              class="council-alignment-secondary"
+              data-council-disclosure="workOrder"
+              ${state.councilDisclosures.workOrder ? 'open' : ''}
+            >
+              <summary>WorkOrder preview</summary>
+              ${renderMissionWorkOrderCompileForm(councilSession, {
+                recompute: true,
+                blockedReason: previewBlockedReason,
+              })}
+            </details>
+          `
           : ''
       }
     `;
@@ -13790,28 +13791,402 @@ function renderRealCouncilAlignmentControls(councilSession) {
         회의 중지
       </button>
     </div>
-    ${renderMissionWorkOrderCompileForm(councilSession, {
-      blockedReason: previewBlockedReason,
-    })}
-    <label class="field-label" for="real-council-revision-note">수정 요청</label>
-    <textarea
-      id="real-council-revision-note"
-      class="text-input"
-      rows="3"
-      placeholder="수정할 판단과 근거를 기록합니다"
-      ${busy ? 'disabled' : ''}
-    ></textarea>
-    <div class="token-row token-row-compact">${targetOptions}</div>
-    <div class="relation-button-row">
-      <button
-        class="secondary-button"
-        type="button"
-        data-action="request-revision-real-council-session"
-        data-id="${escapeHtml(councilSession.id)}"
-        ${busy ? 'disabled' : ''}
-      >
-        선택 역할 재검토
-      </button>
+    <details
+      class="council-alignment-secondary"
+      data-council-disclosure="revision"
+      ${state.councilDisclosures.revision ? 'open' : ''}
+    >
+      <summary>수정 요청</summary>
+      <div class="council-alignment-secondary-body">
+        <label class="field-label" for="real-council-revision-note">수정할 판단과 근거</label>
+        <textarea
+          id="real-council-revision-note"
+          class="text-input"
+          rows="3"
+          placeholder="수정할 판단과 근거를 기록합니다"
+          ${busy ? 'disabled' : ''}
+        ></textarea>
+        <div class="token-row token-row-compact">${targetOptions}</div>
+        <div class="relation-button-row">
+          <button
+            class="secondary-button"
+            type="button"
+            data-action="request-revision-real-council-session"
+            data-id="${escapeHtml(councilSession.id)}"
+            ${busy ? 'disabled' : ''}
+          >
+            선택 역할 재검토
+          </button>
+        </div>
+      </div>
+    </details>
+    <details
+      class="council-alignment-secondary"
+      data-council-disclosure="workOrder"
+      ${state.councilDisclosures.workOrder ? 'open' : ''}
+    >
+      <summary>WorkOrder preview</summary>
+      ${renderMissionWorkOrderCompileForm(councilSession, {
+        blockedReason: previewBlockedReason,
+      })}
+    </details>
+  `;
+}
+
+function getCouncilConversationTurns(councilSession) {
+  if (!councilSession) {
+    return [];
+  }
+
+  if (isRealCouncilMode(councilSession.mode)) {
+    return getLatestRealCouncilPositions(councilSession).map((position) => {
+      const participant = (councilSession.participants || []).find(
+        (entry) => entry.agentId === position.agentId,
+      );
+      const role = participant?.role || position.role;
+      const castEntry = getCouncilCastEntry(role, councilSession);
+
+      return {
+        role: castEntry.displayName,
+        mark: castEntry.mark,
+        tone: castEntry.tone,
+        status: position.confidence ? `confidence:${position.confidence}` : 'position',
+        copy: position.recommendation,
+        nextStep: position.proposedNextStep,
+        sourceId: position.id,
+        providerEvidence: position.providerEvidence || null,
+      };
+    });
+  }
+
+  return (councilSession.transcript || [])
+    .filter((entry) => String(entry.role || '').toLowerCase() !== 'conductor')
+    .map((entry) => {
+      const castEntry = getCouncilCastEntry(entry.role, councilSession);
+
+      return {
+        role: castEntry.displayName,
+        mark: castEntry.mark,
+        tone: castEntry.tone,
+        status: entry.stance || 'position',
+        copy: entry.content || '',
+        nextStep: '',
+        sourceId: '',
+        providerEvidence: null,
+      };
+    });
+}
+
+function getCouncilConversationSynthesis(councilSession) {
+  const attempt = getCurrentRealCouncilAttempt(councilSession);
+  const synthesis = attempt?.synthesis || null;
+  const conductorEntry = [...(councilSession?.transcript || [])]
+    .reverse()
+    .find((entry) => String(entry.role || '').toLowerCase() === 'conductor');
+  const conflicts = attempt?.conflictSummary || {};
+  const questions = [
+    ...(conflicts.requiredRoleFailures || []).map((entry) => `${entry.role}: ${entry.code}`),
+    ...(conflicts.uniqueObjections || []),
+    ...(synthesis?.unresolvedQuestions || []),
+    ...(councilSession?.openQuestions || []),
+  ];
+
+  return {
+    title:
+      councilSession?.selectedPlan?.title ||
+      synthesis?.adoptedRecommendation ||
+      councilSession?.recommendation ||
+      'Council recommendation',
+    recommendation:
+      synthesis?.adoptedRecommendation ||
+      councilSession?.recommendation ||
+      conductorEntry?.content ||
+      councilSession?.summary ||
+      '기록된 권고안이 없습니다.',
+    boundary:
+      synthesis?.proposedExecutionBoundary || '',
+    questions: [...new Set(questions.filter(Boolean))],
+    providerEvidence: synthesis?.providerEvidence || null,
+    approvalReady: attempt ? attempt.conflictSummary?.approvalReady === true : true,
+  };
+}
+
+function renderCouncilConversationTurns(councilSession) {
+  const turns = getCouncilConversationTurns(councilSession);
+
+  if (turns.length === 0) {
+    return '<p class="council-conversation-empty">아직 기록된 역할별 판단이 없습니다.</p>';
+  }
+
+  return `
+    <ol class="llm-turn-list council-turn-list" aria-label="역할별 판단">
+      ${turns
+        .map(
+          (turn) => `
+            <li class="llm-turn council-turn council-turn-${escapeHtml(turn.tone || 'neutral')}">
+              <div class="llm-turn-marker" aria-hidden="true">${escapeHtml(turn.mark)}</div>
+              <div class="llm-turn-content">
+                <div class="llm-turn-meta">
+                  <strong>${escapeHtml(turn.role)}</strong>
+                  <span>${escapeHtml(turn.status)}</span>
+                </div>
+                <p>${escapeHtml(turn.copy)}</p>
+                ${
+                  turn.nextStep
+                    ? `<p class="council-turn-next"><strong>다음 판단</strong> ${escapeHtml(turn.nextStep)}</p>`
+                    : ''
+                }
+                ${
+                  turn.providerEvidence
+                    ? `<p class="council-turn-source">provider ${escapeHtml(turn.providerEvidence.model)} · ${escapeHtml(turn.providerEvidence.outcome)} · attempts ${turn.providerEvidence.providerAttemptCount}</p>`
+                    : turn.sourceId
+                      ? `<p class="council-turn-source">source ${escapeHtml(turn.sourceId)}</p>`
+                      : ''
+                }
+              </div>
+            </li>
+          `,
+        )
+        .join('')}
+    </ol>
+  `;
+}
+
+function renderCouncilConversationSurface(options) {
+  const {
+    data,
+    mission,
+    councilSession,
+    linkedTask,
+    missionExecutionPlanBundle,
+    councilProviderReadiness,
+    councilProviderReady,
+  } = options;
+  const busy = state.loading || state.mutating;
+  const isRealCouncil = isRealCouncilMode(councilSession?.mode);
+  const synthesis = councilSession ? getCouncilConversationSynthesis(councilSession) : null;
+  const alignmentStatus = councilSession?.alignment?.status || 'pending';
+  const approveDisabled = busy || !councilSession || alignmentStatus === 'approved';
+  const councilEvidenceRail = renderExecutionEvidenceRail(
+    getExecutionEvidenceRail(linkedTask, data),
+    {
+      eyebrow: 'Execution evidence',
+      heading: '결론 이후의 실행 증적',
+      copy: '현재 source record가 연결한 담당, 증적, 보류 사유만 표시합니다.',
+    },
+  );
+
+  return `
+    <div class="llm-council-shell">
+      <section class="llm-council-lead" aria-labelledby="llm-council-title">
+        <div class="llm-mission-presence" aria-label="현재 Council 문맥">
+          <span class="llm-presence-dot" aria-hidden="true"></span>
+          <span>${escapeHtml(data.activeProject.name)}</span>
+          <span aria-hidden="true">/</span>
+          <span>${escapeHtml(councilSession ? getCouncilStatusDisplay(councilSession.status) : '회의 전')}</span>
+        </div>
+        <h2 id="llm-council-title">${escapeHtml(mission.title)}</h2>
+        <p>${escapeHtml(mission.goal || '기록된 미션 목표가 없습니다.')}</p>
+        <div class="token-row token-row-compact">
+          ${createToken(getMissionStatusDisplay(mission.status), getMissionStatusTone(mission.status))}
+          ${
+            councilSession
+              ? createToken(
+                  `정렬:${getAlignmentStatusDisplay(alignmentStatus)}`,
+                  getAlignmentTone(alignmentStatus),
+                )
+              : createToken('Council:미시작', 'warning')
+          }
+          ${linkedTask ? createToken(`task:${linkedTask.id}`, 'accent') : createToken('task:미연결', 'neutral')}
+        </div>
+      </section>
+
+      ${
+        !councilSession
+          ? `
+            <section class="council-start-panel" aria-labelledby="council-start-title">
+              <div class="llm-section-heading">
+                <h3 id="council-start-title">Council 시작</h3>
+                ${createToken('operator opt-in', 'neutral')}
+              </div>
+              <p>같은 Mission evidence를 역할별로 검토한 뒤 Conductor가 하나의 권고안으로 정리합니다.</p>
+              <div class="form-actions form-actions-inline">
+                <button
+                  class="primary-button"
+                  type="button"
+                  data-action="start-real-council-for-mission"
+                  data-id="${escapeHtml(mission.id)}"
+                  ${busy ? 'disabled' : ''}
+                >
+                  독립 역할 회의
+                </button>
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-action="start-provider-council-for-mission"
+                  data-id="${escapeHtml(mission.id)}"
+                  ${busy || !councilProviderReady || data.activeProject.pack === 'knowledge-work' ? 'disabled' : ''}
+                >
+                  OpenAI 역할 회의
+                </button>
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-action="draft-council-for-mission"
+                  data-id="${escapeHtml(mission.id)}"
+                  ${busy ? 'disabled' : ''}
+                >
+                  기본 회의 초안
+                </button>
+              </div>
+              <p class="form-help">${
+                councilProviderReady
+                  ? 'Provider mode는 명시적으로 선택할 때만 사용합니다.'
+                  : `OpenAI 역할 회의 차단: ${escapeHtml(councilProviderReadiness?.reasons?.[0] || 'provider readiness가 준비되지 않았습니다.')}`
+              }</p>
+            </section>
+          `
+          : `
+            <section class="council-conversation" aria-labelledby="council-conversation-title">
+              <div class="llm-section-heading">
+                <h3 id="council-conversation-title">역할별 판단</h3>
+                ${createToken(`${councilSession.participants?.length || 4} roles`, 'neutral')}
+              </div>
+              ${renderCouncilConversationTurns(councilSession)}
+
+              <section class="council-synthesis" aria-labelledby="council-synthesis-title">
+                <div class="council-synthesis-marker" aria-hidden="true">C</div>
+                <div class="council-synthesis-content">
+                  <div class="llm-turn-meta">
+                    <strong id="council-synthesis-title">Conductor synthesis</strong>
+                    <span>${escapeHtml(getAlignmentStatusDisplay(alignmentStatus))}</span>
+                  </div>
+                  <h3>${escapeHtml(synthesis.title)}</h3>
+                  <p>${escapeHtml(synthesis.recommendation)}</p>
+                  ${
+                    synthesis.boundary && synthesis.boundary !== synthesis.recommendation
+                      ? `<p class="council-synthesis-boundary">${escapeHtml(synthesis.boundary)}</p>`
+                      : ''
+                  }
+                  ${
+                    synthesis.providerEvidence
+                      ? `<p class="council-turn-source">provider ${escapeHtml(synthesis.providerEvidence.model)} · ${escapeHtml(synthesis.providerEvidence.outcome)}</p>`
+                      : ''
+                  }
+                </div>
+              </section>
+
+              ${
+                synthesis.questions.length > 0
+                  ? `
+                    <section class="council-dissent" aria-labelledby="council-dissent-title">
+                      <div class="council-dissent-heading">
+                        <h3 id="council-dissent-title">Conflict와 dissent</h3>
+                        ${createToken(
+                          synthesis.approvalReady ? 'reviewed' : 'blocked',
+                          synthesis.approvalReady ? 'success' : 'danger',
+                        )}
+                      </div>
+                      <ul>
+                        ${synthesis.questions.map((question) => `<li>${escapeHtml(question)}</li>`).join('')}
+                      </ul>
+                    </section>
+                  `
+                  : ''
+              }
+
+              <section class="council-alignment-gate" aria-labelledby="council-alignment-title">
+                <div class="council-alignment-head">
+                  <div>
+                    <span>Operator alignment</span>
+                    <h3 id="council-alignment-title">${
+                      alignmentStatus === 'approved' ? '결론 승인 완료' : '결론을 검토하고 다음 경계를 선택합니다'
+                    }</h3>
+                    <p>승인은 기존 gate까지만 진행하며 source mutation, commit, push 권한을 추가하지 않습니다.</p>
+                  </div>
+                  ${createToken(
+                    getAlignmentStatusDisplay(alignmentStatus),
+                    getAlignmentTone(alignmentStatus),
+                  )}
+                </div>
+                <div class="field">
+                  ${
+                    isRealCouncil
+                      ? renderRealCouncilAlignmentControls(councilSession)
+                      : `
+                        <div class="relation-button-row">
+                          <button
+                            class="primary-button"
+                            type="button"
+                            data-action="approve-council-for-mission"
+                            data-id="${escapeHtml(mission.id)}"
+                            ${approveDisabled ? 'disabled' : ''}
+                          >
+                            회의 결론 승인
+                          </button>
+                        </div>
+                      `
+                  }
+                  <div class="relation-button-row council-secondary-actions">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="revise-mission"
+                      data-id="${escapeHtml(mission.id)}"
+                      ${busy ? 'disabled' : ''}
+                    >
+                      안건 다시 다듬기
+                    </button>
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-advanced-ops"
+                      data-id="${escapeHtml(mission.id)}"
+                      ${busy ? 'disabled' : ''}
+                    >
+                      상세 운영
+                    </button>
+                    ${
+                      linkedTask
+                        ? `
+                          <button
+                            class="secondary-button"
+                            type="button"
+                            data-action="open-execution"
+                            data-id="${escapeHtml(mission.id)}"
+                            ${busy ? 'disabled' : ''}
+                          >
+                            실행 열기
+                          </button>
+                        `
+                        : ''
+                    }
+                  </div>
+                </div>
+              </section>
+            </section>
+
+            <details
+              class="llm-deep-inspector council-source-inspector"
+              data-council-disclosure="source"
+              ${state.councilDisclosures.source ? 'open' : ''}
+            >
+              <summary>상세 근거 및 실행 준비</summary>
+              <div class="council-source-inspector-body">
+                <dl class="llm-context-list">
+                  <div><dt>Mission</dt><dd>${escapeHtml(mission.id)}</dd></div>
+                  <div><dt>Session</dt><dd>${escapeHtml(councilSession.id)}</dd></div>
+                  <div><dt>Mode</dt><dd>${escapeHtml(councilSession.mode || 'legacy-deterministic')}</dd></div>
+                  <div><dt>Phase</dt><dd>${escapeHtml(councilSession.phase || councilSession.status)}</dd></div>
+                </dl>
+                ${isRealCouncil ? renderRealCouncilEvidence(councilSession) : ''}
+                ${councilEvidenceRail}
+                ${renderMissionWorkOrderPreview(state.missionWorkOrderPreview, councilSession, missionExecutionPlanBundle)}
+                ${renderMissionExecutionPlan(missionExecutionPlanBundle, state.missionExecutionPlanRecovery)}
+              </div>
+            </details>
+          `
+      }
     </div>
   `;
 }
@@ -13867,6 +14242,19 @@ function renderCouncil(data) {
         </div>
       </div>
     `;
+    return;
+  }
+
+  if (document.querySelector('.llm-app-shell')) {
+    elements.surfaces.council.innerHTML = renderCouncilConversationSurface({
+      data,
+      mission: selectedMission,
+      councilSession: selectedCouncilSession,
+      linkedTask,
+      missionExecutionPlanBundle,
+      councilProviderReadiness,
+      councilProviderReady,
+    });
     return;
   }
 
@@ -19359,6 +19747,24 @@ function handleFormInput(event) {
 
 document.addEventListener('input', handleFormInput);
 document.addEventListener('change', handleFormInput);
+
+document.addEventListener(
+  'toggle',
+  (event) => {
+    const disclosure = event.target.closest?.('[data-council-disclosure]');
+
+    if (!disclosure) {
+      return;
+    }
+
+    const key = disclosure.dataset.councilDisclosure;
+
+    if (Object.hasOwn(state.councilDisclosures, key)) {
+      state.councilDisclosures[key] = disclosure.open;
+    }
+  },
+  true,
+);
 
 document.addEventListener('keydown', async (event) => {
   const graphNode = event.target.closest?.('[data-action="select-mission-graph-node"]');

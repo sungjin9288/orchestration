@@ -322,6 +322,12 @@ const smokeChecks = [
     purpose:
       'Source-backed chronological Mission turns, absent future-stage placeholders, one active conversation title, first-viewport next gate, unchanged Thread and Graph behavior, and zero generated-message or runtime authority expansion',
   },
+  {
+    id: 'llm-native-source-backed-council-meeting',
+    script: 'scripts/smoke-ui-slice-678.mjs',
+    purpose:
+      'Source-backed Council role turns, one Conductor synthesis, conditional dissent, visible alignment actions, collapsed secondary evidence, and zero generated-message or runtime authority expansion',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

@@ -732,6 +732,11 @@ const informationalChecks = [
     purpose: 'LLM-native Mission thread proves chronological source-backed turns only, no synthetic future-stage rows, one active conversation title, preserved next gate and Thread Graph behavior, and zero runtime API schema dependency generated-message or authority expansion',
   },
   {
+    id: 'llm-native-source-backed-council-meeting',
+    script: 'scripts/smoke-ui-slice-678.mjs',
+    purpose: 'LLM-native Council meeting proves source-backed independent role turns, one Conductor synthesis, conditional dissent, visible human alignment, collapsed secondary evidence, and zero runtime API schema dependency generated-message or authority expansion',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

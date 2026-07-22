@@ -921,6 +921,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/94_llm-native-source-backed-mission-thread-plan.md` changes only the browser renderer and compact thread spacing. Operator is always present for a selected Mission; Council, Execution, and Deliverables appear only when their existing source evidence exists. The active lead remains the one conversation title, `Thread | Graph` stays unchanged, and no runtime/API/schema/dependency/persistence/provider/approval/execution/source/Git authority changes.
 - Needed Before: Durable chat history, generated messages, hidden inference, automatic stage advancement, provider calls, runtime/API/schema/dependency changes, scheduling, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
 
+### DEC-144
+- Status: `Accepted`
+- Decision: Accept the delegated non-critical source-backed Council meeting slice that replaces the primary boardroom dashboard with one chronological role-position, Conductor-synthesis, dissent, and operator-alignment flow.
+- Why: The existing Council repeats the same evidence through a boardroom hero, attendance register, role cards, heartbeat strip, handoff deck, transcript cards, outcome cards, and approval shelf. The current mobile alignment gate begins 9,868px below the viewport, so decorative meeting structure displaces the actual judgment and authority boundary.
+- Impact: `docs/95_llm-native-source-backed-council-meeting-plan.md` changes only the browser presentation used by the accepted LLM-native shell. Legacy, real-local-stub, and real-openai-responses records and routes remain unchanged; all source-backed positions, conflict, synthesis, provider evidence, revision targets, approve/stop actions, WorkOrder preview, and Advanced Ops handoffs remain available. Schema v16, dependencies, persistence, provider policy, approval semantics, execution, source mutation, commit, push, release, scheduling, policy, and connector authority do not change.
+- Needed Before: Durable chat, generated or inferred Council messages, transcript mutation, automatic alignment or execution, provider fallback, runtime/API/schema/dependency changes, scheduling, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
