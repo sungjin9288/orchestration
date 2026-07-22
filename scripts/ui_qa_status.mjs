@@ -290,7 +290,13 @@ const smokeChecks = [
     id: 'ai-company-mission-evidence-graph-ui-api',
     script: 'scripts/smoke-ui-slice-672.mjs',
     purpose:
-      'Mission Thread and Graph selector, exact read-only evidence projection, keyboard-readable SVG, semantic mobile fallback, bounded 250-node contract, state-byte stability, and absent graph action controls',
+      'Mission Thread and Graph selector, exact read-only evidence projection, keyboard-readable SVG, semantic mobile fallback, bounded 250-node contract, state-byte stability, and absent authority-bearing graph controls',
+  },
+  {
+    id: 'ai-company-mission-evidence-graph-exploration',
+    script: 'scripts/smoke-ui-slice-673.mjs',
+    purpose:
+      'Browser-only graph search, lifecycle and status filters, direct-neighbor focus, read-only source detail, keyboard and mobile selection parity, escaped graph text, and absent explorer persistence or authority actions',
   },
 ];
 

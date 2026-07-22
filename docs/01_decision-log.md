@@ -886,6 +886,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/89_mission-evidence-graph-phase-2-plan.md` fixes one schema-v16-preserving `loadStateReadonly()` projection, exact project/Mission scope, source-backed node and edge refs, deterministic digest and truncation, body/path/credential omission, one GET-only API, and one browser-memory SVG view beside the unchanged Thread default. No dependency, schema field, `saveState`, graph record, provider call, approval, execution, resume, source mutation, commit, push, release, scheduler, policy mutation, or connector authority is added.
 - Needed Before: Search, filters, focus-and-dim, detail navigation, timeline or replay, persisted graph state, Canvas/WebGL/Three.js, 2.5D/3D, graph mutation, or any authority-bearing graph action requires a separate explicit implementation decision and focused verification.
 
+### DEC-139
+- Status: `Accepted`
+- Decision: Accept the delegated non-critical Mission Evidence Graph Phase 3 implementation for browser-only search, lifecycle/status filters, selected-node focus-and-dim, and one read-only detail region over the existing exact GET response.
+- Why: Phase 2 proves a bounded source-backed projection, but large Mission graphs still require visual scanning to find one record or inspect its immediate relationships. The operator previously delegated self-approval for non-critical decisions, and this slice is reversible presentation logic that does not alter runtime, schema, API, source evidence, provider behavior, or downstream authority.
+- Impact: `docs/90_mission-evidence-graph-exploration-phase-3-plan.md` limits implementation to a pure client-side view model and browser-memory controls. `Thread` remains default; the Phase 2 GET response and source digest remain authoritative; selection exposes only existing graph fields and exact visible edge refs. No graph persistence, runtime search/index, ranking, recommendation, automatic selection, detail navigation, timeline/replay, 3D, provider call, approval, execution, resume, source mutation, commit, push, release, scheduler, policy mutation, or connector authority is added.
+- Needed Before: Runtime or durable graph retrieval, automatic selection, cross-Mission search, authority-bearing navigation/action, historical replay, persisted explorer state, Canvas/WebGL/Three.js, 2.5D/3D, or graph mutation requires another explicit implementation decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

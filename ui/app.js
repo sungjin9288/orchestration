@@ -164,7 +164,10 @@ import {
   getExecutionDeskStatus as getExecutionDeskStatusBase,
 } from './desk-status.js';
 import { createToken, escapeHtml, formatDate } from './formatters.js';
-import { renderMissionEvidenceGraph } from './mission-evidence-graph.js';
+import {
+  createMissionGraphExplorerView,
+  renderMissionEvidenceGraph,
+} from './mission-evidence-graph.js';
 import {
   parseChangeSummaryFileUpdates,
   parseIntegerValue,
@@ -326,6 +329,10 @@ const state = {
   missionEvidenceGraph: null,
   missionEvidenceGraphLoading: false,
   missionEvidenceGraphError: null,
+  missionGraphQuery: '',
+  missionGraphStage: 'all',
+  missionGraphStatusTone: 'all',
+  missionGraphSelectedNodeId: null,
   selectedTaskId: null,
   selectedRunId: null,
   selectedArtifactId: null,
@@ -4756,10 +4763,58 @@ async function fetchJson(url) {
   return response.json();
 }
 
+function resetMissionGraphExplorer() {
+  state.missionGraphQuery = '';
+  state.missionGraphStage = 'all';
+  state.missionGraphStatusTone = 'all';
+  state.missionGraphSelectedNodeId = null;
+}
+
+function reconcileMissionGraphSelection() {
+  if (!state.missionEvidenceGraph || !state.missionGraphSelectedNodeId) return;
+
+  const view = createMissionGraphExplorerView(state.missionEvidenceGraph, {
+    query: state.missionGraphQuery,
+    stage: state.missionGraphStage,
+    statusTone: state.missionGraphStatusTone,
+    selectedNodeId: state.missionGraphSelectedNodeId,
+  });
+  state.missionGraphSelectedNodeId = view.selectedNode?.id || null;
+}
+
+function restoreMissionGraphFocus({ controlName = null, nodeId = null } = {}) {
+  requestAnimationFrame(() => {
+    const candidates = nodeId
+      ? [...document.querySelectorAll('[data-action="select-mission-graph-node"]')]
+          .filter((element) => element.dataset.nodeId === nodeId)
+      : [...document.querySelectorAll(`[name="${controlName}"]`)];
+    const target = candidates.find((element) => element.getClientRects().length > 0) || candidates[0];
+    if (!target) return;
+
+    target.focus();
+    if (controlName === 'missionGraphQuery' && typeof target.setSelectionRange === 'function') {
+      const end = target.value.length;
+      target.setSelectionRange(end, end);
+    }
+  });
+}
+
+function selectMissionGraphNode(nodeId) {
+  const nodeExists = state.missionEvidenceGraph?.nodes?.some((node) => node.id === nodeId);
+  if (!nodeExists) return;
+
+  state.missionGraphSelectedNodeId =
+    state.missionGraphSelectedNodeId === nodeId ? null : nodeId;
+  reconcileMissionGraphSelection();
+  render();
+  restoreMissionGraphFocus({ nodeId });
+}
+
 async function loadMissionEvidenceGraph(missionId) {
   if (!missionId) {
     state.missionEvidenceGraph = null;
     state.missionEvidenceGraphError = null;
+    resetMissionGraphExplorer();
     return;
   }
 
@@ -4774,6 +4829,7 @@ async function loadMissionEvidenceGraph(missionId) {
 
     if (state.selectedMissionId === missionId) {
       state.missionEvidenceGraph = payload.missionEvidenceGraph || null;
+      reconcileMissionGraphSelection();
     }
   } catch (error) {
     if (state.selectedMissionId === missionId) {
@@ -5182,6 +5238,7 @@ async function hydrateSelectedDetails() {
       if (state.selectedMissionId === selectedMission.id) {
         state.missionEvidenceGraph = graphPayload.missionEvidenceGraph || null;
         state.missionEvidenceGraphError = null;
+        reconcileMissionGraphSelection();
       }
     } catch (error) {
       if (state.selectedMissionId === selectedMission.id) {
@@ -5285,6 +5342,7 @@ function syncSelectionsFromMission(missionId) {
     state.missionEvidenceGraph = null;
     state.missionEvidenceGraphError = null;
     state.missionEvidenceGraphLoading = false;
+    resetMissionGraphExplorer();
   }
 
   if (mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)) {
@@ -11170,6 +11228,10 @@ function renderMission(data) {
             ? renderMissionEvidenceGraph(state.missionEvidenceGraph, {
                 loading: state.missionEvidenceGraphLoading,
                 error: state.missionEvidenceGraphError,
+                query: state.missionGraphQuery,
+                stage: state.missionGraphStage,
+                statusTone: state.missionGraphStatusTone,
+                selectedNodeId: state.missionGraphSelectedNodeId,
               })
             : renderLlmMissionWorkstream({
                 mission: selectedMission,
@@ -18556,6 +18618,18 @@ document.addEventListener('click', async (event) => {
     return;
   }
 
+  if (actionButton?.dataset.action === 'select-mission-graph-node') {
+    selectMissionGraphNode(actionButton.dataset.nodeId);
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'clear-mission-graph-explorer') {
+    resetMissionGraphExplorer();
+    render();
+    restoreMissionGraphFocus({ controlName: 'missionGraphQuery' });
+    return;
+  }
+
   if (actionButton?.dataset.action === 'set-evidence-density') {
     const density = EVIDENCE_DENSITY_OPTIONS.includes(actionButton.dataset.density)
       ? actionButton.dataset.density
@@ -18890,6 +18964,9 @@ document.addEventListener('click', async (event) => {
 });
 
 function handleFormInput(event) {
+  const missionGraphExplorerForm = event.target.closest(
+    '[data-form="mission-graph-explorer"]',
+  );
   const runHarnessOperatorActionForm = event.target.closest(
     '[data-form="run-harness-operator-action"]',
   );
@@ -18924,6 +19001,25 @@ function handleFormInput(event) {
   const verificationProofForm = event.target.closest(
     '[data-form="workorder-verification-proof"]',
   );
+
+  if (missionGraphExplorerForm) {
+    if (event.target.name === 'missionGraphQuery') {
+      state.missionGraphQuery = event.target.value.slice(0, 120);
+    }
+    if (event.target.name === 'missionGraphStage') {
+      state.missionGraphStage = event.target.value;
+    }
+    if (event.target.name === 'missionGraphStatusTone') {
+      state.missionGraphStatusTone = event.target.value;
+    }
+
+    if (event.type === 'change' && event.target.name !== 'missionGraphQuery') {
+      reconcileMissionGraphSelection();
+      render();
+      restoreMissionGraphFocus({ controlName: event.target.name });
+    }
+    return;
+  }
 
   if (acceptanceCriteriaForm) {
     if (event.target.name === 'acceptanceCriteriaRationale') {
@@ -19137,10 +19233,24 @@ document.addEventListener('input', handleFormInput);
 document.addEventListener('change', handleFormInput);
 
 document.addEventListener('keydown', async (event) => {
+  const graphNode = event.target.closest?.('[data-action="select-mission-graph-node"]');
+  if (
+    graphNode &&
+    graphNode.tagName.toLowerCase() !== 'button' &&
+    (event.key === 'Enter' || event.key === ' ')
+  ) {
+    event.preventDefault();
+    selectMissionGraphNode(graphNode.dataset.nodeId);
+    return;
+  }
+
   await handleNavGroupTabKeydown(event);
 });
 
 document.addEventListener('submit', async (event) => {
+  const missionGraphExplorerForm = event.target.closest(
+    '[data-form="mission-graph-explorer"]',
+  );
   const runHarnessOperatorActionForm = event.target.closest(
     '[data-form="run-harness-operator-action"]',
   );
@@ -19152,6 +19262,14 @@ document.addEventListener('submit', async (event) => {
   const createTaskForm = event.target.closest('[data-form="create-task"]');
   const createCompanyMemberForm = event.target.closest('[data-form="create-company-member"]');
   const updateCompanyMemberForm = event.target.closest('[data-form="update-company-member"]');
+
+  if (missionGraphExplorerForm) {
+    event.preventDefault();
+    reconcileMissionGraphSelection();
+    render();
+    restoreMissionGraphFocus({ controlName: 'missionGraphQuery' });
+    return;
+  }
 
   if (runHarnessOperatorActionForm) {
     event.preventDefault();

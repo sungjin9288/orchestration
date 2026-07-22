@@ -10993,6 +10993,70 @@ body .llm-app-shell .llm-mission-composer .form-help {
   font-size: 0.64rem;
 }
 
+.mission-graph-explorer {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(140px, 180px) minmax(140px, 180px) auto;
+  gap: 10px;
+  align-items: end;
+  padding: 12px 2px;
+  border-top: 1px solid #f0f0f2;
+}
+
+.mission-graph-explorer label {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.mission-graph-explorer label > span {
+  color: #52525b;
+  font-size: 0.66rem;
+  font-weight: 650;
+}
+
+.mission-graph-explorer input,
+.mission-graph-explorer select {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid #d4d4d8;
+  border-radius: 6px;
+  background: #fff;
+  color: #27272a;
+  font: inherit;
+  font-size: 0.72rem;
+}
+
+.mission-graph-explorer input:focus-visible,
+.mission-graph-explorer select:focus-visible {
+  border-color: #0f766e;
+  outline: 2px solid rgba(15, 118, 110, 0.18);
+  outline-offset: 1px;
+}
+
+.mission-graph-explorer-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.mission-graph-explorer-actions .secondary-button {
+  min-height: 34px;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.mission-graph-reset-button {
+  background: transparent;
+}
+
+.mission-graph-result-count {
+  margin: 0;
+  padding: 0 2px 10px;
+  color: #71717a;
+  font-size: 0.66rem;
+}
+
 .mission-evidence-graph-legend {
   display: flex;
   align-items: center;
@@ -11031,6 +11095,7 @@ body .llm-app-shell .llm-mission-composer .form-help {
 }
 
 .mission-evidence-graph-viewport {
+  position: relative;
   max-height: 620px;
   overflow: auto;
   border-top: 1px solid #ececef;
@@ -11068,7 +11133,12 @@ body .llm-app-shell .llm-mission-composer .form-help {
   opacity: 0.42;
 }
 
+.graph-edges line.is-dimmed {
+  opacity: 0.08;
+}
+
 .graph-node {
+  cursor: pointer;
   outline: none;
 }
 
@@ -11125,6 +11195,28 @@ body .llm-app-shell .llm-mission-composer .form-help {
   stroke-width: 4;
 }
 
+.graph-node.is-selected circle {
+  stroke: #18181b;
+  stroke-width: 4;
+}
+
+.graph-node.is-dimmed {
+  opacity: 0.18;
+}
+
+.mission-graph-no-results {
+  position: absolute;
+  z-index: 1;
+  top: 82px;
+  left: 50%;
+  margin: 0;
+  padding: 8px 10px;
+  color: #71717a;
+  font-size: 0.72rem;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
 .mission-evidence-graph-fallback {
   display: none;
   margin: 0;
@@ -11162,10 +11254,29 @@ body .llm-app-shell .llm-mission-composer .form-help {
 }
 
 .mission-evidence-graph-fallback-body li {
+  min-width: 0;
+}
+
+.mission-evidence-graph-fallback-body li button {
   display: grid;
+  width: 100%;
+  min-width: 0;
   gap: 2px;
-  padding-left: 10px;
+  padding: 5px 7px 5px 10px;
+  border: 0;
   border-left: 2px solid #d4d4d8;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mission-evidence-graph-fallback-body li button:hover,
+.mission-evidence-graph-fallback-body li button:focus-visible,
+.mission-evidence-graph-fallback-body li button.is-selected {
+  border-left-color: #0f766e;
+  background: #f4fafa;
+  outline: none;
 }
 
 .mission-evidence-graph-fallback-body strong {
@@ -11182,6 +11293,119 @@ body .llm-app-shell .llm-mission-composer .form-help {
   color: #71717a;
   font-size: 0.66rem;
   line-height: 1.45;
+}
+
+.mission-graph-detail {
+  display: grid;
+  gap: 12px;
+  min-height: 56px;
+  padding: 14px 2px;
+  border-top: 1px solid #ececef;
+}
+
+.mission-graph-detail > p,
+.mission-graph-relationships > p {
+  margin: 0;
+  color: #71717a;
+  font-size: 0.72rem;
+}
+
+.mission-graph-detail-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mission-graph-detail-heading p {
+  margin: 0 0 4px;
+  color: #71717a;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+}
+
+.mission-graph-detail-heading h4 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #18181b;
+  font-size: 0.88rem;
+}
+
+.mission-graph-detail-heading > span {
+  padding: 3px 6px;
+  border: 1px solid #d4d4d8;
+  border-radius: 4px;
+  color: #52525b;
+  font-size: 0.64rem;
+  white-space: nowrap;
+}
+
+.mission-graph-detail dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 18px;
+  margin: 0;
+}
+
+.mission-graph-detail dl > div {
+  min-width: 0;
+}
+
+.mission-graph-detail dt {
+  margin-bottom: 3px;
+  color: #71717a;
+  font-size: 0.62rem;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.mission-graph-detail dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #3f3f46;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.66rem;
+}
+
+.mission-graph-relationships {
+  display: grid;
+  gap: 8px;
+}
+
+.mission-graph-relationships h5 {
+  margin: 0;
+  color: #3f3f46;
+  font-size: 0.7rem;
+}
+
+.mission-graph-relationships ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mission-graph-relationships li {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  padding-left: 9px;
+  border-left: 2px solid #d4d4d8;
+}
+
+.mission-graph-relationships span,
+.mission-graph-relationships code {
+  overflow-wrap: anywhere;
+  color: #71717a;
+  font-size: 0.62rem;
+}
+
+.mission-graph-relationships strong {
+  overflow-wrap: anywhere;
+  color: #27272a;
+  font-size: 0.7rem;
 }
 
 .mission-evidence-graph-footnote {
@@ -11690,6 +11914,19 @@ body .llm-app-shell .llm-project-bootstrap-layout > .detail-card {
     gap: 6px;
   }
 
+  .mission-graph-explorer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mission-graph-search,
+  .mission-graph-explorer-actions {
+    grid-column: 1 / -1;
+  }
+
+  .mission-graph-explorer-actions .secondary-button {
+    flex: 1;
+  }
+
   .mission-evidence-graph-viewport,
   .mission-evidence-graph-legend {
     display: none;
@@ -11701,5 +11938,16 @@ body .llm-app-shell .llm-project-bootstrap-layout > .detail-card {
 
   .mission-evidence-graph-fallback > summary {
     min-height: 42px;
+  }
+
+  .mission-graph-detail-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .mission-graph-detail dl,
+  .mission-graph-relationships ul {
+    grid-template-columns: 1fr;
   }
 }

@@ -704,7 +704,12 @@ const informationalChecks = [
   {
     id: 'ai-company-mission-evidence-graph-ui-api',
     script: 'scripts/smoke-ui-slice-672.mjs',
-    purpose: 'Mission Thread and Graph UI and exact GET API prove opt-in read-only SVG projection, semantic mobile fallback, safe missing and wrong-method failures, state-byte stability, and absent graph selection mutation approval execution commit push or release controls',
+    purpose: 'Mission Thread and Graph UI and exact GET API prove opt-in read-only SVG projection, semantic mobile fallback, safe missing and wrong-method failures, state-byte stability, and absent authority-bearing graph controls',
+  },
+  {
+    id: 'ai-company-mission-evidence-graph-exploration',
+    script: 'scripts/smoke-ui-slice-673.mjs',
+    purpose: 'Mission graph browser-only exploration proves deterministic short-field search, lifecycle and status filtering, direct-neighbor focus, read-only relationship detail, stale-selection cleanup, escaped text, source immutability, and zero persistence or authority actions',
   },
   {
     id: 'wigolo-exact-fetch-adapter',

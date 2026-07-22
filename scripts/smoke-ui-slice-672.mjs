@@ -92,11 +92,19 @@ async function main() {
     assert.match(appSource, /data-view-mode="graph"/);
     assert.match(appSource, /renderMissionEvidenceGraph\(state\.missionEvidenceGraph/);
     assert.match(appSource, /\/evidence-graph`/);
-    assert.doesNotMatch(appSource, /data-action="(?:select|focus|mutate|approve|run)-graph/);
+    assert.doesNotMatch(
+      appSource,
+      /data-action="(?:approve|execute|resume|mutate|commit|push|release)-mission-graph/,
+    );
     assert.match(rendererSource, /MISSION_GRAPH_STAGES/);
-    assert.match(rendererSource, /role="listitem"/);
+    assert.match(rendererSource, /role="button"/);
+    assert.match(rendererSource, /aria-pressed=/);
     assert.match(rendererSource, /mission-evidence-graph-fallback/);
-    assert.doesNotMatch(rendererSource, /fetch\(|localStorage|sessionStorage|data-action=/);
+    assert.doesNotMatch(rendererSource, /fetch\(|localStorage|sessionStorage/);
+    assert.doesNotMatch(
+      rendererSource,
+      /data-action="(?:approve|execute|resume|mutate|commit|push|release)-mission-graph/,
+    );
     assert.match(stylesSource, /\.mission-view-selector/);
     assert.match(stylesSource, /\.mission-evidence-graph-viewport/);
     assert.match(stylesSource, /\.graph-node:focus-visible circle/);
@@ -138,11 +146,15 @@ async function main() {
 
     const rendered = renderMissionEvidenceGraph(graph);
     assert.match(rendered, /<svg/);
-    assert.match(rendered, /role="list"/);
-    assert.match(rendered, /role="listitem"/);
+    assert.match(rendered, /role="group"/);
+    assert.match(rendered, /role="button"/);
     assert.match(rendered, /Read-only projection/);
     assert.match(rendered, /exact GET · state write 없음/);
-    assert.doesNotMatch(rendered, /data-action=/);
+    assert.match(rendered, /data-action="select-mission-graph-node"/);
+    assert.doesNotMatch(
+      rendered,
+      /data-action="(?:approve|execute|resume|mutate|commit|push|release)-mission-graph/,
+    );
     const escaped = renderMissionEvidenceGraph({
       ...graph,
       counts: { ...graph.counts, projectedNodes: 1, projectedEdges: 0 },
@@ -165,7 +177,8 @@ async function main() {
         defaultView: 'thread',
         selectableView: 'graph',
         semanticFallback: true,
-        graphActions: 0,
+        browserOnlyExplorerActions: true,
+        authorityActions: 0,
         responsiveBreakpoint: 520,
       },
       graph: {

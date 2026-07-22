@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `245\/245`, total `246\/246`/,
-  /UI QA is required `50\/50`/,
+  /required `1\/1`, informational `246\/246`, total `247\/247`/,
+  /UI QA is required `51\/51`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `246\/246`, UI QA `50\/50`, zero-open backlog/,
+  /aggregate `247\/247`, UI QA `51\/51`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1357,6 +1357,18 @@ const readmeTestingCommandEvidence = [
 
 assertReadmeHasAll(readmeTestingCommandEvidence);
 
+const missionGraphExplorationEvidence = [
+  /docs\/90_mission-evidence-graph-exploration-phase-3-plan\.md/,
+  /Mission evidence graph Phase 3 exploration is accepted by `DEC-139`/,
+  /browser-memory search over short node fields/,
+  /node scripts\/smoke-ui-slice-673\.mjs/,
+  /output\/playwright\/orchestration-mission-evidence-graph-phase3-desktop\.png/,
+  /output\/playwright\/orchestration-mission-evidence-graph-phase3-mobile\.png/,
+  /Runtime search\/index, persisted explorer state,[\s\S]*authority-bearing actions remain[\s\S]*outside the implemented scope/,
+];
+
+assertReadmeHasAll(missionGraphExplorationEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1405,7 +1417,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `246\/246`, UI QA `50\/50`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `247\/247`, UI QA `51\/51`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

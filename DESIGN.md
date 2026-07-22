@@ -102,6 +102,12 @@ Hierarchy:
   color alone never communicates record state.
 - Desktop may use a bounded scroll area for the SVG. At 390px, replace the SVG with the semantic
   evidence list so the page keeps zero horizontal overflow.
+- Keep graph exploration compact: one short-field search, one lifecycle menu, one status menu, and
+  one reset command. These controls filter the current response; they do not become a query builder.
+- Selecting a node should emphasize only that node and its direct visible neighbors, then show exact
+  source and relationship refs in one unframed detail region below the graph.
+- Desktop SVG nodes and mobile list buttons share the same selected state and keyboard behavior.
+  Explorer state stays in browser memory and clears when the Mission changes.
 
 ### Context Inspector
 
