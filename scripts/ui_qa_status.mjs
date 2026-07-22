@@ -286,6 +286,12 @@ const smokeChecks = [
     purpose:
       'Prompt-first Mission composer, chronological operator and agent workstream, compact context inspector, preserved Advanced Ops controls, and responsive LLM-native shell',
   },
+  {
+    id: 'ai-company-mission-evidence-graph-ui-api',
+    script: 'scripts/smoke-ui-slice-672.mjs',
+    purpose:
+      'Mission Thread and Graph selector, exact read-only evidence projection, keyboard-readable SVG, semantic mobile fallback, bounded 250-node contract, state-byte stability, and absent graph action controls',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

@@ -1324,6 +1324,30 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const missionEvidenceGraphMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/evidence-graph$/,
+  );
+  if (missionEvidenceGraphMatch) {
+    if (method !== 'GET') {
+      json(response, 405, { error: 'Mission evidence graph는 GET 조회만 지원합니다.' });
+      return;
+    }
+
+    try {
+      const missionId = decodeURIComponent(missionEvidenceGraphMatch[1]);
+      json(response, 200, {
+        missionEvidenceGraph: runtime.getMissionEvidenceGraph(missionId),
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Mission evidence graph 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const missionCreateLinkedTaskMatch = url.pathname.match(
     /^\/api\/missions\/([^/]+)\/create-linked-task$/,
   );
@@ -3974,6 +3998,11 @@ const server = createServer(async (request, response) => {
 
   if (url.pathname === '/app.js') {
     await serveStaticAsset(response, 'app.js');
+    return;
+  }
+
+  if (url.pathname === '/mission-evidence-graph.js') {
+    await serveStaticAsset(response, 'mission-evidence-graph.js');
     return;
   }
 

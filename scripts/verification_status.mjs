@@ -697,6 +697,16 @@ const informationalChecks = [
     purpose: 'LLM-native primary shell proves prompt-first Mission intake, chronological agent workstream, compact context inspection, responsive layout, and preserved Advanced Ops authority',
   },
   {
+    id: 'ai-company-mission-evidence-graph',
+    script: 'scripts/smoke-ai-company-mission-evidence-graph.mjs',
+    purpose: 'Mission evidence graph runtime proves deterministic schema-v16 read-only projection, exact active-project and Mission binding, 250-node cap, source-reference closure, sensitive-body exclusion, deep-frozen output, and byte-stable state with every graph action blocked',
+  },
+  {
+    id: 'ai-company-mission-evidence-graph-ui-api',
+    script: 'scripts/smoke-ui-slice-672.mjs',
+    purpose: 'Mission Thread and Graph UI and exact GET API prove opt-in read-only SVG projection, semantic mobile fallback, safe missing and wrong-method failures, state-byte stability, and absent graph selection mutation approval execution commit push or release controls',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

@@ -90,6 +90,19 @@ Hierarchy:
 - Use unframed rows and dividers instead of chat bubbles or nested cards.
 - Tool and run activity uses compact inline status rather than fake typing animation.
 
+### Mission Evidence Graph
+
+- `Thread` remains the default Mission reading model; `Graph` is an explicit alternate view for the
+  selected Mission.
+- The graph projects source-backed Mission, Council, Execution, Verification, Delivery, and Learning
+  records. It does not infer actions, persist layout, or change runtime state.
+- Keep the projection at 250 nodes or fewer. Larger source sets use deterministic truncation and
+  state the excluded count.
+- Stage color, node size, text status, keyboard labels, and a semantic list fallback work together;
+  color alone never communicates record state.
+- Desktop may use a bounded scroll area for the SVG. At 390px, replace the SVG with the semantic
+  evidence list so the page keeps zero horizontal overflow.
+
 ### Context Inspector
 
 - Desktop may show one narrow right inspector for current Mission, authority, next gate, and evidence.
@@ -99,7 +112,7 @@ Hierarchy:
 
 ## 5. Surface Semantics
 
-- `Mission`: goal composer, current Mission thread, recent Mission history
+- `Mission`: goal composer, current Mission thread or read-only evidence graph, recent Mission history
 - `Council`: source-backed role positions, conflict, synthesis, operator alignment
 - `Execution`: WorkOrders, current step, bounded progress, approval and resume gates
 - `Deliverables`: result, verification, review, package, acceptance, close-out
@@ -125,6 +138,7 @@ The shell must keep `review before done` and `approval before commit` visible at
 - Keep visible keyboard focus and the existing skip link.
 - Navigation exposes one current item; inactive items omit `aria-current`.
 - Agent turns and execution stages use ordered/list semantics where sequence matters.
+- Evidence graph nodes are keyboard focusable and expose label, kind, status, and source reference.
 - Loading, provider, approval, and failure states are announced without moving focus unexpectedly.
 - Destructive or authority-widening actions never hide behind an icon-only control.
 - Familiar icon-only controls require an accessible name and tooltip.

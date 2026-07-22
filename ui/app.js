@@ -164,6 +164,7 @@ import {
   getExecutionDeskStatus as getExecutionDeskStatusBase,
 } from './desk-status.js';
 import { createToken, escapeHtml, formatDate } from './formatters.js';
+import { renderMissionEvidenceGraph } from './mission-evidence-graph.js';
 import {
   parseChangeSummaryFileUpdates,
   parseIntegerValue,
@@ -321,6 +322,10 @@ const state = {
   selectionSeeded: false,
   error: null,
   selectedMissionId: null,
+  missionViewMode: 'thread',
+  missionEvidenceGraph: null,
+  missionEvidenceGraphLoading: false,
+  missionEvidenceGraphError: null,
   selectedTaskId: null,
   selectedRunId: null,
   selectedArtifactId: null,
@@ -4751,6 +4756,52 @@ async function fetchJson(url) {
   return response.json();
 }
 
+async function loadMissionEvidenceGraph(missionId) {
+  if (!missionId) {
+    state.missionEvidenceGraph = null;
+    state.missionEvidenceGraphError = null;
+    return;
+  }
+
+  state.missionEvidenceGraphLoading = true;
+  state.missionEvidenceGraphError = null;
+  render();
+
+  try {
+    const payload = await fetchJson(
+      `/api/missions/${encodeURIComponent(missionId)}/evidence-graph`,
+    );
+
+    if (state.selectedMissionId === missionId) {
+      state.missionEvidenceGraph = payload.missionEvidenceGraph || null;
+    }
+  } catch (error) {
+    if (state.selectedMissionId === missionId) {
+      state.missionEvidenceGraph = null;
+      state.missionEvidenceGraphError = error.message;
+    }
+  } finally {
+    if (state.selectedMissionId === missionId) {
+      state.missionEvidenceGraphLoading = false;
+      render();
+    }
+  }
+}
+
+async function setMissionViewMode(viewMode) {
+  state.missionViewMode = viewMode === 'graph' ? 'graph' : 'thread';
+
+  if (state.missionViewMode === 'graph') {
+    const missionId = state.selectedMissionId;
+    const currentGraphMatches = state.missionEvidenceGraph?.missionId === missionId;
+    if (!currentGraphMatches) await loadMissionEvidenceGraph(missionId);
+    else render();
+    return;
+  }
+
+  render();
+}
+
 async function postJson(url, body) {
   const response = await fetch(url, {
     method: 'POST',
@@ -5122,6 +5173,23 @@ async function hydrateSelectedDetails() {
     state.missionExecutionPlanRecovery = recoveryPayload.executionPlanRecovery || null;
     state.workOrderVerificationStatus = verificationPayload.verificationStatus || null;
   }
+
+  if (state.missionViewMode === 'graph' && selectedMission) {
+    try {
+      const graphPayload = await fetchJson(
+        `/api/missions/${encodeURIComponent(selectedMission.id)}/evidence-graph`,
+      );
+      if (state.selectedMissionId === selectedMission.id) {
+        state.missionEvidenceGraph = graphPayload.missionEvidenceGraph || null;
+        state.missionEvidenceGraphError = null;
+      }
+    } catch (error) {
+      if (state.selectedMissionId === selectedMission.id) {
+        state.missionEvidenceGraph = null;
+        state.missionEvidenceGraphError = error.message;
+      }
+    }
+  }
 }
 
 async function refreshData() {
@@ -5208,9 +5276,16 @@ function syncSelectionsFromTask(taskId, options = {}) {
 function syncSelectionsFromMission(missionId) {
   const data = getDerived();
   const mission = data.missionMap.get(missionId) || null;
+  const missionChanged = state.selectedMissionId !== missionId;
 
   state.selectedMissionId = missionId;
   state.selectionSeeded = true;
+
+  if (missionChanged) {
+    state.missionEvidenceGraph = null;
+    state.missionEvidenceGraphError = null;
+    state.missionEvidenceGraphLoading = false;
+  }
 
   if (mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)) {
     syncSelectionsFromTask(mission.linkedTaskId, {
@@ -10498,6 +10573,32 @@ function renderLlmMissionWorkstream(options = {}) {
   `;
 }
 
+function renderMissionViewSelector(mission) {
+  const graphDisabled = !mission || state.loading || state.mutating;
+
+  return `
+    <div class="mission-view-selector" role="tablist" aria-label="미션 표시 방식">
+      <button
+        type="button"
+        role="tab"
+        aria-selected="${state.missionViewMode === 'thread'}"
+        class="mission-view-option ${state.missionViewMode === 'thread' ? 'is-selected' : ''}"
+        data-action="set-mission-view"
+        data-view-mode="thread"
+      >Thread</button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected="${state.missionViewMode === 'graph'}"
+        class="mission-view-option ${state.missionViewMode === 'graph' ? 'is-selected' : ''}"
+        data-action="set-mission-view"
+        data-view-mode="graph"
+        ${graphDisabled ? 'disabled' : ''}
+      >Graph</button>
+    </div>
+  `;
+}
+
 function renderLlmMissionInspector(options = {}) {
   const mission = options.mission || null;
 
@@ -10947,7 +11048,7 @@ function renderMission(data) {
         draftGoal: state.missionDraftGoal,
       })}
       ${missionViewportStrip}
-      <div class="surface-grid llm-mission-layout">
+      <div class="surface-grid llm-mission-layout ${state.missionViewMode === 'graph' ? 'llm-mission-layout-graph' : ''}">
       <section class="surface-panel llm-mission-main">
         <div class="panel-header panel-header-tight">
           <div>
@@ -11063,14 +11164,22 @@ function renderMission(data) {
             </div>
           </div>
         </form>
-        ${renderLlmMissionWorkstream({
-          mission: selectedMission,
-          council: selectedMissionCouncilPreview,
-          execution: selectedMissionExecutionPreview,
-          deliverables: selectedMissionDeliverablesPreview,
-          nextAction: selectedMissionNextActionPreview,
-          linkedTask,
-        })}
+        ${renderMissionViewSelector(selectedMission)}
+        ${
+          state.missionViewMode === 'graph'
+            ? renderMissionEvidenceGraph(state.missionEvidenceGraph, {
+                loading: state.missionEvidenceGraphLoading,
+                error: state.missionEvidenceGraphError,
+              })
+            : renderLlmMissionWorkstream({
+                mission: selectedMission,
+                council: selectedMissionCouncilPreview,
+                execution: selectedMissionExecutionPreview,
+                deliverables: selectedMissionDeliverablesPreview,
+                nextAction: selectedMissionNextActionPreview,
+                linkedTask,
+              })
+        }
         <details class="llm-mission-history">
           <summary>
             <span>최근 미션</span>
@@ -18439,6 +18548,11 @@ document.addEventListener('click', async (event) => {
     state.surface = targetSurface;
     rememberSurfaceVisit(targetSurface);
     render();
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'set-mission-view') {
+    await setMissionViewMode(actionButton.dataset.viewMode);
     return;
   }
 
