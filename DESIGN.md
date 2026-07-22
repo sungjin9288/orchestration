@@ -140,6 +140,19 @@ Hierarchy:
 - Render no typing indicators, avatars, seating charts, synthetic agreement, future role turns, or
   inferred messages.
 
+### Execution Flow
+
+- Lead with the selected Mission and linked task, then show the current source-backed checkpoint and
+  its one bounded operator command before the broader progress record.
+- Render Strategist, Architect, Decomposer, Maker, and Critic as one ordered execution progress list.
+  Completed, current, blocked, and waiting labels must come from the existing checkpoint projection.
+- Do not repeat the current gate through a command board, a second judgment deck, a gate queue card,
+  and a separate action shelf.
+- Keep exact run, approval, inbox, artifact, preflight, harness, and readiness evidence in collapsed
+  secondary details. Those details may explain authority but must not create or select an action.
+- The visible command must reuse an existing action handler and exact readiness boolean. Rendering it
+  never resolves an approval, advances a stage, or starts background work.
+
 ## 5. Surface Semantics
 
 - `Mission`: goal composer, current Mission thread or read-only evidence graph, recent Mission history

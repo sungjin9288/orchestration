@@ -12094,6 +12094,324 @@ body .llm-app-shell .llm-mission-composer .form-help {
   justify-content: flex-start;
 }
 
+.llm-execution-shell {
+  display: grid;
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 18px 2px 32px;
+}
+
+.llm-execution-lead {
+  padding: 4px 2px 22px;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.llm-execution-lead h2 {
+  max-width: 26ch;
+  margin: 12px 0 8px;
+  overflow-wrap: anywhere;
+  color: #18181b;
+  font-size: 1.55rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.llm-execution-lead > p {
+  max-width: 72ch;
+  margin: 0 0 14px;
+  overflow-wrap: anywhere;
+  color: #52525b;
+  font-size: 0.86rem;
+  line-height: 1.58;
+}
+
+.llm-execution-current,
+.llm-execution-waiting {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.llm-execution-current-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.llm-execution-current-copy,
+.llm-execution-waiting > div {
+  min-width: 0;
+}
+
+.llm-execution-current h3,
+.llm-execution-waiting h3 {
+  margin: 8px 0 6px;
+  overflow-wrap: anywhere;
+  color: #18181b;
+  font-size: 1rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.llm-execution-current-copy > p,
+.llm-execution-waiting > div > p {
+  max-width: 72ch;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #52525b;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.llm-execution-current-copy .llm-execution-stop {
+  margin-top: 10px;
+  color: #71717a;
+  font-size: 0.74rem;
+}
+
+.llm-execution-stop strong {
+  margin-right: 5px;
+  color: #52525b;
+}
+
+.llm-execution-current .token-row {
+  margin-top: 12px;
+}
+
+.llm-execution-command {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  margin-top: 16px;
+}
+
+.llm-execution-command .primary-button {
+  min-height: 40px;
+  background: #0f766e;
+  box-shadow: none;
+}
+
+.llm-execution-command p,
+.llm-execution-command-empty {
+  max-width: 68ch;
+  margin: 0;
+  color: #71717a;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.llm-execution-command-empty {
+  margin-top: 16px;
+}
+
+.llm-execution-secondary-actions {
+  margin-top: 12px;
+}
+
+.llm-execution-progress,
+.llm-execution-workorders {
+  display: grid;
+  margin-top: 24px;
+}
+
+.llm-execution-progress-list,
+.llm-execution-workorders > ol {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid #e4e4e7;
+  list-style: none;
+}
+
+.llm-execution-progress-step {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px 2px;
+  border-top: 1px solid #e4e4e7;
+}
+
+.llm-execution-progress-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: #71717a;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.llm-execution-progress-step-complete .llm-execution-progress-mark {
+  background: #15803d;
+}
+
+.llm-execution-progress-step-current .llm-execution-progress-mark {
+  background: #7c3aed;
+}
+
+.llm-execution-progress-step-blocked .llm-execution-progress-mark {
+  background: #b42318;
+}
+
+.llm-execution-progress-copy {
+  min-width: 0;
+}
+
+.llm-execution-progress-copy > p {
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
+  color: #52525b;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.llm-execution-progress-copy .llm-execution-progress-meta,
+.llm-execution-progress-copy .llm-execution-progress-next {
+  color: #71717a;
+  font-size: 0.7rem;
+}
+
+.llm-execution-progress-copy .llm-execution-progress-blocked {
+  color: #b42318;
+  font-size: 0.72rem;
+}
+
+.llm-execution-progress-empty {
+  margin: 0;
+  padding: 18px 2px;
+  border-top: 1px solid #e4e4e7;
+  color: #71717a;
+  font-size: 0.76rem;
+}
+
+.llm-execution-workorders > ol > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 2px;
+  border-top: 1px solid #e4e4e7;
+}
+
+.llm-execution-workorders li > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.llm-execution-workorders strong {
+  overflow-wrap: anywhere;
+  color: #27272a;
+  font-size: 0.78rem;
+}
+
+.llm-execution-workorders li span:not(.token) {
+  overflow-wrap: anywhere;
+  color: #71717a;
+  font-size: 0.68rem;
+}
+
+.llm-execution-inspector {
+  margin-top: 20px;
+}
+
+.llm-execution-inspector-body {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px 0 0;
+}
+
+.llm-execution-inspector-body > * {
+  min-width: 0;
+}
+
+.llm-execution-source-provenance {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.llm-execution-source-provenance .llm-context-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+.llm-execution-source-provenance .llm-context-list > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.3fr) minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+
+.llm-execution-source-provenance dt,
+.llm-execution-source-provenance dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #71717a;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.llm-execution-source-provenance dt {
+  color: #52525b;
+  font-weight: 650;
+}
+
+.llm-execution-source-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid #e4e4e7;
+  list-style: none;
+}
+
+.llm-execution-source-list li {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.3fr) minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+  padding: 9px 0;
+  border-bottom: 1px solid #ececef;
+  color: #52525b;
+  font-size: 0.7rem;
+}
+
+.llm-execution-source-list code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #71717a;
+  font-size: inherit;
+}
+
+.llm-execution-preflight-source {
+  display: grid;
+  gap: 10px;
+}
+
+.llm-execution-harness-body > .relation-strip,
+.llm-execution-harness-body > .ops-editor-scope {
+  margin: 0;
+}
+
 .llm-mission-history,
 .llm-deep-inspector {
   margin-top: 22px;
@@ -12545,6 +12863,59 @@ body .llm-app-shell .project-bootstrap-defaults {
 
   .council-source-record > span {
     text-align: left;
+  }
+
+  .llm-execution-shell {
+    padding: 12px 0 24px;
+  }
+
+  .llm-execution-lead {
+    padding-bottom: 18px;
+  }
+
+  .llm-execution-lead h2 {
+    font-size: 1.32rem;
+  }
+
+  .llm-execution-current,
+  .llm-execution-waiting {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .llm-execution-current-mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .llm-execution-command {
+    justify-items: stretch;
+  }
+
+  .llm-execution-command .primary-button,
+  .llm-execution-secondary-actions .secondary-button {
+    width: 100%;
+  }
+
+  .llm-execution-secondary-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .llm-execution-progress-step {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px 0;
+  }
+
+  .llm-execution-workorders > ol > li {
+    align-items: flex-start;
+  }
+
+  .llm-execution-source-provenance .llm-context-list > div,
+  .llm-execution-source-list li {
+    grid-template-columns: minmax(92px, 0.38fr) minmax(0, 1fr);
   }
 
   .llm-next-gate {

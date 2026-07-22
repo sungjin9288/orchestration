@@ -328,6 +328,12 @@ const smokeChecks = [
     purpose:
       'Source-backed Council role turns, one Conductor synthesis, conditional dissent, visible alignment actions, collapsed secondary evidence, and zero generated-message or runtime authority expansion',
   },
+  {
+    id: 'llm-native-source-backed-execution-flow',
+    script: 'scripts/smoke-ui-slice-679.mjs',
+    purpose:
+      'Source-backed current Execution checkpoint, one readiness-bound command, ordered progress, conditional durable WorkOrders, collapsed harness and provenance evidence, and zero runtime authority expansion',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

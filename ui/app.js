@@ -344,6 +344,10 @@ const state = {
     revision: false,
     workOrder: false,
   },
+  executionDisclosures: {
+    evidence: false,
+    harness: false,
+  },
   selectedTaskId: null,
   selectedRunId: null,
   selectedArtifactId: null,
@@ -5364,6 +5368,10 @@ function syncSelectionsFromMission(missionId) {
       source: false,
       revision: false,
       workOrder: false,
+    };
+    state.executionDisclosures = {
+      evidence: false,
+      harness: false,
     };
   }
 
@@ -14795,6 +14803,392 @@ function renderCouncilHeartbeatStrip(mission, councilSession, linkedTask) {
   `;
 }
 
+function getExecutionPrimaryAction(options = {}) {
+  const taskId = options.task?.id || null;
+  const inboxItemId = options.approvalBridge?.pendingInboxItem?.id || null;
+  const commands = [
+    {
+      allowed: options.canApproveCurrentGate,
+      action: 'run-inbox-action',
+      id: inboxItemId,
+      verb: 'approve',
+      label: '현재 지시 승인',
+      description: '현재 Builder preflight에 연결된 기존 live-mutation approval을 승인합니다.',
+    },
+    {
+      allowed: options.canApproveCommitGate,
+      action: 'run-inbox-action',
+      id: inboxItemId,
+      verb: 'approve',
+      label: '커밋 지시 승인',
+      description: '현재 commit-package provenance에 연결된 기존 commit approval을 승인합니다.',
+    },
+    {
+      allowed: options.canApproveReleaseGate,
+      action: 'run-inbox-action',
+      id: inboxItemId,
+      verb: 'approve',
+      label: '릴리스 지시 승인',
+      description: '현재 release-package provenance에 연결된 기존 release approval을 승인합니다.',
+    },
+    {
+      allowed: options.canRunLiveMutation,
+      action: 'run-builder-live-mutation',
+      id: taskId,
+      label: '라이브 변경 적용',
+      description: '승인된 preflight target에 한정된 기존 Builder live-mutation을 실행합니다.',
+    },
+    {
+      allowed: options.canRunReviewer,
+      action: 'run-reviewer',
+      id: taskId,
+      label: '검토 보고 생성',
+      description: '최신 Builder mutation bundle을 기준으로 기존 Reviewer 경로를 실행합니다.',
+    },
+    {
+      allowed: options.canPrepareCommitPackage,
+      action: 'run-commit-package',
+      id: taskId,
+      label: '커밋 패킷 준비',
+      description: '통과한 Reviewer bundle에서 기존 commit-package와 approval을 준비합니다.',
+    },
+    {
+      allowed: options.canRunLocalCommit,
+      action: 'run-local-commit',
+      id: taskId,
+      label: '승인된 로컬 커밋 실행',
+      description: '현재 승인된 commit-package provenance만 소비해 local commit을 실행합니다.',
+    },
+    {
+      allowed: options.canPrepareReleasePackage,
+      action: 'run-release-package',
+      id: taskId,
+      label: '릴리스 패킷 준비',
+      description: '현재 local commit bundle에서 기존 local-demo-only release package를 준비합니다.',
+    },
+    {
+      allowed: options.canRunCloseOut,
+      action: 'run-close-out',
+      id: taskId,
+      label: '승인된 종료 정리 실행',
+      description: '현재 승인된 release bundle과 clean-repo guard로 기존 close-out을 실행합니다.',
+    },
+  ];
+  const command = commands.find((entry) => entry.allowed && entry.id);
+
+  if (!command) {
+    return null;
+  }
+
+  return {
+    action: command.action,
+    description: command.description,
+    id: command.id,
+    label: command.label,
+    verb: command.verb || null,
+  };
+}
+
+function renderExecutionPrimaryAction(command, busy) {
+  if (!command) {
+    return '<p class="llm-execution-command-empty">현재 checkpoint에서 실행 가능한 operator command가 없습니다.</p>';
+  }
+
+  return `
+    <div class="llm-execution-command">
+      <button
+        class="primary-button"
+        type="button"
+        data-action="${escapeHtml(command.action)}"
+        data-id="${escapeHtml(command.id)}"
+        ${command.verb ? `data-verb="${escapeHtml(command.verb)}"` : ''}
+        ${busy ? 'disabled' : ''}
+      >
+        ${escapeHtml(command.label)}
+      </button>
+      <p>${escapeHtml(command.description)}</p>
+    </div>
+  `;
+}
+
+function renderExecutionCheckpointProgress(executionEvidence) {
+  if (!executionEvidence?.checkpoints?.length) {
+    return '<p class="llm-execution-progress-empty">기록된 execution checkpoint가 없습니다.</p>';
+  }
+
+  return `
+    <ol class="llm-execution-progress-list" aria-label="Source-backed execution progress">
+      ${executionEvidence.checkpoints
+        .map(
+          (checkpoint) => `
+            <li
+              class="llm-execution-progress-step llm-execution-progress-step-${escapeHtml(checkpoint.status)}"
+              ${checkpoint.currentOwner ? 'aria-current="step"' : ''}
+            >
+              <span class="llm-execution-progress-mark" aria-hidden="true">${escapeHtml(checkpoint.title.slice(0, 2).toUpperCase())}</span>
+              <div class="llm-execution-progress-copy">
+                <div class="llm-turn-meta">
+                  <strong>${escapeHtml(checkpoint.title)}</strong>
+                  <span>${escapeHtml(getEvidenceRailStatusDisplay(checkpoint.status))}</span>
+                </div>
+                <p>${escapeHtml(checkpoint.evidenceLabel)}</p>
+                ${checkpoint.evidenceMeta ? `<p class="llm-execution-progress-meta">${escapeHtml(checkpoint.evidenceMeta)}</p>` : ''}
+                ${checkpoint.blockedReason ? `<p class="llm-execution-progress-blocked">${escapeHtml(checkpoint.blockedReason)}</p>` : ''}
+                ${checkpoint.currentOwner && checkpoint.note ? `<p class="llm-execution-progress-next">${escapeHtml(checkpoint.note)}</p>` : ''}
+              </div>
+            </li>
+          `,
+        )
+        .join('')}
+    </ol>
+  `;
+}
+
+function getExecutionRecordTone(status) {
+  if (status === 'complete' || status === 'completed' || status === 'delivery-ready') {
+    return 'success';
+  }
+
+  if (status === 'active' || status === 'waiting-gate' || status === 'pending-approval') {
+    return 'warning';
+  }
+
+  if (String(status || '').includes('blocked') || status === 'failed' || status === 'rejected') {
+    return 'danger';
+  }
+
+  return 'neutral';
+}
+
+function renderExecutionWorkOrderProgress(bundle) {
+  if (!bundle?.executionPlan || !bundle.workOrders?.length) {
+    return '';
+  }
+
+  return `
+    <section class="llm-execution-workorders" aria-labelledby="llm-execution-workorders-title">
+      <div class="llm-section-heading">
+        <h3 id="llm-execution-workorders-title">WorkOrders</h3>
+        ${createToken(bundle.executionPlan.status, getExecutionRecordTone(bundle.executionPlan.status))}
+      </div>
+      <ol>
+        ${bundle.workOrders
+          .map(
+            (workOrder) => `
+              <li>
+                <div>
+                  <strong>${escapeHtml(workOrder.title)}</strong>
+                  <span>${escapeHtml(workOrder.assignedAgentId)}</span>
+                </div>
+                ${createToken(workOrder.status, getExecutionRecordTone(workOrder.status))}
+              </li>
+            `,
+          )
+          .join('')}
+      </ol>
+    </section>
+  `;
+}
+
+function renderExecutionSourceProvenance(options = {}) {
+  const sourceArtifacts = (options.sourceArtifacts || []).filter((entry) => entry.artifact);
+  const approval = options.approvalBridge?.currentApproval || null;
+  const inboxItem = options.approvalBridge?.pendingInboxItem || null;
+
+  return `
+    <div class="llm-execution-source-provenance">
+      <dl class="llm-context-list">
+        <div><dt>Mission</dt><dd>${escapeHtml(options.mission.id)}</dd></div>
+        <div><dt>Task</dt><dd>${escapeHtml(options.task.id)}</dd></div>
+        <div><dt>Current owner</dt><dd>${escapeHtml(options.executionEvidence.currentOwnerLabel)}</dd></div>
+        <div><dt>Next handoff</dt><dd>${escapeHtml(options.executionEvidence.nextHandoffLabel)}</dd></div>
+        <div><dt>Latest run</dt><dd>${escapeHtml(options.latestRun?.id || 'not-recorded')}</dd></div>
+        <div><dt>Approval</dt><dd>${escapeHtml(approval ? `${approval.id} · ${approval.status}` : 'not-recorded')}</dd></div>
+        <div><dt>Decision Inbox</dt><dd>${escapeHtml(inboxItem?.id || 'not-recorded')}</dd></div>
+      </dl>
+      <ul class="llm-execution-source-list" aria-label="Execution source artifacts">
+        ${
+          sourceArtifacts.length > 0
+            ? sourceArtifacts
+                .map(
+                  (entry) => `
+                    <li>
+                      <span>${escapeHtml(entry.label)}</span>
+                      <code>${escapeHtml(entry.artifact.id)}</code>
+                    </li>
+                  `,
+                )
+                .join('')
+            : '<li><span>Artifacts</span><code>not-recorded</code></li>'
+        }
+      </ul>
+      ${
+        options.parsedPreflight
+          ? `
+            <div class="llm-execution-preflight-source">
+              ${renderCompactList('대상 파일', options.parsedPreflight.targetFiles)}
+              ${renderCompactList('위험 요소', options.parsedPreflight.risks)}
+            </div>
+          `
+          : ''
+      }
+    </div>
+  `;
+}
+
+function renderExecutionWaitingSurface(options = {}) {
+  const { mission, councilSession, busy, projectName } = options;
+  const alignmentStatus = councilSession?.alignment?.status || 'pending';
+
+  return `
+    <div class="llm-execution-shell">
+      <section class="llm-execution-lead" aria-labelledby="llm-execution-title">
+        <div class="llm-mission-presence" aria-label="현재 Execution 문맥">
+          <span class="llm-presence-dot" aria-hidden="true"></span>
+          <span>${escapeHtml(projectName)}</span>
+          <span aria-hidden="true">/</span>
+          <span>실행 인계 대기</span>
+        </div>
+        <h2 id="llm-execution-title">${escapeHtml(mission.title)}</h2>
+        <p>${escapeHtml(mission.goal || '기록된 미션 목표가 없습니다.')}</p>
+        <div class="token-row token-row-compact">
+          ${createToken(getMissionStatusDisplay(mission.status), getMissionStatusTone(mission.status))}
+          ${createToken(`Council:${getAlignmentStatusDisplay(alignmentStatus)}`, getAlignmentTone(alignmentStatus))}
+          ${createToken('task:미연결', 'neutral')}
+        </div>
+      </section>
+      <section class="llm-execution-waiting" aria-labelledby="llm-execution-waiting-title">
+        <span class="llm-execution-current-mark" aria-hidden="true">E</span>
+        <div>
+          <div class="llm-turn-meta">
+            <strong>Execution</strong>
+            <span>waiting</span>
+          </div>
+          <h3 id="llm-execution-waiting-title">연결된 실행 task가 없습니다</h3>
+          <p>Council 결론이 승인되어야 첫 bounded execution task가 생성됩니다.</p>
+          <div class="relation-button-row llm-execution-secondary-actions">
+            <button class="secondary-button" type="button" data-action="open-council" data-id="${escapeHtml(mission.id)}" ${busy ? 'disabled' : ''}>회의실</button>
+            <button class="secondary-button" type="button" data-action="open-advanced-ops" data-id="${escapeHtml(mission.id)}" ${busy ? 'disabled' : ''}>상세 운영</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderExecutionConversationSurface(options = {}) {
+  const {
+    mission,
+    task,
+    latestRun,
+    approvalBridge,
+    executionControl,
+    executionEvidence,
+    primaryAction,
+    missionExecutionPlanBundle,
+    sourceArtifacts,
+    parsedPreflight,
+    harnessBrief,
+    harnessConsumerStatus,
+    gateCopy,
+    busy,
+    projectName,
+  } = options;
+  const currentCheckpoint =
+    executionEvidence.checkpoints.find((checkpoint) => checkpoint.currentOwner) ||
+    executionEvidence.checkpoints[0];
+
+  return `
+    <div class="llm-execution-shell">
+      <section class="llm-execution-lead" aria-labelledby="llm-execution-title">
+        <div class="llm-mission-presence" aria-label="현재 Execution 문맥">
+          <span class="llm-presence-dot" aria-hidden="true"></span>
+          <span>${escapeHtml(projectName)}</span>
+          <span aria-hidden="true">/</span>
+          <span>${escapeHtml(getTaskLifecycleDisplay(task.lifecycleState))}</span>
+        </div>
+        <h2 id="llm-execution-title">${escapeHtml(mission.title)}</h2>
+        <p>${escapeHtml(mission.goal || task.intent || '기록된 실행 목표가 없습니다.')}</p>
+        <div class="token-row token-row-compact">
+          ${createToken(`task:${task.id}`, 'accent')}
+          ${createToken(getTaskLifecycleDisplay(task.lifecycleState), getTaskLifecycleTone(task.lifecycleState))}
+          ${latestRun ? createToken(`run:${latestRun.id}`, getRunTone(latestRun.status)) : createToken('run:미기록', 'neutral')}
+        </div>
+      </section>
+
+      <section class="llm-execution-current" aria-labelledby="llm-execution-current-title">
+        <span class="llm-execution-current-mark" aria-hidden="true">${escapeHtml(currentCheckpoint?.title?.slice(0, 1) || 'E')}</span>
+        <div class="llm-execution-current-copy">
+          <div class="llm-turn-meta">
+            <strong>${escapeHtml(currentCheckpoint?.title || 'Execution')}</strong>
+            <span>${escapeHtml(getEvidenceRailStatusDisplay(currentCheckpoint?.status || 'waiting'))}</span>
+          </div>
+          <h3 id="llm-execution-current-title">${escapeHtml(executionControl.currentTitle)}</h3>
+          <p>${escapeHtml(executionControl.currentCopy)}</p>
+          <p class="llm-execution-stop"><strong>Stop condition</strong> ${escapeHtml(gateCopy)}</p>
+          <div class="token-row token-row-compact">
+            ${
+              approvalBridge.currentApproval
+                ? createToken(
+                    `approval:${approvalBridge.currentApproval.status}`,
+                    getApprovalTone(approvalBridge.currentApproval.status),
+                  )
+                : createToken('approval:none', 'neutral')
+            }
+            ${approvalBridge.pendingInboxItem ? createToken(`inbox:${approvalBridge.pendingInboxItem.id}`, 'warning') : ''}
+          </div>
+          ${renderExecutionPrimaryAction(primaryAction, busy)}
+          <div class="relation-button-row llm-execution-secondary-actions">
+            <button class="secondary-button" type="button" data-action="open-council" data-id="${escapeHtml(mission.id)}" ${busy ? 'disabled' : ''}>회의실</button>
+            <button class="secondary-button" type="button" data-action="open-advanced-ops" data-id="${escapeHtml(mission.id)}" ${busy ? 'disabled' : ''}>상세 운영</button>
+          </div>
+        </div>
+      </section>
+
+      ${renderExecutionWorkOrderProgress(missionExecutionPlanBundle)}
+
+      <section class="llm-execution-progress" aria-labelledby="llm-execution-progress-title">
+        <div class="llm-section-heading">
+          <h3 id="llm-execution-progress-title">Execution progress</h3>
+          ${createToken(`현재:${executionEvidence.currentOwnerLabel}`, executionEvidence.blockedReason ? 'danger' : 'accent')}
+        </div>
+        ${renderExecutionCheckpointProgress(executionEvidence)}
+      </section>
+
+      <details
+        class="llm-deep-inspector llm-execution-inspector"
+        data-execution-disclosure="evidence"
+        ${state.executionDisclosures.evidence ? 'open' : ''}
+      >
+        <summary>Source evidence와 readiness</summary>
+        <div class="llm-execution-inspector-body">
+          ${renderExecutionSourceProvenance({
+            mission,
+            task,
+            latestRun,
+            approvalBridge,
+            executionEvidence,
+            sourceArtifacts,
+            parsedPreflight,
+          })}
+        </div>
+      </details>
+
+      <details
+        class="llm-deep-inspector llm-execution-inspector"
+        data-execution-disclosure="harness"
+        ${state.executionDisclosures.harness ? 'open' : ''}
+      >
+        <summary>Harness tools</summary>
+        <div class="llm-execution-inspector-body llm-execution-harness-body">
+          ${renderHarnessBriefRegister(harnessBrief)}
+          ${renderHarnessExecutionActionShelf(harnessConsumerStatus)}
+        </div>
+      </details>
+    </div>
+  `;
+}
+
 function renderExecution(data) {
   if (!data.activeProject) {
     elements.surfaces.execution.innerHTML = renderProjectGateSurface(
@@ -14825,6 +15219,16 @@ function renderExecution(data) {
       : null;
 
   if (!linkedTask) {
+    if (document.querySelector('.llm-app-shell')) {
+      elements.surfaces.execution.innerHTML = renderExecutionWaitingSurface({
+        mission: selectedMission,
+        councilSession: selectedCouncilSession,
+        busy: state.loading || state.mutating,
+        projectName: data.activeProject.name,
+      });
+      return;
+    }
+
     elements.surfaces.execution.innerHTML = `
       <div class="surface-grid">
         <section class="surface-panel">
@@ -14956,16 +15360,57 @@ function renderExecution(data) {
     latestPlanArtifact,
     latestPreflightArtifact,
   });
-  const executionEvidenceRail = renderExecutionEvidenceRail(
-    getExecutionEvidenceRail(linkedTask, data),
-    {
-      eyebrow: '실행 증적선',
-      heading: '회의 인계와 현재 실행 로그를 같은 선으로 읽습니다',
-      copy: '현재 담당, 역할별 증적, 차단 사유, 다음 인계만 요약합니다.',
-    },
-  );
+  const executionEvidence = getExecutionEvidenceRail(linkedTask, data);
+  const executionEvidenceRail = renderExecutionEvidenceRail(executionEvidence, {
+    eyebrow: '실행 증적선',
+    heading: '회의 인계와 현재 실행 로그를 같은 선으로 읽습니다',
+    copy: '현재 담당, 역할별 증적, 차단 사유, 다음 인계만 요약합니다.',
+  });
   const harnessBrief = getHarnessConsumerBrief(data);
   const harnessConsumerStatus = getHarnessConsumerStatus(data);
+  const missionExecutionPlanBundle = getMissionExecutionPlanBundle(
+    data.snapshot,
+    selectedCouncilSession?.id,
+  );
+  const executionPrimaryAction = getExecutionPrimaryAction({
+    approvalBridge,
+    task: linkedTask,
+    canApproveCurrentGate,
+    canApproveCommitGate,
+    canApproveReleaseGate,
+    canRunLiveMutation,
+    canRunReviewer,
+    canPrepareCommitPackage,
+    canRunLocalCommit,
+    canPrepareReleasePackage,
+    canRunCloseOut,
+  });
+
+  if (document.querySelector('.llm-app-shell')) {
+    elements.surfaces.execution.innerHTML = renderExecutionConversationSurface({
+      mission: selectedMission,
+      task: linkedTask,
+      latestRun,
+      approvalBridge,
+      executionControl,
+      executionEvidence,
+      primaryAction: executionPrimaryAction,
+      missionExecutionPlanBundle,
+      sourceArtifacts: [
+        { label: 'Plan', artifact: latestPlanArtifact },
+        { label: 'Architecture', artifact: latestArchitectureArtifact },
+        { label: 'Breakdown', artifact: latestBreakdownArtifact },
+        { label: 'Preflight', artifact: latestPreflightArtifact },
+      ],
+      parsedPreflight,
+      harnessBrief,
+      harnessConsumerStatus,
+      gateCopy,
+      busy: state.loading || state.mutating,
+      projectName: data.activeProject.name,
+    });
+    return;
+  }
 
   elements.surfaces.execution.innerHTML = `
     <div class="stack">
@@ -19751,16 +20196,22 @@ document.addEventListener('change', handleFormInput);
 document.addEventListener(
   'toggle',
   (event) => {
-    const disclosure = event.target.closest?.('[data-council-disclosure]');
-
+    const disclosure = event.target.closest?.(
+      '[data-council-disclosure], [data-execution-disclosure]',
+    );
     if (!disclosure) {
       return;
     }
 
-    const key = disclosure.dataset.councilDisclosure;
+    const councilKey = disclosure.dataset.councilDisclosure;
+    if (councilKey && Object.hasOwn(state.councilDisclosures, councilKey)) {
+      state.councilDisclosures[councilKey] = disclosure.open;
+      return;
+    }
 
-    if (Object.hasOwn(state.councilDisclosures, key)) {
-      state.councilDisclosures[key] = disclosure.open;
+    const executionKey = disclosure.dataset.executionDisclosure;
+    if (executionKey && Object.hasOwn(state.executionDisclosures, executionKey)) {
+      state.executionDisclosures[executionKey] = disclosure.open;
     }
   },
   true,

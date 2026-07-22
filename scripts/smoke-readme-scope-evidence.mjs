@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `251\/251`, total `252\/252`/,
-  /UI QA is required `56\/56`/,
+  /required `1\/1`, informational `252\/252`, total `253\/253`/,
+  /UI QA is required `57\/57`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `252\/252`, UI QA `56\/56`, zero-open backlog/,
+  /aggregate `253\/253`, UI QA `57\/57`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1433,6 +1433,20 @@ const sourceBackedCouncilMeetingEvidence = [
 
 assertReadmeHasAll(sourceBackedCouncilMeetingEvidence);
 
+const sourceBackedExecutionFlowEvidence = [
+  /docs\/96_llm-native-source-backed-execution-flow-plan\.md/,
+  /LLM-native source-backed Execution flow is accepted by `DEC-145`/,
+  /current source-backed checkpoint,[\s\S]*one existing\s+bounded operator command/,
+  /Strategist, Architect, Decomposer, Maker, and Critic[\s\S]*progress/,
+  /run, approval, Decision Inbox, artifact, preflight, readiness, and harness evidence[\s\S]*collapsed secondary details/,
+  /node scripts\/smoke-ui-slice-679\.mjs/,
+  /output\/playwright\/orchestration-source-backed-execution-flow-desktop\.png/,
+  /output\/playwright\/orchestration-source-backed-execution-flow-mobile\.png/,
+  /`DEC-145` permits only source-backed Execution presentation[\s\S]*connectors/,
+];
+
+assertReadmeHasAll(sourceBackedExecutionFlowEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1481,7 +1495,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `252\/252`, UI QA `56\/56`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `253\/253`, UI QA `57\/57`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,
