@@ -9,12 +9,21 @@
   </head>
   <body>
     <a class="skip-link" href="#workspace-main">현재 workspace로 바로가기</a>
-    <div class="app-shell">
+    <div class="app-shell llm-app-shell" data-shell-generation="llm-native">
       <aside class="office-sidebar" aria-label="워크플로우 사이드바">
         <section class="office-brand-card">
-          <p class="office-brand-kicker">Orchestration 1.0</p>
-          <h1>Orchestration</h1>
+          <div class="llm-brand-lockup">
+            <span class="llm-brand-mark" aria-hidden="true">O</span>
+            <div>
+              <p class="office-brand-kicker">Orchestration 1.0</p>
+              <h1>Orchestration</h1>
+            </div>
+          </div>
           <p class="office-brand-subcopy">Workflow Control</p>
+          <button class="llm-new-mission-button" type="button" data-action="open-surface" data-target-surface="mission">
+            <span aria-hidden="true">＋</span>
+            <span>새 미션</span>
+          </button>
           <div class="office-brand-register" aria-label="회사 등록 정보">
             <div class="office-register-cell">
               <span class="office-register-label">Mode</span>
@@ -31,7 +40,7 @@
           </div>
         </section>
 
-        <section class="office-sidebar-section office-sidebar-section-status">
+        <section class="office-sidebar-section office-sidebar-section-status" aria-label="런타임 상세">
           <div class="office-sidebar-head">
             <p class="office-sidebar-label">회사 디렉터리</p>
             <span class="office-sidebar-chip office-sidebar-chip-live">live</span>
@@ -167,6 +176,7 @@
           <div class="shell-window-bar">
             <div class="shell-window-meta shell-window-meta-left">
               <span id="shell-window-label" class="shell-window-label">WORK</span>
+              <span class="llm-runtime-presence"><span aria-hidden="true"></span>local workspace</span>
             </div>
             <div class="shell-window-runtime">
               <span id="refresh-status" class="refresh-status">연결 중…</span>

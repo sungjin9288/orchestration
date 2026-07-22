@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `242\/242`, total `243\/243`/,
-  /UI QA is required `48\/48`/,
+  /required `1\/1`, informational `243\/243`, total `244\/244`/,
+  /UI QA is required `49\/49`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `243\/243`, UI QA `48\/48`, zero-open backlog/,
+  /aggregate `244\/244`, UI QA `49\/49`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1405,7 +1405,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `243\/243`, UI QA `48\/48`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `244\/244`, UI QA `49\/49`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

@@ -139,7 +139,7 @@ const vnextDevelopmentAuditSourceEvidence = {
     contains: referenceSignals,
   },
   design: {
-    contains: ['cool operational surfaces', 'Mission / Council / Execution / Deliverables'],
+    contains: ['LLM-native workbench', 'Mission / Council / Execution / Deliverables'],
   },
   styles: {
     contains: ['--bg-top: #f5f7f9', '.intelligence-overview'],

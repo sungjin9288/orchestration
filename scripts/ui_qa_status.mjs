@@ -280,6 +280,12 @@ const smokeChecks = [
     purpose:
       'Bounded continuation UI and API preserve preview-before-resume interaction, exact current checkpoint and progress digest evidence, one-step deadline and cancellation bounds, browser-memory-only lifecycle, safe stale malformed content-type and oversized refusal, responsive fit, and absent automatic continuation scheduling or retry controls',
   },
+  {
+    id: 'llm-native-primary-shell',
+    script: 'scripts/smoke-ui-slice-671.mjs',
+    purpose:
+      'Prompt-first Mission composer, chronological operator and agent workstream, compact context inspector, preserved Advanced Ops controls, and responsive LLM-native shell',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

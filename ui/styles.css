@@ -10379,3 +10379,1014 @@ body[data-evidence-density='compact'] .control-overview-stack {
     justify-content: flex-start;
   }
 }
+
+/* LLM-native primary shell. The legacy selectors above remain the Advanced Ops baseline. */
+body {
+  background: #f7f7f8;
+  color: #18181b;
+  font-family: "Inter", "Pretendard Variable", "Pretendard", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+body .skip-link {
+  transform: translateY(-220%);
+}
+
+body .skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+body .llm-app-shell {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: 232px minmax(0, 1fr);
+  gap: 0;
+  background: #fff;
+}
+
+body .llm-app-shell .office-sidebar {
+  top: 0;
+  z-index: 12;
+  align-content: start;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  gap: 14px;
+  padding: 14px 12px;
+  border: 0;
+  border-right: 1px solid #e5e7eb;
+  border-radius: 0;
+  background: #f7f7f8;
+  box-shadow: none;
+}
+
+body .llm-app-shell .office-brand-card {
+  gap: 10px;
+  padding: 4px 2px 8px;
+  border: 0;
+  background: transparent;
+}
+
+body .llm-app-shell .office-brand-card::before,
+body .llm-app-shell .office-brand-register,
+body .llm-app-shell .office-sidebar-section-status {
+  display: none;
+}
+
+.llm-brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.llm-brand-lockup > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.llm-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 8px;
+  background: #18181b;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+body .llm-app-shell .office-brand-kicker {
+  color: #71717a;
+  font-size: 0.64rem;
+  letter-spacing: 0;
+}
+
+body .llm-app-shell .office-brand-card h1 {
+  margin: 0;
+  color: #18181b;
+  font-size: 0.92rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+body .llm-app-shell .office-brand-subcopy {
+  display: none;
+}
+
+.llm-new-mission-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  background: #fff;
+  color: #27272a;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.llm-new-mission-button:hover,
+.llm-new-mission-button:focus-visible {
+  border-color: #a1a1aa;
+  background: #f4f4f5;
+  outline: 2px solid rgba(15, 118, 110, 0.16);
+  outline-offset: 2px;
+}
+
+body .llm-app-shell .primary-nav {
+  gap: 8px;
+}
+
+body .llm-app-shell .nav-group-tabs {
+  gap: 3px;
+  padding: 3px;
+  border-radius: 8px;
+  background: #ececef;
+}
+
+body .llm-app-shell .nav-group-tab {
+  min-height: 30px;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #71717a;
+}
+
+body .llm-app-shell .nav-group-tab.is-active {
+  background: #fff;
+  color: #18181b;
+  box-shadow: 0 1px 2px rgba(24, 24, 27, 0.08);
+}
+
+body .llm-app-shell .nav-group-tab-label {
+  font-size: 0.7rem;
+  letter-spacing: 0;
+}
+
+body .llm-app-shell .nav-group-tab-help,
+body .llm-app-shell .nav-group-summary {
+  display: none;
+}
+
+body .llm-app-shell .nav-group {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+body .llm-app-shell .nav-button-row {
+  gap: 2px;
+}
+
+body .llm-app-shell .nav-button {
+  min-height: 38px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #52525b;
+}
+
+body .llm-app-shell .nav-button:hover,
+body .llm-app-shell .nav-button:focus-visible {
+  background: #ececef;
+  color: #18181b;
+}
+
+body .llm-app-shell .nav-button.is-active {
+  background: #e4e4e7;
+  color: #18181b;
+}
+
+body .llm-app-shell .nav-button-main {
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+}
+
+body .llm-app-shell .nav-button-count {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: transparent;
+  color: #71717a;
+  font-size: 0.68rem;
+}
+
+body .llm-app-shell .nav-button-copy {
+  display: block;
+}
+
+body .llm-app-shell .nav-button-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+body .llm-app-shell .nav-button-help {
+  display: none;
+}
+
+body .llm-app-shell .workspace-shell {
+  min-height: 100vh;
+  gap: 0;
+  background: #fff;
+}
+
+body .llm-app-shell .shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: block;
+  border-bottom: 1px solid #ececef;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+}
+
+body .llm-app-shell .shell-window-bar {
+  min-height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+body .llm-app-shell .shell-window-meta-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body .llm-app-shell .shell-window-label {
+  color: #52525b;
+  font-size: 0.7rem;
+  letter-spacing: 0;
+}
+
+.llm-runtime-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #71717a;
+  font-size: 0.7rem;
+}
+
+.llm-runtime-presence > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+}
+
+body .llm-app-shell .refresh-button {
+  min-height: 28px;
+  padding: 0 8px;
+  border-color: #e4e4e7;
+  border-radius: 6px;
+  background: transparent;
+  color: #52525b;
+  box-shadow: none;
+  font-size: 0.7rem;
+}
+
+body .llm-app-shell .shell-header-main,
+body[data-nav-group="workflows"] .control-overview {
+  display: none;
+}
+
+body:not([data-nav-group="workflows"]) .llm-app-shell .control-overview {
+  margin: 16px 20px 0;
+}
+
+body .llm-app-shell .surface-stack {
+  min-width: 0;
+  padding: 0 22px 48px;
+}
+
+body .llm-app-shell .surface.is-active {
+  min-width: 0;
+}
+
+.llm-mission-stack {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  gap: 0;
+}
+
+.llm-mission-lead {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 68px 20px 24px;
+  text-align: center;
+}
+
+.llm-mission-presence {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  color: #71717a;
+  font-size: 0.72rem;
+}
+
+.llm-presence-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #16a34a;
+}
+
+.llm-mission-lead h2 {
+  margin: 0;
+  color: #18181b;
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.llm-mission-lead p {
+  margin: 0;
+  color: #71717a;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.llm-mission-stack > .mission-intake-board,
+.llm-mission-stack > .viewport-handoff-strip {
+  display: none;
+}
+
+body .llm-app-shell .llm-mission-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+  gap: 36px;
+  align-items: start;
+}
+
+body .llm-app-shell .llm-mission-main {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.llm-mission-main > .panel-header {
+  display: none;
+}
+
+body .llm-app-shell .llm-mission-composer {
+  position: relative;
+  overflow: visible;
+  gap: 0;
+  margin: 0 0 42px;
+  padding: 10px 12px 12px;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(24, 24, 27, 0.08);
+}
+
+body .llm-app-shell .surface[data-surface="mission"] .llm-mission-composer {
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(24, 24, 27, 0.08);
+}
+
+body .llm-app-shell .llm-mission-composer::before,
+body .llm-app-shell .llm-mission-composer .mission-order-head {
+  display: none;
+}
+
+body .llm-app-shell .surface[data-surface="mission"] .llm-mission-composer::before {
+  display: none;
+}
+
+body .llm-app-shell .llm-mission-composer .mission-order-main,
+body .llm-app-shell .llm-mission-composer .mission-order-foot {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+body .llm-app-shell .llm-mission-composer .mission-order-main > .field,
+body .llm-app-shell .llm-mission-composer .mission-order-foot > .field,
+body .llm-app-shell .llm-mission-composer .mission-order-actions {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body .llm-app-shell .llm-mission-composer .field-label {
+  color: #71717a;
+  font-size: 0.68rem;
+  letter-spacing: 0;
+}
+
+body .llm-app-shell .llm-mission-composer input,
+body .llm-app-shell .llm-mission-composer textarea,
+body .llm-app-shell .llm-mission-composer select {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #18181b;
+  box-shadow: none;
+}
+
+body .llm-app-shell .surface[data-surface="mission"] .llm-mission-composer input,
+body .llm-app-shell .surface[data-surface="mission"] .llm-mission-composer textarea,
+body .llm-app-shell .surface[data-surface="mission"] .llm-mission-composer select {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body .llm-app-shell .llm-mission-composer input:focus-visible,
+body .llm-app-shell .llm-mission-composer textarea:focus-visible,
+body .llm-app-shell .llm-mission-composer select:focus-visible {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+
+body .llm-app-shell .llm-mission-composer input[name="missionTitle"] {
+  padding: 6px 2px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+body .llm-app-shell .llm-mission-composer textarea[name="missionGoal"] {
+  min-height: 88px;
+  padding: 7px 2px 12px;
+  resize: vertical;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+body .llm-app-shell .llm-mission-composer .mission-order-foot {
+  padding-top: 10px;
+  border-top: 1px solid #ececef;
+}
+
+body .llm-app-shell .llm-mission-composer textarea[name="missionConstraints"] {
+  min-height: 42px;
+  padding: 6px 2px 8px;
+  resize: vertical;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+body .llm-app-shell .llm-mission-composer .mission-order-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 8px;
+}
+
+body .llm-app-shell .llm-mission-composer .primary-button,
+body .llm-app-shell .llm-mission-composer .secondary-button,
+.llm-next-gate-button {
+  min-height: 34px;
+  padding: 0 11px;
+  border-radius: 7px;
+  box-shadow: none;
+  font-size: 0.74rem;
+  font-weight: 650;
+}
+
+body .llm-app-shell .llm-mission-composer .primary-button,
+.llm-next-gate-button {
+  border-color: #0f766e;
+  background: #0f766e;
+  color: #fff;
+}
+
+body .llm-app-shell .llm-mission-composer .secondary-button {
+  border-color: #d4d4d8;
+  background: #f4f4f5;
+  color: #3f3f46;
+}
+
+body .llm-app-shell .llm-mission-composer .form-help {
+  flex: 1 0 100%;
+  max-width: none;
+  color: #71717a;
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.llm-workstream {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+
+.llm-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 2px 14px;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.llm-section-heading > div {
+  min-width: 0;
+}
+
+.llm-section-heading p,
+.llm-context-label {
+  margin: 0 0 5px;
+  color: #71717a;
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.llm-section-heading h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #18181b;
+  font-size: 1.16rem;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.llm-turn-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.llm-turn {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  padding: 20px 2px;
+  border-bottom: 1px solid #ececef;
+}
+
+.llm-turn-marker,
+.llm-empty-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #27272a;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.llm-turn-council .llm-turn-marker {
+  background: #2563eb;
+}
+
+.llm-turn-execution .llm-turn-marker {
+  background: #7c3aed;
+}
+
+.llm-turn-deliverables .llm-turn-marker {
+  background: #15803d;
+}
+
+.llm-turn-content {
+  min-width: 0;
+}
+
+.llm-turn-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.llm-turn-meta strong {
+  color: #27272a;
+  font-size: 0.76rem;
+}
+
+.llm-turn-meta span {
+  overflow: hidden;
+  color: #71717a;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.llm-turn h4 {
+  margin: 8px 0 5px;
+  overflow-wrap: anywhere;
+  color: #18181b;
+  font-size: 0.94rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.llm-turn p {
+  max-width: 72ch;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #52525b;
+  font-size: 0.86rem;
+  line-height: 1.58;
+}
+
+.llm-next-gate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.llm-next-gate > div {
+  min-width: 0;
+}
+
+.llm-next-gate span {
+  display: block;
+  margin-bottom: 4px;
+  color: #71717a;
+  font-size: 0.64rem;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.llm-next-gate strong {
+  color: #18181b;
+  font-size: 0.86rem;
+}
+
+.llm-next-gate p {
+  margin: 4px 0 0;
+  color: #71717a;
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.llm-workstream-empty {
+  justify-items: center;
+  padding: 36px 12px;
+  border-top: 1px solid #ececef;
+  border-bottom: 1px solid #ececef;
+  text-align: center;
+}
+
+.llm-workstream-empty strong {
+  margin-top: 12px;
+  color: #3f3f46;
+  font-size: 0.86rem;
+}
+
+.llm-workstream-empty p {
+  margin: 5px 0 0;
+  color: #71717a;
+  font-size: 0.76rem;
+}
+
+.llm-mission-history,
+.llm-deep-inspector {
+  margin-top: 22px;
+  border-top: 1px solid #ececef;
+}
+
+.llm-mission-history > summary,
+.llm-deep-inspector > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  color: #52525b;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 650;
+  list-style: none;
+}
+
+.llm-mission-history > summary::-webkit-details-marker,
+.llm-deep-inspector > summary::-webkit-details-marker {
+  display: none;
+}
+
+.llm-mission-history > summary::after,
+.llm-deep-inspector > summary::after {
+  content: "+";
+  color: #71717a;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.llm-mission-history[open] > summary::after,
+.llm-deep-inspector[open] > summary::after {
+  content: "−";
+}
+
+.llm-mission-history > summary > span:last-child {
+  margin-left: auto;
+  color: #a1a1aa;
+  font-size: 0.7rem;
+}
+
+.llm-mission-history-body,
+.llm-deep-inspector-body {
+  padding: 10px 0 18px;
+}
+
+body .llm-app-shell .llm-context-inspector {
+  position: sticky;
+  top: 70px;
+  padding: 0 0 0 22px;
+  border: 0;
+  border-left: 1px solid #ececef;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.llm-context-inspector > .panel-header {
+  display: none;
+}
+
+.llm-context-summary {
+  display: grid;
+  gap: 0;
+}
+
+.llm-context-summary h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #18181b;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.llm-context-summary > p:not(.llm-context-label) {
+  margin: 8px 0 16px;
+  overflow-wrap: anywhere;
+  color: #71717a;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.llm-context-summary dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.llm-context-summary dl > div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f2;
+}
+
+.llm-context-summary dt {
+  color: #a1a1aa;
+  font-size: 0.66rem;
+}
+
+.llm-context-summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #52525b;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.llm-authority-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 14px;
+  color: #52525b;
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.llm-authority-note .llm-presence-dot {
+  margin-top: 2px;
+}
+
+.llm-deep-inspector-body .narrative-deck,
+.llm-deep-inspector-body .relation-strip,
+.llm-deep-inspector-body .execution-evidence-rail {
+  border-radius: 8px;
+}
+
+.llm-project-entry {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+body .llm-app-shell .llm-project-bootstrap-layout {
+  max-width: 920px;
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body .llm-app-shell .llm-project-bootstrap-layout > .surface-panel {
+  border-color: #e4e4e7;
+  box-shadow: none;
+}
+
+body .llm-app-shell .llm-project-bootstrap-layout > .detail-card {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  body .llm-app-shell .llm-mission-layout {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  body .llm-app-shell .llm-context-inspector {
+    position: static;
+    padding: 22px 0 0;
+    border-top: 1px solid #ececef;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 820px) {
+  body .llm-app-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body .llm-app-shell .office-sidebar {
+    position: static;
+    min-height: auto;
+    max-height: none;
+    padding: 10px 12px 8px;
+    border-right: 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  body .llm-app-shell .office-brand-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+  }
+
+  body .llm-app-shell .llm-new-mission-button {
+    width: auto;
+    min-height: 34px;
+  }
+
+  body .llm-app-shell .primary-nav {
+    gap: 6px;
+  }
+
+  body .llm-app-shell .nav-group-tabs {
+    max-width: 320px;
+  }
+
+  body .llm-app-shell .nav-button-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  body .llm-app-shell .nav-button {
+    justify-content: center;
+    min-height: 34px;
+    padding: 5px 4px;
+  }
+
+  body .llm-app-shell .nav-button-main {
+    justify-content: center;
+    gap: 4px;
+  }
+
+  body .llm-app-shell .nav-button-count {
+    min-width: 18px;
+    padding: 0 3px;
+  }
+
+  body .llm-app-shell .shell-header {
+    position: static;
+  }
+
+  body .llm-app-shell .shell-window-bar {
+    min-height: 40px;
+    padding: 0 12px;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  body .llm-app-shell .surface-stack {
+    padding: 0 14px 36px;
+  }
+
+  .llm-mission-lead {
+    padding: 34px 8px 20px;
+  }
+
+  .llm-mission-lead h2 {
+    font-size: 1.66rem;
+  }
+
+  body .llm-app-shell .llm-mission-composer {
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 520px) {
+  body .llm-app-shell .nav-group-tabs {
+    max-width: none;
+  }
+
+  body .llm-app-shell .nav-button-title {
+    font-size: 0.68rem;
+  }
+
+  body .llm-app-shell .nav-button-count,
+  body .llm-app-shell .refresh-status,
+  .llm-runtime-presence {
+    display: none;
+  }
+
+  .llm-mission-presence {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  body .llm-app-shell .llm-mission-composer {
+    padding: 9px 10px 10px;
+  }
+
+  body .llm-app-shell .llm-mission-composer .mission-order-actions {
+    align-items: stretch;
+  }
+
+  body .llm-app-shell .llm-mission-composer .primary-button,
+  body .llm-app-shell .llm-mission-composer .secondary-button {
+    flex: 1 1 140px;
+  }
+
+  .llm-turn {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 10px;
+    padding: 18px 0;
+  }
+
+  .llm-turn-marker {
+    width: 28px;
+    height: 28px;
+  }
+
+  .llm-next-gate {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .llm-next-gate-button {
+    width: 100%;
+  }
+}

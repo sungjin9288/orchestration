@@ -396,7 +396,7 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `242/242`, total `243/243`; UI QA is required `48/48`.
+`1/1`, informational `243/243`, total `244/244`; UI QA is required `49/49`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -457,7 +457,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `243/243`, UI QA `48/48`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `244/244`, UI QA `49/49`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -1701,7 +1701,7 @@ Current source-backed evidence:
 | Feature | Evidence-backed scope |
 | --- | --- |
 | Local project registry | `project_path` is required before execution; local project state is managed by `src/runtime/runtime-service.js`. |
-| Mission-first shell | `Mission / Council / Execution / Deliverables` is the default product shell in `ui/app.js`. |
+| LLM-native Mission shell | `Mission / Council / Execution / Deliverables` remains the product model, while the default UI now starts from a prompt-first Mission composer and renders Operator, Council, Execution, and Deliverables as one chronological workstream. |
 | Opt-in Real Council | `DEC-082` permits one-Mission local-stub position isolation, deterministic conflict evidence, Conductor synthesis, revision/resume/stop, and approved handoff through the existing builder-preflight approval boundary; legacy deterministic Council remains available. |
 | Advanced Ops surfaces | `Taskboard / Logs / Artifacts / Decision Inbox` remain available as authoritative operator surfaces. |
 | Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
@@ -1764,6 +1764,9 @@ src/runtime/file-store.js
 
 - `local-first / single-user-first / ops-first`: repo files and local state define the workflow;
   team workspace, OAuth, messenger, ranking, and org-management semantics are out of scope.
+- LLM-native reading model without chatbot authority: the primary shell starts from a goal and shows
+  structured agent turns, but typing or rendering a turn does not call a provider, mutate source,
+  bypass approval, commit, push, or release.
 - `development` pack remains the default v1 workflow: v1 is intentionally narrow and does not
   implement a pack marketplace. `DEC-066` records the code-present `knowledge-work` pack as an
   explicit opt-in path for bounded non-coding deliverables; it does not replace the `development`
@@ -2027,9 +2030,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 921 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 922 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 670 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 671 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2192,7 +2195,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `243/243`, UI QA `48/48`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `244/244`, UI QA `49/49`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2510,9 +2513,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `48/48`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `49/49`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `242/242`, total `243/243`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `243/243`, total `244/244`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2526,6 +2529,8 @@ Current verification evidence from this README and completion close-out refresh:
 Recent local visual QA evidence for the refreshed shell was captured with the local UI server and
 Playwright CLI:
 
+- `output/playwright/orchestration-llm-native-desktop.png`
+- `output/playwright/orchestration-llm-native-mobile.png`
 - `output/playwright/vnext-desktop-top-final.png`
 - `output/playwright/vnext-mobile.png`
 - `output/playwright/vnext-p1-desktop.png`
@@ -2543,7 +2548,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `243/243`, UI QA `48/48`, and zero-open backlog are local source-backed checks.
+  aggregate `244/244`, UI QA `49/49`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,

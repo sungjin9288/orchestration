@@ -1,163 +1,168 @@
 # DESIGN.md
 
-## 1. Visual Theme & Atmosphere
+## 1. Product Experience
 
-Orchestration should feel like a company operating system for AI work, not a marketing website and not a playful game.
+Orchestration should feel like an LLM-native workbench for directing a bounded AI team. The first
+interaction is a goal, the main narrative is the team's work, and operational evidence remains one
+step away without taking over the screen.
 
-- Mood: deliberate, executive, operational, dense, calm
-- Product posture: ERP/control-plane, boardroom, assignment desk, approval line, delivery desk
-- Emotional target: "a team of AI staff is on shift and working this mission now"
-- Preferred feel: cool operational surfaces, ink-heavy typography, structured boards, status-rich chrome
-- Avoid: poster heroes, floating marketing cards, candy gradients, empty whitespace for its own sake, whimsical mascot tone
+- Mood: quiet, intelligent, focused, responsive
+- Product posture: prompt-first orchestration workspace with visible agents and explicit gates
+- Emotional target: "I can state the work once, follow the reasoning, and intervene at the right gate"
+- Preferred feel: generous neutral canvas, strong text hierarchy, restrained semantic color, visible
+  model activity, compact provenance
+- Avoid: ERP dashboards, directory-first shells, KPI mosaics, generic chat bubbles, marketing heroes,
+  decorative gradients, or autonomous-action theatre
 
-This shell should look distributable to other operators and companies.
+This is not a chatbot clone. Conversation is the reading model; Mission, Council, Execution,
+Deliverables, review, and approval remain the product model.
 
-## 2. Color Palette & Roles
+## 2. Visual System
 
-Use semantic colors consistently. Prefer restrained enterprise tones over startup neon or purple SaaS gradients.
+Use near-neutral surfaces so active work, agent identity, and gate state carry the color.
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| `canvas` | `#f5f7f9` | app background |
-| `surface` | `#fcfdfe` | default panel |
-| `surface-strong` | `#ffffff` | elevated panel / active desk |
-| `surface-ink` | `#1f2732` | dark ribbon / masthead band |
-| `line` | `#d4dae0` | borders, grid separators |
-| `line-strong` | `#a9b5bf` | active rails, desk accents |
-| `accent` | `#155e75` | global chrome accent: selection, focus, active nav |
-| `text` | `#202733` | primary copy |
-| `text-soft` | `#5d645f` | secondary copy |
-| `mission` | `#8b5a2b` | intake / charter / mission accent |
-| `council` | `#335f4d` | meeting / council accent |
-| `execution` | `#375d78` | work-order / execution accent |
-| `deliverables` | `#79622f` | delivery / approval accent |
-| `approval` | `#2f6a45` | approved / ready signal |
-| `warning` | `#b26a1f` | caution / pending decision |
-| `danger` | `#9f4032` | blocked / failed / rejected |
-| `info` | `#3c5f89` | neutral informational state |
-
-## 3. Typography Rules
-
-The shell should feel like enterprise software with a point of view.
-
-- Primary UI font: `IBM Plex Sans`, `Segoe UI`, `Helvetica Neue`, sans-serif
-- Editorial / section emphasis: `IBM Plex Serif`, `Georgia`, serif
-- Operational ids / logs / artifact ids: `IBM Plex Mono`, `SFMono-Regular`, monospace
-
-Hierarchy:
-
-- App title / shell title: serif or strong sans, 30-36px, semibold
-- Surface title: sans, 22-26px, semibold
-- Desk / board title: sans, 16-18px, semibold
-- Status / queue label: sans, 12-13px, medium, uppercase optional
-- Helper copy: sans, 13-14px, regular
-- Operational metadata: mono, 12-13px
+| `canvas` | `#f7f7f8` | app and navigation background |
+| `workspace` | `#ffffff` | primary reading surface |
+| `surface-soft` | `#f3f4f6` | composer and secondary controls |
+| `line` | `#e5e7eb` | dividers and inactive boundaries |
+| `line-strong` | `#cbd5e1` | selected and focus boundaries |
+| `text` | `#18181b` | primary copy |
+| `text-soft` | `#64646d` | metadata and supporting copy |
+| `accent` | `#0f766e` | active navigation, focus, primary action |
+| `council` | `#2563eb` | council reasoning and synthesis |
+| `execution` | `#7c3aed` | bounded execution activity |
+| `success` | `#15803d` | current proof and approved state |
+| `warning` | `#b45309` | waiting gate or operator attention |
+| `danger` | `#b42318` | blocked, failed, rejected |
 
 Rules:
 
-- Headlines should feel operational, not promotional.
-- Use serif selectively for authority, not everywhere.
-- IDs, run numbers, artifact ids, and paths should always read as machine-readable.
+- Do not cover large regions with a semantic color.
+- Do not use gradients or glow as product identity.
+- Use color with text or shape; color alone never communicates state.
+- Border radius stays at 8px or below.
 
-## 4. Component Stylings
+## 3. Typography
 
-### Masthead
-- Dense horizontal bar with current project, current mission, active approvals, current role owner
-- Reads like a control bar, not a hero banner
+- Primary UI: `Inter`, `Pretendard`, `IBM Plex Sans`, system sans-serif
+- Operational IDs and paths: `IBM Plex Mono`, `SFMono-Regular`, monospace
+- Do not use an editorial serif in the product shell.
+- Do not scale type with viewport width and do not use negative letter spacing.
 
-### Status Chips
-- Compact, rectangular, slightly industrial
-- Color-coded by semantics, never rainbow-only decoration
-- Always pair color with text
+Hierarchy:
 
-### Desk Cards
-- Panels should feel like desks, boards, or packets
-- Strong top rail or left rail is acceptable
-- Use active-state accents to indicate current owner or current handoff
+- Workspace prompt: 28-34px, semibold, one concise question
+- Workstream heading: 18-22px, semibold
+- Turn body: 14-16px with comfortable line-height
+- Metadata and gate labels: 11-13px
+- IDs and digests: 11-12px mono
 
-### Queue / Register Rows
-- Prefer structured rows over free-floating cards when listing missions, attendees, tasks, or artifacts
-- Each row should expose owner, state, and next action without opening detail first
+## 4. Primary Shell
 
-### Council Attendee Cards
-- Must show role, attendance/state, stance, and current responsibility
-- Should read like meeting participants, not fantasy characters
+### Compact Navigation Rail
 
-### Approval Line
-- Keep a visible linear sequence: current packet, current approver, current allowed next action
-- Approval zones should look procedural and trustworthy
+- Brand and `새 미션` action come first.
+- Recent Mission context and `Mission / Council / Execution / Deliverables` are the primary links.
+- Company directory and deep runtime controls are demoted to optional inspection.
+- `Taskboard / Logs / Artifacts / Decision Inbox` remain available as Advanced Ops.
 
-### Artifact Packet
-- Deliverables should feel bundled and signed off
-- Show packet summary, evidence list, reviewer stance, and next approval clearly
+### Workspace Header
 
-## 5. Layout Principles
+- One compact line shows current project, local/provider mode, refresh state, and open gate count.
+- It must not become a second dashboard or repeat the sidebar.
 
-- Desktop-first density is acceptable; do not design this like a broad landing page
-- Prefer aligned boards, registers, shelves, and desk clusters over isolated hero cards
-- Use consistent rails and separators to make the company workflow legible
-- Keep current owner / current state / next handoff visible above the fold
-- Advanced Ops can be denser than the primary shell, but it must still share the same design language
-- First viewport must answer `what is active / who owns it / what is blocked / what is next` without requiring the user to read multiple stacked strips
-- Do not stack more than one meta/status band above the active workspace
-- Left rail should be queue-first and action-first; long intro prose belongs below the fold or should be removed
-- Company feel should come from visible staff, ownership, approvals, and packets, not from repeating metaphor nouns
-- Prefer `selection rail + active detail + evidence rail` over a sequence of independent summary cards
+### Prompt Composer
 
-Grid guidance:
+- The Mission composer is the first-viewport focal point.
+- Goal text is primary; title, project, constraints, deliverable type, and Council mode are supporting
+  context.
+- The composer remains an explicit submit boundary. Typing never starts provider or mutation work.
+- Use a clear command button; mode selection should read as a compact control, not three competing
+  hero CTAs.
 
-- Desktop: 12-column grid or equivalent aligned board system
-- Main shell: masthead + command strip + primary board area
-- Surface-level layout should prioritize information hierarchy over symmetry
+### Agent Workstream
 
-## 6. Depth & Elevation
+- Render work chronologically: operator goal, Council positions and synthesis, execution progress,
+  review/QA, delivery, and the next operator gate.
+- Each turn has a small role marker, role label, status, content, and source/evidence affordance.
+- Use unframed rows and dividers instead of chat bubbles or nested cards.
+- Tool and run activity uses compact inline status rather than fake typing animation.
 
-- Surfaces should layer like paper, folders, and desks
-- Use restrained shadows and strong borders
-- Prefer edge definition and top rails over glassmorphism
-- Active panels may glow slightly in their semantic color, but keep it subtle
+### Context Inspector
 
-## 7. Do's And Don'ts
+- Desktop may show one narrow right inspector for current Mission, authority, next gate, and evidence.
+- Mobile places the inspector after the workstream or behind an explicit disclosure.
+- Deep IDs, logs, packets, and legacy controls remain available under a details disclosure or
+  Advanced Ops.
 
-### Do
-- Design like an internal operating system for a company team of AI roles
-- Show who is active, who is waiting, and who needs approval
-- Make `Mission / Council / Execution / Deliverables` feel like connected workday surfaces
-- Keep `advanced ops mode` visually aligned with the main shell
-- Use enterprise density and structured panel hierarchy
+## 5. Surface Semantics
 
-### Don't
-- Don't build a marketing homepage hero
-- Don't hide critical workflow state behind decorative cards
-- Don't use purple-on-dark startup gradients as the default look
-- Don't make a pixel office, management sim, or playful empire game
-- Don't let AI roles feel like mascots without responsibilities
-- Don't make the shell look like a generic chatbot with tabs
+- `Mission`: goal composer, current Mission thread, recent Mission history
+- `Council`: source-backed role positions, conflict, synthesis, operator alignment
+- `Execution`: WorkOrders, current step, bounded progress, approval and resume gates
+- `Deliverables`: result, verification, review, package, acceptance, close-out
+- `Advanced Ops`: Taskboard, logs, artifacts, Decision Inbox, harness and deep evidence controls
+
+The visual language may be conversational, but authority must remain procedural. A model response is
+not an approval, a displayed plan is not execution, and a completed turn is not Mission completion.
+The shell must keep `review before done` and `approval before commit` visible at the current gate.
+
+## 6. Layout
+
+- Desktop: `220-240px navigation / fluid workstream / 260-320px optional inspector`.
+- Keep the reading column near 760-860px even on wide screens.
+- The first viewport should expose the composer and either recent work or the first agent turn.
+- Do not place more than one metadata band above the workspace.
+- Do not use page-section cards. Cards are reserved for repeated durable records or a genuinely
+  bounded tool.
+- Use stable widths, min/max constraints, and fixed control heights so status changes do not shift the
+  shell.
+
+## 7. Interaction And Accessibility
+
+- Keep visible keyboard focus and the existing skip link.
+- Navigation exposes one current item; inactive items omit `aria-current`.
+- Agent turns and execution stages use ordered/list semantics where sequence matters.
+- Loading, provider, approval, and failure states are announced without moving focus unexpectedly.
+- Destructive or authority-widening actions never hide behind an icon-only control.
+- Familiar icon-only controls require an accessible name and tooltip.
 
 ## 8. Responsive Behavior
 
-- Mobile should collapse boards into stacked desks, not turn everything into giant cards
-- Keep current owner, current gate, and next action visible early in the mobile flow
-- Sticky action bars are acceptable when they preserve approvals and next-step clarity
-- Dense data can collapse, but semantic grouping must remain obvious
+- Under 820px, the navigation becomes a compact top rail and the workspace starts in the first
+  viewport.
+- Hide the company roster and non-current group descriptions on mobile.
+- Keep the composer, current gate, and next action visible before deep evidence.
+- Controls wrap by intent; labels never truncate into ambiguous actions.
+- The page must have zero horizontal overflow at 390px.
 
-## 9. Agent Prompt Guide
+## 9. Do And Do Not
 
-When redesigning the UI, use prompts like:
+### Do
 
-- "Design this as a company ERP-style command center for AI orchestration."
-- "Make the shell feel like an operations boardroom with assigned AI staff, attendance, queues, and approval lines."
-- "Avoid marketing-site hero patterns; use structured desks, shelves, registers, and work-order density."
-- "Keep advanced ops aligned with the same enterprise visual language."
+- Start from a goal and show the team working through it.
+- Make agent roles visible through authored work, not through a large staff directory.
+- Let reasoning, execution state, and evidence read in one chronological stream.
+- Keep approval, source mutation, commit, push, and release gates explicit.
+- Preserve Advanced Ops as the authoritative inspection layer.
 
-Quick reminders for agents:
+### Do Not
 
-- `Mission` = intake board + assignment register
-- `Council` = meeting room + attendee roster + objections board
-- `Execution` = work-order floor + queue + gate control
-- `Deliverables` = delivery desk + packet + approval line
-- `Advanced Ops` = deep inspection control plane
+- Do not make the first screen an ERP dashboard or company directory.
+- Do not imitate a consumer messenger with alternating bubbles.
+- Do not hide current authority, source, gate, or failure state for visual simplicity.
+- Do not add fake streaming, fake autonomy, or decorative agent activity.
+- Do not turn the shell into a landing page, office simulation, or provider marketplace.
 
-Research note:
+## 10. Verification
 
-- Detailed external synthesis and the current-shell diagnosis live in `docs/11_orchestration-ui-research.md`
+Every primary-shell change must prove:
+
+- Mission submit and existing route/action contracts still work.
+- Council, Execution, Deliverables, and Advanced Ops remain reachable.
+- Desktop and mobile screenshots show the composer in the first viewport.
+- There is no horizontal overflow, clipped action text, console error, or inaccessible current state.
+- Runtime schema, approval semantics, provider boundaries, and source mutation authority are unchanged
+  unless separately approved.

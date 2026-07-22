@@ -692,6 +692,11 @@ const informationalChecks = [
     purpose: 'AI Company bounded continuation UI and API prove preview-before-resume interaction, one-step and five-minute browser-owned bounds, JSON-only bounded failures, browser-memory lifecycle, state-byte stability, responsive evidence, and absent automatic continuation controls',
   },
   {
+    id: 'llm-native-primary-shell',
+    script: 'scripts/smoke-ui-slice-671.mjs',
+    purpose: 'LLM-native primary shell proves prompt-first Mission intake, chronological agent workstream, compact context inspection, responsive layout, and preserved Advanced Ops authority',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

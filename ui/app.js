@@ -5789,7 +5789,8 @@ async function submitCreateMission(options = {}) {
     state.missionDraftDeliverableType = 'decision-memo';
     state.selectionSeeded = true;
     await hydrateSelectedDetails();
-    state.surface = payload.councilSession?.id ? 'council' : 'mission';
+    // Keep the prompt-first thread authoritative after submit. Council remains an explicit deep view.
+    state.surface = 'mission';
     render();
     elements.refreshStatus.textContent = payload.councilSession?.id
       ? realCouncilRequested
@@ -9948,6 +9949,8 @@ function renderControlOverview(data) {
   }
 
   const activeGroupId = getActiveNavGroupId();
+  document.body.dataset.navGroup = activeGroupId;
+  document.body.dataset.surface = state.surface;
   const activeProject = data.activeProject;
   const activeRuns = data.runs.filter((run) => run.status === 'running').length;
   const context = getCurrentOverviewContext(data);
@@ -10345,10 +10348,204 @@ function renderProjectBootstrapPanel(data, options = {}) {
   `;
 }
 
+function renderLlmMissionLead(data, selectedMission = null) {
+  const projectName = data.activeProject?.name || '프로젝트 선택 필요';
+  const missionState = selectedMission
+    ? `${getMissionStatusDisplay(selectedMission.status)} · ${selectedMission.id}`
+    : '새 미션';
+
+  return `
+    <section class="llm-mission-lead" aria-labelledby="llm-mission-prompt-title">
+      <div class="llm-mission-presence" aria-label="현재 실행 문맥">
+        <span class="llm-presence-dot" aria-hidden="true"></span>
+        <span>${escapeHtml(projectName)}</span>
+        <span aria-hidden="true">/</span>
+        <span>${escapeHtml(missionState)}</span>
+      </div>
+      <h2 id="llm-mission-prompt-title">무엇을 진행할까요?</h2>
+      <p>목표와 필요한 경계를 적으면 역할별 검토부터 시작합니다.</p>
+    </section>
+  `;
+}
+
+function renderLlmMissionWorkstream(options = {}) {
+  const mission = options.mission || null;
+
+  if (!mission) {
+    return `
+      <section class="llm-workstream llm-workstream-empty" aria-label="미션 workstream">
+        <div class="llm-empty-mark" aria-hidden="true">O</div>
+        <strong>아직 진행 중인 미션이 없습니다.</strong>
+        <p>위 composer에서 첫 목표를 등록하세요.</p>
+      </section>
+    `;
+  }
+
+  const council = options.council || {};
+  const execution = options.execution || {};
+  const deliverables = options.deliverables || {};
+  const nextAction = options.nextAction || {};
+  const linkedTask = options.linkedTask || null;
+  const councilSession = council.councilSession || null;
+  const councilStatus = councilSession
+    ? `${getAlignmentStatusDisplay(council.alignmentStatus)} · ${council.participantCount || 0} roles`
+    : '대기 중';
+  const councilCopy = councilSession
+    ? council.recommendationPreview || council.selectedPlanTitle || '회의 합의안을 검토하고 있습니다.'
+    : '목표를 역할별 관점으로 나눌 Council session이 아직 열리지 않았습니다.';
+  const executionStatus = linkedTask
+    ? getTaskLifecycleDisplay(linkedTask.lifecycleState)
+    : '실행 전';
+  const executionCopy = linkedTask
+    ? execution.stagePreview || `${linkedTask.id}의 bounded execution 상태를 확인합니다.`
+    : '합의된 계획과 operator gate가 준비되면 WorkOrder 실행이 이어집니다.';
+  const currentArtifact = deliverables.currentDeliverableArtifact || null;
+  const deliveryStatus = currentArtifact
+    ? getArtifactTypeDisplay(currentArtifact.type)
+    : '결과 대기';
+  const deliveryCopy = currentArtifact
+    ? `현재 결과 ${currentArtifact.id} · 리뷰 ${getReviewStatusDisplay(deliverables.latestReviewStatus)}`
+    : '검증과 리뷰를 통과한 결과 패킷이 여기에 이어집니다.';
+  const nextSurface = nextAction.surface || 'mission';
+  const nextLabel = nextAction.actionLabel || '현재 상태 확인';
+  const workstreamEntries = [
+    {
+      role: 'Operator',
+      mark: 'U',
+      tone: 'operator',
+      status: getMissionStatusDisplay(mission.status),
+      title: mission.title,
+      copy: mission.goal || '기록된 미션 목표가 없습니다.',
+    },
+    {
+      role: 'Council',
+      mark: 'C',
+      tone: 'council',
+      status: councilStatus,
+      title: councilSession ? council.selectedPlanTitle || '역할별 정렬' : '역할별 정렬 대기',
+      copy: councilCopy,
+    },
+    {
+      role: 'Execution',
+      mark: 'E',
+      tone: 'execution',
+      status: executionStatus,
+      title: linkedTask ? linkedTask.title || linkedTask.id : 'WorkOrder 실행 대기',
+      copy: executionCopy,
+    },
+    {
+      role: 'Deliverables',
+      mark: 'D',
+      tone: 'deliverables',
+      status: deliveryStatus,
+      title: currentArtifact ? '검증된 결과 패킷' : '결과 패킷 대기',
+      copy: deliveryCopy,
+    },
+  ];
+
+  return `
+    <section class="llm-workstream" aria-labelledby="llm-workstream-title">
+      <div class="llm-section-heading">
+        <div>
+          <p>Current thread</p>
+          <h3 id="llm-workstream-title">${escapeHtml(mission.title)}</h3>
+        </div>
+        ${createToken(`다음:${getSurfaceDisplayName(nextSurface)}`, nextAction.tone || 'neutral')}
+      </div>
+      <ol class="llm-turn-list">
+        ${workstreamEntries
+          .map(
+            (entry) => `
+              <li class="llm-turn llm-turn-${escapeHtml(entry.tone)}">
+                <div class="llm-turn-marker" aria-hidden="true">${escapeHtml(entry.mark)}</div>
+                <div class="llm-turn-content">
+                  <div class="llm-turn-meta">
+                    <strong>${escapeHtml(entry.role)}</strong>
+                    <span>${escapeHtml(entry.status)}</span>
+                  </div>
+                  <h4>${escapeHtml(entry.title)}</h4>
+                  <p>${escapeHtml(entry.copy)}</p>
+                </div>
+              </li>
+            `,
+          )
+          .join('')}
+      </ol>
+      <div class="llm-next-gate">
+        <div>
+          <span>Next gate</span>
+          <strong>${escapeHtml(nextLabel)}</strong>
+          <p>${escapeHtml(nextAction.summary || '현재 evidence를 확인한 뒤 다음 단계를 선택합니다.')}</p>
+        </div>
+        ${
+          nextSurface !== 'mission'
+            ? `
+              <button
+                class="primary-button llm-next-gate-button"
+                type="button"
+                data-action="open-surface-for-mission"
+                data-id="${escapeHtml(mission.id)}"
+                data-target-surface="${escapeHtml(nextSurface)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                ${escapeHtml(getSurfaceDisplayName(nextSurface))} 열기
+              </button>
+            `
+            : ''
+        }
+      </div>
+    </section>
+  `;
+}
+
+function renderLlmMissionInspector(options = {}) {
+  const mission = options.mission || null;
+
+  if (!mission) {
+    return `
+      <section class="llm-context-summary" aria-label="현재 mission context">
+        <p class="llm-context-label">Context</p>
+        <h3>새 미션</h3>
+        <p>프로젝트는 선택됐고 아직 목표가 등록되지 않았습니다.</p>
+        <dl>
+          <div><dt>Project</dt><dd>${escapeHtml(options.project?.name || '미지정')}</dd></div>
+          <div><dt>Authority</dt><dd>review + approval gated</dd></div>
+        </dl>
+      </section>
+    `;
+  }
+
+  const nextAction = options.nextAction || {};
+  const linkedTask = options.linkedTask || null;
+  const loop = options.loop || {};
+
+  return `
+    <section class="llm-context-summary" aria-label="현재 mission context">
+      <p class="llm-context-label">Context</p>
+      <h3>${escapeHtml(mission.title)}</h3>
+      <p>${escapeHtml(mission.constraints || '추가 경계가 기록되지 않았습니다.')}</p>
+      <dl>
+        <div><dt>Project</dt><dd>${escapeHtml(options.project?.name || '미지정')}</dd></div>
+        <div><dt>Mission</dt><dd>${escapeHtml(mission.id)}</dd></div>
+        <div><dt>Loop</dt><dd>${escapeHtml(loop.stageLabel || '대기')}</dd></div>
+        <div><dt>Task</dt><dd>${escapeHtml(linkedTask?.id || '미연결')}</dd></div>
+        <div><dt>Next</dt><dd>${escapeHtml(nextAction.actionLabel || '현재 상태 확인')}</dd></div>
+      </dl>
+      <div class="llm-authority-note">
+        <span class="llm-presence-dot" aria-hidden="true"></span>
+        <span>review before done · approval before commit</span>
+      </div>
+    </section>
+  `;
+}
+
 function renderMission(data) {
   if (!data.activeProject) {
     elements.surfaces.mission.innerHTML = `
-      <div class="surface-grid">
+      <div class="llm-project-entry">
+        ${renderLlmMissionLead(data)}
+      </div>
+      <div class="surface-grid llm-project-bootstrap-layout">
         <section class="surface-panel">
           <div class="panel-header">
             <div>
@@ -10736,7 +10933,8 @@ function renderMission(data) {
       `;
 
   elements.surfaces.mission.innerHTML = `
-    <div class="stack">
+    <div class="stack llm-mission-stack">
+      ${renderLlmMissionLead(data, selectedMission)}
       ${renderMissionIntakeBoard({
         project: data.activeProject,
         mission: selectedMission,
@@ -10749,8 +10947,8 @@ function renderMission(data) {
         draftGoal: state.missionDraftGoal,
       })}
       ${missionViewportStrip}
-      <div class="surface-grid">
-      <section class="surface-panel">
+      <div class="surface-grid llm-mission-layout">
+      <section class="surface-panel llm-mission-main">
         <div class="panel-header panel-header-tight">
           <div>
             <h2>안건 등록대장</h2>
@@ -10761,7 +10959,7 @@ function renderMission(data) {
             ${createToken(`미션수:${data.missions.length}`, 'neutral')}
           </div>
         </div>
-        <form class="task-create-form task-create-form-compact mission-order-desk" data-form="create-mission">
+        <form class="task-create-form task-create-form-compact mission-order-desk llm-mission-composer" data-form="create-mission">
           <div class="mission-order-head">
             <div class="stack">
               <strong>신규 안건 등록</strong>
@@ -10865,15 +11063,39 @@ function renderMission(data) {
             </div>
           </div>
         </form>
-        ${missionList}
+        ${renderLlmMissionWorkstream({
+          mission: selectedMission,
+          council: selectedMissionCouncilPreview,
+          execution: selectedMissionExecutionPreview,
+          deliverables: selectedMissionDeliverablesPreview,
+          nextAction: selectedMissionNextActionPreview,
+          linkedTask,
+        })}
+        <details class="llm-mission-history">
+          <summary>
+            <span>최근 미션</span>
+            <span>${escapeHtml(String(data.missions.length))}</span>
+          </summary>
+          <div class="llm-mission-history-body">${missionList}</div>
+        </details>
       </section>
-      <aside class="detail-card">
+      <aside class="detail-card llm-context-inspector">
         <div class="panel-header panel-header-tight">
           <div>
             <h2>안건 배정 브리프</h2>
             <p class="panel-copy panel-copy-tight">오른쪽은 현재 배정 판단과 다음 처리만 먼저 봅니다.</p>
           </div>
         </div>
+        ${renderLlmMissionInspector({
+          mission: selectedMission,
+          project: data.activeProject,
+          nextAction: selectedMissionNextActionPreview,
+          linkedTask,
+          loop: missionLoopStatus,
+        })}
+        <details class="llm-deep-inspector">
+          <summary>상세 근거 및 제어</summary>
+          <div class="llm-deep-inspector-body">
         ${
           selectedMission
             ? `
@@ -11331,6 +11553,8 @@ function renderMission(data) {
               </div>
             `
         }
+          </div>
+        </details>
       </aside>
       </div>
     </div>
