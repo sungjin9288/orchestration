@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `256\/256`, total `257\/257`/,
-  /UI QA is required `61\/61`/,
+  /required `1\/1`, informational `257\/257`, total `258\/258`/,
+  /UI QA is required `62\/62`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `257\/257`, UI QA `61\/61`, zero-open backlog/,
+  /aggregate `258\/258`, UI QA `62\/62`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1504,6 +1504,19 @@ const llmNativeWorkspaceHeaderEvidence = [
 
 assertReadmeHasAll(llmNativeWorkspaceHeaderEvidence);
 
+const llmNativeMobileNavigationEvidence = [
+  /docs\/101_llm-native-mobile-navigation-plan\.md/,
+  /LLM-native mobile navigation compaction is accepted by `DEC-150`/,
+  /collapsed rail now uses three rows/,
+  /Opening either existing native disclosure gives its source-current choices the full rail width/,
+  /node scripts\/smoke-ui-slice-684\.mjs/,
+  /output\/playwright\/orchestration-mobile-navigation-desktop\.png/,
+  /output\/playwright\/orchestration-mobile-navigation-compact\.png/,
+  /`DEC-150` permits only responsive navigation presentation below 820px[\s\S]*connectors remain outside/,
+];
+
+assertReadmeHasAll(llmNativeMobileNavigationEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1552,7 +1565,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `257\/257`, UI QA `61\/61`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `258\/258`, UI QA `62\/62`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

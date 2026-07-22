@@ -217,6 +217,9 @@ The shell must keep `review before done` and `approval before commit` visible at
 
 - Under 820px, the navigation becomes a compact top rail and the workspace starts in the first
   viewport.
+- In its collapsed state, the mobile rail uses three rows: brand and new Mission, the four primary
+  workstream links, then current Mission and Advanced Ops. Opening either native disclosure may grow
+  the rail and gives that disclosure the full width needed for readable source-current choices.
 - Hide the company roster and non-current group descriptions on mobile.
 - Keep the composer, current gate, and next action visible before deep evidence.
 - Controls wrap by intent; labels never truncate into ambiguous actions.

@@ -358,6 +358,12 @@ const smokeChecks = [
     purpose:
       'One visible project provider surface gate and refresh header, removed duplicate workstream metadata, responsive visibility, and zero runtime API schema dependency provider configuration or approval change',
   },
+  {
+    id: 'llm-native-mobile-navigation',
+    script: 'scripts/smoke-ui-slice-684.mjs',
+    purpose:
+      'Three-row collapsed mobile rail, full-width native disclosure expansion, current Mission and pending-gate visibility, unchanged desktop navigation, and zero route runtime API schema dependency persistence or authority change',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
