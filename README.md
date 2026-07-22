@@ -297,14 +297,15 @@ the explicit UI record action expose only source-bound evidence. Recall list/his
 Mission or WorkOrder injection, memory application, providers, source/Git/release, scheduling,
 policy, bypass, and connectors remain blocked.
 
-Mission memory context preview planning-only authority is accepted by `DEC-128`, and its complete
-fielded implementation handoff is recorded by `DEC-129` in
+Mission memory context preview planning-only authority is accepted by `DEC-128`, its complete
+fielded implementation handoff is recorded by `DEC-129`, and the exact implementation is accepted by
+`DEC-130` in
 `docs/86_ai-company-mission-memory-context-preview-plan.md` and
-`docs/87_ai-company-mission-memory-context-preview-implementation-decision-handoff.md`. The planned
-path binds one operator-selected exact current recorded recall and source item to one exact
-same-project draft Mission, current Mission digest, and bounded contextSpec, then stops at a deeply
-frozen deterministic `persisted=false`/`context-review-ready` response/browser-memory preview. No
-runtime/API/UI implementation is approved yet. Mission/WorkOrder/prompt/policy injection, memory
+`docs/87_ai-company-mission-memory-context-preview-implementation-decision-handoff.md`. Runtime binds
+one operator-selected exact current recorded recall and source item to one exact same-project draft
+Mission, current canonical Mission digest, and bounded contextSpec, then returns a deeply frozen
+deterministic `persisted=false`/`context-review-ready` response/browser-memory preview through one
+64 KiB JSON-only POST. Mission/WorkOrder/prompt/policy injection, durable context, memory
 application, automatic retrieval/ranking/recommendation, providers, schema migration, source/Git/
 release, scheduling, policy, bypass, and connectors remain blocked.
 
@@ -372,7 +373,7 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `230/230`, total `231/231`; UI QA is required `44/44`.
+`1/1`, informational `232/232`, total `233/233`; UI QA is required `45/45`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -433,7 +434,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `231/231`, UI QA `44/44`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `233/233`, UI QA `45/45`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -521,7 +522,14 @@ Current source-backed evidence:
   recall plus exact draft-Mission response-only review target. Runtime/API/UI implementation,
   Mission/WorkOrder/prompt/policy injection, memory application, automatic retrieval/ranking/
   recommendation, providers, schema/source/Git/release/scheduling/policy/bypass/connectors remain
-  blocked pending a complete fielded implementation decision.
+  blocked outside the accepted implementation boundary.
+- Mission memory context preview implementation: `DEC-130`,
+  `src/runtime/mission-memory-context-preview.js`,
+  `scripts/smoke-ai-company-mission-memory-context-preview.mjs`, and
+  `scripts/smoke-ui-slice-667.mjs` prove exact recall/item/draft-Mission digest binding, complete
+  evidence closure, deterministic deep-frozen replay, bounded POST and browser-memory lifecycle,
+  zero state-byte mutation, safe failure handling, responsive fit, and absent apply/inject/search/
+  recommend/persist controls.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
   draft planning target, the full operator decision fields, rollback and focused smoke requirements,
@@ -1969,9 +1977,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 909 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 911 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 666 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 667 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2124,6 +2132,8 @@ node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
 node scripts/smoke-ai-company-durable-memory-recall.mjs
 node scripts/smoke-ui-slice-666.mjs
 node scripts/smoke-ai-company-mission-memory-context-preview-planning.mjs
+node scripts/smoke-ai-company-mission-memory-context-preview.mjs
+node scripts/smoke-ui-slice-667.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -2132,7 +2142,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `231/231`, UI QA `44/44`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `233/233`, UI QA `45/45`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2450,9 +2460,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `44/44`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `45/45`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `230/230`, total `231/231`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `232/232`, total `233/233`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2483,7 +2493,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `231/231`, UI QA `44/44`, and zero-open backlog are local source-backed checks.
+  aggregate `233/233`, UI QA `45/45`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
@@ -2571,10 +2581,11 @@ Playwright CLI:
   connector authority.
 - `DEC-128` permits planning only for one schema-v15-preserving response-only
   `MissionMemoryContextPreview`, and `DEC-129` records the complete fielded implementation handoff.
-  No implementation outcome exists yet. The plan requires one exact recorded recall, one exact
-  same-project draft Mission, current digests, complete negative evidence, and explicit non-injection
-  language. Mission/WorkOrder/prompt/policy injection, memory application, automatic selection,
-  providers, schema/source/Git/release/scheduling/policy/bypass/connectors remain blocked.
+  `DEC-130` permits only the exact response/browser-memory implementation with one recorded recall,
+  one same-project draft Mission, current digests, complete evidence closure, and explicit
+  non-injection language. Mission/WorkOrder/prompt/policy injection, durable context, memory
+  application, automatic selection, providers, schema/source/Git/release/scheduling/policy/bypass/
+  connectors remain blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

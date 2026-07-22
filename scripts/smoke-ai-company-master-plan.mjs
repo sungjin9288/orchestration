@@ -220,6 +220,7 @@ assert.match(decisionLog, /^### DEC-126$/m);
 assert.match(decisionLog, /^### DEC-127$/m);
 assert.match(decisionLog, /^### DEC-128$/m);
 assert.match(decisionLog, /^### DEC-129$/m);
+assert.match(decisionLog, /^### DEC-130$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -345,6 +346,7 @@ process.stdout.write(
         'DEC-127',
         'DEC-128',
         'DEC-129',
+        'DEC-130',
       ],
       currentRuntime: {
         schemaVersion: 15,

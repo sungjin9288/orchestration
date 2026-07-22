@@ -647,6 +647,16 @@ const informationalChecks = [
     purpose: 'AI Company Mission memory context preview planning fixes one schema v15 preserving exact operator-selected recorded recall plus exact same-project draft Mission response-only context review target and records the complete fielded implementation gate while injection application automatic retrieval recommendation provider schema source Git release scheduling policy and connector authority remain blocked',
   },
   {
+    id: 'ai-company-mission-memory-context-preview-implementation',
+    script: 'scripts/smoke-ai-company-mission-memory-context-preview.mjs',
+    purpose: 'AI Company Mission memory context runtime proves exact current unexpired recorded recall and stored item plus exact same-project draft Mission and canonical target digest binding, complete evidence closure, bounded contextSpec, deterministic deep-frozen response-only replay, zero saveState or byte mutation, safe stale expired non-draft cross-project credential provider application and authority-widening refusal, and blocked Mission WorkOrder prompt policy injection or memory application',
+  },
+  {
+    id: 'ai-company-mission-memory-context-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-667.mjs',
+    purpose: 'AI Company Mission memory context UI and API prove one explicit exact-id operator selection form, browser canonical Mission digest parity, bounded JSON-only POST, response and browser-memory-only context-review-ready evidence, refresh source input and failure invalidation, safe malformed stale content-type cross-project provider oversized and non-draft failures, responsive fit, source-state byte stability, and absent apply inject recommend search persist or downstream controls',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

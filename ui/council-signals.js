@@ -527,6 +527,128 @@ export function getMemoryRecallPersistenceSummary(
   };
 }
 
+function canonicalizeDigestValue(value) {
+  if (Array.isArray(value)) return value.map(canonicalizeDigestValue);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, canonicalizeDigestValue(value[key])]),
+  );
+}
+
+export async function computeMissionMemoryContextTargetDigest(mission) {
+  if (
+    !mission ||
+    mission.status !== 'draft' ||
+    mission.linkedTaskId !== null ||
+    mission.councilSessionId !== null
+  ) {
+    throw new Error('exact current draft Mission만 context target으로 사용할 수 있습니다.');
+  }
+  const payload = {
+    id: mission.id,
+    projectId: mission.projectId,
+    title: mission.title,
+    goal: mission.goal,
+    constraints: mission.constraints,
+    deliverableType: mission.deliverableType,
+    status: mission.status,
+    linkedTaskId: mission.linkedTaskId,
+    councilSessionId: mission.councilSessionId,
+    createdAt: mission.createdAt,
+    updatedAt: mission.updatedAt,
+  };
+  const subtle = globalThis.crypto?.subtle;
+  if (!subtle) {
+    throw new Error('Mission digest를 계산할 Web Crypto를 사용할 수 없습니다.');
+  }
+  const bytes = new TextEncoder().encode(
+    JSON.stringify(canonicalizeDigestValue(payload)),
+  );
+  const digest = await subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+export function getMissionMemoryContextPreviewSummary(
+  durableItem,
+  durableRecall,
+  targetMission,
+  preview,
+) {
+  const sourceCurrent = Boolean(
+    durableItem?.persisted === true &&
+      durableItem.status === 'stored' &&
+      durableRecall?.persisted === true &&
+      durableRecall.status === 'recorded' &&
+      durableRecall.sourceMemoryItemId === durableItem.id &&
+      durableRecall.sourceMemoryItemRecordDigest === durableItem.recordDigest &&
+      durableRecall.projectId === durableItem.projectId &&
+      durableRecall.workspaceScope?.projectId === durableItem.projectId &&
+      durableRecall.applicationStatus === 'blocked' &&
+      durableRecall.recommendationStatus === 'blocked' &&
+      durableRecall.missionInjectionStatus === 'blocked',
+  );
+  if (!sourceCurrent) return null;
+
+  const unexpired = Boolean(
+    Date.parse(durableItem.expiresAt) > Date.now() &&
+      Date.parse(durableRecall.expiresAt) > Date.now(),
+  );
+  const targetCurrent = Boolean(
+    targetMission &&
+      targetMission.status === 'draft' &&
+      targetMission.linkedTaskId === null &&
+      targetMission.councilSessionId === null &&
+      targetMission.projectId === durableRecall.projectId,
+  );
+  const currentPreview =
+    preview?.persisted === false &&
+    preview.status === 'context-review-ready' &&
+    preview.selectionMode === 'exact-id-operator-selected' &&
+    preview.sourceMemoryRecallId === durableRecall.id &&
+    preview.sourceMemoryRecallRecordDigest === durableRecall.recordDigest &&
+    preview.sourceMemoryItemId === durableItem.id &&
+    preview.sourceMemoryItemRecordDigest === durableItem.recordDigest &&
+    preview.targetMissionId === targetMission?.id &&
+    preview.targetMissionStatus === 'draft' &&
+    preview.projectId === durableRecall.projectId
+      ? preview
+      : null;
+
+  return {
+    canPreview: Boolean(
+      unexpired &&
+        targetCurrent &&
+        durableRecall.applicability?.targetPathAllowlist?.length > 0 &&
+        durableRecall.applicability?.verificationCommands?.length > 0 &&
+        durableRecall.evidenceRefs?.length > 0 &&
+        durableRecall.negativeEvidenceRefs?.length > 0 &&
+        durableRecall.redactionRefs?.length > 0 &&
+        durableRecall.reviewRefs?.length > 0
+    ),
+    currentPreview,
+    item: durableItem,
+    recall: durableRecall,
+    targetCurrent,
+    targetMission: targetCurrent ? targetMission : null,
+    unexpired,
+    workspaceProjectId: durableRecall.projectId,
+    targetPathAllowlist: [...new Set(
+      durableRecall.applicability?.targetPathAllowlist || [],
+    )],
+    verificationCommands: [...new Set(
+      durableRecall.applicability?.verificationCommands || [],
+    )],
+    evidenceRefs: [...new Set(durableRecall.evidenceRefs || [])],
+    negativeEvidenceRefs: [...new Set(durableRecall.negativeEvidenceRefs || [])],
+    redactionRefs: [...new Set(durableRecall.redactionRefs || [])],
+    reviewRefs: [...new Set(durableRecall.reviewRefs || [])],
+  };
+}
+
 export function getMissionDeliveryPackageAcceptanceSummary(
   preview,
   bundle,

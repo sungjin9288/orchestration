@@ -403,11 +403,11 @@ approval만 source로 삼는다. Council은 record approval을 생성하지 않�
 relevance scoring, recommendation, context injection, or application authority를 얻지 않는다.
 
 Mission memory context preview planning은 `DEC-128`, complete fielded implementation handoff는
-`DEC-129`로 기록됐다. Council은 recorded recall이나 target Mission을 자동 선택하거나 relevance를
-score/rank/recommend하지 않는다. Planned preview는 operator-selected exact recall과 exact
+`DEC-129`, exact implementation은 `DEC-130`으로 기록됐다. Council은 recorded recall이나 target Mission을 자동 선택하거나 relevance를
+score/rank/recommend하지 않는다. Response-only preview는 operator-selected exact recall과 exact
 same-project draft Mission을 response/browser-memory에서 함께 검토할 뿐이며, Council agenda,
 position prompt, synthesis, Mission, WorkOrder, policy를 변경하거나 memory application authority를
-만들지 않는다. Runtime/API/UI implementation은 별도 complete fielded decision 전까지 blocked다.
+만들지 않는다. Council context injection이나 application은 별도 complete fielded decision 전까지 blocked다.
 
 ## Verification
 

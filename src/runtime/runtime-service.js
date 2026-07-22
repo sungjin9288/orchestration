@@ -157,6 +157,10 @@ const {
 } = require('./memory-recall-preview');
 const { createMemoryRecall } = require('./memory-recalls');
 const {
+  computeMissionMemoryContextTargetDigest,
+  previewMissionMemoryContext: compileMissionMemoryContextPreview,
+} = require('./mission-memory-context-preview');
+const {
   assertSupportedArtifactType,
   cloneJsonValue,
   compareByCreatedDesc,
@@ -4185,6 +4189,79 @@ function createRuntimeService(options = {}) {
     return buildMemoryItemRecallPreviewFromState(state, input);
   }
 
+  function assertExactMissionMemoryContextPreviewInput(input) {
+    const expectedFields = [
+      'missionId',
+      'memoryRecallId',
+      'memoryRecallRecordDigest',
+      'memoryItemId',
+      'memoryItemRecordDigest',
+      'targetMissionDigest',
+      'evaluatedAt',
+      'contextSpec',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict(
+        'MissionMemoryContext preview request has unexpected or missing fields',
+      );
+    }
+  }
+
+  function previewMissionMemoryContext(input) {
+    assertExactMissionMemoryContextPreviewInput(input);
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(
+        `MissionMemoryContext preview requires current state: ${error.message}`,
+      );
+    }
+
+    const mission = assertMission(input.missionId, state);
+    const memoryRecall = assertMemoryRecall(input.memoryRecallId, state);
+    const memoryItem = assertMemoryItem(input.memoryItemId, state);
+    if (String(input.memoryRecallRecordDigest || '').trim() !== memoryRecall.recordDigest) {
+      throw conflict(
+        'MissionMemoryContext memoryRecallRecordDigest does not match current evidence',
+      );
+    }
+    if (String(input.memoryItemRecordDigest || '').trim() !== memoryItem.recordDigest) {
+      throw conflict(
+        'MissionMemoryContext memoryItemRecordDigest does not match current evidence',
+      );
+    }
+    const targetMissionDigest = computeMissionMemoryContextTargetDigest(mission);
+    if (String(input.targetMissionDigest || '').trim() !== targetMissionDigest) {
+      throw conflict(
+        'MissionMemoryContext targetMissionDigest does not match current evidence',
+      );
+    }
+
+    try {
+      return compileMissionMemoryContextPreview({
+        recall: memoryRecall,
+        item: memoryItem,
+        mission,
+        evaluatedAt: input.evaluatedAt,
+        contextSpec: input.contextSpec,
+      });
+    } catch (error) {
+      if (
+        /source Memory|source item tuple|source and target|target Mission|expired|widened downstream authority/.test(
+          error.message,
+        )
+      ) {
+        throw conflict(error.message);
+      }
+      throw error;
+    }
+  }
+
   function findMemoryRecall(state, memoryItemId) {
     return (
       Object.values(state.memoryRecalls).find(
@@ -6137,6 +6214,7 @@ function createRuntimeService(options = {}) {
     previewMissionLearningCandidate,
     previewLearningCandidateMemory,
     previewMemoryItemRecall,
+    previewMissionMemoryContext,
     previewMissionWorkOrders,
     previewExecutionPlanDelivery,
     persistExecutionPlanDeliveryPackage,

@@ -430,13 +430,14 @@ retrieval/search/ranking/recommendation, context injection, application, provide
 scheduling, policy, bypass, and connectors remain blocked.
 
 Mission memory context preview planning-only authority는 `DEC-128`, complete fielded implementation
-handoff는 `DEC-129`로 기록됐다. `docs/86_ai-company-mission-memory-context-preview-plan.md`는 one
+handoff는 `DEC-129`, exact implementation은 `DEC-130`으로 기록됐다. `docs/86_ai-company-mission-memory-context-preview-plan.md`는 one
 exact current recorded recall과 source item, one exact same-project draft Mission, current Mission
 digest, and bounded contextSpec을 response-only review evidence로 묶는다. 계획은 schema-v15와 모든
 source record를 그대로 두며 Mission/WorkOrder/prompt/policy injection, memory application,
 automatic retrieval/ranking/recommendation, providers, source/Git/release, scheduling, policy, bypass,
-and connectors를 열지 않는다. Runtime/API/UI implementation은 complete fielded decision 전까지
-blocked다.
+and connectors를 열지 않는다. Runtime/API/UI는 exact-id form, canonical Mission digest, 64 KiB
+JSON-only POST, response/browser-memory preview로 이 경계를 구현했고 durable context나 downstream
+control을 만들지 않는다.
 
 ## Phase 9: Dogfood And Productization
 
@@ -522,10 +523,10 @@ accepted됐다. MemoryCandidate response-only preview planning/handoff/implement
 `DEC-116`/`DEC-117`/`DEC-118`, Durable MemoryItem persistence planning/handoff/implementation은
 `DEC-119`/`DEC-120`/`DEC-121`, MemoryRecall response-only planning/handoff/implementation은
 `DEC-122`/`DEC-123`/`DEC-124`로 accepted됐다. Durable MemoryRecall planning/handoff/implementation은
-`DEC-125`/`DEC-126`/`DEC-127`로 accepted됐다. Mission memory context preview planning/handoff는
-`DEC-128`/`DEC-129`로 accepted됐지만 implementation outcome은 아직 없다. Current runtime is schema
-v15 with one exact source-bound recorded audit path. The immediate next gate is one complete fielded
-response-only `MissionMemoryContextPreview` implementation decision. Any schema-v16 change, context
+`DEC-125`/`DEC-126`/`DEC-127`로 accepted됐다. Mission memory context preview
+planning/handoff/implementation은 `DEC-128`/`DEC-129`/`DEC-130`으로 accepted됐다. Current runtime is
+schema v15 with one exact source-bound recorded audit path and one response-only exact-id context
+review path. The immediate next gate requires a separate complete fielded decision. Any schema-v16 change, context
 record, Mission/WorkOrder/prompt/policy injection, memory application, recall lifecycle, list/history,
 automatic retrieval/search/ranking/recommendation, providers, source/Git/release, scheduling,
 next-Mission, policy, bypass, or connectors remains blocked.
@@ -648,6 +649,8 @@ node scripts/smoke-ai-company-durable-memory-recall-planning.mjs
 node scripts/smoke-ai-company-durable-memory-recall.mjs
 node scripts/smoke-ui-slice-666.mjs
 node scripts/smoke-ai-company-mission-memory-context-preview-planning.mjs
+node scripts/smoke-ai-company-mission-memory-context-preview.mjs
+node scripts/smoke-ui-slice-667.mjs
 node scripts/verification_status.mjs
 ```
 

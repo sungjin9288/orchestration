@@ -11,9 +11,9 @@ memory를 주입하거나 적용하는 권한은 포함하지 않는다.
 
 - Planning-only authority is accepted as `DEC-128`.
 - This complete fielded implementation handoff is recorded as `DEC-129`.
-- No complete fielded implementation outcome has been supplied.
-- Current runtime remains schema v15 with exact MemoryRecall inspection only; no context preview,
-  Mission injection, application, automatic selection, or provider path exists.
+- The exact complete fielded approval was accepted and implemented as `DEC-130`.
+- Current runtime remains schema v15 and adds only one response-only exact-id context preview; Mission
+  injection, application, automatic selection, durable context, and provider paths remain absent.
 
 ## Required Decision Fields
 
@@ -106,7 +106,7 @@ approvalStatement=I defer MissionMemoryContextPreview implementation. No context
 
 ## Stop Condition
 
-No implementation outcome is recorded. Stop after planning, handoff, and planning verification until the
-operator supplies one complete valid outcome. Do not create runtime/API/UI behavior, schema, durable
-context records, injection, application, automatic retrieval, providers, source/Git/release,
-scheduling, policy mutation, bypass, or connectors.
+The exact implementation outcome is recorded as `DEC-130`; this handoff remains consumed provenance.
+Stop any follow-on work before schema migration, durable context records, injection, application,
+automatic retrieval, providers, source/Git/release, scheduling, policy mutation, bypass, or connectors
+until a separate complete valid outcome is supplied.

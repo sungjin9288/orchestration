@@ -256,6 +256,12 @@ const smokeChecks = [
     purpose:
       'Durable MemoryRecall UI and API preserve exact DEC-124 recomputation, separate record approval, one immutable recorded audit fact, exact hydration, response-only preview compatibility, safe stale malformed content-type credential and cross-workspace failures, idempotent replay, responsive fit, and absent list history search ranking recommendation application or Mission injection controls',
   },
+  {
+    id: 'ai-company-mission-memory-context-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-667.mjs',
+    purpose:
+      'MissionMemoryContext UI and API preserve explicit exact-id operator selection, current draft Mission and canonical digest binding, complete positive negative redaction and review evidence, bounded response and browser-memory-only context preview, refresh source input and failure invalidation, safe malformed stale content-type cross-project provider oversized and non-draft refusal, responsive fit, source-state stability, and absent apply inject recommend search persist or downstream controls',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

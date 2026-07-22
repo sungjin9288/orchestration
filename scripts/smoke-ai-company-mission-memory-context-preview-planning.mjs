@@ -37,7 +37,7 @@ assert.match(plan, /POST \/api\/missions\/:missionId\/memory-context-preview/);
 assert.match(plan, /uses `loadStateReadonly\(\)`/);
 assert.match(plan, /never calls `saveState`/);
 assert.match(plan, /Planning-only authority: accepted as `DEC-128`/);
-assert.match(plan, /Runtime\/API\/UI implementation: blocked/);
+assert.match(plan, /Runtime\/API\/UI implementation: accepted and implemented as `DEC-130`/);
 
 assert.match(
   handoff,
@@ -53,11 +53,12 @@ assert.match(
 );
 assert.match(handoff, /src\/runtime\/mission-memory-context-preview\.js/);
 assert.match(handoff, /scripts\/smoke-ui-slice-667\.mjs/);
-assert.match(handoff, /No complete fielded implementation outcome has been supplied/);
+assert.match(handoff, /complete fielded approval was accepted and implemented as `DEC-130`/);
 assert.match(handoff, /delegated self-approval for retrieval-sensitive runtime or UI implementation/);
 
 assert.match(decisionLog, /^### DEC-128$/m);
 assert.match(decisionLog, /^### DEC-129$/m);
+assert.match(decisionLog, /^### DEC-130$/m);
 assert.match(masterPlan, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(runtimeContract, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(councilProtocol, /Mission memory context preview planning은 `DEC-128`/);
@@ -92,15 +93,15 @@ assert.match(runtimeService, /function createMission\(input\)/);
 assert.match(runtimeService, /status: 'draft'/);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'src/runtime/mission-memory-context-preview.js')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-mission-memory-context-preview.mjs')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-667.mjs')),
-  false,
+  true,
 );
 
 process.stdout.write(
@@ -111,7 +112,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-128',
         handoff: 'documented-dec-129',
-        implementation: 'blocked-pending-complete-fielded-decision',
+        implementation: 'accepted-dec-130',
       },
       plannedPath: {
         schemaVersion: 15,
@@ -124,11 +125,11 @@ process.stdout.write(
         schemaVersion: 15,
         durableMemoryRecall: true,
         exactMissionInspection: true,
-        missionMemoryContextPreview: false,
+        missionMemoryContextPreview: true,
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
+        implementationAllowed: true,
         schemaMigrationAllowed: false,
         missionInjectionAllowed: false,
         workOrderInjectionAllowed: false,

@@ -413,10 +413,10 @@ retrieval/search/ranking/recommendation, Mission/WorkOrder injection, memory app
 source/Git/release, scheduling, policy, bypass, and connectors remain blocked.
 
 Mission memory context preview planning-only authority는 `DEC-128`, complete fielded implementation
-handoff는 `DEC-129`로 기록됐다. 계획된 path는 one exact current recorded recall과 그 source item,
+handoff는 `DEC-129`, exact implementation은 `DEC-130`으로 기록됐다. Current path는 one exact current recorded recall과 그 source item,
 one exact same-project draft Mission, current target Mission digest, bounded operator contextSpec을
 검증해 `persisted=false`/`context-review-ready` response/browser-memory preview 하나에서 멈춘다.
-Current runtime에는 이 preview가 없으며 Mission/Council/ExecutionPlan/WorkOrder/prompt/policy
+Current runtime은 이 response/browser-memory preview만 제공하며 Mission/Council/ExecutionPlan/WorkOrder/prompt/policy
 injection, memory application, automatic selection, provider, schema, source/Git/release, scheduling,
 policy, bypass, and connectors remain blocked.
 

@@ -2515,6 +2515,53 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const missionMemoryContextPreviewMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/memory-context-preview$/,
+  );
+  if (method === 'POST' && missionMemoryContextPreviewMatch) {
+    try {
+      const missionId = decodeURIComponent(missionMemoryContextPreviewMatch[1]);
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'memoryRecallId',
+        'memoryRecallRecordDigest',
+        'memoryItemId',
+        'memoryItemRecordDigest',
+        'targetMissionDigest',
+        'evaluatedAt',
+        'contextSpec',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'MissionMemoryContext preview body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const missionMemoryContextPreview = runtime.previewMissionMemoryContext({
+        missionId,
+        ...input,
+      });
+      json(response, 200, {
+        missionMemoryContextPreview,
+        generatedAt: new Date().toISOString(),
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error:
+          error.message || 'MissionMemoryContext preview 생성에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );

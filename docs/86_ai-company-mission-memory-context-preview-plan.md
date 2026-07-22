@@ -223,4 +223,4 @@ raw evidence, source/Git/release, scheduling, next-Mission, policy mutation, byp
 
 - Planning-only authority: accepted as `DEC-128`.
 - Complete fielded implementation handoff: documented as `DEC-129`.
-- Runtime/API/UI implementation: blocked pending a complete fielded operator decision.
+- Runtime/API/UI implementation: accepted and implemented as `DEC-130` without widening downstream authority.
