@@ -223,6 +223,8 @@ The shell must keep `review before done` and `approval before commit` visible at
 - In its collapsed state, the mobile rail uses three rows: brand and new Mission, the four primary
   workstream links, then current Mission and Advanced Ops. Opening either native disclosure may grow
   the rail and gives that disclosure the full width needed for readable source-current choices.
+- The collapsed current-Mission summary keeps the complete title readable through natural wrapping;
+  it must not trade context for a one-line ellipsis.
 - Hide the company roster and non-current group descriptions on mobile.
 - Keep the composer, current gate, and next action visible before deep evidence.
 - Controls wrap by intent; labels never truncate into ambiguous actions.

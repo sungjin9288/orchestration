@@ -772,6 +772,11 @@ const informationalChecks = [
     purpose: 'LLM-native sparse Mission Graph proves source-density-derived desktop height, count-only empty mobile stages, unchanged dense six-stage semantics, and zero projection runtime API schema dependency persistence or authority expansion',
   },
   {
+    id: 'llm-native-mobile-mission-title-readability',
+    script: 'scripts/smoke-ui-slice-686.mjs',
+    purpose: 'LLM-native mobile Mission navigation proves complete natural title wrapping inside the existing three-row rail, full-width disclosure and desktop compatibility, and zero route runtime API schema dependency persistence or authority expansion',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

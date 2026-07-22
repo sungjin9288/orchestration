@@ -13188,7 +13188,7 @@ body .llm-app-shell .project-bootstrap-defaults {
   }
 
   body .llm-app-shell .llm-sidebar-missions > summary {
-    min-height: 34px;
+    min-height: 42px;
     padding: 4px 7px;
   }
 
@@ -13202,9 +13202,10 @@ body .llm-app-shell .project-bootstrap-defaults {
 
   body .llm-app-shell .llm-sidebar-mission-current > strong {
     display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    line-height: 1.25;
   }
 
   body .llm-app-shell .llm-sidebar-mission-list {
