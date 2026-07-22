@@ -352,6 +352,12 @@ const smokeChecks = [
     purpose:
       'Current Mission sidebar context, project-scoped newest-first full Mission selection, exact selected state, existing selection route reuse, bounded responsive disclosure, full-register compatibility, and zero authority expansion',
   },
+  {
+    id: 'llm-native-workspace-header',
+    script: 'scripts/smoke-ui-slice-683.mjs',
+    purpose:
+      'One visible project provider surface gate and refresh header, removed duplicate workstream metadata, responsive visibility, and zero runtime API schema dependency provider configuration or approval change',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

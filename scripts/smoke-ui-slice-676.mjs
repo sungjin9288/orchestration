@@ -57,7 +57,7 @@ assert.deepEqual(existingProjects, {
 
 const renderMissionSource = extractFunction(appSource, 'renderMission', 'renderCouncil');
 assert.match(appSource, /getMissionProjectBootstrapState/);
-assert.match(appSource, /renderLlmMissionLead\(data, null, \{ projectBootstrap \}\)/);
+assert.match(appSource, /renderLlmMissionLead\(null, \{ projectBootstrap \}\)/);
 assert.match(appSource, /class="llm-project-bootstrap-surface"/);
 assert.match(appSource, /class="project-bootstrap[^"$]*\$\{missionMode \? 'project-bootstrap-mission'/);
 assert.match(appSource, /missionMode\s+\? ''\s+: `\s*<div class="empty-state">/);

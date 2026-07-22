@@ -757,6 +757,11 @@ const informationalChecks = [
     purpose: 'LLM-native Mission history navigation proves current Mission sidebar context, project-scoped newest-first full Mission selection, exact selected state, existing route reuse, bounded responsive disclosure, full-register compatibility, and zero runtime API schema dependency persistence automatic-selection or authority expansion',
   },
   {
+    id: 'llm-native-workspace-header',
+    script: 'scripts/smoke-ui-slice-683.mjs',
+    purpose: 'LLM-native Workspace Header proves one visible project provider surface gate and refresh band, removed duplicate workstream metadata, responsive visibility, existing source binding reuse, and zero runtime API schema dependency provider configuration persistence or authority expansion',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

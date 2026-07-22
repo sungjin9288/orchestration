@@ -214,14 +214,20 @@
 
       <div class="workspace-shell">
         <header class="shell-header">
-          <div class="shell-window-bar">
+          <div class="shell-window-bar" aria-label="현재 workspace 상태">
             <div class="shell-window-meta shell-window-meta-left">
-              <span id="shell-window-label" class="shell-window-label">WORK</span>
-              <span class="llm-runtime-presence"><span aria-hidden="true"></span>local workspace</span>
+              <strong id="shell-header-project" class="shell-header-project">미지정</strong>
+              <span id="shell-window-label" class="shell-window-label">local-stub</span>
+              <span class="shell-header-context">
+                <span id="shell-header-surface">미션</span>
+                <span id="shell-header-gates">gate 0</span>
+              </span>
             </div>
             <div class="shell-window-runtime">
               <span id="refresh-status" class="refresh-status">연결 중…</span>
-              <button id="refresh-button" class="refresh-button" type="button">새로고침</button>
+              <button id="refresh-button" class="refresh-button" type="button" aria-label="새로고침" title="새로고침">
+                <span aria-hidden="true">↻</span>
+              </button>
             </div>
           </div>
 
@@ -234,15 +240,15 @@
               <div class="shell-header-register" aria-label="현재 workspace 요약">
                 <div class="shell-header-register-cell">
                   <span class="shell-header-register-label">현재 프로젝트</span>
-                  <strong id="shell-header-project" class="shell-header-register-value">미지정</strong>
+                  <strong class="shell-header-register-value">미지정</strong>
                 </div>
                 <div class="shell-header-register-cell">
                   <span class="shell-header-register-label">현재 workspace</span>
-                  <strong id="shell-header-surface" class="shell-header-register-value">업무</strong>
+                  <strong class="shell-header-register-value">업무</strong>
                 </div>
                 <div class="shell-header-register-cell">
                   <span class="shell-header-register-label">열린 승인선</span>
-                  <strong id="shell-header-gates" class="shell-header-register-value">0건</strong>
+                  <strong class="shell-header-register-value">0건</strong>
                 </div>
               </div>
             </div>

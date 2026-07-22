@@ -8400,6 +8400,11 @@ function renderWorkspaceHeader(data, context) {
   const activeGroupId = getActiveNavGroupId();
   const meta = GROUP_WORKSPACE_META[activeGroupId] || GROUP_WORKSPACE_META.workflows;
   const activeProject = data.activeProject;
+  const projectLabel = activeProject?.name || '미지정';
+  const providerConfig = getProjectProviderConfig(activeProject);
+  const providerLabel =
+    providerConfig.mode === 'live' ? providerConfig.adapter : providerConfig.mode;
+  const surfaceLabel = getSurfaceDisplayName(state.surface);
 
   if (elements.shellHeader.eyebrow) {
     elements.shellHeader.eyebrow.textContent = meta.eyebrow;
@@ -8410,19 +8415,26 @@ function renderWorkspaceHeader(data, context) {
   }
 
   if (elements.shellHeader.windowLabel) {
-    elements.shellHeader.windowLabel.textContent = meta.windowLabel;
+    elements.shellHeader.windowLabel.textContent = providerLabel;
+    elements.shellHeader.windowLabel.setAttribute('aria-label', `provider mode ${providerLabel}`);
   }
 
   if (elements.shellHeader.project) {
-    elements.shellHeader.project.textContent = activeProject?.name || '미지정';
+    elements.shellHeader.project.textContent = projectLabel;
+    elements.shellHeader.project.setAttribute('aria-label', `현재 프로젝트 ${projectLabel}`);
   }
 
   if (elements.shellHeader.surface) {
-    elements.shellHeader.surface.textContent = meta.title;
+    elements.shellHeader.surface.textContent = surfaceLabel;
+    elements.shellHeader.surface.setAttribute('aria-label', `현재 workspace ${surfaceLabel}`);
   }
 
   if (elements.shellHeader.gates) {
-    elements.shellHeader.gates.textContent = `${context.pendingGateCount}건`;
+    elements.shellHeader.gates.textContent = `gate ${context.pendingGateCount}`;
+    elements.shellHeader.gates.setAttribute(
+      'aria-label',
+      `열린 게이트 ${context.pendingGateCount}건`,
+    );
   }
 
   document.body.dataset.navGroup = activeGroupId;
@@ -10671,15 +10683,9 @@ function renderProjectBootstrapPanel(data, options = {}) {
   `;
 }
 
-function renderLlmMissionLead(data, selectedMission = null, options = {}) {
+function renderLlmMissionLead(selectedMission = null, options = {}) {
   const projectBootstrap = options.projectBootstrap || null;
-  const projectName = data.activeProject?.name || 'local workspace';
   const composingNew = options.composingNew === true || !selectedMission;
-  const missionState = projectBootstrap
-    ? projectBootstrap.contextLabel
-    : selectedMission && !composingNew
-      ? `${getMissionStatusDisplay(selectedMission.status)} · ${selectedMission.id}`
-      : '새 미션';
   const heading = projectBootstrap
     ? projectBootstrap.heading
     : selectedMission && !composingNew
@@ -10693,12 +10699,6 @@ function renderLlmMissionLead(data, selectedMission = null, options = {}) {
 
   return `
     <section class="llm-mission-lead ${selectedMission && !composingNew ? 'is-active-mission' : ''}" aria-labelledby="llm-mission-prompt-title">
-      <div class="llm-mission-presence" aria-label="현재 실행 문맥">
-        <span class="llm-presence-dot" aria-hidden="true"></span>
-        <span>${escapeHtml(projectName)}</span>
-        <span aria-hidden="true">/</span>
-        <span>${escapeHtml(missionState)}</span>
-      </div>
       <h2 id="llm-mission-prompt-title">${escapeHtml(heading)}</h2>
       <p>${escapeHtml(supportingCopy)}</p>
     </section>
@@ -10886,7 +10886,7 @@ function renderLlmMissionInspector(options = {}) {
         <div><dt>Next</dt><dd>${escapeHtml(nextAction.actionLabel || '현재 상태 확인')}</dd></div>
       </dl>
       <div class="llm-authority-note">
-        <span class="llm-presence-dot" aria-hidden="true"></span>
+        <span class="llm-authority-dot" aria-hidden="true"></span>
         <span>review before done · approval before commit</span>
       </div>
     </section>
@@ -10899,7 +10899,7 @@ function renderMission(data) {
 
     elements.surfaces.mission.innerHTML = `
       <div class="llm-project-entry">
-        ${renderLlmMissionLead(data, null, { projectBootstrap })}
+        ${renderLlmMissionLead(null, { projectBootstrap })}
       </div>
       <div class="surface-grid llm-project-bootstrap-layout">
         <section class="llm-project-bootstrap-surface" aria-label="프로젝트 연결">
@@ -11269,7 +11269,7 @@ function renderMission(data) {
 
   elements.surfaces.mission.innerHTML = `
     <div class="stack llm-mission-stack">
-      ${renderLlmMissionLead(data, selectedMission, { composingNew: missionComposerExpanded })}
+      ${renderLlmMissionLead(selectedMission, { composingNew: missionComposerExpanded })}
       ${renderMissionIntakeBoard({
         project: data.activeProject,
         mission: selectedMission,
@@ -14086,12 +14086,6 @@ function renderCouncilConversationSurface(options) {
   return `
     <div class="llm-council-shell">
       <section class="llm-council-lead" aria-labelledby="llm-council-title">
-        <div class="llm-mission-presence" aria-label="현재 Council 문맥">
-          <span class="llm-presence-dot" aria-hidden="true"></span>
-          <span>${escapeHtml(data.activeProject.name)}</span>
-          <span aria-hidden="true">/</span>
-          <span>${escapeHtml(councilSession ? getCouncilStatusDisplay(councilSession.status) : '회의 전')}</span>
-        </div>
         <h2 id="llm-council-title">${escapeHtml(mission.title)}</h2>
         <p>${escapeHtml(mission.goal || '기록된 미션 목표가 없습니다.')}</p>
         <div class="token-row token-row-compact">
@@ -15136,18 +15130,12 @@ function renderExecutionSourceProvenance(options = {}) {
 }
 
 function renderExecutionWaitingSurface(options = {}) {
-  const { mission, councilSession, busy, projectName } = options;
+  const { mission, councilSession, busy } = options;
   const alignmentStatus = councilSession?.alignment?.status || 'pending';
 
   return `
     <div class="llm-execution-shell">
       <section class="llm-execution-lead" aria-labelledby="llm-execution-title">
-        <div class="llm-mission-presence" aria-label="현재 Execution 문맥">
-          <span class="llm-presence-dot" aria-hidden="true"></span>
-          <span>${escapeHtml(projectName)}</span>
-          <span aria-hidden="true">/</span>
-          <span>실행 인계 대기</span>
-        </div>
         <h2 id="llm-execution-title">${escapeHtml(mission.title)}</h2>
         <p>${escapeHtml(mission.goal || '기록된 미션 목표가 없습니다.')}</p>
         <div class="token-row token-row-compact">
@@ -15191,7 +15179,6 @@ function renderExecutionConversationSurface(options = {}) {
     harnessConsumerStatus,
     gateCopy,
     busy,
-    projectName,
   } = options;
   const currentCheckpoint =
     executionEvidence.checkpoints.find((checkpoint) => checkpoint.currentOwner) ||
@@ -15200,12 +15187,6 @@ function renderExecutionConversationSurface(options = {}) {
   return `
     <div class="llm-execution-shell">
       <section class="llm-execution-lead" aria-labelledby="llm-execution-title">
-        <div class="llm-mission-presence" aria-label="현재 Execution 문맥">
-          <span class="llm-presence-dot" aria-hidden="true"></span>
-          <span>${escapeHtml(projectName)}</span>
-          <span aria-hidden="true">/</span>
-          <span>${escapeHtml(getTaskLifecycleDisplay(task.lifecycleState))}</span>
-        </div>
         <h2 id="llm-execution-title">${escapeHtml(mission.title)}</h2>
         <p>${escapeHtml(mission.goal || task.intent || '기록된 실행 목표가 없습니다.')}</p>
         <div class="token-row token-row-compact">
@@ -15323,7 +15304,6 @@ function renderExecution(data) {
         mission: selectedMission,
         councilSession: selectedCouncilSession,
         busy: state.loading || state.mutating,
-        projectName: data.activeProject.name,
       });
       return;
     }
@@ -15506,7 +15486,6 @@ function renderExecution(data) {
       harnessConsumerStatus,
       gateCopy,
       busy: state.loading || state.mutating,
-      projectName: data.activeProject.name,
     });
     return;
   }
@@ -15931,12 +15910,6 @@ function renderDeliverablesWaitingSurface(options = {}) {
   return `
     <div class="llm-deliverables-shell">
       <section class="llm-deliverables-lead" aria-labelledby="llm-deliverables-title">
-        <div class="llm-mission-presence" aria-label="현재 Deliverables 문맥">
-          <span class="llm-presence-dot" aria-hidden="true"></span>
-          <span>${escapeHtml(options.projectName)}</span>
-          <span aria-hidden="true">/</span>
-          <span>delivery 대기</span>
-        </div>
         <h2 id="llm-deliverables-title">${escapeHtml(options.mission.title)}</h2>
         <p>${escapeHtml(options.mission.goal || '기록된 Mission 목표가 없습니다.')}</p>
       </section>
@@ -16238,12 +16211,6 @@ function renderDeliverablesConversationSurface(options = {}) {
   return `
     <div class="llm-deliverables-shell">
       <section class="llm-deliverables-lead" aria-labelledby="llm-deliverables-title">
-        <div class="llm-mission-presence" aria-label="현재 Deliverables 문맥">
-          <span class="llm-presence-dot" aria-hidden="true"></span>
-          <span>${escapeHtml(options.projectName)}</span>
-          <span aria-hidden="true">/</span>
-          <span>${escapeHtml(getMissionStatusDisplay(options.mission.status))}</span>
-        </div>
         <h2 id="llm-deliverables-title">${escapeHtml(options.mission.title)}</h2>
         <p>${escapeHtml(options.mission.goal || '기록된 Mission 목표가 없습니다.')}</p>
         <div class="token-row token-row-compact">
@@ -16358,7 +16325,6 @@ function renderDeliverables(data) {
     if (document.querySelector('.llm-app-shell')) {
       elements.surfaces.deliverables.innerHTML = renderDeliverablesWaitingSurface({
         mission: selectedMission,
-        projectName: data.activeProject.name,
         busy: state.loading || state.mutating,
       });
       return;
@@ -16674,7 +16640,6 @@ function renderDeliverables(data) {
       primaryAction: deliverablesPrimaryAction,
       deliveryControls,
       learningControls,
-      projectName: data.activeProject.name,
       busy: state.loading || state.mutating,
     });
     return;

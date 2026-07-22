@@ -101,6 +101,7 @@ Planning source files:
 - `docs/97_llm-native-source-backed-deliverables-flow-plan.md`
 - `docs/98_llm-native-advanced-ops-navigation-plan.md`
 - `docs/99_llm-native-mission-history-navigation-plan.md`
+- `docs/100_llm-native-workspace-header-plan.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -208,6 +209,14 @@ Mission, and reuses the current `select-mission` route. The detailed full Missio
 the Mission workspace. Search, ranking, pinning, grouping, rename, deletion, archive, automatic
 selection, new sidebar or history preference persistence, runtime/API/schema/dependency changes,
 and every provider, source, Git, release, scheduling, policy, or connector authority remain absent.
+
+LLM-native Workspace Header consolidation is accepted by `DEC-149` and implemented from
+`docs/100_llm-native-workspace-header-plan.md`. One visible header band now keeps the current project,
+normalized provider mode, current surface, open gate count, refresh state, and existing refresh
+command together. Repeated project and status presence rows were removed from Mission, Council,
+Execution, and Deliverables so the same source context appears once. Existing browser state bindings,
+API routes, schema v16, dependencies, provider configuration, persistence, approval semantics, and
+every source, Git, release, scheduling, policy, or connector authority remain unchanged.
 
 Phase 2 Real Council implementation is accepted by `DEC-082` against
 `docs/54_ai-company-real-council-implementation-plan.md` and the complete fielded decision in
@@ -498,7 +507,7 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `255/255`, total `256/256`; UI QA is required `60/60`.
+`1/1`, informational `256/256`, total `257/257`; UI QA is required `61/61`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -559,7 +568,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `256/256`, UI QA `60/60`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `257/257`, UI QA `61/61`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -1808,6 +1817,7 @@ Current source-backed evidence:
 | Source-backed Deliverables flow | The LLM-native shell reads the current result, verification, package, acceptance, and close-out records once in source order, exposes at most one readiness-bound operator command, and keeps exact refs and existing gated controls collapsed. |
 | LLM-native Advanced Ops navigation | The four primary workflow surfaces stay visible, while Decision Inbox, Artifacts, Logs, and Taskboard remain one disclosure away with pending-gate status and unchanged authoritative routing. |
 | LLM-native Mission history navigation | Current Mission context stays beside the new-Mission command; one native sidebar disclosure exposes every project Mission in source-current newest-first order through the existing exact selection path. |
+| LLM-native Workspace Header | One compact band keeps current project, normalized provider mode, current surface, open gate count, refresh state, and the refresh command visible without repeating workstream metadata. |
 | Opt-in Real Council | `DEC-082` permits one-Mission local-stub position isolation, deterministic conflict evidence, Conductor synthesis, revision/resume/stop, and approved handoff through the existing builder-preflight approval boundary; legacy deterministic Council remains available. |
 | Advanced Ops surfaces | `Taskboard / Logs / Artifacts / Decision Inbox` remain available as authoritative operator surfaces. |
 | Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
@@ -2142,9 +2152,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 934 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 935 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 682 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 683 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2311,6 +2321,7 @@ node scripts/smoke-ui-slice-679.mjs
 node scripts/smoke-ui-slice-680.mjs
 node scripts/smoke-ui-slice-681.mjs
 node scripts/smoke-ui-slice-682.mjs
+node scripts/smoke-ui-slice-683.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -2319,7 +2330,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `256/256`, UI QA `60/60`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `257/257`, UI QA `61/61`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2637,9 +2648,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `60/60`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `61/61`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `255/255`, total `256/256`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `256/256`, total `257/257`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2651,7 +2662,8 @@ Current verification evidence from this README and completion close-out refresh:
   status/smoke checks plus AI Company durable DeliveryPackage planning, implementation, package
   acceptance planning and implementation, Mission/task close-out planning/runtime/UI evidence, and
   the LLM-native source-backed Deliverables presentation contract, and the LLM-native Advanced Ops
-  navigation hierarchy, and the exact source-backed Mission history navigation contract.
+  navigation hierarchy, the exact source-backed Mission history navigation contract, and the
+  single-band source-backed Workspace Header contract.
 Recent local visual QA evidence for the refreshed shell was captured with the local UI server and
 Playwright CLI:
 
@@ -2679,6 +2691,8 @@ Playwright CLI:
 - `output/playwright/orchestration-llm-advanced-ops-navigation-mobile.png`
 - `output/playwright/orchestration-mission-history-navigation-desktop.png`
 - `output/playwright/orchestration-mission-history-navigation-mobile.png`
+- `output/playwright/orchestration-workspace-header-desktop.png`
+- `output/playwright/orchestration-workspace-header-mobile.png`
 - `output/playwright/vnext-desktop-top-final.png`
 - `output/playwright/vnext-mobile.png`
 - `output/playwright/vnext-p1-desktop.png`
@@ -2696,7 +2710,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `256/256`, UI QA `60/60`, and zero-open backlog are local source-backed checks.
+  aggregate `257/257`, UI QA `61/61`, and zero-open backlog are local source-backed checks.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.
@@ -2744,6 +2758,12 @@ Playwright CLI:
   automatic selection, persisted history state, runtime/API/schema/dependency changes, provider or
   source mutation, Git/release authority, scheduling, policy bypass, and connectors remain outside
   the implemented scope.
+- `DEC-149` permits only Workspace Header presentation. It reuses the existing active project,
+  provider configuration, current surface, pending gate, refresh state, and refresh command bindings
+  in one visible band while removing repeated workstream presence rows. Provider configuration
+  editing, gate calculation changes, persistence, runtime/API/schema/dependency changes, source
+  mutation, Git/release authority, scheduling, policy bypass, and connectors remain outside the
+  implemented scope.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,

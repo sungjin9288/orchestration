@@ -24,9 +24,11 @@ assert.match(appJs, /project: document\.querySelector\('#shell-header-project'\)
 assert.match(appJs, /surface: document\.querySelector\('#shell-header-surface'\)/);
 assert.match(appJs, /gates: document\.querySelector\('#shell-header-gates'\)/);
 assert.match(appJs, /function renderWorkspaceHeader\(data, context\)/);
-assert.match(appJs, /elements\.shellHeader\.project\.textContent = activeProject\?\.name \|\| '미지정';/);
-assert.match(appJs, /elements\.shellHeader\.surface\.textContent = meta\.title;/);
-assert.match(appJs, /elements\.shellHeader\.gates\.textContent = `\$\{context\.pendingGateCount\}건`;/);
+assert.match(appJs, /const projectLabel = activeProject\?\.name \|\| '미지정';/);
+assert.match(appJs, /const providerConfig = getProjectProviderConfig\(activeProject\);/);
+assert.match(appJs, /elements\.shellHeader\.project\.textContent = projectLabel;/);
+assert.match(appJs, /elements\.shellHeader\.surface\.textContent = surfaceLabel;/);
+assert.match(appJs, /elements\.shellHeader\.gates\.textContent = `gate \$\{context\.pendingGateCount\}`;/);
 assert.doesNotMatch(appJs, /company-directory-note/);
 
 assert.match(styles, /\.shell-header-register \{/);
@@ -40,9 +42,9 @@ console.log(
   JSON.stringify(
     {
       ok: true,
-      compactHeaderRegister: {
+      compactHeader: {
         ids: ['shell-header-project', 'shell-header-surface', 'shell-header-gates'],
-        bindings: ['renderWorkspaceHeader(data, context)', 'activeProject', 'pendingGateCount'],
+        bindings: ['renderWorkspaceHeader(data, context)', 'activeProject', 'providerConfig', 'pendingGateCount'],
         removedNoise: ['shell-window-badge', 'shell-header-copy', 'company-directory-note'],
       },
     },

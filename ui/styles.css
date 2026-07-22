@@ -10839,6 +10839,10 @@ body .llm-app-shell .shell-header {
 }
 
 body .llm-app-shell .shell-window-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   min-height: 46px;
   padding: 0 20px;
   border: 0;
@@ -10848,40 +10852,78 @@ body .llm-app-shell .shell-window-bar {
 
 body .llm-app-shell .shell-window-meta-left {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+body .llm-app-shell .shell-header-project {
+  min-width: 0;
+  overflow: hidden;
+  color: #27272a;
+  font-size: 0.74rem;
+  font-weight: 650;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 body .llm-app-shell .shell-window-label {
+  min-height: 22px;
+  padding: 0 7px;
+  flex: 0 0 auto;
+  border-color: #d4d4d8;
+  background: #f4f4f5;
   color: #52525b;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 0.7rem;
   letter-spacing: 0;
 }
 
-.llm-runtime-presence {
+body .llm-app-shell .shell-header-context {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   color: #71717a;
   font-size: 0.7rem;
 }
 
-.llm-runtime-presence > span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #16a34a;
+body .llm-app-shell .shell-header-context > span + span::before {
+  margin-right: 8px;
+  color: #d4d4d8;
+  content: "·";
+}
+
+body .llm-app-shell .shell-window-runtime {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+body .llm-app-shell .refresh-status {
+  max-width: min(32vw, 280px);
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 body .llm-app-shell .refresh-button {
+  display: inline-grid;
+  width: 28px;
   min-height: 28px;
-  padding: 0 8px;
+  padding: 0;
+  place-items: center;
   border-color: #e4e4e7;
   border-radius: 6px;
   background: transparent;
   color: #52525b;
   box-shadow: none;
-  font-size: 0.7rem;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 body .llm-app-shell .shell-header-main,
@@ -10919,25 +10961,6 @@ body .llm-app-shell .surface.is-active {
   text-align: center;
 }
 
-.llm-mission-presence {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-width: 0;
-  color: #71717a;
-  font-size: 0.72rem;
-}
-
-.llm-presence-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  flex: 0 0 7px;
-  border-radius: 50%;
-  background: #16a34a;
-}
-
 .llm-mission-lead h2 {
   margin: 0;
   color: #18181b;
@@ -10960,10 +10983,6 @@ body .llm-app-shell .surface.is-active {
   margin: 0;
   padding: 42px 0 20px;
   text-align: left;
-}
-
-.llm-mission-lead.is-active-mission .llm-mission-presence {
-  justify-content: flex-start;
 }
 
 .llm-mission-lead.is-active-mission h2 {
@@ -13000,8 +13019,13 @@ body .llm-app-shell .llm-context-inspector {
   line-height: 1.45;
 }
 
-.llm-authority-note .llm-presence-dot {
+.llm-authority-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
   margin-top: 2px;
+  border-radius: 50%;
+  background: #16a34a;
 }
 
 .llm-deep-inspector-body .narrative-deck,
@@ -13225,9 +13249,30 @@ body .llm-app-shell .project-bootstrap-defaults {
 
   body .llm-app-shell .shell-window-bar {
     min-height: 40px;
-    padding: 0 12px;
+    padding: 6px 12px;
     flex-direction: row;
     align-items: center;
+    flex-wrap: wrap;
+  }
+
+  body .llm-app-shell .shell-window-meta-left {
+    flex: 1 1 230px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  body .llm-app-shell .shell-header-project {
+    max-width: min(44vw, 190px);
+  }
+
+  body .llm-app-shell .shell-window-runtime {
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  body .llm-app-shell .refresh-status {
+    max-width: min(28vw, 120px);
+    font-size: 0.68rem;
   }
 
   body .llm-app-shell .surface-stack {
@@ -13266,15 +13311,8 @@ body .llm-app-shell .project-bootstrap-defaults {
     font-size: 0.68rem;
   }
 
-  body .llm-app-shell .nav-button-count,
-  body .llm-app-shell .refresh-status,
-  .llm-runtime-presence {
+  body .llm-app-shell .nav-button-count {
     display: none;
-  }
-
-  .llm-mission-presence {
-    max-width: 100%;
-    flex-wrap: wrap;
   }
 
   body .llm-app-shell .llm-mission-composer {

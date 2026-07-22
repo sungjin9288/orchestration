@@ -16,7 +16,7 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(indexHtml, /<title>Orchestration 1\.0 Workflow Control<\/title>/);
 assert.match(indexHtml, /Workflow Control/);
-assert.match(indexHtml, /WORK/);
+assert.match(indexHtml, /local-stub/);
 assert.match(indexHtml, /Workflow desk/);
 assert.match(indexHtml, /업무/);
 assert.match(indexHtml, /id="refresh-status"/);
@@ -67,7 +67,7 @@ console.log(
       ok: true,
       homeControlPlane: {
         overviewRegisters: ['현재 데스크', '담당', '다음', '현재 패킷', '전체 인력'],
-        shellLabels: ['Workflow Control', 'WORK', 'Workflow desk', '업무', 'refresh-status'],
+        shellLabels: ['Workflow Control', 'local-stub', 'Workflow desk', '업무', 'refresh-status'],
         workspaceContracts: ['Workflow map', 'Selected work order', 'Execution handoff', 'Review queue', 'Company org'],
         focusRegisters: ['안건', '실행', '근거', '실행 라인업', '검토 라인업', '팀별 배정'],
         modeDock: ['미션', '협의회', '실행', '산출물', '작업판', '로그', '아티팩트', '결정함'],
