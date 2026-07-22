@@ -752,6 +752,11 @@ const informationalChecks = [
     purpose: 'LLM-native navigation proves four primary workflow surfaces and one native Advanced Ops disclosure with four exact authoritative surfaces, visible pending-gate status, preserved routing count and current semantics, and zero runtime API schema dependency storage automatic-selection or authority expansion',
   },
   {
+    id: 'llm-native-mission-history-navigation',
+    script: 'scripts/smoke-ui-slice-682.mjs',
+    purpose: 'LLM-native Mission history navigation proves current Mission sidebar context, project-scoped newest-first full Mission selection, exact selected state, existing route reuse, bounded responsive disclosure, full-register compatibility, and zero runtime API schema dependency persistence automatic-selection or authority expansion',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `254\/254`, total `255\/255`/,
-  /UI QA is required `59\/59`/,
+  /required `1\/1`, informational `255\/255`, total `256\/256`/,
+  /UI QA is required `60\/60`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `255\/255`, UI QA `59\/59`, zero-open backlog/,
+  /aggregate `256\/256`, UI QA `60\/60`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1476,6 +1476,21 @@ const llmNativeAdvancedOpsNavigationEvidence = [
 
 assertReadmeHasAll(llmNativeAdvancedOpsNavigationEvidence);
 
+const llmNativeMissionHistoryNavigationEvidence = [
+  /docs\/99_llm-native-mission-history-navigation-plan\.md/,
+  /LLM-native Mission history navigation is accepted by `DEC-148`/,
+  /current Mission\s+title and project-scoped Mission count beside the existing new-Mission command/,
+  /every Mission in the existing newest-first source order/,
+  /reuses the current `select-mission` route/,
+  /detailed full Mission register remains in\s+the Mission workspace/,
+  /node scripts\/smoke-ui-slice-682\.mjs/,
+  /output\/playwright\/orchestration-mission-history-navigation-desktop\.png/,
+  /output\/playwright\/orchestration-mission-history-navigation-mobile\.png/,
+  /`DEC-148` permits only sidebar Mission context and selection presentation[\s\S]*connectors remain outside/,
+];
+
+assertReadmeHasAll(llmNativeMissionHistoryNavigationEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1524,7 +1539,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `255\/255`, UI QA `59\/59`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `256\/256`, UI QA `60\/60`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

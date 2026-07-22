@@ -323,6 +323,7 @@ const state = {
   uiPreferences: readUiPreferences(),
   opsEditorGroup: 'all',
   menuGroup: 'workflows',
+  sidebarMissionHistoryExpanded: false,
   advancedOpsExpanded: false,
   lastRenderedNavGroup: 'workflows',
   surface: 'mission',
@@ -502,6 +503,10 @@ const elements = {
   controlOverview: document.querySelector('#control-overview'),
   workspaceMain: document.querySelector('#workspace-main'),
   workspaceLiveStatus: document.querySelector('#workspace-live-status'),
+  sidebarMissionNavigation: document.querySelector('#llm-sidebar-missions'),
+  sidebarMissionTitle: document.querySelector('#llm-sidebar-mission-title'),
+  sidebarMissionCount: document.querySelector('#llm-sidebar-mission-count'),
+  sidebarMissionList: document.querySelector('#llm-sidebar-mission-list'),
   navGroups: [...document.querySelectorAll('.nav-group')],
   navGroupTabs: [...document.querySelectorAll('.nav-group-tab')],
   advancedOpsNav: document.querySelector('#llm-advanced-ops-nav'),
@@ -10223,6 +10228,60 @@ function renderControlOverview(data) {
   elements.controlOverview.innerHTML = renderWorkflowsOverview(data, context, activeGroupId);
 }
 
+function renderSidebarMissionNavigation(data) {
+  const disclosure = elements.sidebarMissionNavigation;
+  const missions = data.missions || [];
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || missions[0] || null;
+
+  if (!disclosure) {
+    return;
+  }
+
+  const available = Boolean(data.activeProject && selectedMission && missions.length > 0);
+  disclosure.hidden = !available;
+
+  if (!available) {
+    state.sidebarMissionHistoryExpanded = false;
+    disclosure.open = false;
+    elements.sidebarMissionTitle.textContent = '미션 없음';
+    elements.sidebarMissionCount.textContent = '0';
+    elements.sidebarMissionList.innerHTML = '';
+    return;
+  }
+
+  disclosure.open = state.sidebarMissionHistoryExpanded;
+  disclosure.setAttribute(
+    'aria-label',
+    `현재 미션 ${selectedMission.title}, 전체 ${missions.length}개`,
+  );
+  elements.sidebarMissionTitle.textContent = selectedMission.title;
+  elements.sidebarMissionCount.textContent = String(missions.length);
+  elements.sidebarMissionList.innerHTML = missions
+    .map((mission) => {
+      const isSelected = mission.id === selectedMission.id;
+
+      return `
+        <li>
+          <button
+            class="llm-sidebar-mission-button ${isSelected ? 'is-selected' : ''}"
+            type="button"
+            data-action="select-mission"
+            data-id="${escapeHtml(mission.id)}"
+            aria-pressed="${isSelected ? 'true' : 'false'}"
+            ${state.loading || state.mutating ? 'disabled' : ''}
+          >
+            <span class="llm-sidebar-mission-row-title">${escapeHtml(mission.title)}</span>
+            <span
+              class="llm-sidebar-mission-status"
+              data-tone="${escapeHtml(getMissionStatusTone(mission.status))}"
+            >${escapeHtml(getMissionStatusDisplay(mission.status))}</span>
+          </button>
+        </li>
+      `;
+    })
+    .join('');
+}
+
 function renderNav(data) {
   const activeGroupId = getActiveNavGroupId();
   const advancedOpsActive = activeGroupId !== 'workflows';
@@ -11416,7 +11475,7 @@ function renderMission(data) {
         }
         <details class="llm-mission-history">
           <summary>
-            <span>최근 미션</span>
+            <span>전체 미션 기록</span>
             <span>${escapeHtml(String(data.missions.length))}</span>
           </summary>
           <div class="llm-mission-history-body">${missionList}</div>
@@ -20005,6 +20064,7 @@ function renderError(error) {
 function render() {
   const data = getDerived();
 
+  renderSidebarMissionNavigation(data);
   renderNav(data);
   renderControlOverview(data);
 
@@ -20707,9 +20767,14 @@ document.addEventListener(
   'toggle',
   (event) => {
     const disclosure = event.target.closest?.(
-      '[data-advanced-ops-navigation], [data-council-disclosure], [data-execution-disclosure], [data-deliverables-disclosure]',
+      '[data-sidebar-mission-history], [data-advanced-ops-navigation], [data-council-disclosure], [data-execution-disclosure], [data-deliverables-disclosure]',
     );
     if (!disclosure) {
+      return;
+    }
+
+    if (disclosure.dataset.sidebarMissionHistory) {
+      state.sidebarMissionHistoryExpanded = disclosure.open;
       return;
     }
 

@@ -346,6 +346,12 @@ const smokeChecks = [
     purpose:
       'Four primary workflow surfaces, one native Advanced Ops disclosure with four exact authoritative surfaces, visible pending-gate status, preserved routing/count/current semantics, and zero runtime API schema dependency storage or authority expansion',
   },
+  {
+    id: 'llm-native-mission-history-navigation',
+    script: 'scripts/smoke-ui-slice-682.mjs',
+    purpose:
+      'Current Mission sidebar context, project-scoped newest-first full Mission selection, exact selected state, existing selection route reuse, bounded responsive disclosure, full-register compatibility, and zero authority expansion',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

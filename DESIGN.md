@@ -65,6 +65,10 @@ Hierarchy:
 
 - Brand and `새 미션` action come first.
 - Recent Mission context and `Mission / Council / Execution / Deliverables` are the primary links.
+- Current Mission title and count stay visible in one compact native disclosure; opening it shows the
+  source-current newest-first Mission list and reuses the existing explicit selection path.
+- The full Mission register may remain in the Mission workspace for detailed lifecycle inspection,
+  but quick Mission switching belongs beside the new-Mission command.
 - Company directory and deep runtime controls are demoted to optional inspection.
 - `Taskboard / Logs / Artifacts / Decision Inbox` remain available as Advanced Ops.
 - Advanced Ops uses one native disclosure below the primary links, not `workflows / review / ops`
