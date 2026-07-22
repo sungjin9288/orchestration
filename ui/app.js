@@ -325,6 +325,7 @@ const state = {
   selectionSeeded: false,
   error: null,
   selectedMissionId: null,
+  missionComposerExpanded: false,
   missionViewMode: 'thread',
   missionEvidenceGraph: null,
   missionEvidenceGraphLoading: false,
@@ -5254,6 +5255,7 @@ async function refreshData() {
     return;
   }
 
+  const missionComposerFocus = captureMissionComposerFocus();
   state.loading = true;
   state.error = null;
   elements.refreshStatus.textContent = '런타임 상태 요약 다시 읽는 중…';
@@ -5272,6 +5274,9 @@ async function refreshData() {
   } finally {
     state.loading = false;
     render();
+    if (missionComposerFocus) {
+      restoreMissionComposerFocus(missionComposerFocus.targetName, missionComposerFocus);
+    }
   }
 }
 
@@ -5336,6 +5341,7 @@ function syncSelectionsFromMission(missionId) {
   const missionChanged = state.selectedMissionId !== missionId;
 
   state.selectedMissionId = missionId;
+  state.missionComposerExpanded = false;
   state.selectionSeeded = true;
 
   if (missionChanged) {
@@ -5359,6 +5365,7 @@ function prepareNextMissionDraft(missionId) {
 
   state.surface = 'mission';
   state.selectedMissionId = mission?.id || state.selectedMissionId;
+  state.missionComposerExpanded = true;
   state.missionDraftTitle = '';
   state.missionDraftGoal = '';
   state.missionDraftConstraints = mission?.constraints || '';
@@ -5366,6 +5373,60 @@ function prepareNextMissionDraft(missionId) {
   elements.refreshStatus.textContent = mission
     ? `미션 ${mission.id} 기준으로 다음 안건 초안을 준비했습니다`
     : '다음 안건 초안을 준비했습니다';
+}
+
+function captureMissionComposerFocus() {
+  const activeElement = document.activeElement;
+  const composer = activeElement?.closest?.('[data-form="create-mission"]');
+  const targetName = activeElement?.getAttribute?.('name');
+
+  if (!composer || !targetName) return null;
+
+  return {
+    selectionEnd: Number.isInteger(activeElement.selectionEnd) ? activeElement.selectionEnd : null,
+    selectionStart: Number.isInteger(activeElement.selectionStart)
+      ? activeElement.selectionStart
+      : null,
+    targetName,
+  };
+}
+
+function restoreMissionComposerFocus(targetName = 'missionTitle', selection = null) {
+  requestAnimationFrame(() => {
+    const candidates = targetName === 'newMissionAction'
+      ? [...document.querySelectorAll('[data-action="start-new-mission"]')]
+      : [...document.querySelectorAll(`[name="${targetName}"]`)];
+    const target = candidates.find((element) => element.getClientRects().length > 0) || null;
+    target?.focus();
+    if (
+      target &&
+      selection &&
+      Number.isInteger(selection.selectionStart) &&
+      Number.isInteger(selection.selectionEnd) &&
+      typeof target.setSelectionRange === 'function'
+    ) {
+      target.setSelectionRange(selection.selectionStart, selection.selectionEnd);
+    }
+  });
+}
+
+function startNewMissionDraft() {
+  state.menuGroup = getNavGroupForSurface('mission');
+  state.surface = 'mission';
+  state.missionComposerExpanded = true;
+  rememberSurfaceVisit('mission');
+  elements.refreshStatus.textContent = '새 미션 초안을 열었습니다';
+  render();
+  restoreMissionComposerFocus();
+}
+
+function closeMissionComposer() {
+  if (!state.selectedMissionId) return;
+
+  state.missionComposerExpanded = false;
+  elements.refreshStatus.textContent = '현재 미션으로 돌아왔습니다';
+  render();
+  restoreMissionComposerFocus('newMissionAction');
 }
 
 async function handleSurfaceChange(surface) {
@@ -5719,6 +5780,9 @@ async function handleSelection(action, id) {
 
   await hydrateSelectedDetails();
   render();
+  if (action === 'prepare-next-mission') {
+    restoreMissionComposerFocus();
+  }
 }
 
 async function submitCreateProject(options = {}) {
@@ -10481,22 +10545,29 @@ function renderProjectBootstrapPanel(data, options = {}) {
   `;
 }
 
-function renderLlmMissionLead(data, selectedMission = null) {
+function renderLlmMissionLead(data, selectedMission = null, options = {}) {
   const projectName = data.activeProject?.name || '프로젝트 선택 필요';
-  const missionState = selectedMission
+  const composingNew = options.composingNew === true || !selectedMission;
+  const missionState = selectedMission && !composingNew
     ? `${getMissionStatusDisplay(selectedMission.status)} · ${selectedMission.id}`
     : '새 미션';
+  const heading = selectedMission && !composingNew
+    ? selectedMission.title
+    : '무엇을 진행할까요?';
+  const supportingCopy = selectedMission && !composingNew
+    ? selectedMission.goal || '현재 미션의 역할 정렬과 실행 근거를 이어서 확인합니다.'
+    : '목표와 필요한 경계를 적으면 역할별 검토부터 시작합니다.';
 
   return `
-    <section class="llm-mission-lead" aria-labelledby="llm-mission-prompt-title">
+    <section class="llm-mission-lead ${selectedMission && !composingNew ? 'is-active-mission' : ''}" aria-labelledby="llm-mission-prompt-title">
       <div class="llm-mission-presence" aria-label="현재 실행 문맥">
         <span class="llm-presence-dot" aria-hidden="true"></span>
         <span>${escapeHtml(projectName)}</span>
         <span aria-hidden="true">/</span>
         <span>${escapeHtml(missionState)}</span>
       </div>
-      <h2 id="llm-mission-prompt-title">무엇을 진행할까요?</h2>
-      <p>목표와 필요한 경계를 적으면 역할별 검토부터 시작합니다.</p>
+      <h2 id="llm-mission-prompt-title">${escapeHtml(heading)}</h2>
+      <p>${escapeHtml(supportingCopy)}</p>
     </section>
   `;
 }
@@ -10876,6 +10947,12 @@ function renderMission(data) {
       ];
   const missionUsesKnowledgeWork = data.activeProject?.pack === 'knowledge-work';
   const missionCreateDisabled = state.loading || state.mutating;
+  const missionComposerExpanded = !selectedMission || state.missionComposerExpanded;
+  const missionDraftHasContent = Boolean(
+    state.missionDraftTitle.trim() ||
+      state.missionDraftGoal.trim() ||
+      state.missionDraftConstraints.trim(),
+  );
   const missionCouncilProviderReadiness =
     data.councilProviderReadinessSummaries?.[data.activeProject?.id] || null;
   const missionCouncilProviderReady = missionCouncilProviderReadiness?.allowed === true;
@@ -11093,7 +11170,7 @@ function renderMission(data) {
 
   elements.surfaces.mission.innerHTML = `
     <div class="stack llm-mission-stack">
-      ${renderLlmMissionLead(data, selectedMission)}
+      ${renderLlmMissionLead(data, selectedMission, { composingNew: missionComposerExpanded })}
       ${renderMissionIntakeBoard({
         project: data.activeProject,
         mission: selectedMission,
@@ -11118,7 +11195,10 @@ function renderMission(data) {
             ${createToken(`미션수:${data.missions.length}`, 'neutral')}
           </div>
         </div>
-        <form class="task-create-form task-create-form-compact mission-order-desk llm-mission-composer" data-form="create-mission">
+        ${
+          missionComposerExpanded
+            ? `
+        <form class="task-create-form task-create-form-compact mission-order-desk llm-mission-composer" data-form="create-mission" data-composer-state="expanded">
           <div class="mission-order-head">
             <div class="stack">
               <strong>신규 안건 등록</strong>
@@ -11192,6 +11272,20 @@ function renderMission(data) {
             </label>
             <div class="form-actions form-actions-inline form-actions-compact mission-order-actions">
               <button class="primary-button" type="submit" ${missionCreateDisabled ? 'disabled' : ''}>안건 등록</button>
+              ${
+                selectedMission
+                  ? `
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="close-mission-composer"
+                      ${missionCreateDisabled ? 'disabled' : ''}
+                    >
+                      취소
+                    </button>
+                  `
+                  : ''
+              }
               <button
                 class="secondary-button"
                 type="submit"
@@ -11222,6 +11316,20 @@ function renderMission(data) {
             </div>
           </div>
         </form>
+        `
+            : `
+        <button
+          class="llm-mission-compose-trigger"
+          type="button"
+          data-action="start-new-mission"
+          data-composer-state="compact"
+          ${missionCreateDisabled ? 'disabled' : ''}
+        >
+          <span aria-hidden="true">＋</span>
+          <span>${missionDraftHasContent ? '미션 초안 계속' : '새 미션 작성'}</span>
+        </button>
+        `
+        }
         ${renderMissionViewSelector(selectedMission)}
         ${
           state.missionViewMode === 'graph'
@@ -18592,6 +18700,16 @@ document.addEventListener('click', async (event) => {
 
   if (actionButton?.dataset.action === 'open-surface') {
     await handleSurfaceChange(actionButton.dataset.targetSurface || state.surface);
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'start-new-mission') {
+    startNewMissionDraft();
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'close-mission-composer') {
+    closeMissionComposer();
     return;
   }
 

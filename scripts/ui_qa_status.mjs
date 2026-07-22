@@ -298,6 +298,12 @@ const smokeChecks = [
     purpose:
       'Browser-only graph search, lifecycle and status filters, direct-neighbor focus, read-only source detail, keyboard and mobile selection parity, escaped graph text, and absent explorer persistence or authority actions',
   },
+  {
+    id: 'llm-native-active-mission-focus',
+    script: 'scripts/smoke-ui-slice-674.mjs',
+    purpose:
+      'Active Mission workstream-first hierarchy, explicit new-Mission compose and cancel behavior, browser-memory draft continuity, refresh-stable focus, responsive Thread and Graph access, and unchanged submit and authority contracts',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

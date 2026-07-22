@@ -712,6 +712,11 @@ const informationalChecks = [
     purpose: 'Mission graph browser-only exploration proves deterministic short-field search, lifecycle and status filtering, direct-neighbor focus, read-only relationship detail, stale-selection cleanup, escaped text, source immutability, and zero persistence or authority actions',
   },
   {
+    id: 'llm-native-active-mission-focus',
+    script: 'scripts/smoke-ui-slice-674.mjs',
+    purpose: 'LLM-native active Mission focus proves compact-by-default current workstream, explicit full composer mode, cancel and selection collapse, refresh-stable field focus, existing Mission submit compatibility, and zero runtime schema dependency persistence or authority expansion',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `246\/246`, total `247\/247`/,
-  /UI QA is required `51\/51`/,
+  /required `1\/1`, informational `247\/247`, total `248\/248`/,
+  /UI QA is required `52\/52`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `247\/247`, UI QA `51\/51`, zero-open backlog/,
+  /aggregate `248\/248`, UI QA `52\/52`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1369,6 +1369,18 @@ const missionGraphExplorationEvidence = [
 
 assertReadmeHasAll(missionGraphExplorationEvidence);
 
+const activeMissionFocusEvidence = [
+  /docs\/91_llm-native-active-mission-focus-plan\.md/,
+  /LLM-native active Mission focus is accepted by `DEC-140`/,
+  /selected Mission now opens directly on its title\s+and `Thread \| Graph` workstream/,
+  /node scripts\/smoke-ui-slice-674\.mjs/,
+  /output\/playwright\/orchestration-active-mission-focus-desktop\.png/,
+  /output\/playwright\/orchestration-active-mission-focus-mobile\.png/,
+  /Durable\s+drafts, autosave, automatic Mission creation or dispatch,[\s\S]*outside\s+the implemented scope/,
+];
+
+assertReadmeHasAll(activeMissionFocusEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1417,7 +1429,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `247\/247`, UI QA `51\/51`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `248\/248`, UI QA `52\/52`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

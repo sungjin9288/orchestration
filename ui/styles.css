@@ -10735,6 +10735,26 @@ body .llm-app-shell .surface.is-active {
   line-height: 1.5;
 }
 
+.llm-mission-lead.is-active-mission {
+  justify-items: start;
+  max-width: none;
+  margin: 0;
+  padding: 42px 0 20px;
+  text-align: left;
+}
+
+.llm-mission-lead.is-active-mission .llm-mission-presence {
+  justify-content: flex-start;
+}
+
+.llm-mission-lead.is-active-mission h2 {
+  font-size: 1.7rem;
+}
+
+.llm-mission-lead.is-active-mission p {
+  max-width: 760px;
+}
+
 .llm-mission-stack > .mission-intake-board,
 .llm-mission-stack > .viewport-handoff-strip {
   display: none;
@@ -10776,6 +10796,40 @@ body .llm-app-shell .llm-mission-composer {
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 10px 30px rgba(24, 24, 27, 0.08);
+}
+
+.llm-mission-compose-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  min-height: 34px;
+  margin: 0 0 14px;
+  padding: 0 10px;
+  border: 1px solid #d4d4d8;
+  border-radius: 7px;
+  background: transparent;
+  color: #52525b;
+  font-size: 0.74rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.llm-mission-compose-trigger:hover,
+.llm-mission-compose-trigger:focus-visible {
+  border-color: #0f766e;
+  background: #f4f4f5;
+  color: #0f766e;
+}
+
+.llm-mission-compose-trigger:focus-visible {
+  outline: 2px solid rgba(15, 118, 110, 0.2);
+  outline-offset: 2px;
+}
+
+.llm-mission-compose-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 body .llm-app-shell .surface[data-surface="mission"] .llm-mission-composer {
@@ -11840,6 +11894,10 @@ body .llm-app-shell .llm-project-bootstrap-layout > .detail-card {
 
   .llm-mission-lead {
     padding: 34px 8px 20px;
+  }
+
+  .llm-mission-lead.is-active-mission {
+    padding: 24px 0 16px;
   }
 
   .llm-mission-lead h2 {

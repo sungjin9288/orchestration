@@ -18,7 +18,7 @@ const decisionSource = fs.readFileSync(path.join(repoRoot, 'docs', '01_decision-
 
 assert.match(indexHtml, /data-shell-generation="llm-native"/);
 assert.match(indexHtml, /class="llm-new-mission-button"/);
-assert.match(indexHtml, /data-action="open-surface" data-target-surface="mission"/);
+assert.match(indexHtml, /data-action="start-new-mission"/);
 assert.match(indexHtml, /class="llm-runtime-presence"/);
 assert.match(indexHtml, /id="company-directory-summary"/);
 assert.match(indexHtml, /id="company-directory-shell"/);

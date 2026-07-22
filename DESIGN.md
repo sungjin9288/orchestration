@@ -75,7 +75,10 @@ Hierarchy:
 
 ### Prompt Composer
 
-- The Mission composer is the first-viewport focal point.
+- The Mission composer is the first-viewport focal point when no Mission is selected or the operator
+  explicitly starts a new Mission.
+- An active Mission prioritizes its title and `Thread | Graph` workstream; new-Mission creation stays
+  available as one compact command and expands into the same explicit composer.
 - Goal text is primary; title, project, constraints, deliverable type, and Council mode are supporting
   context.
 - The composer remains an explicit submit boundary. Typing never starts provider or mutation work.
@@ -132,7 +135,8 @@ The shell must keep `review before done` and `approval before commit` visible at
 
 - Desktop: `220-240px navigation / fluid workstream / 260-320px optional inspector`.
 - Keep the reading column near 760-860px even on wide screens.
-- The first viewport should expose the composer and either recent work or the first agent turn.
+- The first viewport should expose either the explicit composer plus recent work, or the selected
+  Mission title plus its current workstream.
 - Do not place more than one metadata band above the workspace.
 - Do not use page-section cards. Cards are reserved for repeated durable records or a genuinely
   bounded tool.
@@ -182,7 +186,8 @@ Every primary-shell change must prove:
 
 - Mission submit and existing route/action contracts still work.
 - Council, Execution, Deliverables, and Advanced Ops remain reachable.
-- Desktop and mobile screenshots show the composer in the first viewport.
+- Desktop and mobile screenshots show the full composer in explicit compose mode and the selected
+  Mission workstream in the active-Mission first viewport.
 - There is no horizontal overflow, clipped action text, console error, or inaccessible current state.
 - Runtime schema, approval semantics, provider boundaries, and source mutation authority are unchanged
   unless separately approved.

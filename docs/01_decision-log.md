@@ -893,6 +893,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/90_mission-evidence-graph-exploration-phase-3-plan.md` limits implementation to a pure client-side view model and browser-memory controls. `Thread` remains default; the Phase 2 GET response and source digest remain authoritative; selection exposes only existing graph fields and exact visible edge refs. No graph persistence, runtime search/index, ranking, recommendation, automatic selection, detail navigation, timeline/replay, 3D, provider call, approval, execution, resume, source mutation, commit, push, release, scheduler, policy mutation, or connector authority is added.
 - Needed Before: Runtime or durable graph retrieval, automatic selection, cross-Mission search, authority-bearing navigation/action, historical replay, persisted explorer state, Canvas/WebGL/Three.js, 2.5D/3D, or graph mutation requires another explicit implementation decision and focused verification.
 
+### DEC-140
+- Status: `Accepted`
+- Decision: Accept the delegated non-critical LLM-native active-Mission focus slice that keeps the full Mission composer open only for first-run or explicit compose mode and otherwise prioritizes the selected Mission's title and `Thread | Graph` workstream.
+- Why: Always rendering the full new-Mission form above an active Mission makes current work secondary and pushes the source-backed workstream below the first viewport. The sidebar `새 미션` command also needs an explicit compose meaning instead of merely reopening the same surface.
+- Impact: `docs/91_llm-native-active-mission-focus-plan.md` adds one browser-memory compose flag, explicit compose/cancel focus behavior, conditional rendering of the unchanged Mission form, and selected-Mission lead styling. Existing Mission routes, POST payloads, Council modes, provider gates, Thread/Graph behavior, schema v16, dependencies, runtime state, approvals, source mutation, and Git authority remain unchanged.
+- Needed Before: Durable drafts, autosave, draft history, automatic Mission creation or dispatch, runtime/API/schema/dependency changes, scheduling, provider expansion, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
