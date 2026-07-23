@@ -1,5 +1,12 @@
 # lessons
 
+- A provenance graph is an inspection surface, not a parallel workflow. Scope it to one exact Task,
+  construct every edge from a stored reference, omit incomplete lineage rather than infer it, and
+  keep the graph default-closed with browser-only exploration so visual context cannot create
+  authority or hidden state.
+- A graph tied to a mutable snapshot cannot use entity identity as its freshness check. Invalidate
+  the response and its pending request whenever the source snapshot changes, then fetch the same
+  exact entity again so status, refs, and digests stay source-current.
 - Natural language belongs to system-authored primary labels, not product object names or source evidence. Keep Mission/Council/Execution/Deliverables/Thread/Graph recognizable, move exact IDs and internal states to existing collapsed provenance, and do not rewrite provider, user, or source-derived text merely to make a surface read more conversational.
 - A display-label adapter must not turn an unknown status into a normal waiting state. Enumerate accepted source values and render unknown values as explicit review-required evidence with danger tone so presentation cannot hide contract drift.
 

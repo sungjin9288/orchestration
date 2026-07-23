@@ -1019,6 +1019,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/108_llm-native-primary-workstream-language-plan.md` changes only system-authored primary display labels for Mission, Council, Execution, and Deliverables, demotes system-composed raw refs to existing collapsed evidence, and makes unknown delivery-flow status fail closed as `확인 필요`. Product object names, source/provider/user-authored text, exact refs in existing disclosures, action attributes, disabled/readiness logic, render order, handlers, routes, runtime/API/schema/dependencies, persistence, provider policy, approval semantics, source mutation, commit, push, release, scheduling, policy, and connector authority do not change.
 - Needed Before: Any change to source-derived content, product object names, evidence structure, action handlers, routes, runtime/API/schema/dependency behavior, storage, provider behavior, source mutation, approval bypass, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
 
+### DEC-158
+- Status: `Accepted`
+- Decision: Accept one bounded Task Detail Execution Provenance Graph implementation slice.
+- Why: Taskboard has authoritative controls and detail evidence, but operators cannot inspect the exact recorded path from Task to plan, runs, gates, verification, delivery, and close-out without manually traversing separate sections.
+- Impact: `docs/109_task-execution-provenance-graph-plan.md` adds one active-project exact `GET /api/tasks/:taskId/execution-provenance` projection and one default-closed Task Detail explorer. The response is deterministic, source-ref bound, capped at 250 nodes, redacted, deeply frozen, and browser exploration is local only. Runtime schema v16, storage, existing authority routes, Mission Graph, Taskboard, Logs, Artifacts, Decision Inbox, provider behavior, and all existing approval gates remain unchanged.
+- Needed Before: Artifact-body parsing, runtime search/index, cross-Task discovery, graph actions, persisted layout, 3D/WebGL, provider integration, schema migration, source mutation, commit, push, release, scheduling, policy mutation, or connectors require a separate decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

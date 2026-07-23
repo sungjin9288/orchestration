@@ -168,6 +168,10 @@ import {
   createMissionGraphExplorerView,
   renderMissionEvidenceGraph,
 } from './mission-evidence-graph.js';
+import {
+  createExecutionProvenanceView,
+  renderExecutionProvenanceGraph,
+} from './execution-provenance-graph.js';
 import { createMissionCouncilModeView } from './mission-council-mode.js';
 import {
   parseChangeSummaryFileUpdates,
@@ -342,6 +346,15 @@ const state = {
   missionGraphStage: 'all',
   missionGraphStatusTone: 'all',
   missionGraphSelectedNodeId: null,
+  executionProvenanceOpen: false,
+  executionProvenanceGraph: null,
+  executionProvenanceLoading: false,
+  executionProvenanceError: null,
+  executionProvenanceQuery: '',
+  executionProvenanceLane: 'all',
+  executionProvenanceStatusTone: 'all',
+  executionProvenanceSelectedNodeId: null,
+  executionProvenanceRequestId: 0,
   councilDisclosures: {
     source: false,
     revision: false,
@@ -4781,6 +4794,13 @@ function ensureSelection(data) {
   if (currentInboxItem && activeTask && currentInboxItem.taskId !== activeTask.id) {
     state.selectedInboxItemId = null;
   }
+
+  if (
+    state.executionProvenanceGraph &&
+    state.executionProvenanceGraph.taskId !== state.selectedTaskId
+  ) {
+    resetExecutionProvenance();
+  }
 }
 
 async function fetchJson(url) {
@@ -4874,6 +4894,116 @@ async function loadMissionEvidenceGraph(missionId) {
   }
 }
 
+function resetExecutionProvenanceExplorer() {
+  state.executionProvenanceQuery = '';
+  state.executionProvenanceLane = 'all';
+  state.executionProvenanceStatusTone = 'all';
+  state.executionProvenanceSelectedNodeId = null;
+}
+
+function invalidateExecutionProvenance() {
+  state.executionProvenanceGraph = null;
+  state.executionProvenanceLoading = false;
+  state.executionProvenanceError = null;
+  state.executionProvenanceRequestId += 1;
+  state.executionProvenanceSelectedNodeId = null;
+}
+
+function resetExecutionProvenance() {
+  state.executionProvenanceOpen = false;
+  invalidateExecutionProvenance();
+  resetExecutionProvenanceExplorer();
+}
+
+function reconcileExecutionProvenanceSelection() {
+  if (!state.executionProvenanceGraph || !state.executionProvenanceSelectedNodeId) return;
+
+  const view = createExecutionProvenanceView(state.executionProvenanceGraph, {
+    query: state.executionProvenanceQuery,
+    lane: state.executionProvenanceLane,
+    statusTone: state.executionProvenanceStatusTone,
+    selectedNodeId: state.executionProvenanceSelectedNodeId,
+  });
+  state.executionProvenanceSelectedNodeId = view.selectedNode?.id || null;
+}
+
+function restoreExecutionProvenanceFocus({ controlName = null, nodeId = null } = {}) {
+  requestAnimationFrame(() => {
+    const candidates = nodeId
+      ? [...document.querySelectorAll('[data-action="select-execution-provenance-node"]')]
+          .filter((element) => element.dataset.nodeId === nodeId)
+      : [...document.querySelectorAll(`[name="${controlName}"]`)];
+    const target =
+      candidates.find((element) => element.getClientRects().length > 0) || candidates[0];
+    if (!target) return;
+
+    target.focus();
+    if (
+      controlName === 'executionProvenanceQuery' &&
+      typeof target.setSelectionRange === 'function'
+    ) {
+      const end = target.value.length;
+      target.setSelectionRange(end, end);
+    }
+  });
+}
+
+function selectExecutionProvenanceNode(nodeId) {
+  const nodeExists = state.executionProvenanceGraph?.nodes?.some(
+    (node) => node.id === nodeId,
+  );
+  if (!nodeExists) return;
+
+  state.executionProvenanceSelectedNodeId =
+    state.executionProvenanceSelectedNodeId === nodeId ? null : nodeId;
+  reconcileExecutionProvenanceSelection();
+  render();
+  restoreExecutionProvenanceFocus({ nodeId });
+}
+
+async function loadTaskExecutionProvenance(taskId, options = {}) {
+  if (!taskId) {
+    resetExecutionProvenance();
+    return;
+  }
+
+  const requestId = state.executionProvenanceRequestId + 1;
+  state.executionProvenanceRequestId = requestId;
+  state.executionProvenanceLoading = true;
+  state.executionProvenanceError = null;
+  if (options.renderPending !== false) render();
+
+  try {
+    const payload = await fetchJson(
+      `/api/tasks/${encodeURIComponent(taskId)}/execution-provenance`,
+    );
+
+    if (
+      state.executionProvenanceRequestId === requestId &&
+      state.selectedTaskId === taskId
+    ) {
+      state.executionProvenanceGraph = payload.executionProvenance || null;
+      reconcileExecutionProvenanceSelection();
+    }
+  } catch (error) {
+    if (
+      state.executionProvenanceRequestId === requestId &&
+      state.selectedTaskId === taskId
+    ) {
+      state.executionProvenanceGraph = null;
+      state.executionProvenanceError = error.message;
+    }
+  } finally {
+    if (
+      state.executionProvenanceRequestId === requestId &&
+      state.selectedTaskId === taskId
+    ) {
+      state.executionProvenanceLoading = false;
+      if (options.renderResult !== false) render();
+    }
+  }
+}
+
 async function setMissionViewMode(viewMode) {
   state.missionViewMode = viewMode === 'graph' ? 'graph' : 'thread';
 
@@ -4920,6 +5050,15 @@ function buildProviderPayload(mode, model, apiKeyVar) {
 }
 
 function applySnapshotPayload(payload) {
+  const refreshExecutionProvenance =
+    Object.prototype.hasOwnProperty.call(payload, 'snapshot') &&
+    state.executionProvenanceOpen &&
+    Boolean(state.selectedTaskId);
+
+  if (refreshExecutionProvenance) {
+    invalidateExecutionProvenance();
+  }
+
   state.payload = {
     derived: payload.derived || createEmptyDerivedState(),
     generatedAt: payload.generatedAt,
@@ -5027,6 +5166,12 @@ function applySnapshotPayload(payload) {
       preferredProjectId: activeProject.id,
     };
     persistUiPreferences();
+  }
+
+  if (refreshExecutionProvenance) {
+    void loadTaskExecutionProvenance(state.selectedTaskId, {
+      renderPending: false,
+    });
   }
 }
 
@@ -5403,6 +5548,9 @@ function syncSelectionsFromTask(taskId, options = {}) {
       : null;
   const currentInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
 
+  if (state.selectedTaskId !== taskId) {
+    resetExecutionProvenance();
+  }
   state.selectedTaskId = taskId;
   state.selectionSeeded = true;
 
@@ -17719,6 +17867,43 @@ function renderTaskboard(data) {
   `;
 }
 
+function renderTaskExecutionProvenance(task) {
+  const graphMatches = state.executionProvenanceGraph?.taskId === task.id;
+  const graph = graphMatches ? state.executionProvenanceGraph : null;
+  const body = state.executionProvenanceLoading
+    ? '<div class="execution-provenance-loading" aria-live="polite">실행 근거를 읽는 중입니다.</div>'
+    : state.executionProvenanceError
+      ? `<div class="execution-provenance-error" role="alert">${escapeHtml(state.executionProvenanceError)}</div>`
+      : renderExecutionProvenanceGraph(graph, {
+          query: state.executionProvenanceQuery,
+          lane: state.executionProvenanceLane,
+          statusTone: state.executionProvenanceStatusTone,
+          selectedNodeId: state.executionProvenanceSelectedNodeId,
+        });
+
+  return `
+    <details
+      class="execution-provenance-disclosure"
+      data-execution-provenance
+      data-task-id="${escapeHtml(task.id)}"
+      ${state.executionProvenanceOpen ? 'open' : ''}
+    >
+      <summary>
+        <span>
+          <strong>Execution Provenance</strong>
+          <small>Context → Plan → Build → Verify → Deliver → Close</small>
+        </span>
+        ${graph
+          ? createToken(`${graph.counts.projectedNodes} nodes`, 'neutral')
+          : createToken('read-only', 'neutral')}
+      </summary>
+      <div class="execution-provenance-disclosure-body" aria-busy="${state.executionProvenanceLoading ? 'true' : 'false'}">
+        ${body}
+      </div>
+    </details>
+  `;
+}
+
 function renderTaskDetail(task, data) {
   if (!task) {
     return `
@@ -17981,6 +18166,7 @@ function renderTaskDetail(task, data) {
         ],
         wide: false,
       })}
+      ${renderTaskExecutionProvenance(task)}
 
       <div class="detail-block">
         <div class="kv-grid">
@@ -20341,6 +20527,18 @@ document.addEventListener('click', async (event) => {
     return;
   }
 
+  if (actionButton?.dataset.action === 'select-execution-provenance-node') {
+    selectExecutionProvenanceNode(actionButton.dataset.nodeId);
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'clear-execution-provenance-explorer') {
+    resetExecutionProvenanceExplorer();
+    render();
+    restoreExecutionProvenanceFocus({ controlName: 'executionProvenanceQuery' });
+    return;
+  }
+
   if (actionButton?.dataset.action === 'set-evidence-density') {
     const density = EVIDENCE_DENSITY_OPTIONS.includes(actionButton.dataset.density)
       ? actionButton.dataset.density
@@ -20678,6 +20876,9 @@ function handleFormInput(event) {
   const missionGraphExplorerForm = event.target.closest(
     '[data-form="mission-graph-explorer"]',
   );
+  const executionProvenanceExplorerForm = event.target.closest(
+    '[data-form="execution-provenance-explorer"]',
+  );
   const runHarnessOperatorActionForm = event.target.closest(
     '[data-form="run-harness-operator-action"]',
   );
@@ -20728,6 +20929,25 @@ function handleFormInput(event) {
       reconcileMissionGraphSelection();
       render();
       restoreMissionGraphFocus({ controlName: event.target.name });
+    }
+    return;
+  }
+
+  if (executionProvenanceExplorerForm) {
+    if (event.target.name === 'executionProvenanceQuery') {
+      state.executionProvenanceQuery = event.target.value.slice(0, 120);
+    }
+    if (event.target.name === 'executionProvenanceLane') {
+      state.executionProvenanceLane = event.target.value;
+    }
+    if (event.target.name === 'executionProvenanceStatusTone') {
+      state.executionProvenanceStatusTone = event.target.value;
+    }
+
+    if (event.type === 'change' && event.target.name !== 'executionProvenanceQuery') {
+      reconcileExecutionProvenanceSelection();
+      render();
+      restoreExecutionProvenanceFocus({ controlName: event.target.name });
     }
     return;
   }
@@ -20951,7 +21171,7 @@ document.addEventListener(
   'toggle',
   (event) => {
     const disclosure = event.target.closest?.(
-      '[data-sidebar-mission-history], [data-advanced-ops-navigation], [data-council-disclosure], [data-execution-disclosure], [data-deliverables-disclosure]',
+      '[data-sidebar-mission-history], [data-advanced-ops-navigation], [data-council-disclosure], [data-execution-disclosure], [data-deliverables-disclosure], [data-execution-provenance]',
     );
     if (!disclosure) {
       return;
@@ -20964,6 +21184,25 @@ document.addEventListener(
 
     if (disclosure.dataset.advancedOpsNavigation) {
       state.advancedOpsExpanded = disclosure.open;
+      return;
+    }
+
+    if (disclosure.dataset.executionProvenance !== undefined) {
+      state.executionProvenanceOpen = disclosure.open;
+      const taskId = disclosure.dataset.taskId;
+      const graphMatches = state.executionProvenanceGraph?.taskId === taskId;
+      if (!disclosure.open) {
+        state.executionProvenanceError = null;
+        return;
+      }
+      if (
+        taskId === state.selectedTaskId &&
+        !graphMatches &&
+        !state.executionProvenanceLoading &&
+        !state.executionProvenanceError
+      ) {
+        void loadTaskExecutionProvenance(taskId);
+      }
       return;
     }
 
@@ -20999,12 +21238,28 @@ document.addEventListener('keydown', async (event) => {
     return;
   }
 
+  const provenanceNode = event.target.closest?.(
+    '[data-action="select-execution-provenance-node"]',
+  );
+  if (
+    provenanceNode &&
+    provenanceNode.tagName.toLowerCase() !== 'button' &&
+    (event.key === 'Enter' || event.key === ' ')
+  ) {
+    event.preventDefault();
+    selectExecutionProvenanceNode(provenanceNode.dataset.nodeId);
+    return;
+  }
+
   await handleNavGroupTabKeydown(event);
 });
 
 document.addEventListener('submit', async (event) => {
   const missionGraphExplorerForm = event.target.closest(
     '[data-form="mission-graph-explorer"]',
+  );
+  const executionProvenanceExplorerForm = event.target.closest(
+    '[data-form="execution-provenance-explorer"]',
   );
   const runHarnessOperatorActionForm = event.target.closest(
     '[data-form="run-harness-operator-action"]',
@@ -21023,6 +21278,14 @@ document.addEventListener('submit', async (event) => {
     reconcileMissionGraphSelection();
     render();
     restoreMissionGraphFocus({ controlName: 'missionGraphQuery' });
+    return;
+  }
+
+  if (executionProvenanceExplorerForm) {
+    event.preventDefault();
+    reconcileExecutionProvenanceSelection();
+    render();
+    restoreExecutionProvenanceFocus({ controlName: 'executionProvenanceQuery' });
     return;
   }
 

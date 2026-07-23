@@ -189,6 +189,7 @@ const {
   previewWorkOrderVerificationPlan: compileWorkOrderVerificationPlanPreview,
 } = require('./workorder-verification-plan-preview');
 const { buildMissionEvidenceGraph } = require('./mission-evidence-graph');
+const { buildTaskExecutionProvenanceGraph } = require('./execution-provenance-graph');
 const {
   assertSupportedArtifactType,
   cloneJsonValue,
@@ -1994,6 +1995,10 @@ function createRuntimeService(options = {}) {
 
   function getMissionEvidenceGraph(missionId) {
     return buildMissionEvidenceGraph(store.loadStateReadonly(), missionId);
+  }
+
+  function getTaskExecutionProvenance(taskId) {
+    return buildTaskExecutionProvenanceGraph(store.loadStateReadonly(), taskId);
   }
 
   function getCouncilSession(councilSessionId) {
@@ -6786,6 +6791,7 @@ function createRuntimeService(options = {}) {
     getLogs,
     getMission,
     getMissionEvidenceGraph,
+    getTaskExecutionProvenance,
     getMissionCloseOut,
     getMissionLearningCandidate,
     getLearningCandidateReview,

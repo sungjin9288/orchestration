@@ -1348,6 +1348,30 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const executionProvenanceMatch = url.pathname.match(
+    /^\/api\/tasks\/([^/]+)\/execution-provenance$/,
+  );
+  if (executionProvenanceMatch) {
+    if (method !== 'GET') {
+      json(response, 405, { error: 'Execution provenance는 GET 조회만 지원합니다.' });
+      return;
+    }
+
+    try {
+      const taskId = decodeURIComponent(executionProvenanceMatch[1]);
+      json(response, 200, {
+        executionProvenance: runtime.getTaskExecutionProvenance(taskId),
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Execution provenance 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const missionCreateLinkedTaskMatch = url.pathname.match(
     /^\/api\/missions\/([^/]+)\/create-linked-task$/,
   );
@@ -4003,6 +4027,11 @@ const server = createServer(async (request, response) => {
 
   if (url.pathname === '/mission-evidence-graph.js') {
     await serveStaticAsset(response, 'mission-evidence-graph.js');
+    return;
+  }
+
+  if (url.pathname === '/execution-provenance-graph.js') {
+    await serveStaticAsset(response, 'execution-provenance-graph.js');
     return;
   }
 

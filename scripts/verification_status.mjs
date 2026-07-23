@@ -712,6 +712,16 @@ const informationalChecks = [
     purpose: 'Mission graph browser-only exploration proves deterministic short-field search, lifecycle and status filtering, direct-neighbor focus, read-only relationship detail, stale-selection cleanup, escaped text, source immutability, and zero persistence or authority actions',
   },
   {
+    id: 'ai-company-task-execution-provenance-graph',
+    script: 'scripts/smoke-ai-company-execution-provenance-graph.mjs',
+    purpose: 'Task execution provenance runtime proves deterministic exact active-project projection, source-backed task lineage, 250-node truncation, sensitive-field exclusion, deep-freeze, state-byte stability, and blocked graph authority',
+  },
+  {
+    id: 'ai-company-task-execution-provenance-graph-ui-api',
+    script: 'scripts/smoke-ui-slice-692.mjs',
+    purpose: 'Task Detail execution provenance disclosure and exact GET API prove default-closed browser-local exploration, safe missing and wrong-method responses, semantic mobile fallback, focusable node inspection, and absent authority-bearing graph controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose: 'LLM-native active Mission focus proves compact-by-default current workstream, explicit full composer mode, cancel and selection collapse, refresh-stable field focus, existing Mission submit compatibility, and zero runtime schema dependency persistence or authority expansion',

@@ -299,6 +299,12 @@ const smokeChecks = [
       'Browser-only graph search, lifecycle and status filters, direct-neighbor focus, read-only source detail, keyboard and mobile selection parity, escaped graph text, and absent explorer persistence or authority actions',
   },
   {
+    id: 'ai-company-task-execution-provenance-graph',
+    script: 'scripts/smoke-ui-slice-692.mjs',
+    purpose:
+      'Task Detail default-closed execution provenance disclosure, exact GET projection, browser-memory search and filters, direct-neighbor detail, desktop SVG, semantic mobile fallback, and absent graph authority actions',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

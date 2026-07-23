@@ -33,6 +33,7 @@
   --shell-dark-soft: #4c5561;
 }
 
+
 * {
   box-sizing: border-box;
 }
@@ -11916,6 +11917,198 @@ body .llm-app-shell .llm-mission-composer .form-help {
   text-align: center;
 }
 
+.execution-provenance-disclosure {
+  min-width: 0;
+  margin: 18px 0;
+  border-top: 1px solid #e4e4e7;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.execution-provenance-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 2px;
+  color: #27272a;
+  cursor: pointer;
+}
+
+.execution-provenance-disclosure > summary > span:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.execution-provenance-disclosure summary strong { font-size: 0.8rem; }
+.execution-provenance-disclosure summary small,
+.execution-provenance-result-count,
+.execution-provenance-footnote { color: #71717a; font-size: 0.66rem; }
+.execution-provenance-disclosure-body { min-width: 0; padding: 0 0 2px; }
+.execution-provenance-graph { min-width: 0; }
+
+.execution-provenance-heading {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 2px;
+  border-top: 1px solid #f0f0f2;
+}
+
+.execution-provenance-heading p,
+.execution-provenance-detail-heading p {
+  margin: 0 0 4px;
+  color: #71717a;
+  font-size: 0.64rem;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.execution-provenance-heading h3 { margin: 0; color: #18181b; font-size: 0.96rem; }
+.execution-provenance-heading > span,
+.execution-provenance-footnote { font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace; }
+
+.execution-provenance-explorer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  align-items: end;
+  padding: 12px 2px;
+  border-top: 1px solid #f0f0f2;
+}
+
+.execution-provenance-explorer label { display: grid; min-width: 0; gap: 5px; }
+.execution-provenance-explorer label > span { color: #52525b; font-size: 0.66rem; font-weight: 650; }
+
+.execution-provenance-explorer input,
+.execution-provenance-explorer select {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid #d4d4d8;
+  border-radius: 6px;
+  background: #fff;
+  color: #27272a;
+  font: inherit;
+  font-size: 0.72rem;
+}
+
+.execution-provenance-explorer input:focus-visible,
+.execution-provenance-explorer select:focus-visible,
+.execution-provenance-viewport:focus-visible {
+  border-color: #0f766e;
+  outline: 2px solid rgba(15, 118, 110, 0.18);
+  outline-offset: 1px;
+}
+
+.execution-provenance-explorer-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.execution-provenance-explorer-actions .secondary-button { min-height: 34px; padding: 0 10px; white-space: nowrap; }
+.execution-provenance-result-count { margin: 0; padding: 0 2px 10px; }
+
+.execution-provenance-viewport {
+  position: relative;
+  min-width: 0;
+  max-height: 620px;
+  overflow: auto;
+  border-top: 1px solid #ececef;
+  border-bottom: 1px solid #ececef;
+  background: #fafafa;
+}
+
+.execution-provenance-svg { display: block; width: 100%; min-width: 960px; height: auto; }
+.execution-provenance-lanes line { stroke: #e4e4e7; stroke-width: 1; stroke-dasharray: 3 5; }
+.execution-provenance-lanes text { fill: #52525b; font-size: 11px; font-weight: 650; }
+.execution-provenance-edges line { stroke: #a1a1aa; stroke-width: 1; opacity: 0.42; }
+.execution-provenance-edges line.is-gate { stroke: #d97706; stroke-dasharray: 4 4; opacity: 0.72; }
+.execution-provenance-edges line.is-dimmed,
+.execution-provenance-node.is-dimmed { opacity: 0.16; }
+.execution-provenance-node { cursor: pointer; outline: none; }
+.execution-provenance-node circle { fill: #52525b; stroke: #fff; stroke-width: 2; }
+.execution-provenance-node-context circle { fill: #0f766e; }
+.execution-provenance-node-plan circle { fill: #2563eb; }
+.execution-provenance-node-build circle { fill: #7c3aed; }
+.execution-provenance-node-verify circle { fill: #d97706; }
+.execution-provenance-node-deliver circle { fill: #15803d; }
+.execution-provenance-node-close circle { fill: #475569; }
+.execution-provenance-node-status-success circle { stroke: #16a34a; }
+.execution-provenance-node-status-warning circle { stroke: #f59e0b; }
+.execution-provenance-node-status-danger circle { stroke: #dc2626; }
+.execution-provenance-node text { fill: #3f3f46; font-size: 10px; font-weight: 600; }
+.execution-provenance-node:focus-visible circle,
+.execution-provenance-node.is-selected circle { stroke: #18181b; stroke-width: 4; }
+
+.execution-provenance-no-results {
+  position: absolute;
+  z-index: 1;
+  top: 76px;
+  left: 50%;
+  margin: 0;
+  padding: 8px 10px;
+  color: #71717a;
+  font-size: 0.72rem;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.execution-provenance-fallback { display: none; padding: 10px 2px 2px; }
+.execution-provenance-fallback section { padding: 9px 0; border-top: 1px solid #ececef; }
+.execution-provenance-fallback h4 { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 7px; color: #27272a; font-size: 0.74rem; }
+.execution-provenance-fallback h4 span,
+.execution-provenance-fallback p { color: #71717a; font-size: 0.66rem; }
+.execution-provenance-fallback ul,
+.execution-provenance-relationships ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+
+.execution-provenance-fallback li button {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 2px;
+  padding: 5px 7px 5px 10px;
+  border: 0;
+  border-left: 2px solid #d4d4d8;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.execution-provenance-fallback li button:hover,
+.execution-provenance-fallback li button:focus-visible,
+.execution-provenance-fallback li button.is-selected { border-left-color: #0f766e; background: #f4fafa; outline: none; }
+.execution-provenance-fallback strong,
+.execution-provenance-fallback span,
+.execution-provenance-detail dd,
+.execution-provenance-relationships code { overflow-wrap: anywhere; }
+.execution-provenance-fallback strong,
+.execution-provenance-detail h4,
+.execution-provenance-relationships strong { color: #27272a; font-size: 0.72rem; }
+.execution-provenance-fallback span,
+.execution-provenance-detail dd,
+.execution-provenance-relationships span,
+.execution-provenance-relationships code { color: #71717a; font-size: 0.64rem; }
+
+.execution-provenance-detail { display: grid; gap: 12px; min-height: 56px; padding: 14px 2px; border-top: 1px solid #ececef; }
+.execution-provenance-detail > p,
+.execution-provenance-relationships > p { margin: 0; color: #71717a; font-size: 0.72rem; }
+.execution-provenance-detail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.execution-provenance-detail-heading h4 { margin: 0; }
+.execution-provenance-detail-heading > span { padding: 3px 6px; border: 1px solid #d4d4d8; border-radius: 4px; color: #52525b; font-size: 0.64rem; white-space: nowrap; }
+.execution-provenance-detail dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 18px; margin: 0; }
+.execution-provenance-detail dl > div { min-width: 0; }
+.execution-provenance-detail dt { margin-bottom: 3px; color: #71717a; font-size: 0.62rem; font-weight: 650; text-transform: uppercase; }
+.execution-provenance-detail dd { margin: 0; }
+.execution-provenance-relationships { display: grid; gap: 8px; }
+.execution-provenance-relationships h5 { margin: 0; color: #3f3f46; font-size: 0.7rem; }
+.execution-provenance-relationships li { display: grid; min-width: 0; gap: 2px; padding-left: 9px; border-left: 2px solid #d4d4d8; }
+.execution-provenance-footnote { margin: 0; padding: 10px 2px 12px; overflow-wrap: anywhere; }
+.execution-provenance-loading,
+.execution-provenance-error { padding: 14px 2px; color: #71717a; font-size: 0.72rem; }
+.execution-provenance-error { color: #b91c1c; }
+
 .llm-section-heading {
   display: flex;
   align-items: flex-end;
@@ -13734,6 +13927,43 @@ body .llm-app-shell .project-bootstrap-defaults {
 
   .mission-graph-detail dl,
   .mission-graph-relationships ul {
+    grid-template-columns: 1fr;
+  }
+
+  .execution-provenance-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .execution-provenance-explorer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .execution-provenance-search,
+  .execution-provenance-explorer-actions {
+    grid-column: 1 / -1;
+  }
+
+  .execution-provenance-explorer-actions .secondary-button {
+    flex: 1;
+  }
+
+  .execution-provenance-viewport {
+    display: none;
+  }
+
+  .execution-provenance-fallback {
+    display: block;
+  }
+
+  .execution-provenance-detail-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .execution-provenance-detail dl {
     grid-template-columns: 1fr;
   }
 }

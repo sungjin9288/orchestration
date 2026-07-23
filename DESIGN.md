@@ -182,6 +182,18 @@ Hierarchy:
   Mission handlers and their current readiness contracts. Rendering it never infers acceptance,
   closes a Mission, or advances a stage.
 
+### Task Execution Provenance Graph
+
+- Task Detail may expose one secondary, default-closed `Execution Provenance` disclosure. It is not a
+  primary navigation destination and never replaces Taskboard, Logs, Artifacts, or Decision Inbox.
+- The disclosure reads one exact active-project Task projection in Context, Plan, Build, Verify,
+  Deliver, and Close lanes. Opening it may fetch; search, filters, focus, and selected detail remain
+  browser-local and do not change Task selection or workflow state.
+- Desktop uses a bounded SVG and mobile uses the same source-backed records as a semantic list.
+  Node size describes provenance tier, not graph degree; dashed amber edges describe recorded gates.
+- The graph is inspection only. It has no control for approval, execution, resume, source mutation,
+  commit, push, release, persistence, layout save, or automatic navigation.
+
 ## 5. Surface Semantics
 
 - `Mission`: goal composer, current Mission thread or read-only evidence graph, recent Mission history
