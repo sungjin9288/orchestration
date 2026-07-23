@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `259\/259`, total `260\/260`/,
-  /UI QA is required `64\/64`/,
+  /required `1\/1`, informational `260\/260`, total `261\/261`/,
+  /UI QA is required `65\/65`/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `260\/260`, UI QA `64\/64`, zero-open backlog/,
+  /aggregate `261\/261`, UI QA `65\/65`, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1543,6 +1543,18 @@ const llmNativeMobileMissionTitleReadabilityEvidence = [
 
 assertReadmeHasAll(llmNativeMobileMissionTitleReadabilityEvidence);
 
+const llmNativeUnchangedSnapshotRefreshEvidence = [
+  /docs\/104_llm-native-unchanged-snapshot-refresh-plan\.md/,
+  /LLM-native unchanged snapshot refresh is accepted by `DEC-153`/,
+  /identical\s+`snapshot`, `derived`, and `runtimeRoot` content as a browser no-op/,
+  /visible selected run log\s+keeps its selection-bound append-only detail refresh/,
+  /stale responses are discarded and timer-only log failure remains a visible retryable status/,
+  /node scripts\/smoke-ui-slice-687\.mjs/,
+  /`DEC-153` permits only timer-path browser reconciliation[\s\S]*Out-of-band edits to runtime artifact files/,
+];
+
+assertReadmeHasAll(llmNativeUnchangedSnapshotRefreshEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1591,7 +1603,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `260\/260`, UI QA `64\/64`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate `261\/261`, UI QA `65\/65`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

@@ -376,6 +376,12 @@ const smokeChecks = [
     purpose:
       'Complete naturally wrapped current Mission title in the three-row mobile rail, full-width disclosure compatibility, unchanged desktop navigation, and zero route runtime API schema dependency persistence or authority change',
   },
+  {
+    id: 'unchanged-snapshot-noop-refresh',
+    script: 'scripts/smoke-ui-slice-687.mjs',
+    purpose:
+      'Timer-only unchanged snapshot refresh preserves browser controls and response-only previews while explicit bootstrap, manual, and QA refreshes retain the existing full refresh path',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

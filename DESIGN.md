@@ -209,6 +209,10 @@ The shell must keep `review before done` and `approval before commit` visible at
 ## 7. Interaction And Accessibility
 
 - Keep visible keyboard focus and the existing skip link.
+- Periodic snapshot reads that change only the read timestamp must preserve the current DOM, focus,
+  caret, drafts, disclosures, and scroll position. Explicit refresh remains a full reconciliation;
+  a visible selected log may update only its own surface when append-only content changes; stale
+  responses for a previous selection must be discarded.
 - Navigation exposes one current item; inactive items omit `aria-current`.
 - Agent turns and execution stages use ordered/list semantics where sequence matters.
 - Evidence graph nodes are keyboard focusable and expose label, kind, status, and source reference.

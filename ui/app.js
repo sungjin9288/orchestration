@@ -5030,6 +5030,59 @@ function applySnapshotPayload(payload) {
   }
 }
 
+function getStableSnapshotContent(payload) {
+  return JSON.stringify({
+    snapshot: payload.snapshot,
+    derived: payload.derived || createEmptyDerivedState(),
+    runtimeRoot: payload.runtimeRoot,
+  });
+}
+
+function hasUnchangedSnapshotContent(previousPayload, nextPayload) {
+  if (!previousPayload) {
+    return false;
+  }
+
+  return getStableSnapshotContent(previousPayload) === getStableSnapshotContent(nextPayload);
+}
+
+function shouldPollSelectedRunLogs(payload, surface, selectedRunId) {
+  const selectedRun = selectedRunId ? payload?.snapshot?.runs?.[selectedRunId] || null : null;
+
+  return surface === 'logs' && Boolean(selectedRun);
+}
+
+async function refreshSelectedRunLogsForUnchangedSnapshot(payload) {
+  const selectedRunId = state.selectedRunId;
+
+  if (!shouldPollSelectedRunLogs(payload, state.surface, selectedRunId)) {
+    return { changed: false, failed: false };
+  }
+
+  try {
+    const nextRunLogs = await fetchJson(
+      `/api/runs/${encodeURIComponent(selectedRunId)}/logs`,
+    );
+
+    if (state.surface !== 'logs' || state.selectedRunId !== selectedRunId) {
+      return { changed: false, failed: false };
+    }
+
+    const changed = JSON.stringify(state.selectedRunLogs) !== JSON.stringify(nextRunLogs);
+
+    if (changed) {
+      state.selectedRunLogs = nextRunLogs;
+    }
+
+    return { changed, failed: false };
+  } catch {
+    return {
+      changed: false,
+      failed: state.surface === 'logs' && state.selectedRunId === selectedRunId,
+    };
+  }
+}
+
 function resolvePostMutationSurface(currentSurface, payload, fallbackSurface) {
   const inboxItemId = payload?.mutation?.inboxItemId || null;
 
@@ -5279,18 +5332,38 @@ async function hydrateSelectedDetails() {
   }
 }
 
-async function refreshData() {
+async function refreshData({ skipUnchanged = false } = {}) {
   if (state.loading || state.mutating) {
     return;
   }
 
   const missionComposerFocus = captureMissionComposerFocus();
+  let refreshRenderTarget = 'full';
   state.loading = true;
-  state.error = null;
-  elements.refreshStatus.textContent = '런타임 상태 요약 다시 읽는 중…';
+  if (!skipUnchanged) {
+    elements.refreshStatus.textContent = '런타임 상태 요약 다시 읽는 중…';
+  }
 
   try {
-    applySnapshotPayload(await fetchJson('/api/snapshot'));
+    const payload = await fetchJson('/api/snapshot');
+
+    if (
+      skipUnchanged &&
+      !state.error &&
+      hasUnchangedSnapshotContent(state.payload, payload)
+    ) {
+      const selectedLogRefresh = await refreshSelectedRunLogsForUnchangedSnapshot(payload);
+      refreshRenderTarget = selectedLogRefresh.changed ? 'logs' : 'none';
+      state.payload.generatedAt = payload.generatedAt;
+      elements.refreshStatus.textContent = selectedLogRefresh.failed
+        ? `최근 스냅샷 ${formatDate(state.payload.generatedAt)} · 선택 로그 갱신 실패`
+        : `최근 갱신 ${formatDate(state.payload.generatedAt)}`;
+      return;
+    }
+
+    state.error = null;
+    elements.refreshStatus.textContent = '런타임 상태 요약 다시 읽는 중…';
+    applySnapshotPayload(payload);
     const data = getDerived();
     ensureSelection(data);
     await hydrateSelectedDetails();
@@ -5302,9 +5375,13 @@ async function refreshData() {
     elements.refreshStatus.textContent = '런타임 상태 요약 연결 실패';
   } finally {
     state.loading = false;
-    render();
-    if (missionComposerFocus) {
-      restoreMissionComposerFocus(missionComposerFocus.targetName, missionComposerFocus);
+    if (refreshRenderTarget === 'full') {
+      render();
+      if (missionComposerFocus) {
+        restoreMissionComposerFocus(missionComposerFocus.targetName, missionComposerFocus);
+      }
+    } else if (refreshRenderTarget === 'logs') {
+      renderLogs(getDerived());
     }
   }
 }
@@ -20995,7 +21072,7 @@ function registerQaHooks() {
 async function bootstrap() {
   render();
   await refreshData();
-  state.timerId = window.setInterval(refreshData, 5000);
+  state.timerId = window.setInterval(() => refreshData({ skipUnchanged: true }), 5000);
 }
 
 registerQaHooks();
