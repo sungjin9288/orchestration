@@ -382,6 +382,18 @@ const smokeChecks = [
     purpose:
       'Timer-only unchanged snapshot refresh preserves browser controls and response-only previews while explicit bootstrap, manual, and QA refreshes retain the existing full refresh path',
   },
+  {
+    id: 'desktop-workspace-focus-offset',
+    script: 'scripts/smoke-ui-slice-688.mjs',
+    purpose:
+      'Desktop workspace focus reserves the sticky header without changing the existing focus handoff, skip-link target, mobile static header, or browser authority boundary',
+  },
+  {
+    id: 'advanced-ops-secondary-overview-placement',
+    script: 'scripts/smoke-ui-slice-689.mjs',
+    purpose:
+      'Advanced Ops keeps the existing overview as a default-closed secondary disclosure after the authoritative workspace without changing renderers, browser-local state, or authority',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

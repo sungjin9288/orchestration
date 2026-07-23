@@ -782,6 +782,16 @@ const informationalChecks = [
     purpose: 'Timer-only unchanged snapshot refresh proves stable snapshot derived and runtime-root comparison, generated-at-only readout updates, no full hydration and no render when selected detail content is unchanged, selected-log identity and failure guards, Logs-only content rendering, explicit refresh compatibility, and zero runtime API schema dependency persistence or authority change',
   },
   {
+    id: 'desktop-workspace-focus-offset',
+    script: 'scripts/smoke-ui-slice-688.mjs',
+    purpose: 'Desktop workspace focus offset proves the existing workspace focus handoff and skip-link target remain intact, one 821px-and-wider scroll margin reserves the sticky header, the 820px-and-below header stays static, and zero route runtime API schema dependency persistence or authority change',
+  },
+  {
+    id: 'advanced-ops-secondary-overview-placement',
+    script: 'scripts/smoke-ui-slice-689.mjs',
+    purpose: 'Advanced Ops secondary overview placement proves the existing overview follows the authoritative workspace in default-closed native details, hides for workflows, retains bounded responsive containment and browser-local renderer bindings, and adds zero runtime API schema dependency persistence or authority change',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

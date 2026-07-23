@@ -17970,7 +17970,7 @@ function renderTaskDetail(task, data) {
               : ''
           }
         </div>
-        <div class="form-actions form-actions-inline">
+        <div class="form-actions form-actions-inline task-flow-actions">
           <button
             class="primary-button"
             type="button"

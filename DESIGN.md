@@ -190,6 +190,10 @@ Hierarchy:
 - `Deliverables`: result, verification, review, package, acceptance, close-out
 - `Advanced Ops`: Taskboard, logs, artifacts, Decision Inbox, harness and deep evidence controls
 
+Secondary operations evidence follows the authoritative workspace in a native, default-closed
+disclosure. It stays absent from primary workflows and retains the existing renderer, browser-local,
+and authority contracts when opened from Advanced Ops.
+
 The visual language may be conversational, but authority must remain procedural. A model response is
 not an approval, a displayed plan is not execution, and a completed turn is not Mission completion.
 The shell must keep `review before done` and `approval before commit` visible at the current gate.
@@ -209,6 +213,9 @@ The shell must keep `review before done` and `approval before commit` visible at
 ## 7. Interaction And Accessibility
 
 - Keep visible keyboard focus and the existing skip link.
+- Desktop workspace focus reserves the sticky header height with a scroll margin on the existing
+  `main.surface-stack`; the 820px-and-below mobile header stays static and keeps its current scroll
+  behavior.
 - Periodic snapshot reads that change only the read timestamp must preserve the current DOM, focus,
   caret, drafts, disclosures, and scroll position. Explicit refresh remains a full reconciliation;
   a visible selected log may update only its own surface when append-only content changes; stale

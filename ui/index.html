@@ -255,7 +255,6 @@
           </div>
         </header>
 
-        <section id="control-overview" class="control-overview" aria-label="현재 운영 개요"></section>
         <p id="workspace-live-status" class="sr-only" aria-live="polite" aria-atomic="true">현재 workspace: 미션</p>
 
         <main id="workspace-main" class="surface-stack" aria-labelledby="shell-dashboard-title" aria-describedby="workspace-live-status" tabindex="-1">
@@ -268,6 +267,11 @@
           <section id="surface-artifacts" class="surface" data-surface="artifacts" aria-label="아티팩트" aria-hidden="true" tabindex="-1"></section>
           <section id="surface-decision-inbox" class="surface" data-surface="decision-inbox" aria-label="결정함" aria-hidden="true" tabindex="-1"></section>
         </main>
+
+        <details id="control-overview-disclosure" class="control-overview-disclosure">
+          <summary>추가 운영 도구</summary>
+          <section id="control-overview" class="control-overview" aria-label="현재 운영 개요"></section>
+        </details>
       </div>
     </div>
 

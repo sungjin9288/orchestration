@@ -10927,18 +10927,80 @@ body .llm-app-shell .refresh-button {
   line-height: 1;
 }
 
-body .llm-app-shell .shell-header-main,
+body .llm-app-shell .shell-header-main {
+  display: none;
+}
+
+body[data-nav-group="workflows"] .llm-app-shell .control-overview-disclosure {
+  display: none;
+}
+
 body[data-nav-group="workflows"] .control-overview {
   display: none;
 }
 
-body:not([data-nav-group="workflows"]) .llm-app-shell .control-overview {
+body:not([data-nav-group="workflows"]) .llm-app-shell .control-overview-disclosure {
+  display: block;
+  min-width: 0;
   margin: 16px 20px 0;
+  border-top: 1px solid #e4e4e7;
+}
+
+body .llm-app-shell .control-overview-disclosure > summary {
+  padding: 10px 0 0;
+  color: #52525b;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+body .llm-app-shell .control-overview-disclosure > .control-overview {
+  min-width: 0;
+  margin: 12px 0 0;
+}
+
+body .llm-app-shell .control-overview-disclosure:not([open]) > .control-overview {
+  display: none;
+}
+
+body .llm-app-shell .surface[data-surface="taskboard"] .task-flow-actions {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+body .llm-app-shell .surface[data-surface="taskboard"] .task-flow-actions > .form-help {
+  flex: 1 1 280px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+body .llm-app-shell .control-overview-disclosure .ops-assignment-row-grid,
+body .llm-app-shell .control-overview-disclosure .ops-assignment-fields .ops-form-order-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body:not([data-nav-group="workflows"]) .llm-app-shell .surface-grid,
+body:not([data-nav-group="workflows"]) .llm-app-shell .surface-panel,
+body:not([data-nav-group="workflows"]) .llm-app-shell .detail-card,
+body:not([data-nav-group="workflows"]) .llm-app-shell .list-column {
+  min-width: 0;
+}
+
+body:not([data-nav-group="workflows"]) .llm-app-shell .detail-copy.mono {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 body .llm-app-shell .surface-stack {
   min-width: 0;
   padding: 0 22px 48px;
+}
+
+@media (min-width: 821px) {
+  body .llm-app-shell .surface-stack {
+    scroll-margin-top: 46px;
+  }
 }
 
 body .llm-app-shell .surface.is-active {
@@ -13330,6 +13392,10 @@ body .llm-app-shell .project-bootstrap-defaults {
 
   body .llm-app-shell .surface-stack {
     padding: 0 14px 36px;
+  }
+
+  body:not([data-nav-group="workflows"]) .llm-app-shell .control-overview-disclosure {
+    margin: 12px 14px 0;
   }
 
   .llm-mission-lead {

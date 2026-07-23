@@ -991,6 +991,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/104_llm-native-unchanged-snapshot-refresh-plan.md` changes only browser refresh reconciliation. Timer reads compare `snapshot`, `derived`, and `runtimeRoot`, update the refresh timestamp without full hydration or render when those fields are unchanged, and retain a selection-bound append-only refresh that rerenders only the visible Logs surface when content changes. Bootstrap, manual and QA refresh, changed snapshots, and error recovery keep the full path. The five-second interval, routes, runtime/API/schema/dependencies, persistence, exact Mission Graph projection, provider policy, approval semantics, source mutation, commit, push, release, scheduling, policy, and connector authority do not change.
 - Needed Before: Server push, adaptive polling, durable browser state, background scheduling, cross-tab coordination, route/runtime/API/schema/dependency changes, provider fallback, source mutation, approval bypass, commit, push, release, policy mutation, or connectors require a separate complete decision and focused verification.
 
+### DEC-154
+- Status: `Accepted`
+- Decision: Accept the delegated non-critical desktop workspace focus-offset slice that reserves the existing sticky Workspace Header height when the current `workspace-main` receives focus.
+- Why: Surface navigation deliberately focuses `main#workspace-main` for keyboard continuity. On desktop, the sticky header can otherwise cover the focused workspace start, making the handoff feel abrupt even though the active surface and focus target are correct.
+- Impact: `docs/105_llm-native-desktop-workspace-focus-offset-plan.md` adds one desktop-only `scroll-margin-top: 46px` declaration to the existing `.surface-stack`. The existing `workspaceMain.focus()` handoff, skip-link target, mobile static header, routes, runtime/API/schema/dependencies, persistence, provider policy, approval semantics, source mutation, commit, push, release, scheduling, policy, and connector authority do not change.
+- Needed Before: Changing focus timing or targets, navigation routes, header behavior below 821px, persisted scroll state, runtime/API/schema/dependency behavior, provider fallback, source mutation, approval bypass, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
+
+### DEC-155
+- Status: `Accepted`
+- Decision: Accept the delegated non-critical Advanced Ops secondary overview placement slice that moves the existing control overview below the authoritative workspace surface and behind one default-closed native disclosure.
+- Why: The overview is useful for inspection, but it currently appears before the active workspace and competes with the primary LLM workstream. Its content already belongs to the existing non-workflow inspection path, so its placement should reflect that hierarchy without changing its data, handlers, or local browser state.
+- Impact: `docs/106_llm-native-advanced-ops-overview-placement-plan.md` moves the unchanged `#control-overview` after `main#workspace-main`, wraps it in closed `details#control-overview-disclosure`, and shows that disclosure only outside the workflow group. Existing overview renderers, element lookup, handlers, localStorage contracts, focus target, routes, runtime/API/schema/dependencies, persistence, provider policy, approval semantics, source mutation, commit, push, release, scheduling, and connector authority do not change.
+- Needed Before: Changing overview data or renderers, disclosure persistence, route or focus behavior, runtime/API/schema/dependency behavior, provider fallback, source mutation, approval bypass, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

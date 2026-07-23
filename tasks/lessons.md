@@ -1,4 +1,15 @@
 # lessons
+- When a source-backed operations overview competes with the active workstream, move the unchanged
+  element after the authoritative surface and use default-closed native details instead of changing
+  its renderer. Group visibility in CSS preserves its browser-local handlers and storage contracts
+  without introducing a second route or a persisted disclosure preference.
+- A closed native details element is not enough when an author rule gives its child an explicit grid
+  display. Remove closed content from layout explicitly, then fix each intrinsic-width owner with
+  wrapping or `min-width: 0`; root overflow masking would hide the defect instead of making the
+  secondary tools responsive.
+- A focus handoff into a desktop workspace should reserve the sticky header in CSS before changing
+  JavaScript focus behavior. A bounded `scroll-margin-top` preserves the existing accessible target
+  and timing while the mobile static-header breakpoint remains independently verifiable.
 - Periodic polling must distinguish a newer read from newer authoritative content. Compare the source-backed snapshot fields, preserve DOM-owned focus, caret, drafts, disclosures, and scroll when only the timestamp changes, and keep independently appendable details such as the visible selected log on a selection-bound surface-only refresh that discards stale success and failure; explicit refresh and error recovery should still reconcile the full view.
 - Compact navigation must preserve identity, not only destinations. When the current Mission title does not fit beside counts and Advanced Ops, let the exact source title wrap naturally inside the existing row instead of replacing context with an ellipsis; verify the small height tradeoff against full disclosure width, route reachability, keyboard behavior, and horizontal overflow.
 - Sparse evidence should shorten the visualization, not stretch unrelated shell chrome. Derive Graph height from the densest visible stage, keep empty mobile stages as semantic count rows, and assign leftover viewport space to the content grid row so a short projection cannot inflate the Workspace Header.

@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /required `1\/1`, informational `260\/260`, total `261\/261`/,
-  /UI QA is required `65\/65`/,
+  /Current-head\s+verification passes UI QA required `67\/67` and aggregate required `1\/1`, informational `262\/262`,\s+total `263\/263`/,
+  /real-browser matrix at 1440x1000, 821x900, 820x900, and 390x844/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /aggregate `261\/261`, UI QA `65\/65`, zero-open backlog/,
+  /registered aggregate `263` checks, UI QA `67` checks, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1555,6 +1555,30 @@ const llmNativeUnchangedSnapshotRefreshEvidence = [
 
 assertReadmeHasAll(llmNativeUnchangedSnapshotRefreshEvidence);
 
+const llmNativeDesktopWorkspaceFocusOffsetEvidence = [
+  /docs\/105_llm-native-desktop-workspace-focus-offset-plan\.md/,
+  /LLM-native desktop workspace focus offset is accepted by `DEC-154`/,
+  /At 821px and wider, the existing\s+`main\.surface-stack` reserves 46px above a focused workspace/,
+  /current `workspaceMain\.focus\(\)` handoff and skip-link target remain intact/,
+  /820px-and-below static header and mobile scroll behavior remain unchanged/,
+  /node scripts\/smoke-ui-slice-688\.mjs/,
+  /`DEC-154` permits only the desktop `scroll-margin-top` focus offset[\s\S]*connectors remain outside/,
+];
+
+assertReadmeHasAll(llmNativeDesktopWorkspaceFocusOffsetEvidence);
+
+const llmNativeAdvancedOpsOverviewPlacementEvidence = [
+  /docs\/106_llm-native-advanced-ops-overview-placement-plan\.md/,
+  /LLM-native Advanced Ops secondary overview placement is accepted by `DEC-155`/,
+  /control overview now\s+follows the authoritative workspace inside default-closed native `details`/,
+  /`추가 운영 도구` as\s+its summary/,
+  /stays hidden for workflows and becomes available only as secondary inspection in\s+Advanced Ops/,
+  /node scripts\/smoke-ui-slice-689\.mjs/,
+  /`DEC-155` permits only secondary placement of the existing control overview[\s\S]*connectors remain outside/,
+];
+
+assertReadmeHasAll(llmNativeAdvancedOpsOverviewPlacementEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1603,7 +1627,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate `261\/261`, UI QA `65\/65`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate registration `263`, UI QA registration `67`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,
