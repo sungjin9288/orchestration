@@ -275,7 +275,7 @@ POST /api/missions/:missionId/draft-council
 POST /api/missions/:missionId/approve-council
 ```
 
-계획된 real Council route:
+구현된 opt-in Real Council route:
 
 ```text
 POST /api/missions/:missionId/council/start
@@ -415,10 +415,17 @@ same-project draft Mission을 response/browser-memory에서 함께 검토할 뿐
 position prompt, synthesis, Mission, WorkOrder, policy를 변경하거나 memory application authority를
 만들지 않는다. Council context injection이나 application은 별도 complete fielded decision 전까지 blocked다.
 
+Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
+complete durable StaffingPlan implementation handoff는 `DEC-164`로 기록됐다. 첫 runtime target은
+accepted StaffingPlan을 Council에 연결하지 않는다. It previews and persists one exact immutable
+plan only. Current Council entry, required four-role roster, provider behavior, staffingSnapshot,
+alignment, and downstream gates remain unchanged until a later accepted-plan binding decision.
+
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
+node scripts/smoke-ai-company-multi-agent-completion-planning.mjs
 node scripts/smoke-ai-company-real-council-planning.mjs
 node scripts/smoke-ai-company-real-council.mjs
 node scripts/smoke-ui-slice-651.mjs

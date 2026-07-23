@@ -1,0 +1,266 @@
+# AI Company Multi-Agent Completion Plan
+
+## Purpose
+
+이 문서는 현재의 고정형 Council과 Builder -> Reviewer -> QA pass path를 실제 multi-agent
+orchestration으로 완성하는 순서를 정의한다.
+
+현재 runtime은 schema v16에서 source-backed role identity, Real Council, durable ExecutionPlan과
+WorkOrder, checkpoint recovery, reviewed delivery, Mission close-out, learning, memory audit,
+AcceptanceCriterion, VerificationProof를 보존한다. 그러나 durable `StaffingPlan`, general
+WorkOrder scheduler, bounded parallel specialist execution, Reviewer rework, Mission memory context
+application은 아직 없다.
+
+완성 방향은 기존 runtime을 교체하는 것이 아니다. 검증된 evidence와 authority model 위에
+StaffingPlan부터 한 단계씩 추가하고, 각 단계에서 operator가 다음 권한을 명시적으로 열도록 한다.
+
+## Accepted Planning-Only Decision
+
+| Field | Accepted value |
+| --- | --- |
+| `decisionId` | `operator-decision-ai-company-multi-agent-completion-planning-001` |
+| `decisionStatus` | `approve-ai-company-multi-agent-completion-planning-only` |
+| `targetAuthority` | source-of-truth reconciliation and planning only for the staged completion of durable StaffingPlan, operator-stepped scheduling, bounded read-only parallel specialists, Reviewer rework, Ops recovery, reviewed Mission context attachment, provider expansion, and dogfood evidence |
+| `targetSurface` | docs plus the existing schema-v16 CompanyBlueprint, Council, ExecutionPlan, WorkOrder, Checkpoint, AcceptanceCriterion, VerificationProof, memory context preview, README, task ledger, completion inventory, and verification surfaces |
+| `sourceEvidenceRefs` | `DEC-076`, `DEC-079`, `DEC-082`, `DEC-085`, `DEC-088`, `DEC-091`, `DEC-094`, `DEC-097`, `DEC-130`, `DEC-131`, `DEC-132`, `DEC-133`, `DEC-134`, `DEC-135`, `DEC-136`, `docs/48_ai-company-master-plan.md`, `docs/49_agent-runtime-contract.md`, `docs/50_council-operating-protocol.md`, `docs/51_ai-company-delivery-roadmap.md`, `company/blueprint.json`, `src/runtime/contracts.js`, `src/runtime/council-sessions.js`, `src/runtime/mission-workorder-compiler.js`, `src/runtime/runtime-service.js`, `src/execution/council-coordinator.js` |
+| `negativeEvidenceRefs` | current schema v16 has no StaffingPlan sequence map record digest preview persistence inspection or Council-entry binding, Council staffingSnapshot is not a durable accepted plan, WorkOrder graph is fixed Builder Reviewer QA, provider Council positions are collected sequentially, parallel specialists are disabled, bounded continuation is response-only maxSteps=1, Reviewer changes-requested stops without rework, and Mission memory context remains preview-only |
+| `implementationPlanRefs` | this document |
+| `rollbackRefs` | revert only the planning docs, decision entries, README, task and verification evidence; preserve schema v16 runtime, state, source records, Council, WorkOrder, checkpoint, delivery, learning, memory, provider, and UI behavior |
+| `focusedSmokeRefs` | planning smoke only in `scripts/smoke-ai-company-multi-agent-completion-planning.mjs`; every runtime, API, UI, migration, provider, and browser smoke remains blocked until its named implementation decision |
+| `aggregateVerificationRef` | `node scripts/verification_status.mjs` |
+| `stillBlockedAuthorities` | schema-v17 migration, StaffingPlan preview persistence acceptance inspection or Council binding, automatic or provider-assisted staffing, dynamic WorkOrder compilation, general scheduling, parallel execution, automatic retry or rework, Ops runtime commands, durable Mission context attachment or injection, provider-backed WorkOrders, source mutation beyond existing exact Builder authority, runtime-agent commit push or release, policy mutation, approval bypass, background autonomy, and external connectors |
+| `approvalStatement` | The operator approves source-of-truth reconciliation and completion planning only. This does not approve runtime, schema, API, UI, provider, scheduler, parallel execution, rework, memory application, source mutation, Git, release, policy, bypass, or connector implementation. |
+
+## Current Capability Boundary
+
+### Implemented
+
+- One repo-backed CompanyBlueprint and nine strict AgentProfiles.
+- Real Council with independent Strategist, Architect, and Decomposer positions, deterministic
+  conflict evidence, Conductor synthesis, and explicit operator alignment.
+- One fixed Builder -> Reviewer -> QA WorkOrder graph with dependency and mutable-target collision
+  validation.
+- Durable ExecutionPlan, WorkOrder, HandoffPacket, WorkflowCheckpoint, DeliveryPackage,
+  DeliveryPackageAcceptance, MissionCloseOut, LearningCandidate, MemoryItem, MemoryRecall,
+  AcceptanceCriterion, and VerificationProof records.
+- One exact response-only MissionMemoryContextPreview.
+- One response-only `maxSteps=1` continuation preview with deadline, cancellation, and no-progress
+  evidence.
+
+### Not Implemented
+
+- A durable, operator-accepted `StaffingPlan`.
+- `solo`, `council`, and `parallel-specialists` as runtime-selected and source-bound plan modes.
+- A scheduler that dispatches any dependency-ready WorkOrder rather than one fixed active role.
+- Safe parallel read-only specialist cells and failed-cell-only retry.
+- Reviewer `changes-requested` to a new bounded Builder attempt.
+- Ops supervision commands over durable attempts and checkpoints.
+- Reviewed memory context attachment to Mission planning input.
+- Provider-backed WorkOrder roles outside the current Council boundary.
+- Complete Phase 9 dogfood evidence.
+
+## Completion Principles
+
+1. Deterministic code owns state transitions, authority, budgets, deadlines, collision checks, and
+   terminal reasons.
+2. Agent output is evidence. It never creates approval, mutation, commit, push, release, or policy
+   authority.
+3. Every role attempt receives an immutable HandoffPacket instead of another role's raw transcript.
+4. Parallel execution is allowed only for source-read-only cells with no dependency or target
+   collision.
+5. Successful independent cells are reused after interruption. Only failed cells can be retried.
+6. Every retry and rework is bounded, digest-bound, and operator initiated.
+7. Current local-stub synthetic verification remains authoritative. Live-provider evidence stays
+   optional.
+8. Rollback disables entrypoints and preserves valid evidence. It never downgrades schema or deletes
+   accepted records.
+
+## Completion Sequence
+
+### Stage 1: Durable StaffingPlan
+
+The first implementation target is one source-current StaffingPlan preview and one separate exact
+operator acceptance that atomically appends an immutable schema-v17 record.
+
+This stage does not start Council, compile WorkOrders, or schedule agents.
+
+### Stage 2: Accepted StaffingPlan Entry Binding
+
+Council start and future solo execution must require one current accepted StaffingPlan whose Mission,
+CompanyBlueprint, mode, selected agents, budget, and source digests still match.
+
+Binding opens only the selected entrypoint. It does not create a general scheduler.
+
+### Stage 3: Operator-Stepped WorkOrder Scheduler
+
+Replace the fixed active-role assumption with deterministic dependency-ready selection and durable
+role-attempt evidence. Initial operation remains explicit `/start` and `/step`; no background loop is
+introduced.
+
+Mutable targets are serialized. Builder retains the current targeted live-mutation approval.
+
+### Stage 4: Bounded Parallel Read-Only Specialists
+
+Enable Researcher and independent verification cells only when their inputs are immutable, their
+workspace is read-only, and their dependency and target sets do not overlap.
+
+Use a small source-backed concurrency limit, per-cell cancellation and deadline, bounded provider
+budget, and partial-result checkpoints. Successful cells are retained; failed cells require one
+explicit retry command.
+
+### Stage 5: Reviewer Rework
+
+Compile `changes-requested` evidence into a response-only ReworkPlan. A separate operator decision may
+append one new Builder WorkOrder attempt with the original accepted decision, exact findings,
+target allowlist, verification plan, and a bounded attempt cap.
+
+Every new mutation attempt repeats preflight and approval. An unchanged progress digest stops the
+loop.
+
+### Stage 6: Ops Supervision And Recovery
+
+Expose one read-only supervision snapshot and explicit `step`, `retry-failed`, `cancel`, `quarantine`,
+and `resume-safe-checkpoint` commands. Restart never infers success or replays an active mutation.
+
+The UI shows role, dependency, attempt, checkpoint, budget, and terminal reason from durable evidence.
+
+### Stage 7: Reviewed Mission Context Attachment
+
+Promote one exact MissionMemoryContextPreview only after a separate operator review into a
+project-local MissionContextAttachment. The attachment remains immutable evidence and does not change
+Mission policy.
+
+Strategist or planner input can include it only through an explicit request. Automatic retrieval,
+search, ranking, recommendation, and cross-workspace memory remain outside this sequence.
+
+### Stage 8: Provider Expansion And Dogfood
+
+Open provider execution one read-only role at a time, beginning with Researcher or Reviewer.
+Deterministic QA remains local. Builder provider preflight precedes any separately approved provider
+mutation path.
+
+Completion requires isolated scenarios for solo, Council, bounded parallel research and verification,
+provider timeout, partial retry, revision, operator stop, Builder approval, Reviewer rework, accepted
+delivery, close-out, and restart/resume. README claims must match those exact results.
+
+## First Vertical Slice: Durable StaffingPlan
+
+### Source Tuple
+
+```text
+one exact source-current draft Mission
++ current CompanyBlueprint and AgentProfile source digest
++ one bounded operator-owned staffingSpec
+-> deterministic response-only preview
++ separate exact decision=accept and operator-owned evaluatedAt
+-> atomic schema-v16 to schema-v17 migration
+-> one immutable StaffingPlan(status=accepted)
+-> exact-id inspection
+-> stop before Council or execution
+```
+
+### Planned StaffingPlan Contract
+
+```text
+id
+missionId
+projectId
+mode: solo | council | parallel-specialists
+selectedAgentIds[]
+selectionRationale
+requiredCapabilities[]
+parallelGroups[][]
+providerMode: local-stub-only
+budget
+  maxProviderCalls: 0
+  maxTurnsPerAgent
+  deadlineMs
+terminationPolicy
+sourceDigest
+missionDigest
+blueprintDigest
+previewDigest
+recordDigest
+status: accepted
+evaluatedAt
+acceptedAt
+createdAt
+```
+
+The record stores execution evidence, not company policy. CompanyBlueprint remains the source of truth.
+
+### Validation Rules
+
+- Mission must be source-current, project-local, and `draft`.
+- Every selected agent must exist in the current blueprint, support the project pack, and satisfy the
+  requested capability and provider constraints.
+- `solo` selects exactly one agent and has no parallel group.
+- `council` includes the current required Council agents and has no parallel group.
+- `parallel-specialists` is rejected while
+  `defaultStaffingPolicy.parallelSpecialistsAllowed=false`.
+- The first slice requires `providerMode=local-stub-only` and `maxProviderCalls=0`.
+- Budget cannot exceed the current blueprint termination policy.
+- `acceptedAt` and `createdAt` are derived from the exact operator-owned `evaluatedAt`; runtime wall
+  clock reads are not part of the canonical record.
+- Duplicate agents, duplicate groups, empty rationale, unknown capabilities, widened workspace,
+  write authority, commit, push, release, and provider fallback fail closed.
+- Preview generation, boot, GET, snapshot, and migration do not create a record.
+- Exact replay returns the existing record; stale or divergent input writes nothing.
+
+### Planned Runtime Surface
+
+```text
+src/runtime/staffing-plans.js
+previewStaffingPlan(input)
+acceptStaffingPlan(input)
+getStaffingPlan(id)
+```
+
+Planned routes:
+
+```text
+POST /api/missions/:missionId/staffing-plan-preview
+POST /api/missions/:missionId/staffing-plans
+GET  /api/staffing-plans/:staffingPlanId
+```
+
+The UI may preview, accept, and inspect one exact plan. It exposes no start, dispatch, parallel,
+provider, mutation, retry, rework, commit, push, release, or apply action.
+
+## Migration And Rollback
+
+- Add only `staffingPlanSeq`, `staffingPlans`, and the minimum immutable record validation required by
+  schema v17.
+- Preserve every valid schema-v16 value exactly.
+- Create no StaffingPlan during boot, read, preview, render, or migration alone.
+- Reject unknown future schema and partial or semantically invalid v17 state.
+- Validate the complete preview and acceptance tuple before one atomic migration-plus-append save.
+- Rollback disables preview, accept, and exact inspection entrypoints. Valid v17 records remain inert
+  audit evidence and are never deleted or downgraded.
+
+## Focused Verification Plan
+
+The future focused runtime smoke must prove:
+
+- atomic v16-to-v17 migration, reload, and future/partial-state rejection;
+- exact Mission, project, blueprint, preview, decision, and evaluatedAt binding;
+- idempotent replay and stale or divergent no-write refusal;
+- role, pack, capability, local-stub-only provider, zero-provider-call budget, and authority
+  allowlists;
+- exact mode invariants and parallel mode fail-closed behavior;
+- no Council start, WorkOrder creation, scheduler, provider call, source mutation, approval bypass,
+  commit, push, or release;
+- existing Council, fixed WorkOrder, checkpoint, proof, delivery, learning, and memory compatibility.
+
+The future UI/API smoke must prove bounded JSON input, explicit preview and acceptance, exact durable
+inspection, safe failures, browser-memory invalidation, absent downstream controls, and desktop/mobile
+fit.
+
+## Current Gate
+
+- Source-of-truth reconciliation is recorded as `DEC-162`.
+- This completion plan is accepted as planning-only `DEC-163`.
+- The complete StaffingPlan implementation decision handoff is recorded as `DEC-164`.
+- Runtime, schema, API, UI, migration, persistence, inspection, and Council binding remain blocked
+  until the operator supplies the complete fielded decision from
+  `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`.

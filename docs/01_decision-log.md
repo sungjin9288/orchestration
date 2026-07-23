@@ -1047,6 +1047,27 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/112_agent-operations-desk-visual-redesign-plan.md` introduces a graphite coded project rail, active-Mission masthead, continuous agent thread, dark next-gate command dock, dark desktop context inspector, compact mobile current-state rail, and reduced-motion-safe feedback. Existing destinations, counts, action attributes, form names, Mission selection, Thread/Graph behavior, routes, runtime records, review and approval gates, provider behavior, and state boundaries remain unchanged.
 - Needed Before: Changing navigation destinations, Mission or agent semantics, next-gate ordering, action handlers, runtime/API/schema/dependency/storage/provider behavior, automatic routing, source mutation, approval bypass, scheduling, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
 
+### DEC-162
+- Status: `Accepted`
+- Decision: Reconcile the AI Company source-of-truth documents and documentation smoke with the implemented schema-v16 runtime and DEC-130 through DEC-136 evidence.
+- Why: The runtime already contains MissionMemoryContextPreview, optimistic state transactions, AcceptanceCriterion and VerificationProof records, bounded continuation preview, optional exact fetch, and context telemetry, while the master documentation smoke still reports Mission memory context implementation as blocked and points to an already consumed gate.
+- Impact: `docs/48_ai-company-master-plan.md`, `docs/49_agent-runtime-contract.md`, `docs/50_council-operating-protocol.md`, `docs/51_ai-company-delivery-roadmap.md`, README, completion inventory, task evidence, and `scripts/smoke-ai-company-master-plan.mjs` now describe the current schema-v16 boundary. This decision changes no runtime, schema, API, UI, provider, source, Git, scheduler, policy, or connector behavior.
+- Needed Before: Any new runtime object, schema migration, StaffingPlan persistence, Council binding, scheduler, parallel execution, rework, memory application, provider expansion, source mutation, Git/release, policy mutation, approval bypass, or connector behavior requires a separate complete fielded decision and focused verification.
+
+### DEC-163
+- Status: `Accepted`
+- Decision: Accept `docs/113_ai-company-multi-agent-completion-plan.md` as planning-only authority for the staged completion of durable StaffingPlan, accepted-plan entry binding, operator-stepped scheduling, bounded read-only parallel specialists, Reviewer rework, Ops recovery, reviewed Mission context attachment, provider expansion, and dogfood evidence.
+- Why: The current Council and reviewed-delivery path proves the evidence and approval spine but still uses a fixed Council roster, a fixed Builder -> Reviewer -> QA graph, sequential role transport, response-only continuation, and preview-only Mission memory context. A decision-complete sequence is required before any of those boundaries can expand.
+- Impact: The plan fixes the current capability audit, completion principles, stage order, first schema-v17 StaffingPlan target, migration and rollback posture, focused verification, and downstream authority boundaries. It authorizes documentation, decision, README, task, completion-inventory, focused planning smoke, aggregate registration, commit, and push only.
+- Needed Before: Runtime, schema, API, UI, durable record, Council binding, scheduling, parallel execution, rework, memory application, provider, source, Git/release, policy, bypass, or connector implementation requires the named complete fielded decision for that stage.
+
+### DEC-164
+- Status: `Accepted`
+- Decision: Record `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md` as the complete fielded input shape for the first multi-agent completion runtime gate.
+- Why: A broad continuation cannot decide the exact Mission and CompanyBlueprint digest binding, accepted mode, selected agents, budget, schema-v17 migration, separate acceptance, idempotency, rollback, focused smoke, or every authority that must remain closed.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one immutable accepted StaffingPlan preview/persistence/inspection slice. It records no implementation outcome and opens no schema migration, durable record, Council start, WorkOrder creation, scheduler, provider, source mutation, Git/release, policy, bypass, or connector authority.
+- Needed Before: The operator must supply every required field in one valid implementation decision. Generic approval, `approve all`, delegated self-approval, DEC-163, or this handoff document does not authorize runtime or schema implementation.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

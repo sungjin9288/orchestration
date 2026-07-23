@@ -147,7 +147,7 @@ assertAll(decisionLogText, [
 assert.match(masterPlan, /첫 runtime foundation slice는 `DEC-079`로 구현됐다/);
 assert.match(masterPlan, /첫 behavior vertical slice는 foundation 검증 이후의 `Real Council for one Mission`/);
 assert.match(runtimeContract, /`CompanyBlueprint`와 `AgentProfile` source loading은 `DEC-079`로 구현됐다/);
-assert.match(runtimeContract, /company policy는 `state\.json`에 저장되지 않는다/);
+assert.match(runtimeContract, /company policy는 (?:여전히 )?`state\.json`에 저장되지 않는다/);
 assertAll(roadmapText, [
   /decision은 `DEC-079`로 승인됐고 Phase 1 focused smoke가 current implementation evidence/,
   /Fielded implementation decision은 `DEC-079`로 승인됐고/,

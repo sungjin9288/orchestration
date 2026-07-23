@@ -112,8 +112,8 @@ assert.match(runtimeContractText, /company\/blueprint\.json/);
 assert.match(runtimeContractText, /solo \| council \| parallel-specialists/);
 assert.match(runtimeContractText, /canCommit.*canPush/);
 assert.match(runtimeContractText, /Raw chain-of-thought를 저장하거나 전달하지 않는다/);
-assert.match(runtimeContractText, /현재 runtime은 schema v8이며 read-only recovery와 exact resume\/cancel routes를 제공한다/);
-assert.match(runtimeContractText, /company policy는 `state\.json`에 저장되지 않는다/);
+assert.match(runtimeContractText, /current schema v16에서도 유지된다/);
+assert.match(runtimeContractText, /company policy는 여전히 `state\.json`에 저장되지 않는다/);
 
 assert.match(councilProtocol, /^# Council Operating Protocol$/m);
 assertSections(councilProtocol, [
@@ -221,6 +221,15 @@ assert.match(decisionLog, /^### DEC-127$/m);
 assert.match(decisionLog, /^### DEC-128$/m);
 assert.match(decisionLog, /^### DEC-129$/m);
 assert.match(decisionLog, /^### DEC-130$/m);
+assert.match(decisionLog, /^### DEC-131$/m);
+assert.match(decisionLog, /^### DEC-132$/m);
+assert.match(decisionLog, /^### DEC-133$/m);
+assert.match(decisionLog, /^### DEC-134$/m);
+assert.match(decisionLog, /^### DEC-135$/m);
+assert.match(decisionLog, /^### DEC-136$/m);
+assert.match(decisionLog, /^### DEC-162$/m);
+assert.match(decisionLog, /^### DEC-163$/m);
+assert.match(decisionLog, /^### DEC-164$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -258,6 +267,10 @@ assert.match(masterPlanText, /Mission memory context preview planning-only autho
 assert.match(runtimeContractText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
+assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
+assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
+assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
+assert.match(deliveryRoadmapText, /VNext Multi-Agent Completion Sequence/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -347,6 +360,15 @@ process.stdout.write(
         'DEC-128',
         'DEC-129',
         'DEC-130',
+        'DEC-131',
+        'DEC-132',
+        'DEC-133',
+        'DEC-134',
+        'DEC-135',
+        'DEC-136',
+        'DEC-162',
+        'DEC-163',
+        'DEC-164',
       ],
       currentRuntime: {
         schemaVersion: 16,
@@ -366,7 +388,14 @@ process.stdout.write(
         durableMemoryItem: 'schema-v14-exact-stored-record',
         memoryRecallPreview: 'schema-v14-response-only-exact-id-recall-ready',
         durableMemoryRecall: 'schema-v15-exact-recorded-audit',
-        missionMemoryContextPreview: 'planning-only-response-only-exact-recorded-recall',
+        missionMemoryContextPreview: 'schema-v16-response-only-exact-recorded-recall-and-draft-mission',
+        workOrderVerificationPlanPreview: 'schema-v16-response-only-exact-workorder-evidence',
+        stateTransactions: 'schema-v16-optimistic-commit-lock-and-stale-revision-guard',
+        acceptanceEvidence: 'schema-v16-immutable-criteria-and-append-only-proofs',
+        boundedContinuation: 'schema-v16-response-only-max-steps-one',
+        exactResearchFetch: 'disabled-by-default-operator-installed-sidecar',
+        contextBudgetTelemetry: 'response-only-measurement-without-payload-mutation',
+        staffingPlan: 'planning-and-fielded-handoff-only',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -401,7 +430,17 @@ process.stdout.write(
         durableMemoryRecallPlanningAllowed: true,
         durableMemoryRecallPersistenceAllowed: true,
         missionMemoryContextPreviewPlanningAllowed: true,
-        missionMemoryContextPreviewImplementationAllowed: false,
+        missionMemoryContextPreviewImplementationAllowed: true,
+        workOrderVerificationPlanPreviewAllowed: true,
+        stateTransactionGuardAllowed: true,
+        acceptanceCriterionAndProofAllowed: true,
+        boundedContinuationPreviewAllowed: true,
+        optionalExactFetchAllowed: true,
+        contextBudgetTelemetryAllowed: true,
+        staffingPlanPlanningAllowed: true,
+        staffingPlanImplementationAllowed: false,
+        staffingPlanPersistenceAllowed: false,
+        staffingPlanCouncilBindingAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -410,7 +449,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded response-only MissionMemoryContextPreview implementation decision required',
+      nextGate: 'Complete fielded durable StaffingPlan implementation decision required',
     },
     null,
     2,

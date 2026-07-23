@@ -389,7 +389,12 @@ const informationalChecks = [
   {
     id: 'ai-company-master-plan-documentation',
     script: 'scripts/smoke-ai-company-master-plan.mjs',
-    purpose: 'AI Company Phase 0 source contract pins current deterministic Council and browser-only roster truth, the planned runtime/Council/delivery roadmap, per-phase rollback and verification gates, and still-blocked runtime, provider, memory, autonomous scheduling, source mutation, approval bypass, unattended commit, and unattended push authority',
+    purpose: 'AI Company source contract pins the current schema-v16 Council execution delivery learning memory proof continuation and optional research boundary plus the next still-blocked durable StaffingPlan gate',
+  },
+  {
+    id: 'ai-company-multi-agent-completion-planning',
+    script: 'scripts/smoke-ai-company-multi-agent-completion-planning.mjs',
+    purpose: 'AI Company multi-agent completion planning source-checks DEC-162 through DEC-164, the staged completion sequence, one schema-v17 durable StaffingPlan target, complete fielded handoff, rollback, focused verification, and every still-blocked runtime authority',
   },
   {
     id: 'ai-company-runtime-blueprint-planning',

@@ -131,6 +131,15 @@ execution state is schema v16 after the additive AcceptanceCriterion and Verific
 additive read-only snapshot on the configured local server path. The editable company roster remains
 browser presentation only.
 
+AI Company multi-agent completion planning is accepted by `DEC-163` in
+`docs/113_ai-company-multi-agent-completion-plan.md`, and `DEC-164` records the complete fielded first
+implementation handoff in
+`docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`. The sequence starts
+with one schema-v17 immutable accepted StaffingPlan, then keeps Council binding, operator-stepped
+scheduling, bounded read-only parallel specialists, Reviewer rework, Ops recovery, reviewed Mission
+context attachment, provider expansion, and dogfood as separate verified stages. Durable StaffingPlan
+runtime and schema implementation remain blocked until the complete fielded decision is supplied.
+
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
 reading model and offers an explicit `Graph` view backed by one exact
@@ -615,8 +624,9 @@ review-decision packet, accepted evidence-decision, and downstream authority dec
 evidence plus AI Company durable DeliveryPackage, acceptance implementation, and Mission/task
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
-`defaultCompletionImplementationOpen=false`. DEC-161 passes aggregate required `1/1`, informational
-`269/269`, total `270/270`, and UI QA required `73/73`. Focused browser checks at 1280x720 and
+`defaultCompletionImplementationOpen=false`. The DEC-161 browser baseline plus DEC-162 through
+DEC-164 planning evidence passes aggregate required `1/1`, informational `270/270`, total `271/271`,
+and UI QA required `73/73`. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
 The earlier DEC-158 matrix remains the evidence for the default-closed Task
@@ -2274,7 +2284,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 948 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 949 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 695 UI smoke files
 ```
@@ -2780,7 +2790,7 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required `73/73` pass. Snapshot reachability remains informational
   and was skipped because the optional port-4315 UI server was not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `269/269`, total `270/270`
+- `node scripts/verification_status.mjs`: required `1/1`, informational `270/270`, total `271/271`
   pass. The aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2847,10 +2857,11 @@ Playwright CLI:
 - This is a local-first PoC/MVP-quality project, not a hosted service.
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
-- The current completion gate is evidence-closed through DEC-161, not a claim of hosted production
-  readiness. Focused source and compatibility checks, the local four-viewport browser matrix, UI QA
-  `73/73`, and aggregate `270/270` pass. This remains local synthetic/browser evidence rather than
-  hosted proof.
+- The current implemented browser/runtime completion gate is evidence-closed through DEC-161, and
+  the next multi-agent completion plan and handoff are evidence-closed through DEC-164. This is not a
+  claim of hosted production readiness. Focused source and compatibility checks, the local
+  four-viewport browser matrix, UI QA `73/73`, and aggregate `271/271` pass. This remains local
+  synthetic/browser evidence rather than hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.
@@ -3061,6 +3072,11 @@ Playwright CLI:
 - `DEC-136` adds measurement-only context telemetry. It reports no raw values and performs no payload
   rewrite, truncation, compression, tokenizer estimate, provider call, persistence, Mission injection,
   or token/cost claim.
+- `DEC-162` reconciles current schema-v16 AI Company evidence, `DEC-163` approves completion planning
+  only, and `DEC-164` records the complete durable StaffingPlan implementation handoff. No schema-v17
+  migration, StaffingPlan record, Council binding, scheduler, parallel execution, retry/rework,
+  memory application, provider-backed WorkOrder, source/Git/release, policy, bypass, or connector
+  authority is implemented by those decisions.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

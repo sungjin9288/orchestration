@@ -340,7 +340,11 @@ Resume entrypoint를 disable하고 active AI Company workflow를 operator decisi
 
 ### Authority Gate
 
-`durable AI Company checkpoint and resume implementation` 별도 승인이 필요하다.
+Phase 7 planning-only authority는 `DEC-095`, implementation decision handoff는 `DEC-096`,
+exact schema-v8 implementation은 `DEC-097`로 기록됐다. Current runtime은 source-current
+checkpoint digest와 append-only attempt evidence를 검증하는 explicit resume path를 제공하며,
+automatic retry, background scheduling, parallel recovery, provider-backed resume, policy bypass는
+별도 complete fielded decision 전까지 blocked다.
 
 ## Phase 8: Reviewed Organizational Learning
 
@@ -439,6 +443,19 @@ and connectors를 열지 않는다. Runtime/API/UI는 exact-id form, canonical M
 JSON-only POST, response/browser-memory preview로 이 경계를 구현했고 durable context나 downstream
 control을 만들지 않는다.
 
+## Accepted Delivery Lineage
+
+Durable DeliveryPackage persistence planning은 `DEC-098`, implementation handoff는 `DEC-099`,
+exact implementation은 `DEC-100`으로 기록됐다. DeliveryPackage acceptance planning은
+`DEC-101`, complete fielded implementation handoff는 `DEC-102`, exact implementation은
+`DEC-103`으로 기록됐다. Mission/task close-out planning-only authority는 `DEC-104`,
+complete fielded implementation handoff는 `DEC-105`, exact schema-v11 implementation은
+`DEC-106`으로 기록됐다.
+
+These records preserve the implemented schema-v9 through schema-v11 delivery lineage. They do not
+open package rewrite, automatic close-out, commit, push, release, learning promotion, scheduling,
+provider expansion, policy mutation, approval bypass, or connectors.
+
 ## Phase 9: Dogfood And Productization
 
 ### Objective
@@ -469,6 +486,27 @@ control을 만들지 않는다.
 
 Product claim을 이전 검증 범위로 되돌리고 incomplete capability를 README에서 제거하거나 planned로
 표시한다. Runtime records와 evidence는 보존한다.
+
+## VNext Multi-Agent Completion Sequence
+
+`docs/113_ai-company-multi-agent-completion-plan.md`는 Phase 4와 Phase 5에서 남은 실제 runtime
+gap을 다음 순서로 닫는다.
+
+1. one source-current preview와 separate accept decision으로 immutable durable StaffingPlan을
+   저장하고 exact-id로 검사한다;
+2. accepted StaffingPlan을 Council 또는 solo entry에 source-current하게 bind한다;
+3. dependency-ready WorkOrder를 explicit step으로 실행하는 general scheduler를 만든다;
+4. read-only independent specialist cells만 bounded parallel로 실행한다;
+5. Reviewer changes-requested를 새 operator-approved Builder attempt로 연결한다;
+6. Ops가 attempt, checkpoint, budget, cancellation, quarantine, safe resume를 감독한다;
+7. reviewed Mission context attachment와 role별 provider expansion을 별도 권한으로 연다;
+8. Phase 9 isolated dogfood scenarios와 honest README evidence를 닫는다.
+
+Source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`, first durable StaffingPlan
+implementation handoff는 `DEC-164`로 기록됐다. The handoff is not implementation authority.
+Schema-v17 migration, StaffingPlan runtime/API/UI, persistence, inspection, Council binding, scheduling,
+parallel execution, rework, memory application, provider expansion, source/Git/release, policy,
+bypass, and connectors remain blocked until their complete fielded decisions.
 
 ## Cross-Phase Verification Matrix
 
@@ -506,30 +544,16 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 5 exact implementation은 `DEC-091`, Phase 6 exact implementation은 `DEC-094`로 accepted됐다.
-Phase 7 planning-only authority는 `DEC-095`, implementation decision handoff는 `DEC-096`, exact
-schema-v8 implementation은 `DEC-097`로 accepted됐다. Durable DeliveryPackage persistence planning은
-`DEC-098`, implementation handoff는 `DEC-099`, exact implementation은 `DEC-100`으로 accepted됐다.
-DeliveryPackage acceptance planning은 `DEC-101`, complete fielded implementation handoff는
-`DEC-102`, exact implementation은 `DEC-103`으로 accepted됐다. Mission/task close-out planning-only
-authority는 `DEC-104`, complete fielded implementation handoff는 `DEC-105`, exact schema-v11
-implementation은 `DEC-106`으로 accepted됐다. Reopen, package lifecycle expansion, standalone
-close-out, Git/release, scheduling/provider/policy, next-Mission, and connector authority는 별도
-complete fielded decision 전까지 blocked다. Phase 8 LearningCandidate response-only preview planning은
-`DEC-107`, implementation handoff는 `DEC-108`, exact implementation은 `DEC-109`로 accepted됐다.
-Durable LearningCandidate planning/handoff/implementation은 `DEC-110`/`DEC-111`/`DEC-112`,
-LearningCandidate review planning/handoff/implementation은 `DEC-113`/`DEC-114`/`DEC-115`로
-accepted됐다. MemoryCandidate response-only preview planning/handoff/implementation은
-`DEC-116`/`DEC-117`/`DEC-118`, Durable MemoryItem persistence planning/handoff/implementation은
-`DEC-119`/`DEC-120`/`DEC-121`, MemoryRecall response-only planning/handoff/implementation은
-`DEC-122`/`DEC-123`/`DEC-124`로 accepted됐다. Durable MemoryRecall planning/handoff/implementation은
-`DEC-125`/`DEC-126`/`DEC-127`로 accepted됐다. Mission memory context preview
-planning/handoff/implementation은 `DEC-128`/`DEC-129`/`DEC-130`으로 accepted됐다. Current runtime is
-schema v15 with one exact source-bound recorded audit path and one response-only exact-id context
-review path. The immediate next gate requires a separate complete fielded decision. Any schema-v16 change, context
-record, Mission/WorkOrder/prompt/policy injection, memory application, recall lifecycle, list/history,
-automatic retrieval/search/ranking/recommendation, providers, source/Git/release, scheduling,
-next-Mission, policy, bypass, or connectors remains blocked.
+Current runtime is schema v16. The accepted implementation chain through `DEC-130` provides exact
+Mission memory context review without injection. `DEC-131` through `DEC-136` add WorkOrder
+verification planning, optimistic state transactions, AcceptanceCriterion and VerificationProof
+records, one-step continuation preview, optional exact fetch, and measurement-only context telemetry.
+
+The immediate next runtime gate is the durable StaffingPlan slice planned by `DEC-163` and handed off
+by `DEC-164`. It requires one complete fielded operator decision before schema-v17 migration or any
+runtime/API/UI edit. Council binding, automatic staffing, general scheduling, parallel execution,
+retry/rework, Ops commands, context application, provider-backed WorkOrders, source/Git/release,
+policy, bypass, and connectors remain separate later decisions.
 
 Implemented acceptance target:
 
@@ -603,6 +627,7 @@ provider, source/Git/release, scheduling, policy, bypass, and connector authorit
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
+node scripts/smoke-ai-company-multi-agent-completion-planning.mjs
 node scripts/smoke-ai-company-council-live-provider-planning.mjs
 node scripts/smoke-ai-company-council-live-provider.mjs
 node scripts/smoke-ui-slice-652.mjs

@@ -61,14 +61,17 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
   runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
   envelope로 노출된다.
-- Provider 기본값은 local stub이며 live OpenAI Responses 경로는 현재 승인된 실행 역할에만
-  한정된다.
-- Memory와 growth 기능은 대부분 read-only readiness/evidence 상태이며 조직 기억 자동 저장은
-  승인되지 않았다.
-
-Phase 1은 browser-only roster와 runtime 사이의 read-only identity 계층을 채웠고, Phase 2는 이
-foundation 위에서 one-Mission local-stub Real Council path를 구현했다. Provider-backed role
-execution과 standalone StaffingPlan은 아직 구현되지 않았다.
+- Persisted runtime은 schema v16이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
+  WorkflowCheckpoint, DeliveryPackage, acceptance, MissionCloseOut, LearningCandidate, MemoryItem,
+  MemoryRecall, AcceptanceCriterion, VerificationProof evidence를 보존한다.
+- One exact MissionMemoryContextPreview, WorkOrderVerificationPlanPreview, and bounded one-step
+  continuation preview는 response/browser memory에서만 동작한다.
+- Provider 기본값은 local stub이다. OpenAI Responses는 현재 Council 역할에만 명시적 opt-in으로
+  열리며 WorkOrder provider execution으로 확장되지 않는다.
+- Mission memory는 exact item과 recall audit까지 저장할 수 있지만 Mission, WorkOrder, prompt,
+  policy에 적용하거나 자동 검색·추천하지 않는다.
+- Standalone durable StaffingPlan, general scheduler, parallel specialists, Reviewer rework, Ops
+  commands, and Mission context application은 아직 구현되지 않았다.
 
 ## Approved Real Council Planning Authority
 
@@ -102,6 +105,22 @@ execution과 standalone StaffingPlan은 아직 구현되지 않았다.
 - Still blocked: provider expansion,
   StaffingPlan, WorkOrders, memory/checkpoint expansion, scheduling, mutation, approval bypass,
   runtime-agent commit/push/release
+
+## Accepted Multi-Agent Completion Planning Authority
+
+- Source-of-truth reconciliation: `DEC-162`
+- Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
+- Decision status: `approve-ai-company-multi-agent-completion-planning-only`
+- Recorded decisions: `DEC-163`, `DEC-164`
+- Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
+- First implementation handoff:
+  `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
+- Allowed: docs, decision log, README, task and completion evidence, planning smoke, aggregate
+  registration, verification, commit, push
+- Still blocked: schema-v17 migration, StaffingPlan runtime/API/UI or durable record, Council binding,
+  scheduling, parallel execution, retry/rework, Ops commands, memory application, provider-backed
+  WorkOrders, source mutation expansion, runtime-agent commit/push/release, policy mutation, bypass,
+  and connectors
 
 ## Product North Star
 
@@ -431,6 +450,7 @@ Foundation 계획과 consumed implementation decision input은
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
+node scripts/smoke-ai-company-multi-agent-completion-planning.mjs
 node scripts/smoke-ai-company-real-council.mjs
 node scripts/smoke-ai-company-council-live-provider.mjs
 node scripts/smoke-ui-slice-652.mjs
