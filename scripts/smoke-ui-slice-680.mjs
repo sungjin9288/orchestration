@@ -43,9 +43,13 @@ for (const stage of ['Result', 'Verification', 'Package', 'Acceptance', 'Close-o
 assert.match(flowSource, /options\.latestReviewStatus === 'passed'/);
 assert.match(flowSource, /acceptance\?\.decision === 'accepted'/);
 assert.match(flowSource, /Boolean\(options\.completionReady && closeOut\)/);
-assert.match(flowSource, /result artifact not recorded/);
-assert.match(flowSource, /acceptance not recorded/);
-assert.match(flowSource, /close-out not recorded/);
+assert.match(flowSource, /결과 산출물 미기록/);
+assert.match(flowSource, /패키지 승인 미기록/);
+assert.match(flowSource, /종료 근거 미기록/);
+assert.doesNotMatch(
+  flowSource,
+  /currentArtifact\.id|durablePackage\?\.id|acceptance\.id|closeOut\.id|preview\.id/,
+);
 assert.doesNotMatch(flowSource, /fetch\(|postJson|saveState|localStorage|sessionStorage/);
 
 assert.match(actionSource, /getMissionDeliveryPackagePersistenceSummary\(/);
@@ -67,6 +71,7 @@ assert.match(actionMarkupSource, /data-id="\$\{escapeHtml\(command\.id\)\}"/);
 assert.match(progressSource, /flow\.steps/);
 assert.match(progressSource, /Source-backed delivery progress/);
 assert.match(progressSource, /step\.evidence/);
+assert.match(progressSource, /getEvidenceRailStatusDisplay\(step\.status\)/);
 assert.match(provenanceSource, /ExecutionPlan/);
 assert.match(provenanceSource, /Checkpoint/);
 assert.match(provenanceSource, /DeliveryPackage/);
@@ -75,7 +80,7 @@ assert.match(provenanceSource, /Close-out/);
 assert.match(provenanceSource, /Decision Inbox/);
 assert.match(provenanceSource, /options\.artifacts/);
 
-assert.match(waitingSource, /연결된 execution task가 없습니다/);
+assert.match(waitingSource, /연결된 실행 태스크가 없습니다/);
 assert.match(waitingSource, /data-action="open-council"/);
 assert.match(waitingSource, /data-action="open-advanced-ops"/);
 assert.match(surfaceSource, /class="llm-deliverables-shell"/);
@@ -86,6 +91,10 @@ assert.match(surfaceSource, /renderDeliverablesProgress\(options\.flow\)/);
 assert.match(surfaceSource, /data-deliverables-disclosure="evidence"/);
 assert.match(surfaceSource, /data-deliverables-disclosure="controls"/);
 assert.match(surfaceSource, /data-deliverables-disclosure="learning"/);
+assert.match(surfaceSource, /결과 진행/);
+assert.match(surfaceSource, /근거와 기록/);
+assert.match(surfaceSource, /패키지 검토와 종료 제어/);
+assert.match(surfaceSource, /학습과 메모리 인계/);
 assert.doesNotMatch(
   surfaceSource,
   /renderDeliverablesReportDeck|renderDeliverablesCompletionSummary|renderExecutionEvidenceRail|renderHarnessBriefRegister/,

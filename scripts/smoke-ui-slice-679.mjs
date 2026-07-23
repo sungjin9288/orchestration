@@ -29,7 +29,9 @@ function getFunctionSource(name) {
 
 const actionSource = getFunctionSource('getExecutionPrimaryAction');
 const actionMarkupSource = getFunctionSource('renderExecutionPrimaryAction');
+const progressDisplaySource = getFunctionSource('getExecutionCheckpointEvidenceDisplay');
 const progressSource = getFunctionSource('renderExecutionCheckpointProgress');
+const recordStatusSource = getFunctionSource('getExecutionRecordStatusDisplay');
 const workOrderSource = getFunctionSource('renderExecutionWorkOrderProgress');
 const sourceEvidence = getFunctionSource('renderExecutionSourceProvenance');
 const waitingSource = getFunctionSource('renderExecutionWaitingSurface');
@@ -61,26 +63,35 @@ assert.match(actionMarkupSource, /data-verb=/);
 assert.match(progressSource, /executionEvidence\.checkpoints/);
 assert.match(progressSource, /checkpoint\.currentOwner/);
 assert.match(progressSource, /getEvidenceRailStatusDisplay\(checkpoint\.status\)/);
+assert.match(progressSource, /getExecutionCheckpointEvidenceDisplay\(checkpoint\)/);
+assert.doesNotMatch(progressSource, /checkpoint\.evidenceMeta/);
+assert.match(progressDisplaySource, /계획 근거 기록됨/);
 assert.match(progressSource, /aria-current="step"/);
 assert.match(workOrderSource, /bundle\?\.executionPlan/);
 assert.match(workOrderSource, /bundle\.workOrders/);
 assert.match(workOrderSource, /workOrder\.assignedAgentId/);
+assert.match(workOrderSource, /getExecutionRecordStatusDisplay\(workOrder\.status\)/);
+assert.match(recordStatusSource, /return '확인 필요'/);
 assert.doesNotMatch(progressSource + workOrderSource, /fetch\(|postJson|saveState/);
 
 assert.match(sourceEvidence, /Current owner/);
 assert.match(sourceEvidence, /Latest run/);
 assert.match(sourceEvidence, /Approval/);
 assert.match(sourceEvidence, /Decision Inbox/);
+assert.match(sourceEvidence, /Stop reason/);
 assert.match(sourceEvidence, /sourceArtifacts/);
 assert.match(sourceEvidence, /parsedPreflight/);
 
-assert.match(waitingSource, /연결된 실행 task가 없습니다/);
+assert.match(waitingSource, /연결된 실행 태스크가 없습니다/);
 assert.match(waitingSource, /data-action="open-council"/);
 assert.match(waitingSource, /data-action="open-advanced-ops"/);
 
 assert.match(surfaceSource, /class="llm-execution-shell"/);
 assert.match(surfaceSource, /class="llm-execution-current"/);
-assert.match(surfaceSource, /Stop condition/);
+assert.match(surfaceSource, /중단 조건/);
+assert.match(surfaceSource, /실행 진행/);
+assert.match(surfaceSource, /근거와 준비 상태/);
+assert.match(surfaceSource, /실행 도구/);
 assert.match(surfaceSource, /renderExecutionPrimaryAction\(primaryAction, busy\)/);
 assert.match(surfaceSource, /renderExecutionWorkOrderProgress\(missionExecutionPlanBundle\)/);
 assert.match(surfaceSource, /renderExecutionCheckpointProgress\(executionEvidence\)/);

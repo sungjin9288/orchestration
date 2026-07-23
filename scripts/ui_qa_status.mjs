@@ -400,6 +400,12 @@ const smokeChecks = [
     purpose:
       'Mission Thread exposes one source-backed native jump to its existing lower next gate while preserving the lower authority action, Graph behavior, and every runtime boundary',
   },
+  {
+    id: 'llm-native-primary-workstream-language',
+    script: 'scripts/smoke-ui-slice-691.mjs',
+    purpose:
+      'Primary workstream labels use natural operator language while product names, exact collapsed provenance, actions, readiness, and authority stay unchanged',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

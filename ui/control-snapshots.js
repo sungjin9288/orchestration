@@ -405,11 +405,10 @@ export function getMissionNextActionPreview(mission, previews) {
     previews.deliverables?.latestReviewStatus === 'passed' &&
     previews.deliverables?.currentDeliverableArtifact
   ) {
-    const artifact = previews.deliverables.currentDeliverableArtifact;
-
     return {
       actionLabel: '결과 확인',
-      summary: `리뷰가 통과했고 ${artifact.type} ${artifact.id} 결과 패킷이 있으므로, 지금 가장 먼저 확인할 표면은 산출물입니다.`,
+      summary:
+        '리뷰가 통과한 결과 패킷이 준비됐으므로, 지금 가장 먼저 확인할 표면은 산출물입니다.',
       surface: 'deliverables',
       tone: 'success',
     };
@@ -417,7 +416,8 @@ export function getMissionNextActionPreview(mission, previews) {
 
   return {
     actionLabel: '실행',
-    summary: `지금 가장 먼저 열어야 할 표면은 실행이며, 이유는 ${previews.execution.gatePreview}`,
+    summary:
+      '협의회 승인으로 실행 태스크가 연결됐습니다. 현재 사람 게이트와 다음 한정 명령을 실행에서 확인합니다.',
     surface: 'execution',
     tone: 'accent',
   };

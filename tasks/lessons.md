@@ -1,5 +1,8 @@
 # lessons
 
+- Natural language belongs to system-authored primary labels, not product object names or source evidence. Keep Mission/Council/Execution/Deliverables/Thread/Graph recognizable, move exact IDs and internal states to existing collapsed provenance, and do not rewrite provider, user, or source-derived text merely to make a surface read more conversational.
+- A display-label adapter must not turn an unknown status into a normal waiting state. Enumerate accepted source values and render unknown values as explicit review-required evidence with danger tone so presentation cannot hide contract drift.
+
 - A first-viewport next-step cue should remain navigation, not a second command. Bind it to the existing source-backed gate, use a native fragment target that can receive focus, and keep the only authority-bearing button after the recorded review and evidence that justify it. Hide the cue when the target is absent, the current step remains on Mission, or the operator is viewing Graph so presentation cannot create a shortcut around the workflow.
 - When a source-backed operations overview competes with the active workstream, move the unchanged
   element after the authoritative surface and use default-closed native details instead of changing

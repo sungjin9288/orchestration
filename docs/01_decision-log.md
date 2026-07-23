@@ -1012,6 +1012,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/107_llm-native-mission-next-gate-navigation-plan.md` adds a Thread-only native fragment link when the selected Mission has a non-Mission `nextAction.surface`, an `actionLabel`, and the lower gate is present. The target receives a mission-specific id, `tabindex="-1"`, desktop sticky-header spacing, and visible keyboard focus styling. Within the new lead-to-gate navigation pair, the existing lower `open-surface-for-mission` button remains the only action-bearing control. Graph, composer, recorded turns, handlers, routes, runtime/API/schema/dependencies, persistence, provider policy, approval semantics, source mutation, commit, push, release, scheduling, policy, and connector authority do not change.
 - Needed Before: Changing the lower action, review/evidence order, Graph projection, Mission selection, routes, runtime/API/schema/dependency behavior, storage, provider fallback, source mutation, approval bypass, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
 
+### DEC-157
+- Status: `Accepted`
+- Decision: Accept one bounded browser-only LLM-native primary workstream language hierarchy slice.
+- Why: Primary surfaces mixed natural operator language with raw IDs and internal status labels, which made the current state harder to scan even though exact provenance already exists in collapsed evidence.
+- Impact: `docs/108_llm-native-primary-workstream-language-plan.md` changes only system-authored primary display labels for Mission, Council, Execution, and Deliverables, demotes system-composed raw refs to existing collapsed evidence, and makes unknown delivery-flow status fail closed as `확인 필요`. Product object names, source/provider/user-authored text, exact refs in existing disclosures, action attributes, disabled/readiness logic, render order, handlers, routes, runtime/API/schema/dependencies, persistence, provider policy, approval semantics, source mutation, commit, push, release, scheduling, policy, and connector authority do not change.
+- Needed Before: Any change to source-derived content, product object names, evidence structure, action handlers, routes, runtime/API/schema/dependency behavior, storage, provider behavior, source mutation, approval bypass, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

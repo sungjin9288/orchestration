@@ -10792,7 +10792,7 @@ function renderLlmMissionLead(selectedMission = null, options = {}) {
         hasNextGateNavigation
           ? `
             <nav class="llm-mission-next-gate-summary" aria-label="다음 gate">
-              <span>Next gate</span>
+              <span>다음 단계</span>
               <strong>${escapeHtml(`${getSurfaceDisplayName(nextAction.surface)} · ${nextAction.actionLabel}`)}</strong>
               <a href="#${escapeHtml(nextGateId)}">다음 단계 확인</a>
             </nav>
@@ -10842,7 +10842,7 @@ function renderLlmMissionWorkstream(options = {}) {
       role: 'Council',
       mark: 'C',
       tone: 'council',
-      status: `${getAlignmentStatusDisplay(council.alignmentStatus)} · ${council.participantCount || 0} roles`,
+      status: `${getAlignmentStatusDisplay(council.alignmentStatus)} · ${council.participantCount || 0}개 역할`,
       title: council.selectedPlanTitle || '역할별 정렬',
       copy:
         council.recommendationPreview ||
@@ -10857,8 +10857,8 @@ function renderLlmMissionWorkstream(options = {}) {
       mark: 'E',
       tone: 'execution',
       status: getTaskLifecycleDisplay(linkedTask.lifecycleState),
-      title: linkedTask.title || linkedTask.id,
-      copy: execution.stagePreview || `${linkedTask.id}의 bounded execution 상태를 확인합니다.`,
+      title: linkedTask.title || '연결된 실행 태스크',
+      copy: execution.stagePreview || '현재 한정 실행 상태를 확인합니다.',
     });
   }
 
@@ -10869,7 +10869,7 @@ function renderLlmMissionWorkstream(options = {}) {
       tone: 'deliverables',
       status: getArtifactTypeDisplay(currentArtifact.type),
       title: '검증된 결과 패킷',
-      copy: `현재 결과 ${currentArtifact.id} · 리뷰 ${getReviewStatusDisplay(deliverables.latestReviewStatus)}`,
+      copy: `결과가 준비됐습니다 · 리뷰 ${getReviewStatusDisplay(deliverables.latestReviewStatus)}`,
     });
   }
 
@@ -10877,7 +10877,7 @@ function renderLlmMissionWorkstream(options = {}) {
     <section class="llm-workstream" aria-labelledby="llm-workstream-title">
       <div class="llm-section-heading">
         <h3 id="llm-workstream-title">진행 기록</h3>
-        ${createToken(`다음:${getSurfaceDisplayName(nextSurface)}`, nextAction.tone || 'neutral')}
+        ${createToken(`다음 ${getSurfaceDisplayName(nextSurface)}`, nextAction.tone || 'neutral')}
       </div>
       <ol class="llm-turn-list">
         ${workstreamEntries
@@ -10900,9 +10900,9 @@ function renderLlmMissionWorkstream(options = {}) {
       </ol>
       <div class="llm-next-gate"${nextGateId ? ` id="${escapeHtml(nextGateId)}" tabindex="-1"` : ''}>
         <div>
-          <span>Next gate</span>
+          <span>다음 단계</span>
           <strong>${escapeHtml(nextLabel)}</strong>
-          <p>${escapeHtml(nextAction.summary || '현재 evidence를 확인한 뒤 다음 단계를 선택합니다.')}</p>
+          <p>${escapeHtml(nextAction.summary || '현재 근거를 확인한 뒤 다음 단계를 선택합니다.')}</p>
         </div>
         ${
           nextSurface !== 'mission'
@@ -10957,7 +10957,7 @@ function renderLlmMissionInspector(options = {}) {
   if (!mission) {
     return `
       <section class="llm-context-summary" aria-label="현재 mission context">
-        <p class="llm-context-label">Context</p>
+        <p class="llm-context-label">미션 정보</p>
         <h3>새 미션</h3>
         <p>프로젝트는 선택됐고 아직 목표가 등록되지 않았습니다.</p>
         <dl>
@@ -10974,14 +10974,14 @@ function renderLlmMissionInspector(options = {}) {
 
   return `
     <section class="llm-context-summary" aria-label="현재 mission context">
-      <p class="llm-context-label">Context</p>
+      <p class="llm-context-label">미션 정보</p>
       <h3>${escapeHtml(mission.title)}</h3>
       <p>${escapeHtml(mission.constraints || '추가 경계가 기록되지 않았습니다.')}</p>
       <dl>
         <div><dt>Project</dt><dd>${escapeHtml(options.project?.name || '미지정')}</dd></div>
-        <div><dt>Mission</dt><dd>${escapeHtml(mission.id)}</dd></div>
+        <div><dt>Mission</dt><dd>${escapeHtml(getMissionStatusDisplay(mission.status))}</dd></div>
         <div><dt>Loop</dt><dd>${escapeHtml(loop.stageLabel || '대기')}</dd></div>
-        <div><dt>Task</dt><dd>${escapeHtml(linkedTask?.id || '미연결')}</dd></div>
+        <div><dt>Task</dt><dd>${linkedTask ? '연결됨' : '미연결'}</dd></div>
         <div><dt>Next</dt><dd>${escapeHtml(nextAction.actionLabel || '현재 상태 확인')}</dd></div>
       </dl>
       <div class="llm-authority-note">
@@ -11615,6 +11615,7 @@ function renderMission(data) {
                 heading: '현재 배정 판단과 다음 처리를 먼저 봅니다',
                 copy: '오른쪽 패널은 긴 설명보다 현재 배정 상태, 가장 먼저 열어야 할 처리선, 필요한 연결 상태를 먼저 보여 줍니다.',
                 tokens: [
+                  createToken(`미션:${selectedMission.id}`, 'neutral'),
                   createToken(
                     getMissionStatusDisplay(selectedMission.status),
                     getMissionStatusTone(selectedMission.status),
@@ -14201,12 +14202,12 @@ function renderCouncilConversationSurface(options) {
           ${
             councilSession
               ? createToken(
-                  `정렬:${getAlignmentStatusDisplay(alignmentStatus)}`,
+                  `정렬 ${getAlignmentStatusDisplay(alignmentStatus)}`,
                   getAlignmentTone(alignmentStatus),
                 )
-              : createToken('Council:미시작', 'warning')
+              : createToken('회의 미시작', 'warning')
           }
-          ${linkedTask ? createToken(`task:${linkedTask.id}`, 'accent') : createToken('task:미연결', 'neutral')}
+          ${linkedTask ? createToken('태스크 연결됨', 'accent') : createToken('태스크 미연결', 'neutral')}
         </div>
       </section>
 
@@ -14259,7 +14260,7 @@ function renderCouncilConversationSurface(options) {
             <section class="council-conversation" aria-labelledby="council-conversation-title">
               <div class="llm-section-heading">
                 <h3 id="council-conversation-title">역할별 판단</h3>
-                ${createToken(`${councilSession.participants?.length || 4} roles`, 'neutral')}
+                ${createToken(`${councilSession.participants?.length || 4}개 역할`, 'neutral')}
               </div>
               ${renderCouncilConversationTurns(councilSession)}
 
@@ -14267,7 +14268,7 @@ function renderCouncilConversationSurface(options) {
                 <div class="council-synthesis-marker" aria-hidden="true">C</div>
                 <div class="council-synthesis-content">
                   <div class="llm-turn-meta">
-                    <strong id="council-synthesis-title">Conductor synthesis</strong>
+                    <strong id="council-synthesis-title">종합 판단</strong>
                     <span>${escapeHtml(getAlignmentStatusDisplay(alignmentStatus))}</span>
                   </div>
                   <h3>${escapeHtml(synthesis.title)}</h3>
@@ -14290,9 +14291,9 @@ function renderCouncilConversationSurface(options) {
                   ? `
                     <section class="council-dissent" aria-labelledby="council-dissent-title">
                       <div class="council-dissent-heading">
-                        <h3 id="council-dissent-title">Conflict와 dissent</h3>
+                        <h3 id="council-dissent-title">남은 쟁점</h3>
                         ${createToken(
-                          synthesis.approvalReady ? 'reviewed' : 'blocked',
+                          synthesis.approvalReady ? '검토 완료' : '차단됨',
                           synthesis.approvalReady ? 'success' : 'danger',
                         )}
                       </div>
@@ -14307,7 +14308,7 @@ function renderCouncilConversationSurface(options) {
               <section class="council-alignment-gate" aria-labelledby="council-alignment-title">
                 <div class="council-alignment-head">
                   <div>
-                    <span>Operator alignment</span>
+                    <span>운영자 확인</span>
                     <h3 id="council-alignment-title">${
                       alignmentStatus === 'approved' ? '결론 승인 완료' : '결론을 검토하고 다음 경계를 선택합니다'
                     }</h3>
@@ -14384,6 +14385,7 @@ function renderCouncilConversationSurface(options) {
               <div class="council-source-inspector-body">
                 <dl class="llm-context-list">
                   <div><dt>Mission</dt><dd>${escapeHtml(mission.id)}</dd></div>
+                  <div><dt>Task</dt><dd>${escapeHtml(linkedTask?.id || 'not-recorded')}</dd></div>
                   <div><dt>Session</dt><dd>${escapeHtml(councilSession.id)}</dd></div>
                   <div><dt>Mode</dt><dd>${escapeHtml(councilSession.mode || 'legacy-deterministic')}</dd></div>
                   <div><dt>Phase</dt><dd>${escapeHtml(councilSession.phase || councilSession.status)}</dd></div>
@@ -15112,6 +15114,22 @@ function renderExecutionPrimaryAction(command, busy) {
   `;
 }
 
+function getExecutionCheckpointEvidenceDisplay(checkpoint) {
+  const labels = {
+    Strategist: ['계획 근거 대기', '계획 근거 기록됨'],
+    Architect: ['설계 근거 대기', '설계 근거 기록됨'],
+    Decomposer: ['작업 분해 근거 대기', '작업 분해 근거 기록됨'],
+    Maker: ['프리플라이트 근거 대기', '프리플라이트 근거 기록됨'],
+    Critic: ['리뷰 근거 대기', '리뷰 근거 기록됨'],
+  };
+  const [waitingLabel, recordedLabel] = labels[checkpoint.roleId] || [
+    '단계 근거 대기',
+    '단계 근거 기록됨',
+  ];
+
+  return checkpoint.artifactId ? recordedLabel : waitingLabel;
+}
+
 function renderExecutionCheckpointProgress(executionEvidence) {
   if (!executionEvidence?.checkpoints?.length) {
     return '<p class="llm-execution-progress-empty">기록된 execution checkpoint가 없습니다.</p>';
@@ -15132,9 +15150,12 @@ function renderExecutionCheckpointProgress(executionEvidence) {
                   <strong>${escapeHtml(checkpoint.title)}</strong>
                   <span>${escapeHtml(getEvidenceRailStatusDisplay(checkpoint.status))}</span>
                 </div>
-                <p>${escapeHtml(checkpoint.evidenceLabel)}</p>
-                ${checkpoint.evidenceMeta ? `<p class="llm-execution-progress-meta">${escapeHtml(checkpoint.evidenceMeta)}</p>` : ''}
-                ${checkpoint.blockedReason ? `<p class="llm-execution-progress-blocked">${escapeHtml(checkpoint.blockedReason)}</p>` : ''}
+                <p>${escapeHtml(getExecutionCheckpointEvidenceDisplay(checkpoint))}</p>
+                ${
+                  checkpoint.blockedReason
+                    ? '<p class="llm-execution-progress-blocked">상세 중단 사유는 근거와 준비 상태에서 확인합니다.</p>'
+                    : ''
+                }
                 ${checkpoint.currentOwner && checkpoint.note ? `<p class="llm-execution-progress-next">${escapeHtml(checkpoint.note)}</p>` : ''}
               </div>
             </li>
@@ -15161,6 +15182,29 @@ function getExecutionRecordTone(status) {
   return 'neutral';
 }
 
+function getExecutionRecordStatusDisplay(status) {
+  switch (status) {
+    case 'complete':
+    case 'completed':
+      return '완료';
+    case 'delivery-ready':
+      return '전달 준비';
+    case 'active':
+      return '진행 중';
+    case 'waiting-gate':
+    case 'pending-approval':
+      return '승인 대기';
+    case 'blocked':
+      return '차단됨';
+    case 'failed':
+      return '실패';
+    case 'rejected':
+      return '거절됨';
+    default:
+      return '확인 필요';
+  }
+}
+
 function renderExecutionWorkOrderProgress(bundle) {
   if (!bundle?.executionPlan || !bundle.workOrders?.length) {
     return '';
@@ -15170,7 +15214,10 @@ function renderExecutionWorkOrderProgress(bundle) {
     <section class="llm-execution-workorders" aria-labelledby="llm-execution-workorders-title">
       <div class="llm-section-heading">
         <h3 id="llm-execution-workorders-title">WorkOrders</h3>
-        ${createToken(bundle.executionPlan.status, getExecutionRecordTone(bundle.executionPlan.status))}
+        ${createToken(
+          getExecutionRecordStatusDisplay(bundle.executionPlan.status),
+          getExecutionRecordTone(bundle.executionPlan.status),
+        )}
       </div>
       <ol>
         ${bundle.workOrders
@@ -15181,7 +15228,10 @@ function renderExecutionWorkOrderProgress(bundle) {
                   <strong>${escapeHtml(workOrder.title)}</strong>
                   <span>${escapeHtml(workOrder.assignedAgentId)}</span>
                 </div>
-                ${createToken(workOrder.status, getExecutionRecordTone(workOrder.status))}
+                ${createToken(
+                  getExecutionRecordStatusDisplay(workOrder.status),
+                  getExecutionRecordTone(workOrder.status),
+                )}
               </li>
             `,
           )
@@ -15206,6 +15256,7 @@ function renderExecutionSourceProvenance(options = {}) {
         <div><dt>Latest run</dt><dd>${escapeHtml(options.latestRun?.id || 'not-recorded')}</dd></div>
         <div><dt>Approval</dt><dd>${escapeHtml(approval ? `${approval.id} · ${approval.status}` : 'not-recorded')}</dd></div>
         <div><dt>Decision Inbox</dt><dd>${escapeHtml(inboxItem?.id || 'not-recorded')}</dd></div>
+        <div><dt>Stop reason</dt><dd>${escapeHtml(options.sourceGateCopy || options.executionEvidence.blockedReason || 'not-recorded')}</dd></div>
       </dl>
       <ul class="llm-execution-source-list" aria-label="Execution source artifacts">
         ${
@@ -15248,8 +15299,8 @@ function renderExecutionWaitingSurface(options = {}) {
         <p>${escapeHtml(mission.goal || '기록된 미션 목표가 없습니다.')}</p>
         <div class="token-row token-row-compact">
           ${createToken(getMissionStatusDisplay(mission.status), getMissionStatusTone(mission.status))}
-          ${createToken(`Council:${getAlignmentStatusDisplay(alignmentStatus)}`, getAlignmentTone(alignmentStatus))}
-          ${createToken('task:미연결', 'neutral')}
+          ${createToken(`회의 ${getAlignmentStatusDisplay(alignmentStatus)}`, getAlignmentTone(alignmentStatus))}
+          ${createToken('태스크 미연결', 'neutral')}
         </div>
       </section>
       <section class="llm-execution-waiting" aria-labelledby="llm-execution-waiting-title">
@@ -15257,10 +15308,10 @@ function renderExecutionWaitingSurface(options = {}) {
         <div>
           <div class="llm-turn-meta">
             <strong>Execution</strong>
-            <span>waiting</span>
+            <span>대기</span>
           </div>
-          <h3 id="llm-execution-waiting-title">연결된 실행 task가 없습니다</h3>
-          <p>Council 결론이 승인되어야 첫 bounded execution task가 생성됩니다.</p>
+          <h3 id="llm-execution-waiting-title">연결된 실행 태스크가 없습니다</h3>
+          <p>회의 결론이 승인되면 첫 번째 한정 실행 태스크가 생성됩니다.</p>
           <div class="relation-button-row llm-execution-secondary-actions">
             <button class="secondary-button" type="button" data-action="open-council" data-id="${escapeHtml(mission.id)}" ${busy ? 'disabled' : ''}>회의실</button>
             <button class="secondary-button" type="button" data-action="open-advanced-ops" data-id="${escapeHtml(mission.id)}" ${busy ? 'disabled' : ''}>상세 운영</button>
@@ -15286,6 +15337,7 @@ function renderExecutionConversationSurface(options = {}) {
     harnessBrief,
     harnessConsumerStatus,
     gateCopy,
+    sourceGateCopy,
     busy,
   } = options;
   const currentCheckpoint =
@@ -15298,9 +15350,9 @@ function renderExecutionConversationSurface(options = {}) {
         <h2 id="llm-execution-title">${escapeHtml(mission.title)}</h2>
         <p>${escapeHtml(mission.goal || task.intent || '기록된 실행 목표가 없습니다.')}</p>
         <div class="token-row token-row-compact">
-          ${createToken(`task:${task.id}`, 'accent')}
+          ${createToken('태스크 연결됨', 'accent')}
           ${createToken(getTaskLifecycleDisplay(task.lifecycleState), getTaskLifecycleTone(task.lifecycleState))}
-          ${latestRun ? createToken(`run:${latestRun.id}`, getRunTone(latestRun.status)) : createToken('run:미기록', 'neutral')}
+          ${latestRun ? createToken(`실행 ${getRunStatusDisplay(latestRun.status)}`, getRunTone(latestRun.status)) : createToken('실행 기록 없음', 'neutral')}
         </div>
       </section>
 
@@ -15313,17 +15365,17 @@ function renderExecutionConversationSurface(options = {}) {
           </div>
           <h3 id="llm-execution-current-title">${escapeHtml(executionControl.currentTitle)}</h3>
           <p>${escapeHtml(executionControl.currentCopy)}</p>
-          <p class="llm-execution-stop"><strong>Stop condition</strong> ${escapeHtml(gateCopy)}</p>
+          <p class="llm-execution-stop"><strong>중단 조건</strong> ${escapeHtml(gateCopy)}</p>
           <div class="token-row token-row-compact">
             ${
               approvalBridge.currentApproval
                 ? createToken(
-                    `approval:${approvalBridge.currentApproval.status}`,
+                    `승인 ${getApprovalStatusDisplay(approvalBridge.currentApproval.status)}`,
                     getApprovalTone(approvalBridge.currentApproval.status),
                   )
-                : createToken('approval:none', 'neutral')
+                : createToken('승인 없음', 'neutral')
             }
-            ${approvalBridge.pendingInboxItem ? createToken(`inbox:${approvalBridge.pendingInboxItem.id}`, 'warning') : ''}
+            ${approvalBridge.pendingInboxItem ? createToken('결정함 대기', 'warning') : ''}
           </div>
           ${renderExecutionPrimaryAction(primaryAction, busy)}
           <div class="relation-button-row llm-execution-secondary-actions">
@@ -15337,8 +15389,8 @@ function renderExecutionConversationSurface(options = {}) {
 
       <section class="llm-execution-progress" aria-labelledby="llm-execution-progress-title">
         <div class="llm-section-heading">
-          <h3 id="llm-execution-progress-title">Execution progress</h3>
-          ${createToken(`현재:${executionEvidence.currentOwnerLabel}`, executionEvidence.blockedReason ? 'danger' : 'accent')}
+          <h3 id="llm-execution-progress-title">실행 진행</h3>
+          ${createToken(`현재 ${executionEvidence.currentOwnerLabel}`, executionEvidence.blockedReason ? 'danger' : 'accent')}
         </div>
         ${renderExecutionCheckpointProgress(executionEvidence)}
       </section>
@@ -15348,7 +15400,7 @@ function renderExecutionConversationSurface(options = {}) {
         data-execution-disclosure="evidence"
         ${state.executionDisclosures.evidence ? 'open' : ''}
       >
-        <summary>Source evidence와 readiness</summary>
+        <summary>근거와 준비 상태</summary>
         <div class="llm-execution-inspector-body">
           ${renderExecutionSourceProvenance({
             mission,
@@ -15358,6 +15410,7 @@ function renderExecutionConversationSurface(options = {}) {
             executionEvidence,
             sourceArtifacts,
             parsedPreflight,
+            sourceGateCopy,
           })}
         </div>
       </details>
@@ -15367,7 +15420,7 @@ function renderExecutionConversationSurface(options = {}) {
         data-execution-disclosure="harness"
         ${state.executionDisclosures.harness ? 'open' : ''}
       >
-        <summary>Harness tools</summary>
+        <summary>실행 도구</summary>
         <div class="llm-execution-inspector-body llm-execution-harness-body">
           ${renderHarnessBriefRegister(harnessBrief)}
           ${renderHarnessExecutionActionShelf(harnessConsumerStatus)}
@@ -15530,6 +15583,16 @@ function renderExecution(data) {
         : builderLiveMutationState.requestSummary.allowed
             ? `사전 점검 ${builderLiveMutationState.requestSummary.currentPreflightArtifactId}가 빌더 라이브 변경 승인 준비 상태입니다.`
             : '현재 활성화된 차단 게이트는 없습니다.';
+  const primaryGateCopy =
+    preferredInboxItem?.status === 'pending' || linkedTask.flags?.waitingApproval
+      ? '현재 변경은 결정함의 사람 승인이 완료될 때까지 중단됩니다.'
+      : linkedTask.flags?.waitingDecision
+        ? '현재 결정 항목이 처리될 때까지 실행이 중단됩니다.'
+        : executionEntryGateReason
+          ? '현재 실행 준비 조건을 충족할 때까지 중단됩니다. 상세 사유는 근거와 준비 상태에서 확인합니다.'
+          : builderLiveMutationState.requestSummary.allowed
+            ? '사전 점검 근거가 준비됐으며 사람 승인을 기다립니다.'
+            : '현재 활성화된 중단 조건은 없습니다.';
   const executionControl = getExecutionControlSnapshot(
     linkedTask,
     latestRun,
@@ -15592,7 +15655,8 @@ function renderExecution(data) {
       parsedPreflight,
       harnessBrief,
       harnessConsumerStatus,
-      gateCopy,
+      gateCopy: primaryGateCopy,
+      sourceGateCopy: gateCopy,
       busy: state.loading || state.mutating,
     });
     return;
@@ -16026,10 +16090,10 @@ function renderDeliverablesWaitingSurface(options = {}) {
         <div class="llm-deliverables-current-copy">
           <div class="llm-turn-meta">
             <strong>Deliverables</strong>
-            <span>waiting</span>
+            <span>대기</span>
           </div>
-          <h3 id="llm-deliverables-current-title">연결된 execution task가 없습니다</h3>
-          <p>Council 결론과 bounded execution task가 연결되면 result evidence가 이 흐름에 나타납니다.</p>
+          <h3 id="llm-deliverables-current-title">연결된 실행 태스크가 없습니다</h3>
+          <p>회의 결론과 한정 실행 태스크가 연결되면 결과 근거가 이 흐름에 나타납니다.</p>
           <div class="relation-button-row llm-deliverables-secondary-actions">
             <button class="secondary-button" type="button" data-action="open-council" data-id="${escapeHtml(options.mission.id)}" ${options.busy ? 'disabled' : ''}>Council</button>
             <button class="secondary-button" type="button" data-action="open-advanced-ops" data-id="${escapeHtml(options.mission.id)}" ${options.busy ? 'disabled' : ''}>상세 운영</button>
@@ -16054,55 +16118,63 @@ function getDeliverablesSourceFlow(options = {}) {
     {
       title: 'Result',
       status: currentArtifact ? (reviewPassed ? 'complete' : 'current') : 'waiting',
-      evidence: currentArtifact ? `${currentArtifact.type} ${currentArtifact.id}` : 'result artifact not recorded',
+      evidence: currentArtifact
+        ? `${getArtifactTypeDisplay(currentArtifact.type)} 결과 기록됨`
+        : '결과 산출물 미기록',
       note: currentArtifact
-        ? '현재 linked task가 가리키는 최신 결과 evidence입니다.'
-        : 'Execution에서 결과 artifact가 기록되면 이 단계가 열립니다.',
+        ? '연결된 실행 태스크가 가리키는 최신 결과 근거입니다.'
+        : 'Execution에서 결과 산출물이 기록되면 이 단계가 열립니다.',
     },
     {
       title: 'Verification',
       status: reviewPassed ? 'complete' : currentArtifact ? 'current' : 'waiting',
-      evidence: reviewPassed ? 'review passed' : `review ${options.latestReviewStatus || 'pending'}`,
+      evidence: reviewPassed
+        ? '리뷰 통과'
+        : `리뷰 ${getReviewStatusDisplay(options.latestReviewStatus || 'pending')}`,
       note: reviewPassed
         ? '기록된 Reviewer 판정을 통과했습니다.'
-        : '기록된 Reviewer 통과 evidence가 아직 없습니다.',
+        : 'Reviewer 통과 근거가 아직 없습니다.',
     },
     {
       title: 'Package',
       status: durablePackage ? 'complete' : preview ? 'current' : 'waiting',
-      evidence: durablePackage?.id || preview?.id || 'delivery package not recorded',
-      note: durablePackage
-        ? `immutable ${durablePackage.status} record`
+      evidence: durablePackage
+        ? 'DeliveryPackage 기록됨'
         : preview
-          ? 'response-only preview is current'
-          : 'delivery-ready source tuple을 기다립니다.',
+          ? 'DeliveryPackage 미리보기 준비'
+          : 'DeliveryPackage 미기록',
+      note: durablePackage
+        ? '변경할 수 없는 검토 기록이 준비됐습니다.'
+        : preview
+          ? '현재 미리보기는 응답에만 존재합니다.'
+          : '결과 검토가 끝나기를 기다립니다.',
     },
     {
       title: 'Acceptance',
       status: packageAccepted ? 'complete' : durablePackage ? 'current' : 'waiting',
-      evidence: packageAccepted ? acceptance.id : 'acceptance not recorded',
+      evidence: packageAccepted ? '패키지 승인 기록됨' : '패키지 승인 미기록',
       note: packageAccepted
-        ? 'append-only acceptance evidence가 연결됐습니다.'
+        ? '추가 전용 승인 근거가 연결됐습니다.'
         : durablePackage
-          ? 'operator package review를 기다립니다.'
-          : 'durable package 이후에만 열립니다.',
+          ? '운영자 패키지 검토를 기다립니다.'
+          : 'DeliveryPackage 기록 이후에만 열립니다.',
     },
     {
       title: 'Close-out',
       status: completionReady ? 'complete' : packageAccepted ? 'current' : 'waiting',
-      evidence: completionReady ? closeOut.id : 'close-out not recorded',
+      evidence: completionReady ? '종료 근거 기록됨' : '종료 근거 미기록',
       note: completionReady
-        ? 'Mission과 linked task의 종료 evidence가 연결됐습니다.'
+        ? 'Mission과 연결된 태스크의 종료 근거가 연결됐습니다.'
         : packageAccepted
-          ? '현재 source tuple의 close-out gate를 기다립니다.'
-          : 'accepted package 이후에만 열립니다.',
+          ? '현재 근거 묶음의 종료 gate를 기다립니다.'
+          : '패키지 승인 이후에만 열립니다.',
     },
   ];
 
   if (completionReady) {
     return {
-      currentTitle: 'Delivery close-out이 기록됐습니다',
-      currentCopy: `${closeOut.id}가 Mission과 linked task의 종료 evidence를 고정합니다.`,
+      currentTitle: '종료 정리가 기록됐습니다',
+      currentCopy: 'Mission과 연결된 태스크의 종료 근거가 확정됐습니다.',
       currentStatus: 'closed-out',
       currentTone: 'success',
       steps,
@@ -16111,8 +16183,8 @@ function getDeliverablesSourceFlow(options = {}) {
 
   if (packageAccepted) {
     return {
-      currentTitle: 'Accepted package가 close-out을 기다립니다',
-      currentCopy: `${acceptance.id}가 ${durablePackage?.id || 'current package'} acceptance를 기록했습니다.`,
+      currentTitle: '승인된 패키지가 종료 정리를 기다립니다',
+      currentCopy: '패키지 승인 근거가 현재 DeliveryPackage에 연결됐습니다.',
       currentStatus: 'accepted',
       currentTone: 'success',
       steps,
@@ -16121,8 +16193,8 @@ function getDeliverablesSourceFlow(options = {}) {
 
   if (durablePackage) {
     return {
-      currentTitle: 'DeliveryPackage review가 필요합니다',
-      currentCopy: `${durablePackage.id}는 ${durablePackage.status} 상태이며 operator acceptance 전입니다.`,
+      currentTitle: 'DeliveryPackage 검토가 필요합니다',
+      currentCopy: '기록된 패키지가 운영자 승인 전 검토 상태입니다.',
       currentStatus: durablePackage.status,
       currentTone: 'warning',
       steps,
@@ -16131,8 +16203,8 @@ function getDeliverablesSourceFlow(options = {}) {
 
   if (preview) {
     return {
-      currentTitle: 'DeliveryPackage preview가 준비됐습니다',
-      currentCopy: `${preview.id}는 response-only이며 별도 operator record action 전에는 저장되지 않습니다.`,
+      currentTitle: 'DeliveryPackage 미리보기가 준비됐습니다',
+      currentCopy: '현재 미리보기는 응답에만 있으며 별도 기록 명령 전에는 저장되지 않습니다.',
       currentStatus: 'preview-ready',
       currentTone: 'accent',
       steps,
@@ -16141,8 +16213,8 @@ function getDeliverablesSourceFlow(options = {}) {
 
   if (reviewPassed) {
     return {
-      currentTitle: '검증된 결과가 package handoff를 기다립니다',
-      currentCopy: `${currentArtifact?.id || 'current result'}의 Reviewer 판정은 passed이며 durable package는 아직 없습니다.`,
+      currentTitle: '검증된 결과가 패키지 인계를 기다립니다',
+      currentCopy: 'Reviewer 판정은 통과했고 DeliveryPackage는 아직 기록되지 않았습니다.',
       currentStatus: 'review-passed',
       currentTone: 'success',
       steps,
@@ -16151,8 +16223,8 @@ function getDeliverablesSourceFlow(options = {}) {
 
   if (currentArtifact) {
     return {
-      currentTitle: 'Execution 결과가 아직 review 전입니다',
-      currentCopy: `${currentArtifact.id} (${currentArtifact.type})가 현재 source evidence이며 review는 ${options.latestReviewStatus || 'pending'} 상태입니다.`,
+      currentTitle: 'Execution 결과가 아직 검토 전입니다',
+      currentCopy: `현재 결과 근거가 기록됐고 리뷰는 ${getReviewStatusDisplay(options.latestReviewStatus || 'pending')} 상태입니다.`,
       currentStatus: 'in-progress',
       currentTone: 'warning',
       steps,
@@ -16160,12 +16232,48 @@ function getDeliverablesSourceFlow(options = {}) {
   }
 
   return {
-    currentTitle: '기록된 delivery result가 없습니다',
-    currentCopy: 'Execution에서 source artifact가 생성되기 전까지 Deliverables는 대기 상태입니다.',
+    currentTitle: '기록된 결과가 없습니다',
+    currentCopy: 'Execution에서 결과 산출물이 생성되기 전까지 Deliverables는 대기 상태입니다.',
     currentStatus: 'waiting',
     currentTone: 'neutral',
     steps,
   };
+}
+
+function getDeliverablesFlowStatusDisplay(status) {
+  switch (status) {
+    case 'closed-out':
+      return '종료 완료';
+    case 'accepted':
+      return '패키지 승인됨';
+    case 'review-required':
+      return '검토 필요';
+    case 'preview-ready':
+      return '미리보기 준비';
+    case 'review-passed':
+      return '검증 완료';
+    case 'in-progress':
+      return '검토 진행';
+    case 'waiting':
+      return '대기';
+    default:
+      return '확인 필요';
+  }
+}
+
+function getDeliverablesFlowStatusTone(status, sourceTone) {
+  switch (status) {
+    case 'closed-out':
+    case 'accepted':
+    case 'review-required':
+    case 'preview-ready':
+    case 'review-passed':
+    case 'in-progress':
+    case 'waiting':
+      return sourceTone;
+    default:
+      return 'danger';
+  }
 }
 
 function getDeliverablesPrimaryAction(options = {}) {
@@ -16262,7 +16370,7 @@ function renderDeliverablesProgress(flow) {
               <div class="llm-deliverables-progress-copy">
                 <div class="llm-turn-meta">
                   <strong>${escapeHtml(step.title)}</strong>
-                  <span>${escapeHtml(step.status)}</span>
+                  <span>${escapeHtml(getEvidenceRailStatusDisplay(step.status))}</span>
                 </div>
                 <p>${escapeHtml(step.evidence)}</p>
                 <p class="llm-deliverables-progress-note">${escapeHtml(step.note)}</p>
@@ -16322,9 +16430,12 @@ function renderDeliverablesConversationSurface(options = {}) {
         <h2 id="llm-deliverables-title">${escapeHtml(options.mission.title)}</h2>
         <p>${escapeHtml(options.mission.goal || '기록된 Mission 목표가 없습니다.')}</p>
         <div class="token-row token-row-compact">
-          ${createToken(`task:${options.task.id}`, 'accent')}
-          ${createToken(`review:${getReviewStatusDisplay(options.latestReviewStatus)}`, getReviewTone(options.latestReviewStatus))}
-          ${createToken(options.flow.currentStatus, options.flow.currentTone)}
+          ${createToken('태스크 연결됨', 'accent')}
+          ${createToken(`검토 ${getReviewStatusDisplay(options.latestReviewStatus)}`, getReviewTone(options.latestReviewStatus))}
+          ${createToken(
+            getDeliverablesFlowStatusDisplay(options.flow.currentStatus),
+            getDeliverablesFlowStatusTone(options.flow.currentStatus, options.flow.currentTone),
+          )}
         </div>
       </section>
 
@@ -16333,7 +16444,7 @@ function renderDeliverablesConversationSurface(options = {}) {
         <div class="llm-deliverables-current-copy">
           <div class="llm-turn-meta">
             <strong>Deliverables</strong>
-            <span>${escapeHtml(options.flow.currentStatus)}</span>
+            <span>${escapeHtml(getDeliverablesFlowStatusDisplay(options.flow.currentStatus))}</span>
           </div>
           <h3 id="llm-deliverables-current-title">${escapeHtml(options.flow.currentTitle)}</h3>
           <p>${escapeHtml(options.flow.currentCopy)}</p>
@@ -16351,8 +16462,8 @@ function renderDeliverablesConversationSurface(options = {}) {
 
       <section class="llm-deliverables-progress" aria-labelledby="llm-deliverables-progress-title">
         <div class="llm-section-heading">
-          <h3 id="llm-deliverables-progress-title">Delivery progress</h3>
-          ${createToken(`artifact:${options.artifacts.length}`, 'neutral')}
+          <h3 id="llm-deliverables-progress-title">결과 진행</h3>
+          ${createToken(`산출물 ${options.artifacts.length}개`, 'neutral')}
         </div>
         ${renderDeliverablesProgress(options.flow)}
       </section>
@@ -16362,7 +16473,7 @@ function renderDeliverablesConversationSurface(options = {}) {
         data-deliverables-disclosure="evidence"
         ${state.deliverablesDisclosures.evidence ? 'open' : ''}
       >
-        <summary>Source evidence와 exact refs</summary>
+        <summary>근거와 기록</summary>
         <div class="llm-deliverables-inspector-body">
           ${renderDeliverablesSourceProvenance(options)}
         </div>
@@ -16376,7 +16487,7 @@ function renderDeliverablesConversationSurface(options = {}) {
               data-deliverables-disclosure="controls"
               ${state.deliverablesDisclosures.controls ? 'open' : ''}
             >
-              <summary>Package review와 close-out controls</summary>
+              <summary>패키지 검토와 종료 제어</summary>
               <div class="llm-deliverables-inspector-body">${options.deliveryControls}</div>
             </details>
           `
@@ -16391,7 +16502,7 @@ function renderDeliverablesConversationSurface(options = {}) {
               data-deliverables-disclosure="learning"
               ${state.deliverablesDisclosures.learning ? 'open' : ''}
             >
-              <summary>Learning과 memory handoff</summary>
+              <summary>학습과 메모리 인계</summary>
               <div class="llm-deliverables-inspector-body">${options.learningControls}</div>
             </details>
           `

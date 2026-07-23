@@ -797,6 +797,11 @@ const informationalChecks = [
     purpose: 'Mission next-gate navigation proves one source-backed Thread-only native fragment link targets one focusable existing lower gate, keeps the lower open-surface action as the only action in this lead-to-gate pair, preserves Thread Graph behavior, and adds zero runtime API schema dependency storage provider source or Git authority',
   },
   {
+    id: 'llm-native-primary-workstream-language',
+    script: 'scripts/smoke-ui-slice-691.mjs',
+    purpose: 'Primary Mission Council Execution and Deliverables display labels prove natural operator language, preserved product names and collapsed exact provenance, and zero route runtime API schema dependency storage provider source or Git authority change',
+  },
+  {
     id: 'wigolo-exact-fetch-adapter',
     script: 'scripts/smoke-wigolo-exact-fetch-adapter.mjs',
     purpose: 'Optional wigolo exact-fetch adapter proves disabled-by-default readiness, no-shell one-shot fetch argv, bounded untrusted evidence normalization, requested and final URL SSRF guards, malformed timeout and API failure handling, and blocked crawl search cache persistence synthesis or Mission injection authority with a local fake sidecar only',

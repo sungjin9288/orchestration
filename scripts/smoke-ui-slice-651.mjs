@@ -98,8 +98,8 @@ async function main() {
     assert.match(modeSource, /label: '독립 역할'/);
     assert.match(modeSource, /value: 'real-local-stub'/);
     assert.match(appSource, /renderRealCouncilEvidence/);
-    assert.match(appSource, /Conflict와 dissent/);
-    assert.match(appSource, /Conductor synthesis/);
+    assert.match(appSource, /남은 쟁점/);
+    assert.match(appSource, /종합 판단/);
     assert.match(appSource, /approve-real-council-session/);
     assert.match(appSource, /request-revision-real-council-session/);
     assert.match(appSource, /stop-real-council-session/);

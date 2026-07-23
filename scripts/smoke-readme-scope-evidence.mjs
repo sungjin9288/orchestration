@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /DEC-156 passes aggregate required `1\/1`, informational\s+`263\/263`, total `264\/264`, and UI QA required `68\/68`/,
-  /real-browser matrix at 1440x1000,\s+821x900, 820x900, and 390x844 verifies keyboard fragment focus/,
+  /DEC-157 passes aggregate required `1\/1`, informational\s+`264\/264`, total `265\/265`, and UI QA required `69\/69`/,
+  /real-browser matrix at 1440x1000,\s+821x900, 820x900, and 390x844 verifies natural labels across all four primary surfaces/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /registered aggregate `264` checks, UI QA `68` checks, zero-open backlog/,
+  /registered aggregate `265` checks, UI QA `69` checks, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1638,7 +1638,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate registration `264`, UI QA registration `68`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate registration `265`, UI QA registration `69`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

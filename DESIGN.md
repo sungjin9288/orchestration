@@ -198,6 +198,11 @@ Mission Thread keeps the next gate visible as source-backed status in the active
 lead may link to the existing lower gate after the recorded evidence, but it must never duplicate that
 gate's approval or execution action. Graph stays a separate read-only view.
 
+Primary workstream copy uses natural operator language for system-authored status and section labels.
+`Mission`, `Council`, `Execution`, `Deliverables`, `Thread`, and `Graph` remain product object names;
+exact IDs, internal status, and provenance remain in existing default-closed evidence details.
+Source-derived, provider-authored, and user-authored text is not rewritten for presentation.
+
 The visual language may be conversational, but authority must remain procedural. A model response is
 not an approval, a displayed plan is not execution, and a completed turn is not Mission completion.
 The shell must keep `review before done` and `approval before commit` visible at the current gate.

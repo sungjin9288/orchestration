@@ -52,8 +52,9 @@ assert.match(synthesisSource, /questions: \[\.\.\.new Set/);
 
 assert.match(surfaceSource, /class="llm-council-shell"/);
 assert.match(surfaceSource, /<h3 id="council-conversation-title">역할별 판단<\/h3>/);
-assert.match(surfaceSource, /Conductor synthesis/);
-assert.match(surfaceSource, /Conflict와 dissent/);
+assert.match(surfaceSource, /종합 판단/);
+assert.match(surfaceSource, /남은 쟁점/);
+assert.match(surfaceSource, /운영자 확인/);
 assert.match(surfaceSource, /class="council-alignment-gate"/);
 assert.match(surfaceSource, /renderRealCouncilAlignmentControls\(councilSession\)/);
 assert.match(surfaceSource, /data-action="approve-council-for-mission"/);

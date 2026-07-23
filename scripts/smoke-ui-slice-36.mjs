@@ -27,7 +27,7 @@ const latestApproval = runtimeState.approvals[smoke20.approvalBridge.approvalId]
 
 assert.equal(smoke20.ok, true);
 assert.match(controlSnapshots, /export function getMissionNextActionPreview/);
-assert.match(controlSnapshots, /지금 가장 먼저 열어야 할 표면은 실행이며, 이유는/);
+assert.match(controlSnapshots, /현재 사람 게이트와 다음 한정 명령을 실행에서 확인합니다/);
 assert.match(controlSnapshots, /다음 미션 준비/);
 assert.match(appJs, /회의 초안/);
 assert.match(controlSnapshots, /태스크 연결/);
