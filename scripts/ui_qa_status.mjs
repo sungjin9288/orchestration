@@ -317,6 +317,12 @@ const smokeChecks = [
       'Dark command rail, structural first-run Mission workspace, dominant project path field, solid project command, mobile first-viewport action visibility, and unchanged project action authority',
   },
   {
+    id: 'agent-operations-desk-visual-redesign',
+    script: 'scripts/smoke-ui-slice-695.mjs',
+    purpose:
+      'Reference-led coded project rail, active Mission masthead, grouped agent thread, command dock, bounded context tool, compact mobile current state, reduced motion, and unchanged runtime and action authority',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

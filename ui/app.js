@@ -10936,6 +10936,16 @@ function renderLlmMissionLead(selectedMission = null, options = {}) {
   return `
     <section class="llm-mission-lead ${projectBootstrap ? 'is-project-bootstrap' : ''} ${selectedMission && !composingNew ? 'is-active-mission' : ''}" aria-labelledby="llm-mission-prompt-title">
       ${projectBootstrap ? '<p class="llm-mission-lead-eyebrow">Local orchestration</p>' : ''}
+      ${
+        selectedMission && !composingNew
+          ? `
+        <div class="llm-mission-lead-meta" aria-label="현재 미션 상태">
+          <span><i aria-hidden="true"></i> 현재 미션</span>
+              <code>${escapeHtml(selectedMission.id)}</code>
+            </div>
+          `
+          : ''
+      }
       <h2 id="llm-mission-prompt-title">${escapeHtml(heading)}</h2>
       <p>${escapeHtml(supportingCopy)}</p>
       ${
@@ -11032,8 +11042,8 @@ function renderLlmMissionWorkstream(options = {}) {
       <ol class="llm-turn-list">
         ${workstreamEntries
           .map(
-            (entry) => `
-              <li class="llm-turn llm-turn-${escapeHtml(entry.tone)}">
+            (entry, index) => `
+              <li class="llm-turn llm-turn-${escapeHtml(entry.tone)}" data-step="${escapeHtml(String(index + 1).padStart(2, '0'))}">
                 <div class="llm-turn-marker" aria-hidden="true">${escapeHtml(entry.mark)}</div>
                 <div class="llm-turn-content">
                   <div class="llm-turn-meta">
@@ -11049,8 +11059,8 @@ function renderLlmMissionWorkstream(options = {}) {
           .join('')}
       </ol>
       <div class="llm-next-gate"${nextGateId ? ` id="${escapeHtml(nextGateId)}" tabindex="-1"` : ''}>
-        <div>
-          <span>다음 단계</span>
+        <div class="llm-next-gate-copy">
+          <span>다음 단계 준비</span>
           <strong>${escapeHtml(nextLabel)}</strong>
           <p>${escapeHtml(nextAction.summary || '현재 근거를 확인한 뒤 다음 단계를 선택합니다.')}</p>
         </div>

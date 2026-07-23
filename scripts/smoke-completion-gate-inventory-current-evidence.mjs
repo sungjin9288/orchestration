@@ -36,10 +36,10 @@ function assertReadmeHas(pattern) {
 }
 
 const inventoryGateRows = [
-  /Recent evidence refresh head checked before this document update: `e273fbb`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current-head required `1\/1`, informational `268\/268`, total `269\/269` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `72\/72` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate `269\/269`, UI QA `72\/72`,[\s\S]*DEC-159 visual-system convergence, and DEC-160 first-viewport corrective redesign\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /Recent evidence refresh head checked before this document update: `a975ed5`/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current-head required `1\/1`, informational `269\/269`, total `270\/270` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `73\/73` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate `270\/270`, UI QA `73\/73`,[\s\S]*DEC-160 first-viewport corrective redesign, and DEC-161 Agent Operations Desk visual redesign\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -111,6 +111,7 @@ const inventoryGateRows = [
   /\| Task execution provenance graph \| pass \| `DEC-158`, `docs\/109_task-execution-provenance-graph-plan\.md`, `node scripts\/smoke-ai-company-execution-provenance-graph\.mjs`, `node scripts\/smoke-ui-slice-692\.mjs` \|/,
   /\| LLM-native visual-system convergence \| pass \| `DEC-159`, `docs\/110_llm-native-visual-system-convergence-plan\.md`, `node scripts\/smoke-ui-slice-693\.mjs` \|/,
   /\| LLM-native first-viewport corrective redesign \| pass \| `DEC-160`, `docs\/111_llm-native-first-viewport-corrective-redesign-plan\.md`, `node scripts\/smoke-ui-slice-694\.mjs` \|/,
+  /\| Agent Operations Desk visual redesign \| pass \| `DEC-161`, `docs\/112_agent-operations-desk-visual-redesign-plan\.md`, `node scripts\/smoke-ui-slice-695\.mjs` \|/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -224,6 +225,7 @@ assert.match(uiQaStatus, /smoke-ui-slice-691\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-692\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-693\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-694\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-695\.mjs/);
 assert.match(verificationStatus, /smoke-state-transaction-guard\.mjs/);
 assert.match(verificationStatus, /smoke-wigolo-exact-fetch-adapter\.mjs/);
 assert.match(verificationStatus, /smoke-context-budget-telemetry\.mjs/);
@@ -252,7 +254,8 @@ assert.match(verificationStatus, /smoke-ai-company-execution-provenance-graph\.m
 assert.match(verificationStatus, /smoke-ui-slice-692\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-693\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-694\.mjs/);
-assertReadmeHas(/total `269\/269`/);
+assert.match(verificationStatus, /smoke-ui-slice-695\.mjs/);
+assertReadmeHas(/total `270\/270`/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -263,8 +266,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '268/268',
-        total: '269/269',
+        informational: '269/269',
+        total: '270/270',
       },
     },
     null,

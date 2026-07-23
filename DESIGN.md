@@ -2,15 +2,15 @@
 
 ## 1. Product Experience
 
-Orchestration should feel like an LLM-native workbench for directing a bounded AI team. The first
-interaction is a goal, the main narrative is the team's work, and operational evidence remains one
-step away without taking over the screen.
+Orchestration should feel like an **Agent Operations Desk** within an LLM-native workbench for
+directing a bounded AI team. The first interaction is a goal, the main narrative is the team's
+source-backed work, and operational evidence remains one step away without taking over the screen.
 
 - Mood: quiet, intelligent, focused, responsive
 - Product posture: prompt-first orchestration workspace with visible agents and explicit gates
 - Emotional target: "I can state the work once, follow the reasoning, and intervene at the right gate"
-- Preferred feel: generous neutral canvas, strong text hierarchy, restrained semantic color, visible
-  model activity, compact provenance
+- Preferred feel: graphite project rail, cool paper canvas, grouped agent thread, one high-contrast
+  command dock, restrained semantic color, visible model activity, compact provenance
 - Avoid: ERP dashboards, directory-first shells, KPI mosaics, generic chat bubbles, marketing heroes,
   decorative gradients, or autonomous-action theatre
 
@@ -23,18 +23,18 @@ Use near-neutral surfaces so active work, agent identity, and gate state carry t
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| `canvas` | `#f5f6f7` | app and Advanced Ops background |
-| `navigation` | `#f8f9fa` | compact navigation rail |
-| `workspace` | `#ffffff` | primary reading surface |
-| `surface-soft` | `#f1f3f4` | inspector and secondary controls |
-| `line` | `#e1e5e8` | dividers and inactive boundaries |
-| `line-strong` | `#c8d0d6` | selected and focus boundaries |
-| `text` | `#171a1f` | primary copy |
-| `text-soft` | `#4e5660` | supporting copy |
-| `muted` | `#747d87` | metadata and quiet labels |
-| `accent` | `#0f766e` | active navigation, focus, primary action |
-| `accent-soft` | `#e8f3f1` | selected row and bounded next-gate context |
-| `accent-line` | `#b9d8d3` | selected and gate boundary |
+| `canvas` | `#eff1ee` | app and Advanced Ops background |
+| `navigation` | `#111318` | compact project and workstream rail |
+| `workspace` | `#fbfcfa` | primary reading surface |
+| `surface-soft` | `#f0f2ef` | secondary controls and collapsed context |
+| `line` | `#d9ddd8` | dividers and inactive boundaries |
+| `line-strong` | `#bcc4bd` | selected and focus boundaries |
+| `text` | `#15171a` | primary copy |
+| `text-soft` | `#4f5651` | supporting copy |
+| `muted` | `#747c76` | metadata and quiet labels |
+| `accent` | `#287963` | active navigation, focus, primary action |
+| `accent-soft` | `#e8f6f1` | selected row and bounded next-gate context |
+| `accent-line` | `#a8d7ca` | selected and gate boundary |
 | `council` | `#315cbd` | council reasoning and synthesis |
 | `execution` | `#6d5bd0` | bounded execution activity |
 | `success` | `#2f7d4c` | current proof and approved state |
@@ -70,6 +70,8 @@ Hierarchy:
 - Brand and `새 미션` action come first.
 - Desktop uses one charcoal command rail so navigation is visibly distinct from the reading canvas.
   The mobile three-row rail uses the same dark identity without changing its topology.
+- Desktop destinations use compact coded marks and source counts. These are orientation signals, not
+  decorative app icons or inferred agent state.
 - `새 미션` is the rail's one high-contrast command. Workstream destinations use a small semantic
   indicator, one readable label, and a trailing count rather than equal-weight pills.
 - Recent Mission context and `Mission / Council / Execution / Deliverables` are the primary links.
@@ -123,8 +125,12 @@ Hierarchy:
   or the Operator turn.
 - Each turn has a small role marker, role label, status, content, and source/evidence affordance.
 - Use unframed rows and dividers instead of chat bubbles or nested cards.
-- Connect chronological turns with one quiet vertical rule so sequence reads before surface framing.
+- Group the turns in one continuous paper surface rather than a stack of cards.
+- Connect chronological turns with one quiet vertical rule and a small source-order index so sequence reads before surface
+  framing.
 - Tool and run activity uses compact inline status rather than fake typing animation.
+- After the recorded turns, render the exact next gate as one dark command dock. It may be sticky on
+  desktop for continuity but remains in source order and becomes static on mobile.
 
 ### Mission Evidence Graph
 
@@ -150,9 +156,10 @@ Hierarchy:
 
 ### Context Inspector
 
-- Desktop may show one narrow right inspector for current Mission, authority, next gate, and evidence.
-- The desktop inspector is one bounded soft-surface tool, not another page section; it becomes
-  unframed after the workstream when the optional third column collapses.
+- Desktop may show one narrow dark right inspector for current Mission, authority, next gate, and
+  evidence. It is the shell's one high-contrast context tool, not another dashboard card.
+- The desktop inspector is bounded and sticky; it becomes an unframed light region after the
+  workstream when the optional third column collapses.
 - Mobile places the inspector after the workstream or behind an explicit disclosure.
 - Deep IDs, logs, packets, and legacy controls remain available under a details disclosure or
   Advanced Ops.
@@ -238,7 +245,7 @@ The shell must keep `review before done` and `approval before commit` visible at
 
 ## 6. Layout
 
-- Desktop: `220-240px navigation / fluid workstream / 260-320px optional inspector`.
+- Desktop: `224px navigation / fluid workstream / 304px optional inspector`.
 - Keep the reading column near 760-860px even on wide screens.
 - The first viewport should expose either the explicit composer plus recent work, or the selected
   Mission title plus its current workstream.

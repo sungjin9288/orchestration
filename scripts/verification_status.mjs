@@ -732,6 +732,11 @@ const informationalChecks = [
     purpose: 'LLM-native first-viewport corrective redesign proves a dark command rail, structural project prerequisite workspace, dominant project path input, solid submit command, mobile first-viewport action visibility, and zero runtime API schema route action provider or persistence change',
   },
   {
+    id: 'agent-operations-desk-visual-redesign',
+    script: 'scripts/smoke-ui-slice-695.mjs',
+    purpose: 'Agent Operations Desk redesign proves a reference-led coded project rail, active Mission masthead, grouped source-backed thread, high-contrast command dock, bounded context tool, compact mobile current state, reduced-motion fallback, and zero runtime API schema route action provider or persistence change',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose: 'LLM-native active Mission focus proves compact-by-default current workstream, explicit full composer mode, cancel and selection collapse, refresh-stable field focus, existing Mission submit compatibility, and zero runtime schema dependency persistence or authority expansion',

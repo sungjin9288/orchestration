@@ -1040,6 +1040,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/111_llm-native-first-viewport-corrective-redesign-plan.md` changes the shell to a charcoal command rail and composes first-run Mission as a desktop context-plus-command workspace. `project_path` becomes the dominant first field, name and pack remain supporting fields, and mobile keeps path, name, pack, and submit visible at 390x844. Existing destinations, counts, form names, submit action, routes, runtime records, review and approval gates, provider behavior, and state boundaries remain unchanged.
 - Needed Before: Changing project registration behavior, navigation topology, Mission lifecycle, action handlers, runtime/API/schema/dependency/storage/provider behavior, automatic routing, source mutation, approval bypass, scheduling, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
 
+### DEC-161
+- Status: `Accepted`
+- Decision: Accept one reference-led browser-only Agent Operations Desk redesign after operator review found the selected-Mission experience visually generic.
+- Why: DEC-160 corrected the first-run composition but the active workspace still read as a sparse admin timeline with a pastel status card and low-density inspector. Pinterest workflow references, the Codex project-thread model, Linear information hierarchy, Raycast command surfaces, and the local deterministic design corpus all point toward a grouped source-backed thread with one explicit command surface and one bounded context tool.
+- Impact: `docs/112_agent-operations-desk-visual-redesign-plan.md` introduces a graphite coded project rail, active-Mission masthead, continuous agent thread, dark next-gate command dock, dark desktop context inspector, compact mobile current-state rail, and reduced-motion-safe feedback. Existing destinations, counts, action attributes, form names, Mission selection, Thread/Graph behavior, routes, runtime records, review and approval gates, provider behavior, and state boundaries remain unchanged.
+- Needed Before: Changing navigation destinations, Mission or agent semantics, next-gate ordering, action handlers, runtime/API/schema/dependency/storage/provider behavior, automatic routing, source mutation, approval bypass, scheduling, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

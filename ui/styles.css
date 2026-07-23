@@ -14736,3 +14736,1111 @@ body .llm-app-shell .project-bootstrap-defaults {
     text-align: left;
   }
 }
+
+/* DEC-161 Agent Operations Desk: reference-led LLM workspace redesign. */
+:root {
+  --ops-rail: #111318;
+  --ops-rail-raised: #1b1e24;
+  --ops-rail-line: #2b2f36;
+  --ops-canvas: #eff1ee;
+  --ops-paper: #fbfcfa;
+  --ops-surface: #ffffff;
+  --ops-line: #d9ddd8;
+  --ops-line-strong: #bcc4bd;
+  --ops-ink: #15171a;
+  --ops-ink-soft: #4f5651;
+  --ops-muted: #747c76;
+  --ops-mint: #6ed6be;
+  --ops-mint-strong: #287963;
+  --ops-mint-soft: #e8f6f1;
+  --ops-violet: #7057d9;
+  --ops-green: #3f8558;
+  --ops-amber: #b8662d;
+  --ops-red: #b3463f;
+  --ops-focus: #32a88a;
+  --ops-shadow: 0 18px 48px rgba(20, 27, 23, 0.1);
+}
+
+body {
+  background: var(--ops-canvas);
+  color: var(--ops-ink);
+}
+
+body .llm-app-shell {
+  grid-template-columns: 224px minmax(0, 1fr);
+  background: var(--ops-canvas);
+}
+
+body .llm-app-shell .office-sidebar {
+  gap: 16px;
+  padding: 18px 12px 14px;
+  border-color: var(--ops-rail-line);
+  background: var(--ops-rail);
+}
+
+body .llm-app-shell .office-brand-card {
+  gap: 14px;
+  padding: 0 4px 14px;
+}
+
+body .llm-app-shell .llm-brand-mark {
+  width: 32px;
+  height: 32px;
+  flex-basis: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 7px;
+  background: var(--ops-mint);
+  color: #0e211c;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+body .llm-app-shell .office-brand-kicker {
+  color: #7f8791;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.57rem;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+body .llm-app-shell .office-brand-card h1 {
+  color: #f5f7f6;
+  font-size: 0.96rem;
+  font-weight: 680;
+}
+
+body .llm-app-shell .llm-new-mission-button {
+  position: relative;
+  justify-content: flex-start;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #f4f5f4;
+  border-radius: 7px;
+  background: #f4f5f4;
+  color: #111318;
+  font-size: 0.77rem;
+  font-weight: 700;
+  transition:
+    border-color 120ms ease-out,
+    background-color 120ms ease-out,
+    color 120ms ease-out,
+    transform 120ms ease-out;
+}
+
+body .llm-app-shell .llm-new-mission-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+body .llm-app-shell .llm-sidebar-missions {
+  margin: 0 2px;
+  padding: 9px 0;
+  border-color: var(--ops-rail-line);
+}
+
+body .llm-app-shell .llm-sidebar-missions > summary {
+  min-height: 46px;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+body .llm-app-shell .llm-sidebar-mission-current > span {
+  color: #777f89;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.54rem;
+  text-transform: uppercase;
+}
+
+body .llm-app-shell .llm-sidebar-mission-current > strong {
+  color: #eef1ef;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+body .llm-app-shell .llm-primary-nav {
+  gap: 14px;
+}
+
+body .llm-app-shell .llm-primary-nav-list {
+  display: grid;
+  gap: 4px;
+}
+
+body .llm-app-shell .nav-button {
+  min-height: 46px;
+  padding: 4px 7px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #a9b0b8;
+  transition:
+    border-color 120ms ease-out,
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+body .llm-app-shell .nav-button-main {
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 9px;
+}
+
+body .llm-app-shell .nav-button-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #353941;
+  border-radius: 6px;
+  background: #1b1e24;
+  color: #858d97;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0;
+  font-weight: 700;
+}
+
+body .llm-app-shell .nav-button-indicator::before {
+  font-size: 0.6rem;
+}
+
+body .llm-app-shell .nav-button[data-surface="mission"] .nav-button-indicator::before {
+  content: "M";
+}
+
+body .llm-app-shell .nav-button[data-surface="council"] .nav-button-indicator::before {
+  content: "C";
+}
+
+body .llm-app-shell .nav-button[data-surface="execution"] .nav-button-indicator::before {
+  content: "E";
+}
+
+body .llm-app-shell .nav-button[data-surface="deliverables"] .nav-button-indicator::before {
+  content: "D";
+}
+
+body .llm-app-shell .nav-button[data-surface="decision-inbox"] .nav-button-indicator::before {
+  content: "!";
+}
+
+body .llm-app-shell .nav-button[data-surface="artifacts"] .nav-button-indicator::before {
+  content: "A";
+}
+
+body .llm-app-shell .nav-button[data-surface="logs"] .nav-button-indicator::before {
+  content: "L";
+}
+
+body .llm-app-shell .nav-button[data-surface="taskboard"] .nav-button-indicator::before {
+  content: "T";
+}
+
+body .llm-app-shell .nav-button-title {
+  color: inherit;
+  font-size: 0.75rem;
+  font-weight: 620;
+}
+
+body .llm-app-shell .nav-button-help {
+  display: none;
+}
+
+body .llm-app-shell .nav-button-count {
+  min-width: 20px;
+  color: #858d97;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.7rem;
+  text-align: right;
+}
+
+body .llm-app-shell .nav-button:hover,
+body .llm-app-shell .nav-button:focus-visible {
+  border-color: #2d3138;
+  background: #191c21;
+  color: #f2f4f3;
+}
+
+body .llm-app-shell .nav-button.is-active {
+  border-color: #34383f;
+  background: #24272d;
+  box-shadow: none;
+  color: #ffffff;
+}
+
+body .llm-app-shell .nav-button.is-active .nav-button-indicator {
+  border-color: var(--ops-mint);
+  background: var(--ops-mint);
+  color: #11231e;
+  box-shadow: none;
+}
+
+body .llm-app-shell .nav-button.is-active .nav-button-count {
+  color: #bac0c7;
+}
+
+body .llm-app-shell .llm-advanced-ops-nav {
+  margin-top: 2px;
+  padding-top: 8px;
+  border-color: var(--ops-rail-line);
+}
+
+body .llm-app-shell .llm-advanced-ops-nav > summary {
+  min-height: 42px;
+  padding: 0 9px;
+  border-radius: 6px;
+  color: #9ba3ad;
+  font-size: 0.68rem;
+}
+
+body .llm-app-shell .llm-advanced-ops-status {
+  color: #6f7781;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.56rem;
+}
+
+body .llm-app-shell .workspace-shell,
+body .llm-app-shell .surface-stack {
+  background: var(--ops-canvas);
+}
+
+body .llm-app-shell .shell-header {
+  z-index: 9;
+  border-color: var(--ops-line);
+  background: rgba(251, 252, 250, 0.97);
+  box-shadow: 0 1px 0 rgba(20, 26, 22, 0.03);
+}
+
+body .llm-app-shell .shell-window-bar {
+  min-height: 50px;
+  padding: 0 28px;
+}
+
+body .llm-app-shell .shell-window-meta-left {
+  gap: 9px;
+}
+
+body .llm-app-shell .shell-header-project {
+  color: var(--ops-ink);
+  font-size: 0.72rem;
+}
+
+body .llm-app-shell .shell-window-label {
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid #d4d9d4;
+  border-radius: 5px;
+  background: #f0f2ef;
+  color: #49514c;
+  font-size: 0.62rem;
+}
+
+body .llm-app-shell .shell-header-context,
+body .llm-app-shell .refresh-status {
+  color: #717973;
+  font-size: 0.65rem;
+}
+
+body .llm-app-shell .refresh-button {
+  width: 32px;
+  height: 32px;
+  border-color: #d4d9d4;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #5c645f;
+}
+
+body .llm-app-shell .surface-stack {
+  padding: 0 28px 80px;
+}
+
+body .llm-app-shell .llm-mission-stack {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  gap: 0;
+}
+
+body .llm-app-shell .llm-mission-lead.is-active-mission {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 290px);
+  column-gap: 48px;
+  align-items: end;
+  max-width: none;
+  margin: 0;
+  padding: 46px 0 30px;
+  border-bottom: 1px solid var(--ops-line);
+}
+
+body .llm-app-shell .llm-mission-lead-meta {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 17px;
+  color: var(--ops-muted);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+body .llm-app-shell .llm-mission-lead-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ops-mint-strong);
+  font-weight: 700;
+}
+
+body .llm-app-shell .llm-mission-lead-meta i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ops-mint-strong);
+  box-shadow: 0 0 0 4px rgba(40, 121, 99, 0.11);
+}
+
+body .llm-app-shell .llm-mission-lead-meta code {
+  overflow: hidden;
+  color: #5c645f;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body .llm-app-shell .llm-mission-lead.is-active-mission h2 {
+  max-width: 19ch;
+  margin: 0;
+  color: var(--ops-ink);
+  font-size: 2.3rem;
+  font-weight: 720;
+  line-height: 1.08;
+}
+
+body .llm-app-shell .llm-mission-lead.is-active-mission > p {
+  grid-column: 1;
+  max-width: 62ch;
+  margin: 13px 0 0;
+  color: var(--ops-ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.62;
+}
+
+body .llm-app-shell .llm-mission-next-gate-summary {
+  grid-row: 2 / span 2;
+  grid-column: 2;
+  align-self: stretch;
+  gap: 4px;
+  padding: 15px 17px;
+  border: 1px solid var(--ops-line);
+  border-left: 3px solid var(--ops-mint-strong);
+  border-radius: 7px;
+  background: var(--ops-paper);
+}
+
+body .llm-app-shell .llm-mission-next-gate-summary span {
+  color: var(--ops-muted);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.56rem;
+  text-transform: uppercase;
+}
+
+body .llm-app-shell .llm-mission-next-gate-summary strong {
+  color: var(--ops-ink);
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+body .llm-app-shell .llm-mission-next-gate-summary a {
+  margin-top: auto;
+  color: var(--ops-mint-strong);
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+body .llm-app-shell .mission-intake-board,
+body .llm-app-shell .llm-mission-stack > .viewport-handoff-strip {
+  display: none;
+}
+
+body .llm-app-shell .llm-mission-layout {
+  grid-template-columns: minmax(0, 1fr) 304px;
+  gap: 28px;
+  align-items: start;
+  padding-top: 26px;
+}
+
+body .llm-app-shell .llm-mission-main {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body .llm-app-shell .llm-mission-main > .panel-header {
+  display: none;
+}
+
+body .llm-app-shell .llm-mission-compose-trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 52px;
+  margin: 0 0 14px;
+  padding: 0 16px;
+  border: 1px solid var(--ops-line);
+  border-radius: 8px;
+  background: var(--ops-surface);
+  color: #3e4541;
+  box-shadow: 0 8px 20px rgba(20, 27, 23, 0.05);
+  font-size: 0.78rem;
+  font-weight: 620;
+  text-align: left;
+  transition:
+    border-color 120ms ease-out,
+    box-shadow 120ms ease-out,
+    transform 120ms ease-out;
+}
+
+body .llm-app-shell .llm-mission-compose-trigger:hover,
+body .llm-app-shell .llm-mission-compose-trigger:focus-visible {
+  border-color: var(--ops-focus);
+  box-shadow: 0 0 0 3px rgba(50, 168, 138, 0.13);
+}
+
+body .llm-app-shell .llm-mission-compose-trigger:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+body .llm-app-shell .mission-view-selector {
+  width: fit-content;
+  margin: 0 0 14px;
+  padding: 3px;
+  border: 1px solid var(--ops-line);
+  border-radius: 7px;
+  background: #e8ebe7;
+}
+
+body .llm-app-shell .mission-view-option {
+  min-width: 82px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 5px;
+  color: #6b726d;
+  font-size: 0.68rem;
+}
+
+body .llm-app-shell .mission-view-option.is-selected {
+  background: #ffffff;
+  color: var(--ops-ink);
+  box-shadow: 0 1px 4px rgba(20, 27, 23, 0.11);
+}
+
+body .llm-app-shell .llm-workstream {
+  overflow: clip;
+  border: 1px solid var(--ops-line);
+  border-radius: 8px;
+  background: var(--ops-paper);
+  box-shadow: 0 12px 32px rgba(20, 27, 23, 0.055);
+}
+
+body .llm-app-shell .llm-section-heading {
+  min-height: 58px;
+  padding: 0 20px;
+  border-color: var(--ops-line);
+  background: #f5f7f4;
+}
+
+body .llm-app-shell .llm-section-heading h3 {
+  color: var(--ops-ink);
+  font-size: 0.92rem;
+  font-weight: 680;
+}
+
+body .llm-app-shell .llm-turn {
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 14px;
+  padding: 23px 20px;
+  border-color: #e4e7e3;
+  background: var(--ops-paper);
+}
+
+body .llm-app-shell .llm-turn::after {
+  content: attr(data-step);
+  position: absolute;
+  top: 25px;
+  right: 20px;
+  color: #636b66;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.7rem;
+}
+
+body .llm-app-shell .llm-turn:not(:last-child)::before {
+  top: 56px;
+  left: 38px;
+  background: #d9ddd8;
+}
+
+body .llm-app-shell .llm-turn-marker {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: var(--ops-rail);
+  box-shadow: 0 3px 10px rgba(20, 27, 23, 0.12);
+  font-size: 0.67rem;
+}
+
+body .llm-app-shell .llm-turn-council .llm-turn-marker {
+  background: #315cbd;
+}
+
+body .llm-app-shell .llm-turn-execution .llm-turn-marker {
+  background: var(--ops-violet);
+}
+
+body .llm-app-shell .llm-turn-deliverables .llm-turn-marker {
+  background: var(--ops-green);
+}
+
+body .llm-app-shell .llm-turn-meta {
+  min-height: 20px;
+  padding-right: 36px;
+}
+
+body .llm-app-shell .llm-turn-meta strong {
+  color: var(--ops-ink);
+  font-size: 0.76rem;
+  font-weight: 690;
+}
+
+body .llm-app-shell .llm-turn-meta span {
+  padding: 2px 6px;
+  border: 1px solid #dfe3df;
+  border-radius: 4px;
+  background: #f1f3f0;
+  color: #59615c;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.7rem;
+}
+
+body .llm-app-shell .llm-turn h4 {
+  margin: 9px 0 5px;
+  color: var(--ops-ink);
+  font-size: 0.96rem;
+  font-weight: 680;
+}
+
+body .llm-app-shell .llm-turn p {
+  max-width: 68ch;
+  color: var(--ops-ink-soft);
+  font-size: 0.83rem;
+  line-height: 1.62;
+}
+
+body .llm-app-shell .llm-next-gate {
+  position: sticky;
+  z-index: 4;
+  bottom: 20px;
+  margin: 16px;
+  padding: 16px 17px;
+  border: 1px solid #2b2f35;
+  border-radius: 8px;
+  background: #191b20;
+  box-shadow: 0 16px 36px rgba(17, 19, 24, 0.24);
+}
+
+body .llm-app-shell .llm-next-gate span {
+  color: var(--ops-mint);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.7rem;
+}
+
+body .llm-app-shell .llm-next-gate strong {
+  color: #f7f8f7;
+  font-size: 0.86rem;
+}
+
+body .llm-app-shell .llm-next-gate p {
+  max-width: 58ch;
+  color: #aeb5b0;
+  font-size: 0.76rem;
+}
+
+body .llm-app-shell .llm-next-gate-button {
+  min-height: 40px;
+  border-color: var(--ops-mint);
+  background: var(--ops-mint);
+  color: #10231e;
+}
+
+body .llm-app-shell .llm-next-gate-button:hover:not(:disabled),
+body .llm-app-shell .llm-next-gate-button:focus-visible:not(:disabled) {
+  border-color: #8ce6d1;
+  background: #8ce6d1;
+  color: #10231e;
+}
+
+body .llm-app-shell .llm-context-inspector {
+  position: sticky;
+  top: 76px;
+  overflow: hidden;
+  padding: 0 18px 18px;
+  border: 1px solid #292d33;
+  border-radius: 8px;
+  background: #17191e;
+  color: #f4f6f5;
+  box-shadow: var(--ops-shadow);
+}
+
+body .llm-app-shell .llm-context-summary {
+  padding: 0;
+}
+
+body .llm-app-shell .llm-context-summary .llm-context-label {
+  color: var(--ops-mint);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.7rem;
+}
+
+body .llm-app-shell .llm-context-summary h3 {
+  margin: 7px 0;
+  color: #f4f6f5;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+body .llm-app-shell .llm-context-summary > p:not(.llm-context-label) {
+  color: #9098a0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+body .llm-app-shell .llm-context-summary dl {
+  margin-top: 18px;
+  border-top: 1px solid #2b2f35;
+}
+
+body .llm-app-shell .llm-context-summary dl > div {
+  min-height: 38px;
+  padding: 0;
+  border-color: #2b2f35;
+}
+
+body .llm-app-shell .llm-context-summary dt {
+  color: #858e97;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+body .llm-app-shell .llm-context-summary dd {
+  color: #dce1de;
+  font-size: 0.72rem;
+}
+
+body .llm-app-shell .llm-authority-note {
+  margin-top: 15px;
+  padding: 11px 0 0;
+  border-top: 1px solid #2b2f35;
+  color: #9ba39d;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+body .llm-app-shell .llm-authority-dot {
+  background: var(--ops-mint);
+}
+
+body .llm-app-shell .llm-context-inspector .llm-deep-inspector {
+  margin-top: 18px;
+  border-top: 1px solid #2b2f35;
+}
+
+body .llm-app-shell .llm-context-inspector .llm-deep-inspector > summary {
+  min-height: 42px;
+  color: #aeb5b0;
+  font-size: 0.72rem;
+}
+
+body .llm-app-shell .llm-context-inspector .llm-deep-inspector[open] {
+  color: var(--ops-ink);
+}
+
+body .llm-app-shell .llm-context-inspector .llm-deep-inspector-body {
+  margin: 0 -10px;
+  padding: 12px 10px;
+  border-radius: 6px;
+  background: #f7f8f6;
+}
+
+body .llm-app-shell .llm-mission-history {
+  margin-top: 18px;
+  border-color: var(--ops-line);
+}
+
+body .llm-app-shell .llm-mission-history > summary {
+  min-height: 44px;
+  padding: 0 4px;
+  color: var(--ops-muted);
+  font-size: 0.67rem;
+}
+
+body .llm-app-shell .llm-council-shell,
+body .llm-app-shell .llm-execution-shell,
+body .llm-app-shell .llm-deliverables-shell {
+  width: min(100%, 980px);
+  padding: 42px 0 64px;
+}
+
+body .llm-app-shell .llm-council-lead,
+body .llm-app-shell .llm-execution-lead,
+body .llm-app-shell .llm-deliverables-lead {
+  padding: 0 0 25px;
+  border-color: var(--ops-line);
+}
+
+body .llm-app-shell .llm-council-lead h2,
+body .llm-app-shell .llm-execution-lead h2,
+body .llm-app-shell .llm-deliverables-lead h2 {
+  color: var(--ops-ink);
+  font-size: 2rem;
+  font-weight: 720;
+}
+
+body .llm-app-shell .council-start-panel,
+body .llm-app-shell .council-conversation,
+body .llm-app-shell .llm-execution-current,
+body .llm-app-shell .llm-deliverables-current {
+  border-color: var(--ops-line);
+  border-radius: 8px;
+  background: var(--ops-paper);
+  box-shadow: 0 12px 32px rgba(20, 27, 23, 0.055);
+}
+
+body .llm-app-shell .council-synthesis,
+body .llm-app-shell .llm-execution-command,
+body .llm-app-shell .llm-deliverables-command {
+  border-color: #2b2f35;
+  background: #191b20;
+  color: #f4f6f5;
+}
+
+body .llm-app-shell .project-bootstrap-mission,
+body .llm-app-shell .mission-order-desk {
+  border-color: var(--ops-line);
+  background: var(--ops-surface);
+  box-shadow: 0 14px 38px rgba(20, 27, 23, 0.07);
+}
+
+body .llm-app-shell .primary-button {
+  border-color: var(--ops-ink);
+  border-radius: 7px;
+  background: var(--ops-ink);
+}
+
+body .llm-app-shell .primary-button:hover:not(:disabled),
+body .llm-app-shell .primary-button:focus-visible:not(:disabled) {
+  border-color: var(--ops-mint-strong);
+  background: var(--ops-mint-strong);
+}
+
+body .llm-app-shell .secondary-button {
+  border-radius: 7px;
+}
+
+body .llm-app-shell :is(button, input, select, textarea, summary, a):focus-visible {
+  outline: 3px solid #167a65;
+  outline-color: #167a65 !important;
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body .llm-app-shell .llm-turn {
+    transition: background-color 120ms ease-out;
+  }
+
+  body .llm-app-shell .llm-turn:hover {
+    background: #f7f9f6;
+  }
+}
+
+@media (max-width: 1100px) {
+  body .llm-app-shell .llm-mission-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body .llm-app-shell .llm-context-inspector {
+    position: static;
+    padding: 0;
+    border: 0;
+    border-top: 1px solid var(--ops-line);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ops-ink);
+    box-shadow: none;
+  }
+
+  body .llm-app-shell .llm-context-summary h3 {
+    color: var(--ops-ink);
+  }
+
+  body .llm-app-shell .llm-context-summary .llm-context-label {
+    color: #176b58;
+  }
+
+  body .llm-app-shell .llm-context-summary > p:not(.llm-context-label),
+  body .llm-app-shell .llm-context-summary dt,
+  body .llm-app-shell .llm-context-summary dd,
+  body .llm-app-shell .llm-authority-note,
+  body .llm-app-shell .llm-context-inspector .llm-deep-inspector > summary {
+    color: #525a55;
+  }
+
+  body .llm-app-shell .llm-context-summary dl,
+  body .llm-app-shell .llm-context-summary dl > div,
+  body .llm-app-shell .llm-authority-note,
+  body .llm-app-shell .llm-context-inspector .llm-deep-inspector {
+    border-color: var(--ops-line);
+  }
+}
+
+@media (max-width: 820px) {
+  body .llm-app-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body .llm-app-shell .office-sidebar {
+    gap: 9px;
+    padding: 10px 12px 11px;
+    border-bottom: 1px solid var(--ops-rail-line);
+  }
+
+  body .llm-app-shell .office-brand-card {
+    gap: 8px;
+    padding: 0;
+  }
+
+  body .llm-app-shell .llm-brand-mark {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  body .llm-app-shell .office-brand-kicker {
+    display: none;
+  }
+
+  body .llm-app-shell .office-brand-card h1 {
+    font-size: 0.86rem;
+  }
+
+  body .llm-app-shell .llm-new-mission-button {
+    width: auto;
+    min-height: 44px;
+    padding: 0 11px;
+  }
+
+  body .llm-app-shell .llm-primary-nav {
+    gap: 7px;
+  }
+
+  body .llm-app-shell .llm-primary-nav-list {
+    gap: 0;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--ops-rail-line);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  body .llm-app-shell .nav-button {
+    min-height: 44px;
+    padding: 3px 4px 7px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  body .llm-app-shell .nav-button-main {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 2px;
+  }
+
+  body .llm-app-shell .nav-button-indicator,
+  body .llm-app-shell .nav-button-count {
+    display: none;
+  }
+
+  body .llm-app-shell .nav-button-title {
+    font-size: 0.65rem;
+  }
+
+  body .llm-app-shell .nav-button.is-active {
+    border-bottom-color: var(--ops-mint);
+    border-radius: 0;
+    background: transparent;
+    color: #ffffff;
+  }
+
+  body .llm-app-shell .llm-sidebar-missions {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  body .llm-app-shell .llm-sidebar-missions > summary {
+    min-height: 44px;
+    padding: 4px 6px;
+  }
+
+  body .llm-app-shell .llm-advanced-ops-nav {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  body .llm-app-shell .llm-advanced-ops-nav > summary {
+    min-height: 44px;
+    padding: 0 6px;
+  }
+
+  body .llm-app-shell .shell-window-bar {
+    min-height: 46px;
+    padding: 0 14px;
+  }
+
+  body .llm-app-shell .surface-stack {
+    padding: 0 16px 48px;
+  }
+
+  body .llm-app-shell .llm-mission-lead.is-active-mission {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 26px 0 20px;
+  }
+
+  body .llm-app-shell .llm-mission-lead-meta {
+    grid-column: 1;
+    margin-bottom: 13px;
+  }
+
+  body .llm-app-shell .llm-mission-lead-meta code {
+    max-width: 48vw;
+  }
+
+  body .llm-app-shell .llm-mission-lead.is-active-mission h2 {
+    max-width: none;
+    font-size: 1.78rem;
+    line-height: 1.12;
+  }
+
+  body .llm-app-shell .llm-mission-lead.is-active-mission > p {
+    grid-column: 1;
+    margin-top: 9px;
+    font-size: 0.8rem;
+    line-height: 1.55;
+  }
+
+  body .llm-app-shell .llm-mission-next-gate-summary {
+    grid-row: auto;
+    grid-column: 1;
+    min-height: 74px;
+    margin-top: 16px;
+    padding: 12px 14px;
+  }
+
+  body .llm-app-shell .llm-mission-layout {
+    gap: 22px;
+    padding-top: 18px;
+  }
+
+  body .llm-app-shell .llm-mission-compose-trigger {
+    min-height: 48px;
+  }
+
+  body .llm-app-shell .mission-view-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  body .llm-app-shell .mission-view-option {
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  body .llm-app-shell .llm-section-heading {
+    min-height: 52px;
+    padding: 0 14px;
+  }
+
+  body .llm-app-shell .llm-turn {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 11px;
+    padding: 19px 14px;
+  }
+
+  body .llm-app-shell .llm-turn::after {
+    top: 20px;
+    right: 14px;
+  }
+
+  body .llm-app-shell .llm-turn:not(:last-child)::before {
+    top: 51px;
+    left: 30px;
+  }
+
+  body .llm-app-shell .llm-turn-marker {
+    width: 32px;
+    height: 32px;
+  }
+
+  body .llm-app-shell .llm-turn p {
+    font-size: 0.79rem;
+  }
+
+  body .llm-app-shell .llm-next-gate {
+    position: static;
+    align-items: stretch;
+    margin: 12px;
+    padding: 14px;
+  }
+
+  body .llm-app-shell .llm-next-gate-button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  body .llm-app-shell .llm-context-inspector {
+    margin-top: 0;
+  }
+
+  body .llm-app-shell .llm-council-shell,
+  body .llm-app-shell .llm-execution-shell,
+  body .llm-app-shell .llm-deliverables-shell {
+    padding: 26px 0 48px;
+  }
+
+  body .llm-app-shell .llm-council-lead h2,
+  body .llm-app-shell .llm-execution-lead h2,
+  body .llm-app-shell .llm-deliverables-lead h2 {
+    font-size: 1.55rem;
+  }
+
+  .llm-project-onboarding {
+    padding-top: 30px;
+  }
+
+  .llm-mission-lead.is-project-bootstrap h2 {
+    font-size: 1.82rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .llm-app-shell .llm-new-mission-button,
+  body .llm-app-shell .nav-button,
+  body .llm-app-shell .llm-mission-compose-trigger,
+  body .llm-app-shell .llm-turn {
+    transition-duration: 0.01ms;
+  }
+}
