@@ -1033,6 +1033,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/110_llm-native-visual-system-convergence-plan.md` adds semantic workbench tokens, a high-contrast new-Mission command, indicator/label/count navigation, one-line mobile workspace metadata, connected source-backed turns, one bounded desktop context inspector, and a contained Advanced Ops layout. The implementation changes browser markup order and CSS presentation only. Every existing surface, source count, action attribute, route, runtime record, exact evidence disclosure, review and approval gate, provider contract, and state boundary remains authoritative and unchanged.
 - Needed Before: Changing navigation destinations, source counts, action handlers, evidence order, routes, runtime/API/schema/dependency behavior, persistence, provider behavior, automatic navigation, source mutation, approval bypass, scheduling, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
 
+### DEC-160
+- Status: `Accepted`
+- Decision: Accept one browser-only first-viewport corrective redesign after operator review found DEC-159 visually insufficient.
+- Why: DEC-159 improved token consistency and containment but retained the previous light rail, centered prerequisite stack, and equal-weight connection fields. The result passed source checks without producing a sufficiently visible change in the operator's first viewport.
+- Impact: `docs/111_llm-native-first-viewport-corrective-redesign-plan.md` changes the shell to a charcoal command rail and composes first-run Mission as a desktop context-plus-command workspace. `project_path` becomes the dominant first field, name and pack remain supporting fields, and mobile keeps path, name, pack, and submit visible at 390x844. Existing destinations, counts, form names, submit action, routes, runtime records, review and approval gates, provider behavior, and state boundaries remain unchanged.
+- Needed Before: Changing project registration behavior, navigation topology, Mission lifecycle, action handlers, runtime/API/schema/dependency/storage/provider behavior, automatic routing, source mutation, approval bypass, scheduling, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

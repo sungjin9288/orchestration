@@ -10817,17 +10817,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
       }
       <form class="task-create-form project-create-form ${missionMode ? 'project-create-form-mission' : ''}" data-form="${missionMode ? 'create-project-from-mission' : 'create-project'}">
         <div class="field-grid ${missionMode ? 'project-bootstrap-fields' : ''}">
-          <label class="field">
-            <span class="field-label">${missionMode ? '이름' : '프로젝트 이름'}</span>
-            <input
-              type="text"
-              name="projectName"
-              value="${escapeHtml(state.projectDraftName)}"
-              placeholder="orchestration"
-              ${projectActionDisabled ? 'disabled' : ''}
-            >
-          </label>
-          <label class="field">
+          <label class="field ${missionMode ? 'project-bootstrap-field project-bootstrap-field-path' : ''}">
             <span class="field-label">${missionMode ? '로컬 경로' : '프로젝트 경로 (project_path)'}</span>
             <input
               type="text"
@@ -10837,7 +10827,17 @@ function renderProjectBootstrapPanel(data, options = {}) {
               ${projectActionDisabled ? 'disabled' : ''}
             >
           </label>
-          <label class="field">
+          <label class="field ${missionMode ? 'project-bootstrap-field project-bootstrap-field-name' : ''}">
+            <span class="field-label">${missionMode ? '이름' : '프로젝트 이름'}</span>
+            <input
+              type="text"
+              name="projectName"
+              value="${escapeHtml(state.projectDraftName)}"
+              placeholder="orchestration"
+              ${projectActionDisabled ? 'disabled' : ''}
+            >
+          </label>
+          <label class="field ${missionMode ? 'project-bootstrap-field project-bootstrap-field-pack' : ''}">
             <span class="field-label">${missionMode ? '작업 유형' : '팩'}</span>
             <select
               name="projectPack"
@@ -10890,7 +10890,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
               : ''
           }
         </div>
-        <div class="form-actions">
+        <div class="form-actions ${missionMode ? 'project-bootstrap-actions' : ''}">
           <button class="${missionMode ? 'primary-button project-connect-button' : 'secondary-button'}" type="submit" ${projectActionDisabled ? 'disabled' : ''}>
             ${missionMode ? escapeHtml(bootstrapState.actionLabel) : '프로젝트 등록'}
           </button>
@@ -10934,7 +10934,8 @@ function renderLlmMissionLead(selectedMission = null, options = {}) {
       : '목표와 필요한 경계를 적으면 역할별 검토부터 시작합니다.';
 
   return `
-    <section class="llm-mission-lead ${selectedMission && !composingNew ? 'is-active-mission' : ''}" aria-labelledby="llm-mission-prompt-title">
+    <section class="llm-mission-lead ${projectBootstrap ? 'is-project-bootstrap' : ''} ${selectedMission && !composingNew ? 'is-active-mission' : ''}" aria-labelledby="llm-mission-prompt-title">
+      ${projectBootstrap ? '<p class="llm-mission-lead-eyebrow">Local orchestration</p>' : ''}
       <h2 id="llm-mission-prompt-title">${escapeHtml(heading)}</h2>
       <p>${escapeHtml(supportingCopy)}</p>
       ${
@@ -11146,11 +11147,26 @@ function renderMission(data) {
     const projectBootstrap = getMissionProjectBootstrapState(data);
 
     elements.surfaces.mission.innerHTML = `
-      <div class="llm-project-entry">
-        ${renderLlmMissionLead(null, { projectBootstrap })}
-      </div>
-      <div class="surface-grid llm-project-bootstrap-layout">
+      <div class="llm-project-onboarding">
+        <div class="llm-project-entry">
+          ${renderLlmMissionLead(null, { projectBootstrap })}
+          <ol class="llm-project-stage-list" aria-label="Orchestration 진행 단계">
+            <li class="is-current" aria-current="step"><span>01</span><strong>Project</strong></li>
+            <li><span>02</span><strong>Mission</strong></li>
+            <li><span>03</span><strong>Council</strong></li>
+            <li><span>04</span><strong>Execute</strong></li>
+            <li><span>05</span><strong>Deliver</strong></li>
+          </ol>
+          <p class="llm-project-authority-line">
+            <span aria-hidden="true"></span>
+            project_path required · review before done · approval before commit
+          </p>
+        </div>
         <section class="llm-project-bootstrap-surface" aria-label="프로젝트 연결">
+          <div class="llm-project-tool-bar" aria-hidden="true">
+            <span><i></i> Local workspace</span>
+            <code>project_path</code>
+          </div>
           ${renderProjectBootstrapPanel(data, { mode: 'mission', bootstrapState: projectBootstrap })}
         </section>
       </div>

@@ -49,6 +49,12 @@
   --workbench-warning: #a85d14;
   --workbench-danger: #a33b32;
   --workbench-shadow: 0 12px 32px rgba(23, 26, 31, 0.08);
+  --workbench-rail: #17191d;
+  --workbench-rail-soft: #22252b;
+  --workbench-rail-line: rgba(255, 255, 255, 0.11);
+  --workbench-rail-text: #f5f7f7;
+  --workbench-rail-muted: #9ca4ae;
+  --workbench-rail-accent: #48d1bc;
 }
 
 
@@ -14144,5 +14150,589 @@ body .llm-app-shell .project-bootstrap-defaults {
 
   .execution-provenance-detail dl {
     grid-template-columns: 1fr;
+  }
+}
+
+/* DEC-160 corrective redesign: make the first-run workspace visibly structural, not cosmetic. */
+body .llm-app-shell .office-sidebar {
+  border-color: var(--workbench-rail-line);
+  background: var(--workbench-rail);
+  color: var(--workbench-rail-text);
+  scrollbar-color: #4a5059 transparent;
+}
+
+body .llm-app-shell .office-brand-kicker,
+body .llm-app-shell .office-brand-card h1,
+body .llm-app-shell .llm-sidebar-mission-current > strong,
+body .llm-app-shell .nav-button,
+body .llm-app-shell .llm-advanced-ops-nav summary {
+  color: var(--workbench-rail-text);
+}
+
+body .llm-app-shell .office-brand-kicker,
+body .llm-app-shell .llm-sidebar-mission-current > span,
+body .llm-app-shell .llm-sidebar-mission-count,
+body .llm-app-shell .llm-sidebar-mission-status,
+body .llm-app-shell .nav-button-count,
+body .llm-app-shell .llm-advanced-ops-status {
+  color: var(--workbench-rail-muted);
+}
+
+body .llm-app-shell .llm-brand-mark {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: var(--workbench-rail-accent);
+  color: #101310;
+}
+
+body .llm-app-shell .llm-new-mission-button {
+  border-color: #fff;
+  background: #fff;
+  color: #17191d;
+  font-weight: 700;
+}
+
+body .llm-app-shell .llm-new-mission-button:hover,
+body .llm-app-shell .llm-new-mission-button:focus-visible {
+  border-color: var(--workbench-rail-accent);
+  background: var(--workbench-rail-accent);
+  color: #101310;
+  outline-color: rgba(72, 209, 188, 0.34);
+}
+
+body .llm-app-shell .llm-sidebar-missions,
+body .llm-app-shell .llm-advanced-ops-nav {
+  border-color: var(--workbench-rail-line);
+}
+
+body .llm-app-shell .llm-sidebar-missions > summary:hover,
+body .llm-app-shell .llm-sidebar-missions > summary:focus-visible,
+body .llm-app-shell .llm-sidebar-mission-button:hover:not(:disabled),
+body .llm-app-shell .llm-sidebar-mission-button:focus-visible:not(:disabled),
+body .llm-app-shell .nav-button:hover,
+body .llm-app-shell .nav-button:focus-visible,
+body .llm-app-shell .llm-advanced-ops-nav summary:hover,
+body .llm-app-shell .llm-advanced-ops-nav summary:focus-visible,
+body .llm-app-shell .llm-advanced-ops-nav.is-active summary {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+body .llm-app-shell .llm-sidebar-mission-button {
+  color: #c5cbd1;
+}
+
+body .llm-app-shell .llm-sidebar-mission-button.is-selected,
+body .llm-app-shell .nav-button.is-active {
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: inset 2px 0 var(--workbench-rail-accent);
+  color: #fff;
+}
+
+body .llm-app-shell .nav-button-indicator {
+  background: #68717c;
+}
+
+body .llm-app-shell .nav-button.is-active .nav-button-indicator {
+  background: var(--workbench-rail-accent);
+  box-shadow: 0 0 0 3px var(--workbench-rail);
+}
+
+body .llm-app-shell .workspace-shell,
+body .llm-app-shell .surface-stack {
+  background: #f3f5f3;
+}
+
+body .llm-app-shell .shell-header {
+  border-color: #dfe3e0;
+  background: rgba(248, 249, 248, 0.96);
+}
+
+body .llm-app-shell .shell-window-bar {
+  min-height: 52px;
+  padding-right: 24px;
+  padding-left: 24px;
+}
+
+body .llm-app-shell .shell-window-label {
+  border-color: #d8ddda;
+  background: #e8ece9;
+  color: #38403c;
+}
+
+body .llm-app-shell .primary-button {
+  border-color: var(--workbench-ink);
+  background: var(--workbench-ink);
+  color: #fff;
+  box-shadow: none;
+}
+
+body .llm-app-shell .primary-button:hover:not(:disabled),
+body .llm-app-shell .primary-button:focus-visible:not(:disabled) {
+  border-color: var(--workbench-accent);
+  background: var(--workbench-accent);
+  color: #fff;
+}
+
+.llm-project-onboarding {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(500px, 1.1fr);
+  gap: clamp(48px, 6vw, 92px);
+  width: min(100%, 1160px);
+  margin: 0 auto;
+  padding: 76px 0 84px;
+  align-items: start;
+}
+
+.llm-project-onboarding .llm-project-entry {
+  max-width: none;
+  margin: 0;
+}
+
+.llm-mission-lead.is-project-bootstrap {
+  justify-items: start;
+  max-width: 520px;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.llm-mission-lead.is-project-bootstrap .llm-mission-lead-eyebrow {
+  margin: 0 0 10px;
+  color: var(--workbench-accent);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.llm-mission-lead.is-project-bootstrap h2 {
+  max-width: 12ch;
+  color: #151817;
+  font-size: 3rem;
+  line-height: 1.05;
+  font-weight: 720;
+  word-break: keep-all;
+}
+
+.llm-mission-lead.is-project-bootstrap > p:last-child {
+  max-width: 42ch;
+  color: #626b66;
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.llm-project-stage-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+  max-width: 500px;
+  margin: 44px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.llm-project-stage-list li {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-width: 0;
+  color: #858e89;
+}
+
+.llm-project-stage-list li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: 8px;
+  left: 32px;
+  height: 1px;
+  background: #d3d9d5;
+}
+
+.llm-project-stage-list span {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  border: 1px solid #cdd4d0;
+  border-radius: 50%;
+  background: #f3f5f3;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.58rem;
+}
+
+.llm-project-stage-list strong {
+  overflow: hidden;
+  font-size: 0.64rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.llm-project-stage-list .is-current {
+  color: #173d37;
+}
+
+.llm-project-stage-list .is-current span {
+  border-color: var(--workbench-accent);
+  background: var(--workbench-accent);
+  color: #fff;
+}
+
+.llm-project-authority-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  max-width: 500px;
+  margin: 28px 0 0;
+  color: #737c77;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.64rem;
+  line-height: 1.55;
+}
+
+.llm-project-authority-line > span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: var(--workbench-success);
+}
+
+.llm-project-bootstrap-surface {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dbe1dd;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 64px rgba(27, 35, 31, 0.11);
+}
+
+.llm-project-tool-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 18px;
+  border-bottom: 1px solid #e4e8e5;
+  background: #f8faf8;
+  color: #56615b;
+  font-size: 0.67rem;
+  font-weight: 650;
+}
+
+.llm-project-tool-bar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.llm-project-tool-bar i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--workbench-success);
+}
+
+.llm-project-tool-bar code {
+  color: #77817b;
+  font-size: 0.64rem;
+}
+
+body .llm-app-shell .project-bootstrap-mission {
+  gap: 24px;
+  padding: 28px;
+}
+
+body .llm-app-shell .project-bootstrap-mission > .panel-header {
+  align-items: flex-start;
+  padding: 0 0 18px;
+  border-color: #e4e8e5;
+}
+
+body .llm-app-shell .project-bootstrap-mission > .panel-header h3 {
+  color: #151817;
+  font-size: 1.22rem;
+  line-height: 1.25;
+}
+
+body .llm-app-shell .project-create-form-mission {
+  gap: 22px;
+}
+
+body .llm-app-shell .project-bootstrap-fields {
+  grid-template-columns: minmax(0, 1fr) 180px;
+  grid-template-areas:
+    "path path"
+    "name pack";
+  gap: 16px;
+}
+
+body .llm-app-shell .project-bootstrap-field-name {
+  grid-area: name;
+}
+
+body .llm-app-shell .project-bootstrap-field-path {
+  grid-area: path;
+}
+
+body .llm-app-shell .project-bootstrap-field-pack {
+  grid-area: pack;
+}
+
+body .llm-app-shell .project-bootstrap-mission .field-label {
+  color: #5f6963;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+body .llm-app-shell .project-bootstrap-mission input,
+body .llm-app-shell .project-bootstrap-mission select {
+  min-height: 46px;
+  border-color: #cfd6d2;
+  background: #f8faf8;
+  color: #171a18;
+}
+
+body .llm-app-shell .project-bootstrap-mission input:hover,
+body .llm-app-shell .project-bootstrap-mission select:hover {
+  border-color: #9ba7a0;
+}
+
+body .llm-app-shell .project-bootstrap-mission input:focus-visible,
+body .llm-app-shell .project-bootstrap-mission select:focus-visible {
+  border-color: var(--workbench-accent);
+  outline: 3px solid rgba(15, 118, 110, 0.13);
+  outline-offset: 1px;
+}
+
+body .llm-app-shell .project-bootstrap-field-path input {
+  min-height: 58px;
+  padding-right: 16px;
+  padding-left: 16px;
+  background: #f1f5f2;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.86rem;
+}
+
+body .llm-app-shell .project-bootstrap-actions {
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-top: 20px;
+  border-top: 1px solid #e4e8e5;
+}
+
+body .llm-app-shell .project-connect-button {
+  justify-content: space-between;
+  min-width: 172px;
+  min-height: 48px;
+  padding-right: 16px;
+  padding-left: 16px;
+}
+
+body .llm-app-shell .project-connect-button::after {
+  content: "→";
+  margin-left: 18px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+body .llm-app-shell .project-bootstrap-defaults {
+  max-width: 280px;
+  color: #737c77;
+  text-align: right;
+}
+
+@media (min-width: 821px) {
+  body .llm-app-shell {
+    grid-template-columns: 252px minmax(0, 1fr);
+  }
+
+  body .llm-app-shell .office-sidebar {
+    gap: 18px;
+    padding: 20px 14px;
+  }
+
+  body .llm-app-shell .office-brand-card {
+    gap: 14px;
+    padding: 2px 4px 12px;
+  }
+
+  body .llm-app-shell .llm-brand-mark {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  body .llm-app-shell .office-brand-card h1 {
+    font-size: 1rem;
+  }
+
+  body .llm-app-shell .llm-new-mission-button {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .llm-project-onboarding {
+    grid-template-columns: minmax(280px, 0.8fr) minmax(440px, 1.2fr);
+    gap: 38px;
+  }
+
+  .llm-mission-lead.is-project-bootstrap h2 {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .llm-project-onboarding {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(100%, 700px);
+    padding-top: 48px;
+  }
+
+  .llm-mission-lead.is-project-bootstrap {
+    max-width: 620px;
+  }
+
+  .llm-mission-lead.is-project-bootstrap h2 {
+    max-width: 18ch;
+  }
+}
+
+@media (max-width: 820px) {
+  body .llm-app-shell .office-sidebar {
+    border-color: var(--workbench-rail-line);
+    background: var(--workbench-rail);
+  }
+
+  body .llm-app-shell .surface-stack {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  body .llm-app-shell .shell-window-bar {
+    min-height: 46px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  body .llm-app-shell .llm-primary-nav-list {
+    padding: 3px;
+    border: 1px solid var(--workbench-rail-line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  body .llm-app-shell .nav-button {
+    min-height: 36px;
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+
+  body .llm-app-shell .nav-button.is-active {
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: none;
+    color: #17191d;
+  }
+
+  body .llm-app-shell .nav-button.is-active .nav-button-indicator {
+    background: var(--workbench-accent);
+    box-shadow: none;
+  }
+
+  .llm-project-onboarding {
+    gap: 20px;
+    padding: 26px 0 48px;
+  }
+
+  .llm-mission-lead.is-project-bootstrap h2 {
+    max-width: none;
+    font-size: 1.92rem;
+    line-height: 1.1;
+  }
+
+  .llm-mission-lead.is-project-bootstrap > p:last-child {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .llm-project-stage-list {
+    margin-top: 20px;
+  }
+
+  .llm-project-stage-list strong {
+    font-size: 0.56rem;
+  }
+
+  .llm-project-authority-line {
+    margin-top: 14px;
+    font-size: 0.59rem;
+  }
+
+  .llm-project-tool-bar {
+    min-height: 36px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  body .llm-app-shell .project-bootstrap-mission {
+    gap: 14px;
+    padding: 16px;
+  }
+
+  body .llm-app-shell .project-bootstrap-mission > .panel-header {
+    padding-bottom: 12px;
+  }
+
+  body .llm-app-shell .project-bootstrap-mission > .panel-header h3 {
+    font-size: 1.06rem;
+  }
+
+  body .llm-app-shell .project-create-form-mission {
+    gap: 14px;
+  }
+
+  body .llm-app-shell .project-bootstrap-fields {
+    grid-template-columns: minmax(0, 1fr) minmax(118px, 0.72fr);
+    grid-template-areas:
+      "path path"
+      "name pack";
+    gap: 12px;
+  }
+
+  body .llm-app-shell .project-bootstrap-mission input,
+  body .llm-app-shell .project-bootstrap-mission select {
+    min-height: 42px;
+  }
+
+  body .llm-app-shell .project-bootstrap-field-path input {
+    min-height: 50px;
+  }
+
+  body .llm-app-shell .project-bootstrap-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 14px;
+  }
+
+  body .llm-app-shell .project-connect-button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  body .llm-app-shell .project-bootstrap-defaults {
+    max-width: none;
+    text-align: left;
   }
 }

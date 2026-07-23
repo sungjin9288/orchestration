@@ -311,6 +311,12 @@ const smokeChecks = [
       'Semantic workbench tokens, indicator-label-count navigation, connected Mission turns, bounded context inspection, one-line mobile metadata, contained Advanced Ops framing, and absent runtime or authority expansion',
   },
   {
+    id: 'llm-native-first-viewport-corrective-redesign',
+    script: 'scripts/smoke-ui-slice-694.mjs',
+    purpose:
+      'Dark command rail, structural first-run Mission workspace, dominant project path field, solid project command, mobile first-viewport action visibility, and unchanged project action authority',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

@@ -68,6 +68,8 @@ Hierarchy:
 ### Compact Navigation Rail
 
 - Brand and `새 미션` action come first.
+- Desktop uses one charcoal command rail so navigation is visibly distinct from the reading canvas.
+  The mobile three-row rail uses the same dark identity without changing its topology.
 - `새 미션` is the rail's one high-contrast command. Workstream destinations use a small semantic
   indicator, one readable label, and a trailing count rather than equal-weight pills.
 - Recent Mission context and `Mission / Council / Execution / Deliverables` are the primary links.
@@ -106,6 +108,9 @@ Hierarchy:
   modes keep their readiness reason visible without becoming a second action.
 - Before a project exists, the first screen states that prerequisite directly and uses one unframed
   local-path form. Do not place project connection inside nested panels or repeat an empty-state card.
+- The first-run desktop viewport pairs one Mission context column with one bounded project command
+  surface. `project_path` is the dominant first field; name and pack are supporting context. Mobile
+  keeps path, name, pack, and the submit command visible in the 390x844 first viewport.
 
 ### Agent Workstream
 
@@ -244,6 +249,8 @@ The shell must keep `review before done` and `approval before commit` visible at
   records or tools. Do not put one framed page panel around those framed records.
 - Use stable widths, min/max constraints, and fixed control heights so status changes do not shift the
   shell.
+- A redesign must change the first-viewport scan path, composition, or control hierarchy. Token-only
+  recoloring, spacing normalization, and unchanged DOM proportions are polish, not redesign proof.
 
 ## 7. Interaction And Accessibility
 
