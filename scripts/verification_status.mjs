@@ -722,6 +722,11 @@ const informationalChecks = [
     purpose: 'Task Detail execution provenance disclosure and exact GET API prove default-closed browser-local exploration, safe missing and wrong-method responses, semantic mobile fallback, focusable node inspection, and absent authority-bearing graph controls',
   },
   {
+    id: 'llm-native-visual-system-convergence',
+    script: 'scripts/smoke-ui-slice-693.mjs',
+    purpose: 'LLM-native visual-system convergence proves semantic workbench tokens, readable navigation hierarchy, connected source-backed turns, responsive metadata containment, Advanced Ops overflow containment, and zero runtime API schema dependency route action persistence or provider authority change',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose: 'LLM-native active Mission focus proves compact-by-default current workstream, explicit full composer mode, cancel and selection collapse, refresh-stable field focus, existing Mission submit compatibility, and zero runtime schema dependency persistence or authority expansion',

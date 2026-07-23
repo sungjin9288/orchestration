@@ -111,6 +111,7 @@ Planning source files:
 - `docs/107_llm-native-mission-next-gate-navigation-plan.md`
 - `docs/108_llm-native-primary-workstream-language-plan.md`
 - `docs/109_task-execution-provenance-graph-plan.md`
+- `docs/110_llm-native-visual-system-convergence-plan.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -148,6 +149,14 @@ It follows recorded Context, Plan, Build, Verify, Deliver, and Close evidence on
 search, filters, focus, and detail inspection add no Task write, approval, execution, source
 mutation, commit, push, or release path. Mission lineage is exact even when absent, and a changed
 source snapshot invalidates and reloads an open graph for the same Task.
+
+LLM-native visual-system convergence is accepted by `DEC-159` and implemented from
+`docs/110_llm-native-visual-system-convergence-plan.md`. The current shell now uses one semantic
+workbench token set, a high-contrast new-Mission command, indicator/label/count navigation,
+connected source-backed turns, one bounded desktop context inspector, and a contained Advanced Ops
+layout. At 390px the existing project/provider/gate/refresh metadata occupies one actual 44px row.
+Every existing route, action, count, evidence disclosure, runtime record, review gate, approval gate,
+provider contract, and state boundary remains unchanged.
 
 LLM-native active Mission focus is accepted by `DEC-140` and implemented from
 `docs/91_llm-native-active-mission-focus-plan.md`. A selected Mission now opens directly on its title
@@ -587,12 +596,13 @@ review-decision packet, accepted evidence-decision, and downstream authority dec
 evidence plus AI Company durable DeliveryPackage, acceptance implementation, and Mission/task
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
-`defaultCompletionImplementationOpen=false`. DEC-158 passes aggregate required `1/1`, informational
-`266/266`, total `267/267`, and UI QA required `70/70`. Focused browser checks at 1440x1000,
-821x900, 820x900, and 390x844 verify the default-closed Task disclosure, contained desktop SVG,
-semantic mobile list, keyboard selection, browser-only detail, and zero console errors. The earlier
-DEC-157 whole-shell matrix remains the evidence for natural primary labels, collapsed exact refs,
-unchanged action readiness, zero write requests, and root layout containment.
+`defaultCompletionImplementationOpen=false`. DEC-159 passes aggregate required `1/1`, informational
+`267/267`, total `268/268`, and UI QA required `71/71`. Focused browser checks at 1280x720 and
+390x844 cover Mission and Taskboard, retain the existing action hierarchy, and report zero root
+horizontal overflow. The earlier DEC-158 matrix remains the evidence for the default-closed Task
+provenance disclosure, contained desktop SVG, semantic mobile list, keyboard selection, and
+browser-only detail; DEC-157 remains the evidence for natural primary labels and unchanged action
+readiness.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -2244,9 +2254,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 945 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 946 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 692 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 693 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2748,9 +2758,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required `70/70` pass. Snapshot reachability remains informational
+- `node scripts/ui_qa_status.mjs`: required `71/71` pass. Snapshot reachability remains informational
   and was skipped because the optional port-4315 UI server was not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `266/266`, total `267/267`
+- `node scripts/verification_status.mjs`: required `1/1`, informational `267/267`, total `268/268`
   pass. The aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2817,9 +2827,9 @@ Playwright CLI:
 - This is a local-first PoC/MVP-quality project, not a hosted service.
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
-- The current completion gate is evidence-closed through DEC-158, not a claim of hosted production
+- The current completion gate is evidence-closed through DEC-159, not a claim of hosted production
   readiness. Focused source and compatibility checks, the local four-viewport browser matrix, UI QA
-  `70/70`, and aggregate `267/267` pass. This remains local synthetic/browser evidence rather than
+  `71/71`, and aggregate `268/268` pass. This remains local synthetic/browser evidence rather than
   hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
@@ -2832,6 +2842,9 @@ Playwright CLI:
   inspection. Cross-Task discovery, inferred or cross-Mission lineage, runtime search/index,
   persisted layout, graph actions, artifact-body parsing, 3D, provider calls, source mutation,
   commit, push, release, and scheduling remain outside the implemented scope.
+- `DEC-159` changes browser presentation only. It adds no route, action, state write, runtime/API/
+  schema/dependency behavior, provider call, automatic navigation, source mutation, scheduling,
+  commit, push, release, policy mutation, or connector authority.
 - `DEC-140` permits only browser-memory Mission composer presentation and focus behavior. Durable
   drafts, autosave, automatic Mission creation or dispatch, runtime/API/schema/dependency changes,
   scheduling, provider/source/Git/release authority, policy bypass, and connectors remain outside

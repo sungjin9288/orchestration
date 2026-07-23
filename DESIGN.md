@@ -23,19 +23,23 @@ Use near-neutral surfaces so active work, agent identity, and gate state carry t
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| `canvas` | `#f7f7f8` | app and navigation background |
+| `canvas` | `#f5f6f7` | app and Advanced Ops background |
+| `navigation` | `#f8f9fa` | compact navigation rail |
 | `workspace` | `#ffffff` | primary reading surface |
-| `surface-soft` | `#f3f4f6` | composer and secondary controls |
-| `line` | `#e5e7eb` | dividers and inactive boundaries |
-| `line-strong` | `#cbd5e1` | selected and focus boundaries |
-| `text` | `#18181b` | primary copy |
-| `text-soft` | `#64646d` | metadata and supporting copy |
+| `surface-soft` | `#f1f3f4` | inspector and secondary controls |
+| `line` | `#e1e5e8` | dividers and inactive boundaries |
+| `line-strong` | `#c8d0d6` | selected and focus boundaries |
+| `text` | `#171a1f` | primary copy |
+| `text-soft` | `#4e5660` | supporting copy |
+| `muted` | `#747d87` | metadata and quiet labels |
 | `accent` | `#0f766e` | active navigation, focus, primary action |
-| `council` | `#2563eb` | council reasoning and synthesis |
-| `execution` | `#7c3aed` | bounded execution activity |
-| `success` | `#15803d` | current proof and approved state |
-| `warning` | `#b45309` | waiting gate or operator attention |
-| `danger` | `#b42318` | blocked, failed, rejected |
+| `accent-soft` | `#e8f3f1` | selected row and bounded next-gate context |
+| `accent-line` | `#b9d8d3` | selected and gate boundary |
+| `council` | `#315cbd` | council reasoning and synthesis |
+| `execution` | `#6d5bd0` | bounded execution activity |
+| `success` | `#2f7d4c` | current proof and approved state |
+| `warning` | `#a85d14` | waiting gate or operator attention |
+| `danger` | `#a33b32` | blocked, failed, rejected |
 
 Rules:
 
@@ -64,6 +68,8 @@ Hierarchy:
 ### Compact Navigation Rail
 
 - Brand and `새 미션` action come first.
+- `새 미션` is the rail's one high-contrast command. Workstream destinations use a small semantic
+  indicator, one readable label, and a trailing count rather than equal-weight pills.
 - Recent Mission context and `Mission / Council / Execution / Deliverables` are the primary links.
 - Current Mission title and count stay visible in one compact native disclosure; opening it shows the
   source-current newest-first Mission list and reuses the existing explicit selection path.
@@ -81,6 +87,9 @@ Hierarchy:
 
 - One compact line shows current project, local/provider mode, refresh state, and open gate count.
 - It must not become a second dashboard or repeat the sidebar.
+- At 390px, keep that metadata on one actual line: project truncates first, the redundant current
+  surface label drops, and refresh copy ellipsizes while provider mode, gate count, and the refresh
+  command remain visible.
 
 ### Prompt Composer
 
@@ -109,6 +118,7 @@ Hierarchy:
   or the Operator turn.
 - Each turn has a small role marker, role label, status, content, and source/evidence affordance.
 - Use unframed rows and dividers instead of chat bubbles or nested cards.
+- Connect chronological turns with one quiet vertical rule so sequence reads before surface framing.
 - Tool and run activity uses compact inline status rather than fake typing animation.
 
 ### Mission Evidence Graph
@@ -136,6 +146,8 @@ Hierarchy:
 ### Context Inspector
 
 - Desktop may show one narrow right inspector for current Mission, authority, next gate, and evidence.
+- The desktop inspector is one bounded soft-surface tool, not another page section; it becomes
+  unframed after the workstream when the optional third column collapses.
 - Mobile places the inspector after the workstream or behind an explicit disclosure.
 - Deep IDs, logs, packets, and legacy controls remain available under a details disclosure or
   Advanced Ops.
@@ -228,6 +240,8 @@ The shell must keep `review before done` and `approval before commit` visible at
 - Do not place more than one metadata band above the workspace.
 - Do not use page-section cards. Cards are reserved for repeated durable records or a genuinely
   bounded tool.
+- Advanced Ops uses a neutral canvas, one unframed primary column, and individually bounded repeated
+  records or tools. Do not put one framed page panel around those framed records.
 - Use stable widths, min/max constraints, and fixed control heights so status changes do not shift the
   shell.
 

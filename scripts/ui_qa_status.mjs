@@ -305,6 +305,12 @@ const smokeChecks = [
       'Task Detail default-closed execution provenance disclosure, exact GET projection, browser-memory search and filters, direct-neighbor detail, desktop SVG, semantic mobile fallback, and absent graph authority actions',
   },
   {
+    id: 'llm-native-visual-system-convergence',
+    script: 'scripts/smoke-ui-slice-693.mjs',
+    purpose:
+      'Semantic workbench tokens, indicator-label-count navigation, connected Mission turns, bounded context inspection, one-line mobile metadata, contained Advanced Ops framing, and absent runtime or authority expansion',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

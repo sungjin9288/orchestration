@@ -10582,11 +10582,12 @@ function renderNav(data) {
     const guidance = SURFACE_NAV_GUIDANCE[surface] || '현재 desk의 상태와 다음 액션을 확인';
     button.innerHTML = `
       <span class="nav-button-main">
-        <span class="nav-button-count">${escapeHtml(String(count))}</span>
+        <span class="nav-button-indicator" aria-hidden="true"></span>
         <span class="nav-button-copy">
           <span class="nav-button-title">${escapeHtml(label)}</span>
           <span class="nav-button-help">${escapeHtml(guidance)}</span>
         </span>
+        <span class="nav-button-count">${escapeHtml(String(count))}</span>
       </span>
     `;
     button.setAttribute('aria-controls', `surface-${surface}`);

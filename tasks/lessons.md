@@ -1,5 +1,9 @@
 # lessons
 
+- A visual redesign is safest when it converges the active shell instead of replacing product
+  semantics. Bind the change to semantic tokens, preserve every route and action, then compare the
+  same Mission and Advanced Ops surfaces at desktop and mobile. When a narrow detail pane overflows,
+  fix the intrinsic grid owner and wrapping contract rather than hiding root overflow.
 - A provenance graph is an inspection surface, not a parallel workflow. Scope it to one exact Task,
   construct every edge from a stored reference, omit incomplete lineage rather than infer it, and
   keep the graph default-closed with browser-only exploration so visual context cannot create

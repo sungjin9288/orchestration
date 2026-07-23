@@ -14,7 +14,7 @@ assert.match(styles, /\.cast-body \{[\s\S]*gap:\s*9px;/);
 assert.match(styles, /\.cast-rank-row \{[\s\S]*gap:\s*6px;/);
 assert.match(styles, /\.cast-rank \{[\s\S]*font-size:\s*0\.76rem;[\s\S]*letter-spacing:\s*0\.05em;/);
 assert.match(styles, /\.cast-body > \.card-title-row \{[\s\S]*align-items:\s*flex-start;[\s\S]*gap:\s*8px 10px;/);
-assert.match(styles, /\.cast-body > \.card-title-row > strong \{[\s\S]*font-size:\s*1rem;[\s\S]*letter-spacing:\s*-0\.012em;/);
+assert.match(styles, /\.cast-body > \.card-title-row > strong \{[\s\S]*font-size:\s*1rem;[\s\S]*letter-spacing:\s*0;/);
 assert.match(styles, /\.cast-body > \.card-title-row \.token \{[\s\S]*box-shadow:\s*inset 0 1px 0 rgba\(255, 255, 255, 0\.42\);/);
 assert.match(styles, /\.cast-card-lead \.cast-body > \.card-title-row > strong \{/);
 
@@ -28,7 +28,7 @@ console.log(
           'cast-rank gap: 6px',
           'font-size: 0.76rem',
           'font-size: 1rem',
-          'letter-spacing: -0.012em',
+          'letter-spacing: 0',
         ],
       },
     },

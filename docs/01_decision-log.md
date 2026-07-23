@@ -1026,6 +1026,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/109_task-execution-provenance-graph-plan.md` adds one active-project exact `GET /api/tasks/:taskId/execution-provenance` projection and one default-closed Task Detail explorer. The response is deterministic, source-ref bound, capped at 250 nodes, redacted, deeply frozen, and browser exploration is local only. Runtime schema v16, storage, existing authority routes, Mission Graph, Taskboard, Logs, Artifacts, Decision Inbox, provider behavior, and all existing approval gates remain unchanged.
 - Needed Before: Artifact-body parsing, runtime search/index, cross-Task discovery, graph actions, persisted layout, 3D/WebGL, provider integration, schema migration, source mutation, commit, push, release, scheduling, policy mutation, or connectors require a separate decision and focused verification.
 
+### DEC-159
+- Status: `Accepted`
+- Decision: Accept one bounded browser-only LLM-native visual-system convergence slice.
+- Why: The primary Mission shell already follows the accepted LLM reading model, but legacy raw colors, negative letter spacing, equal-weight navigation, repeated page framing, and narrow-detail overflow leave Mission and Advanced Ops reading as two different products.
+- Impact: `docs/110_llm-native-visual-system-convergence-plan.md` adds semantic workbench tokens, a high-contrast new-Mission command, indicator/label/count navigation, one-line mobile workspace metadata, connected source-backed turns, one bounded desktop context inspector, and a contained Advanced Ops layout. The implementation changes browser markup order and CSS presentation only. Every existing surface, source count, action attribute, route, runtime record, exact evidence disclosure, review and approval gate, provider contract, and state boundary remains authoritative and unchanged.
+- Needed Before: Changing navigation destinations, source counts, action handlers, evidence order, routes, runtime/API/schema/dependency behavior, persistence, provider behavior, automatic navigation, source mutation, approval bypass, scheduling, commit, push, release, policy mutation, or connectors requires a separate complete decision and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
