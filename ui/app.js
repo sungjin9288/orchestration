@@ -10763,6 +10763,16 @@ function renderProjectBootstrapPanel(data, options = {}) {
 function renderLlmMissionLead(selectedMission = null, options = {}) {
   const projectBootstrap = options.projectBootstrap || null;
   const composingNew = options.composingNew === true || !selectedMission;
+  const nextAction = options.nextAction || null;
+  const nextGateId = options.nextGateId || '';
+  const hasNextGateNavigation = Boolean(
+    selectedMission &&
+      !composingNew &&
+      nextAction?.surface &&
+      nextAction.surface !== 'mission' &&
+      nextAction.actionLabel &&
+      nextGateId,
+  );
   const heading = projectBootstrap
     ? projectBootstrap.heading
     : selectedMission && !composingNew
@@ -10778,6 +10788,17 @@ function renderLlmMissionLead(selectedMission = null, options = {}) {
     <section class="llm-mission-lead ${selectedMission && !composingNew ? 'is-active-mission' : ''}" aria-labelledby="llm-mission-prompt-title">
       <h2 id="llm-mission-prompt-title">${escapeHtml(heading)}</h2>
       <p>${escapeHtml(supportingCopy)}</p>
+      ${
+        hasNextGateNavigation
+          ? `
+            <nav class="llm-mission-next-gate-summary" aria-label="다음 gate">
+              <span>Next gate</span>
+              <strong>${escapeHtml(`${getSurfaceDisplayName(nextAction.surface)} · ${nextAction.actionLabel}`)}</strong>
+              <a href="#${escapeHtml(nextGateId)}">다음 단계 확인</a>
+            </nav>
+          `
+          : ''
+      }
     </section>
   `;
 }
@@ -10799,6 +10820,7 @@ function renderLlmMissionWorkstream(options = {}) {
   const execution = options.execution || {};
   const deliverables = options.deliverables || {};
   const nextAction = options.nextAction || {};
+  const nextGateId = options.nextGateId || '';
   const linkedTask = options.linkedTask || null;
   const councilSession = council.councilSession || null;
   const currentArtifact = deliverables.currentDeliverableArtifact || null;
@@ -10876,7 +10898,7 @@ function renderLlmMissionWorkstream(options = {}) {
           )
           .join('')}
       </ol>
-      <div class="llm-next-gate">
+      <div class="llm-next-gate"${nextGateId ? ` id="${escapeHtml(nextGateId)}" tabindex="-1"` : ''}>
         <div>
           <span>Next gate</span>
           <strong>${escapeHtml(nextLabel)}</strong>
@@ -11343,10 +11365,18 @@ function renderMission(data) {
           <p class="mission-empty-copy">위 등록대장에서 첫 안건을 만들면 이곳에 바로 쌓입니다.</p>
         </div>
       `;
+  const missionNextGateId =
+    selectedMission && state.missionViewMode === 'thread'
+      ? `mission-next-gate-${selectedMission.id}`
+      : '';
 
   elements.surfaces.mission.innerHTML = `
     <div class="stack llm-mission-stack">
-      ${renderLlmMissionLead(selectedMission, { composingNew: missionComposerExpanded })}
+      ${renderLlmMissionLead(selectedMission, {
+        composingNew: missionComposerExpanded,
+        nextAction: selectedMissionNextActionPreview,
+        nextGateId: missionNextGateId,
+      })}
       ${renderMissionIntakeBoard({
         project: data.activeProject,
         mission: selectedMission,
@@ -11547,6 +11577,7 @@ function renderMission(data) {
                 execution: selectedMissionExecutionPreview,
                 deliverables: selectedMissionDeliverablesPreview,
                 nextAction: selectedMissionNextActionPreview,
+                nextGateId: missionNextGateId,
                 linkedTask,
               })
         }

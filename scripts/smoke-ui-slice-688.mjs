@@ -43,7 +43,11 @@ assert.match(
   desktopMedia,
   /body \.llm-app-shell \.surface-stack \{\s*scroll-margin-top:\s*46px;\s*\}/,
 );
-assert.equal((stylesSource.match(/scroll-margin-top:/g) || []).length, 1);
+assert.equal((stylesSource.match(/scroll-margin-top:/g) || []).length, 2);
+assert.match(
+  stylesSource,
+  /\.llm-next-gate\[id\] \{\s*scroll-margin-top:\s*58px;\s*\}/,
+);
 assert.match(mobileMedia, /body \.llm-app-shell \.shell-header \{\s*position:\s*static;/);
 assert.match(mobileMedia, /body \.llm-app-shell \.surface-stack \{\s*padding:\s*0 14px 36px;\s*\}/);
 assert.doesNotMatch(mobileMedia, /scroll-margin-top:/);

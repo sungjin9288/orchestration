@@ -390,8 +390,8 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /Current-head\s+verification passes UI QA required `67\/67` and aggregate required `1\/1`, informational `262\/262`,\s+total `263\/263`/,
-  /real-browser matrix at 1440x1000, 821x900, 820x900, and 390x844/,
+  /DEC-156 passes aggregate required `1\/1`, informational\s+`263\/263`, total `264\/264`, and UI QA required `68\/68`/,
+  /real-browser matrix at 1440x1000,\s+821x900, 820x900, and 390x844 verifies keyboard fragment focus/,
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
@@ -426,7 +426,7 @@ const growthFocusEvidence = [
 
 const growthSourceEvidence = [
   /Completion gate inventory:/,
-  /registered aggregate `263` checks, UI QA `67` checks, zero-open backlog/,
+  /registered aggregate `264` checks, UI QA `68` checks, zero-open backlog/,
   /Proposal generation decision packet:/,
   /scripts\/vnext-proposal-generation-decision-packet-status\.mjs/,
   /one deterministic local\s+draft planning target/,
@@ -1579,6 +1579,17 @@ const llmNativeAdvancedOpsOverviewPlacementEvidence = [
 
 assertReadmeHasAll(llmNativeAdvancedOpsOverviewPlacementEvidence);
 
+const llmNativeMissionNextGateNavigationEvidence = [
+  /docs\/107_llm-native-mission-next-gate-navigation-plan\.md/,
+  /LLM-native Mission next-gate navigation is accepted by `DEC-156`/,
+  /source-backed non-Mission next action, its lead shows the current gate and one native link/,
+  /existing lower gate after the recorded evidence/,
+  /Within this new lead-to-gate navigation pair, only\s+the lower gate keeps an `open-surface-for-mission` action/,
+  /Graph, the composer, recorded turns, routes, runtime\/API\/schema\/\s+dependencies, persistence, provider behavior, and every authority boundary remain unchanged/,
+];
+
+assertReadmeHasAll(llmNativeMissionNextGateNavigationEvidence);
+
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
@@ -1627,7 +1638,7 @@ const completionVerificationEvidence = [
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
-  /completion inventory counts,\s+aggregate registration `263`, UI QA registration `67`, zero-open backlog/,
+  /completion inventory counts,\s+aggregate registration `264`, UI QA registration `68`, zero-open backlog/,
   /reports `ok=true`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
   /reports `ok=true`, read-only lifecycle-close-review acceptance readiness/,

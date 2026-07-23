@@ -272,6 +272,13 @@ Advanced Ops. Existing overview renderers, handlers, browser-local storage, elem
 routes, runtime/API/schema/dependencies, persistence, provider behavior, and every authority boundary
 remain unchanged.
 
+LLM-native Mission next-gate navigation is accepted by `DEC-156` and implemented from
+`docs/107_llm-native-mission-next-gate-navigation-plan.md`. When an active Mission Thread has a
+source-backed non-Mission next action, its lead shows the current gate and one native link to the
+existing lower gate after the recorded evidence. Within this new lead-to-gate navigation pair, only
+the lower gate keeps an `open-surface-for-mission` action; Graph, the composer, recorded turns, routes, runtime/API/schema/
+dependencies, persistence, provider behavior, and every authority boundary remain unchanged.
+
 Phase 2 Real Council implementation is accepted by `DEC-082` against
 `docs/54_ai-company-real-council-implementation-plan.md` and the complete fielded decision in
 `docs/55_ai-company-real-council-implementation-decision-handoff.md`. The opt-in `real-local-stub`
@@ -560,12 +567,11 @@ review-decision packet, accepted evidence-decision, and downstream authority dec
 evidence plus AI Company durable DeliveryPackage, acceptance implementation, and Mission/task
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
-`defaultCompletionImplementationOpen=false`. DEC-155 registers the next aggregate shape as required
-`1/1`, informational `262/262`, total `263/263`; UI QA registers `67` required checks. Current-head
-verification passes UI QA required `67/67` and aggregate required `1/1`, informational `262/262`,
-total `263/263`. A real-browser matrix at 1440x1000, 821x900, 820x900, and 390x844 verifies all
-four Workflow and four Advanced Ops surfaces, open/closed secondary tools, browser-local roster
-add/remove with zero API writes, zero horizontal overflow, and zero console, page, or request errors.
+`defaultCompletionImplementationOpen=false`. DEC-156 passes aggregate required `1/1`, informational
+`263/263`, total `264/264`, and UI QA required `68/68`. A real-browser matrix at 1440x1000,
+821x900, 820x900, and 390x844 verifies keyboard fragment focus, exact lower-gate targeting,
+Thread/Graph and composer transitions, zero write requests, zero horizontal overflow, and zero
+console, page, or request errors.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -626,7 +632,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  registered aggregate `263` checks, UI QA `67` checks, zero-open backlog, post-completion router,
+  registered aggregate `264` checks, UI QA `68` checks, zero-open backlog, post-completion router,
   README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
@@ -2213,9 +2219,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 941 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 942 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 689 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 690 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2397,7 +2403,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate registration `263`, UI QA registration `67`, zero-open backlog, post-completion router,
+  aggregate registration `264`, UI QA registration `68`, zero-open backlog, post-completion router,
   README smoke count, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2715,10 +2721,10 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required `67/67` pass. Snapshot reachability remains informational
-  and may be skipped when the optional port-4315 UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `262/262`, total `263/263`
-  pass on the current source. The aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
+- `node scripts/ui_qa_status.mjs`: required `68/68` pass. Snapshot reachability remains informational
+  and was skipped because the optional port-4315 UI server was not running.
+- `node scripts/verification_status.mjs`: required `1/1`, informational `263/263`, total `264/264`
+  pass. The aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
   durable proposal record implementation plan, implementation, proposal application decision packet,
@@ -2784,9 +2790,10 @@ Playwright CLI:
 - This is a local-first PoC/MVP-quality project, not a hosted service.
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
-- The current completion gate is evidence-closed, not a claim of hosted production readiness. DEC-154
-  and DEC-155 pass focused source checks, the local four-viewport browser matrix, UI QA `67/67`, and
-  aggregate `263/263`; this remains local synthetic/browser evidence rather than hosted proof.
+- The current completion gate is evidence-closed through DEC-156, not a claim of hosted production
+  readiness. Focused source and compatibility checks, the local four-viewport browser matrix, UI QA
+  `68/68`, and aggregate `264/264` pass. This remains local synthetic/browser evidence rather than
+  hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.

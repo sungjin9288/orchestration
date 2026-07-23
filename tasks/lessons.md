@@ -1,4 +1,6 @@
 # lessons
+
+- A first-viewport next-step cue should remain navigation, not a second command. Bind it to the existing source-backed gate, use a native fragment target that can receive focus, and keep the only authority-bearing button after the recorded review and evidence that justify it. Hide the cue when the target is absent, the current step remains on Mission, or the operator is viewing Graph so presentation cannot create a shortcut around the workflow.
 - When a source-backed operations overview competes with the active workstream, move the unchanged
   element after the authoritative surface and use default-closed native details instead of changing
   its renderer. Group visibility in CSS preserves its browser-local handlers and storage contracts

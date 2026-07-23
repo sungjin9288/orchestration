@@ -194,6 +194,10 @@ Secondary operations evidence follows the authoritative workspace in a native, d
 disclosure. It stays absent from primary workflows and retains the existing renderer, browser-local,
 and authority contracts when opened from Advanced Ops.
 
+Mission Thread keeps the next gate visible as source-backed status in the active Mission lead. The
+lead may link to the existing lower gate after the recorded evidence, but it must never duplicate that
+gate's approval or execution action. Graph stays a separate read-only view.
+
 The visual language may be conversational, but authority must remain procedural. A model response is
 not an approval, a displayed plan is not execution, and a completed turn is not Mission completion.
 The shell must keep `review before done` and `approval before commit` visible at the current gate.

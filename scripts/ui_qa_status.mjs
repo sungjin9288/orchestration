@@ -394,6 +394,12 @@ const smokeChecks = [
     purpose:
       'Advanced Ops keeps the existing overview as a default-closed secondary disclosure after the authoritative workspace without changing renderers, browser-local state, or authority',
   },
+  {
+    id: 'mission-next-gate-native-navigation',
+    script: 'scripts/smoke-ui-slice-690.mjs',
+    purpose:
+      'Mission Thread exposes one source-backed native jump to its existing lower next gate while preserving the lower authority action, Graph behavior, and every runtime boundary',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
