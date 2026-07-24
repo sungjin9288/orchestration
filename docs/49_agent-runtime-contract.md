@@ -13,7 +13,7 @@ preview/accept/persist/inspect path와 Council-first schema-v18 StaffingEntry im
 추가했다. One accepted council-mode plan은 separate entry approval과 one deterministic local-stub
 first attempt에 bind되며 human alignment에서 멈춘다. Solo binding, bound revision/resume/auto-chain,
 general scheduler, parallel specialists, automatic rework, and Mission memory application은 아직
-없다.
+없다. Stage 3 operator-stepped scheduler remains planning-only under `DEC-170` and `DEC-171`.
 
 ## Contract Principles
 
@@ -438,6 +438,13 @@ keeping StaffingPlan immutable. It requires a separate exact entry approval, bin
 `mode=council` to one deterministic local-stub first attempt, and stops at alignment-only approve or
 stop. Solo entry/execution, bound revision/resume/auto-chain, general scheduling, parallel
 specialists, and profile mutation은 별도 complete fielded decision 전까지 구현하지 않는다.
+
+Stage 3 operator-stepped scheduler planning은 `DEC-170`, complete fielded implementation handoff는
+`DEC-171`로 기록됐다. Planned boundary는 one future schema-v19 `WorkOrderAttempt`, exact approved
+bound source recomputation, deterministic dependency-ready selection, active-before-execution
+persistence, and one local role boundary per explicit start or step다. Current schema remains v18;
+bound WorkOrder preview/persistence/dispatch, attempt creation, retry/rework, parallel/provider/
+background scheduling은 implementation decision 전까지 blocked다.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

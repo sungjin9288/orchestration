@@ -402,6 +402,11 @@ const informationalChecks = [
     purpose: 'AI Company Council-first StaffingEntry planning preserves DEC-167 and DEC-168 provenance while source-checking the implemented schema-v18 immutable accepted-plan binding and still-blocked downstream authority',
   },
   {
+    id: 'ai-company-operator-stepped-workorder-scheduler-planning',
+    script: 'scripts/smoke-ai-company-operator-stepped-workorder-scheduler-planning.mjs',
+    purpose: 'AI Company Stage 3 planning source-checks DEC-170 and DEC-171, the future schema-v19 WorkOrderAttempt lifecycle, exact bound source gate, deterministic dependency-ready selection, one-role start or step boundary, rollback, focused verification, and still-blocked implementation authority',
+  },
+  {
     id: 'ai-company-staffing-entry-binding',
     script: 'scripts/smoke-ai-company-staffing-entry-binding.mjs',
     purpose: 'AI Company StaffingEntry runtime proves one-save schema-v17 to schema-v18 migration, exact accepted-plan and approval digests, one deterministic local Council attempt, no-write replay and rollback, alignment-only decisions, exact inspection, and blocked unbound start revision resume auto-chain WorkOrder provider source Git scheduling policy bypass and connector authority',

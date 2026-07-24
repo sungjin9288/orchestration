@@ -37,9 +37,9 @@ function assertReadmeHas(pattern) {
 
 const inventoryGateRows = [
   /Planning baseline head checked before this document update: `47be8f0`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `273\/273`, total `274\/274` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `274\/274`, total `275\/275` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
   /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `75\/75` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory evidence is pinned to aggregate `274\/274`, UI QA `75\/75`,[\s\S]*DEC-161 Agent Operations Desk visual redesign, DEC-162 through DEC-166 StaffingPlan planning\/implementation, and DEC-167 through DEC-169 StaffingEntry planning, handoff, and implementation\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory evidence is pinned to aggregate `275\/275`, UI QA `75\/75`,[\s\S]*DEC-161 Agent Operations Desk visual redesign, DEC-162 through DEC-166 StaffingPlan planning\/implementation, DEC-167 through DEC-169 StaffingEntry planning\/implementation, and DEC-170 through DEC-171 operator-stepped scheduler planning\/handoff\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -262,9 +262,13 @@ assert.match(verificationStatus, /smoke-ai-company-multi-agent-completion-planni
 assert.match(verificationStatus, /smoke-ai-company-durable-staffing-plan\.mjs/);
 assert.match(verificationStatus, /smoke-ai-company-staffing-entry-binding-planning\.mjs/);
 assert.match(verificationStatus, /smoke-ai-company-staffing-entry-binding\.mjs/);
+assert.match(
+  verificationStatus,
+  /smoke-ai-company-operator-stepped-workorder-scheduler-planning\.mjs/,
+);
 assert.match(uiQaStatus, /smoke-ui-slice-696\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-697\.mjs/);
-assertReadmeHas(/total `274\/274`/);
+assertReadmeHas(/total `275\/275`/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -275,8 +279,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '273/273',
-        total: '274/274',
+        informational: '274/274',
+        total: '275/275',
       },
     },
     null,

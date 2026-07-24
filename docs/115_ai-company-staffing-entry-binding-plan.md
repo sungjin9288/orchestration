@@ -289,7 +289,9 @@ synthesis, and human alignment evidence. It changes only entry provenance and do
 - Existing historical unbound local/provider/legacy sessions retain their current decision behavior.
 
 Stage 3 must separately decide how one approved bound Council synthesis becomes a durable
-operator-stepped WorkOrder schedule.
+operator-stepped WorkOrder schedule. That planning is now recorded in
+`docs/117_ai-company-operator-stepped-workorder-scheduler-plan.md` as `DEC-170`, with complete
+fielded implementation handoff `DEC-171`; current schema-v18 runtime remains blocked.
 
 ## API Contract
 

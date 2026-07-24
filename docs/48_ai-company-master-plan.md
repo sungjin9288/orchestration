@@ -77,7 +77,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   separate entry approval이 one deterministic local-stub first attempt에 bind되고 human
   alignment에서 멈춘다. Solo binding, bound revision/resume/auto-chain, general scheduler, parallel
   specialists, Reviewer rework, Ops commands, and Mission context application은 아직 구현되지
-  않았다.
+  않았다. Stage 3 operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`, and its
+  complete fielded implementation handoff is `DEC-171`; schema-v19 and dispatch authority remain
+  blocked.
 
 ## Approved Real Council Planning Authority
 
@@ -117,13 +119,16 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`, `DEC-167`, `DEC-168`, `DEC-169`
+- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`, `DEC-167`, `DEC-168`, `DEC-169`, `DEC-170`, `DEC-171`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
 - Council-first entry binding plan and handoff:
   `docs/115_ai-company-staffing-entry-binding-plan.md`,
   `docs/116_ai-company-staffing-entry-binding-implementation-decision-handoff.md`
+- Operator-stepped WorkOrder scheduler plan and handoff:
+  `docs/117_ai-company-operator-stepped-workorder-scheduler-plan.md`,
+  `docs/118_ai-company-operator-stepped-workorder-scheduler-implementation-decision-handoff.md`
 - Readiness clarification: exact active-project binding, fresh normalized-blueprint plus nine
   role-source digest, existing role/provider vocabulary, exact staffingSpec resubmission, separate
   acceptance evidence, one termination policy, source and blocked-action evidence, timestamp policy,
@@ -132,8 +137,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   exact inspection; schema-v18 StaffingEntry migration plus separate entry approval, one exact
   council-mode plan binding, one deterministic local-stub first attempt, atomic persistence, exact
   replay/inspection, and alignment-only approve or stop
-- Next gate: solo remains deferred because no executable solo contract exists; any bound Council
-  continuation requires a separate decision
+- Next gate: the Stage 3 handoff requires one complete fielded operator decision before schema-v19
+  WorkOrderAttempt, bound WorkOrder compilation, or explicit start/step implementation; solo remains
+  deferred because no executable solo contract exists
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain, scheduling,
   parallel execution,
   Ops commands, memory application, provider-backed

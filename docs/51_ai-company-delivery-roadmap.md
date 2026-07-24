@@ -562,7 +562,12 @@ implementation is accepted as `DEC-169`: one schema-v18 immutable record binds o
 accepted council-mode plan and separate entry approval to one deterministic local-stub Council first
 attempt, stopping at alignment-only approve or stop. Solo remains deferred because no executable
 solo contract exists.
-Automatic staffing, general scheduling, parallel execution, retry/rework, Ops commands, context
+Operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`, and `DEC-171` records the
+complete fielded implementation handoff in
+`docs/118_ai-company-operator-stepped-workorder-scheduler-implementation-decision-handoff.md`.
+The planned slice adds one future schema-v19 WorkOrderAttempt and executes one local dependency-ready
+role per explicit start or step, but no implementation authority is accepted yet. Automatic
+staffing, general/background scheduling, parallel execution, retry/rework, Ops recovery, context
 application, provider-backed WorkOrders, source/Git/release, policy, bypass, and connectors remain
 separate later decisions.
 

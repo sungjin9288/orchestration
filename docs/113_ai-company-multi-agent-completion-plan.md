@@ -382,5 +382,7 @@ fit.
 - Council-first StaffingEntry binding planning is recorded as `DEC-167`; its complete fielded
   implementation handoff is recorded as `DEC-168`.
 - StaffingEntry implementation and Council-first binding are recorded as `DEC-169`.
+- Operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`; its complete fielded
+  schema-v19 implementation handoff is recorded as `DEC-171`.
 - Solo entry/execution, bound revision/resume/auto-chain, and every later completion stage remain
   blocked pending their own complete fielded decisions.

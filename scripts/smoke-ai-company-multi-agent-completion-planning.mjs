@@ -62,6 +62,8 @@ assert.match(plan, /planning-only `DEC-163`/);
 assert.match(plan, /handoff is recorded as `DEC-164`/);
 assert.match(plan, /clarification is recorded as `DEC-165`/);
 assert.match(plan, /implementation is recorded as `DEC-166`/);
+assert.match(plan, /scheduler planning is recorded as `DEC-170`/);
+assert.match(plan, /implementation handoff is recorded as `DEC-171`/);
 
 assert.match(
   handoff,
@@ -89,7 +91,18 @@ assert.doesNotMatch(handoff, /providerMode=local-stub-only/);
 assert.match(handoff, /delegated self-approval for schema migration or durable record creation/);
 assert.match(handoff, /implementation is accepted as `DEC-166`/);
 
-for (const decisionId of ['DEC-162', 'DEC-163', 'DEC-164', 'DEC-165', 'DEC-166']) {
+for (const decisionId of [
+  'DEC-162',
+  'DEC-163',
+  'DEC-164',
+  'DEC-165',
+  'DEC-166',
+  'DEC-167',
+  'DEC-168',
+  'DEC-169',
+  'DEC-170',
+  'DEC-171',
+]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
@@ -110,6 +123,7 @@ assert.match(
 );
 assert.match(readme, /`DEC-166` consumes that handoff and implements[\s\S]*schema-v16-to-v17/);
 assert.match(readme, /`DEC-169` consumes[\s\S]*immutable schema-v18 StaffingEntry/);
+assert.match(readme, /`DEC-170` records Stage 3 operator-stepped WorkOrder scheduler planning/);
 assert.match(taskLedger, /ai-company-multi-agent-completion-planning-post-m7-2006/);
 assert.match(
   taskLedger,
@@ -156,28 +170,35 @@ process.stdout.write(
         handoff: 'documented-dec-164',
         clarification: 'accepted-dec-165',
         implementation: 'accepted-dec-166',
+        staffingEntryImplementation: 'accepted-dec-169',
+        operatorSteppedSchedulerPlanning: 'accepted-dec-170',
+        operatorSteppedSchedulerHandoff: 'documented-dec-171',
       },
       currentRuntime: {
         schemaVersion: 18,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
+        staffingEntryBoundCouncil: true,
+        operatorSteppedScheduler: false,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
-      firstImplementationTarget: {
-        schemaVersion: 18,
-        object: 'StaffingPlan',
-        flow: 'preview-separate-accept-atomic-append-exact-inspection',
-        councilBinding: false,
-        scheduling: false,
+      nextImplementationTarget: {
+        schemaVersion: 19,
+        object: 'WorkOrderAttempt',
+        flow: 'active-before-execution-one-role-per-explicit-command',
+        councilBinding: true,
+        scheduling: 'operator-stepped-local-only',
       },
       authority: {
         documentationAllowed: true,
         implementationAllowed: true,
         schemaMigrationAllowed: true,
         durableRecordAllowed: true,
-        councilBindingAllowed: false,
+        councilBindingAllowed: true,
+        operatorSteppedSchedulerPlanningAllowed: true,
+        workOrderAttemptImplementationAllowed: false,
         schedulingAllowed: false,
         parallelExecutionAllowed: false,
         providerExpansionAllowed: false,

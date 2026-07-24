@@ -427,12 +427,19 @@ Bound revision, resume, auto-chain, WorkOrder, provider, and solo behavior remai
 operator-facing unbound local Council starts are rejected while historical sessions remain
 inspectable.
 
+Operator-stepped WorkOrder scheduler planning은 `DEC-170`, complete implementation decision handoff는
+`DEC-171`로 기록됐다. Approved bound sessions remain stopped before WorkOrder compilation in the
+current schema-v18 runtime. A future accepted implementation may reuse the exact approved synthesis
+only through deterministic dependency-ready selection and one explicit local role step; planning
+does not enable WorkOrders, attempts, dispatch, retry, parallelism, providers, or background loops.
+
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
 node scripts/smoke-ai-company-multi-agent-completion-planning.mjs
 node scripts/smoke-ai-company-staffing-entry-binding-planning.mjs
+node scripts/smoke-ai-company-operator-stepped-workorder-scheduler-planning.mjs
 node scripts/smoke-ai-company-real-council-planning.mjs
 node scripts/smoke-ai-company-real-council.mjs
 node scripts/smoke-ui-slice-651.mjs
