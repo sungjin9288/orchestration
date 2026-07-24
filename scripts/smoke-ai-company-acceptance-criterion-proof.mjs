@@ -10,6 +10,7 @@ import contractsModule from '../src/runtime/contracts.js';
 import fileStoreModule from '../src/runtime/file-store.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
 import verificationPlanModule from '../src/runtime/workorder-verification-plan-preview.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createCouncilLocalStubAdapter } = councilAdapterModule;
@@ -120,9 +121,12 @@ function createContext() {
     goal: 'Require exact current proof before independent Reviewer execution.',
     constraints: 'Use local-stub only and stop before commit, push, release, or Mission done.',
   });
-  const started = runtime.startRealCouncilForMission({
+  const started = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: createResolvedCouncilAdapter(),
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   runtime.decideRealCouncilSession({
     councilSessionId: started.councilSession.id,
@@ -238,7 +242,7 @@ async function main() {
     delete v15.staffingPlans;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(v15));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 17);
+    assert.equal(migrated.schemaVersion, 18);
     assert.equal(migrated.sequences.acceptanceCriterion, 0);
     assert.equal(migrated.sequences.verificationProof, 0);
     assert.deepEqual(migrated.acceptanceCriteria, {});
@@ -294,7 +298,7 @@ async function main() {
       persistedCriteria.acceptanceCriteria.map((criterion) => criterion.kind),
       ['happy-path', 'risk', 'regression', 'manual'],
     );
-    assert.equal(runtime.getSnapshot().schemaVersion, 17);
+    assert.equal(runtime.getSnapshot().schemaVersion, 18);
     assert.equal(Object.keys(runtime.getSnapshot().verificationProofs).length, 0);
     const repeatedCriteria = runtime.persistWorkOrderAcceptanceCriteria(persistenceRequest);
     assert.equal(repeatedCriteria.idempotent, true);
@@ -344,7 +348,7 @@ async function main() {
         ok: true,
         mode: MODE,
         seedStage,
-        schemaVersion: 17,
+        schemaVersion: 18,
         executionPlanId,
         workOrderId: builder.id,
         acceptanceCriteria: persistedCriteria.acceptanceCriteria.length,
@@ -440,7 +444,7 @@ async function main() {
         ok: true,
         mode: MODE,
         seedStage,
-        schemaVersion: 17,
+        schemaVersion: 18,
         executionPlanId,
         workOrderId: builder.id,
         acceptanceCriteria: persistedCriteria.acceptanceCriteria.length,
@@ -467,7 +471,7 @@ async function main() {
       companyRepoRoot: repoRoot,
     });
     const reloadedState = reloaded.getSnapshot();
-    assert.equal(reloadedState.schemaVersion, 17);
+    assert.equal(reloadedState.schemaVersion, 18);
     assert.equal(Object.keys(reloadedState.acceptanceCriteria).length, 4);
     assert.equal(Object.keys(reloadedState.verificationProofs).length, 6);
     assert.equal(
@@ -483,7 +487,7 @@ async function main() {
     console.log(JSON.stringify({
       ok: true,
       mode: MODE,
-      schemaVersion: 17,
+      schemaVersion: 18,
       migration: 'v15-to-v16-additive',
       acceptanceCriteria: 4,
       verificationProofs: 6,

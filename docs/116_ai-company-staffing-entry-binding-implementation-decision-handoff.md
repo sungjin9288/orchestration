@@ -11,6 +11,13 @@ first entry다.
 non-critical self-approval delegation, or the planning decision cannot authorize schema migration,
 durable entry creation, Council start, API/UI mutation, or downstream execution.
 
+## Consumed Implementation Decision
+
+`DEC-169` records that the operator supplied the complete valid approval outcome below. The
+schema-v18 StaffingEntry Council binding slice is implemented and verified; the planning and handoff
+text remains as immutable decision provenance. Every authority listed under
+`stillBlockedAuthorities` remains closed.
+
 ## Current Gate
 
 - Durable StaffingPlan planning and implementation are accepted through `DEC-163` to `DEC-166`.

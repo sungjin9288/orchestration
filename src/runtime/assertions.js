@@ -116,6 +116,14 @@ function assertStaffingPlan(staffingPlanId, state) {
   return staffingPlan;
 }
 
+function assertStaffingEntry(staffingEntryId, state) {
+  const staffingEntry = state.staffingEntries[staffingEntryId];
+  if (!staffingEntry) {
+    throw new Error(`StaffingEntry not found: ${staffingEntryId}`);
+  }
+  return staffingEntry;
+}
+
 module.exports = {
   assertAcceptanceCriterion,
   assertDeliveryPackage,
@@ -128,6 +136,7 @@ module.exports = {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertRun,
+  assertStaffingEntry,
   assertStaffingPlan,
   assertWorkOrder,
   assertWorkflowCheckpoint,

@@ -11,6 +11,18 @@ schema-v18 StaffingEntry로 보존하는 경로다.
 handoff만 허용하며 schema migration, StaffingEntry creation, Council start, API/UI mutation, solo
 execution, WorkOrder, provider, source mutation, Git, release authority를 열지 않는다.
 
+## Implementation Outcome
+
+`DEC-169` consumes the complete operator decision recorded by the companion handoff and implements
+this bounded slice. Current runtime is schema v18 with immutable `StaffingEntry` records, exact
+accepted-plan and source recomputation, one deterministic local-stub first attempt before one atomic
+save, exact inspection and replay, and alignment-only approve or stop.
+
+The historical planning boundary below remains authoritative evidence for why this shape was chosen.
+Solo execution, bound revision/resume/retry/rework/auto-chain, WorkOrders, scheduling, providers,
+memory application, source mutation, runtime-agent Git/release, policy bypass, lifecycle mutation,
+and connectors remain blocked.
+
 ## Accepted Planning-Only Decision
 
 | Field | Accepted value |

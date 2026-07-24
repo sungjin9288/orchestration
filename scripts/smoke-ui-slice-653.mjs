@@ -11,6 +11,7 @@ import {
   getMissionWorkOrderPreviewSummary,
   parseMissionWorkOrderCompileList,
 } from '../ui/council-signals.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createCouncilLocalStubAdapter } = councilAdapterModule;
@@ -95,9 +96,12 @@ async function main() {
     goal: 'Approve one response-only WorkOrder preview without downstream records.',
     constraints: 'Keep the response-only preview and the default auto-chain compatibility path.',
   });
-  const resolvedStart = resolvedRuntime.startRealCouncilForMission({
+  const resolvedStart = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: createResolvedAdapter(),
     missionId: resolvedMission.id,
-    mode: 'real-local-stub',
   });
 
   const defaultRuntime = createRuntimeService({
@@ -111,9 +115,11 @@ async function main() {
     goal: 'Preserve the existing Real Council approval auto-chain.',
     constraints: 'Do not send an inert preview handoff mode.',
   });
-  const compatibilityStart = defaultRuntime.startRealCouncilForMission({
+  const compatibilityStart = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
     missionId: compatibilityMission.id,
-    mode: 'real-local-stub',
   });
 
   const server = spawn(

@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 17;
+const STATE_SCHEMA_VERSION = 18;
+const STAFFING_ENTRY_STATE_SCHEMA_VERSION = 18;
 const STAFFING_PLAN_STATE_SCHEMA_VERSION = 17;
 const ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION = 16;
 const MEMORY_RECALL_STATE_SCHEMA_VERSION = 15;
@@ -395,6 +396,7 @@ function createEmptyState() {
       acceptanceCriterion: 0,
       verificationProof: 0,
       staffingPlan: 0,
+      staffingEntry: 0,
     },
     missions: {},
     councilSessions: {},
@@ -421,6 +423,7 @@ function createEmptyState() {
     acceptanceCriteria: {},
     verificationProofs: {},
     staffingPlans: {},
+    staffingEntries: {},
   };
 }
 
@@ -470,6 +473,7 @@ module.exports = {
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   STAFFING_PLAN_STATE_SCHEMA_VERSION,
+  STAFFING_ENTRY_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,
   TASK_LIFECYCLE,
   WORK_ORDER_ACTION,

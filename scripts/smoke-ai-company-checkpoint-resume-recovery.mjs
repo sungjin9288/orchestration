@@ -9,6 +9,7 @@ import councilAdapterModule from '../src/execution/providers/council-local-stub-
 import executionCoordinatorModule from '../src/execution/execution-coordinator.js';
 import localStubAdapterModule from '../src/execution/providers/local-stub-adapter.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createEmptyState } = contractsModule;
@@ -122,9 +123,12 @@ function createContext(name) {
     goal: 'Prove one exact durable reviewed-delivery recovery path.',
     constraints: 'Local stub only. No automatic retry, commit, push, release, or Mission done.',
   });
-  const started = runtime.startRealCouncilForMission({
+  const started = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: createResolvedCouncilAdapter(),
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   runtime.decideRealCouncilSession({
     councilSessionId: started.councilSession.id,
@@ -278,12 +282,12 @@ async function main() {
     delete v7.staffingPlans;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(v7));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 17);
+    assert.equal(migrated.schemaVersion, 18);
     assert.equal(migrated.sequences.workflowCheckpoint, 0);
     assert.deepEqual(migrated.workflowCheckpoints, {});
     assert.equal(
       JSON.parse(fs.readFileSync(path.join(migrationRoot, 'state.json'), 'utf8')).schemaVersion,
-      17,
+      18,
     );
 
     const populatedMigration = createContext('populated-migration');
@@ -293,7 +297,7 @@ async function main() {
     const populatedMigrated = createFileStore({
       runtimeRoot: populatedMigration.runtimeRoot,
     }).loadState();
-    assert.equal(populatedMigrated.schemaVersion, 17);
+    assert.equal(populatedMigrated.schemaVersion, 18);
     assert.deepEqual(asSchemaV7(populatedMigrated), populatedV7);
     assert.deepEqual(
       JSON.parse(fs.readFileSync(populatedStatePath, 'utf8')),
@@ -306,7 +310,7 @@ async function main() {
         delete value.workflowCheckpoints;
         return value;
       })(), /missing WorkflowCheckpoint fields/],
-      ['future-v18', { ...createEmptyState(), schemaVersion: 18 }, /Unsupported runtime state/],
+      ['future-v19', { ...createEmptyState(), schemaVersion: 19 }, /Unsupported runtime state/],
     ]) {
       const root = path.join(tempRoot, name);
       fs.mkdirSync(root, { recursive: true });
@@ -543,7 +547,7 @@ async function main() {
     const persistedState = JSON.parse(
       fs.readFileSync(path.join(success.runtimeRoot, 'state.json'), 'utf8'),
     );
-    assert.equal(persistedState.schemaVersion, 17);
+    assert.equal(persistedState.schemaVersion, 18);
     assert.equal(Object.keys(persistedState.workflowCheckpoints).length, 4);
     assert.equal(persistedState.executionPlans[executionPlanId].checkpointRefs.length, 4);
     assert.deepEqual(persistedState.deliveryPackages, {});
@@ -554,7 +558,7 @@ async function main() {
       ok: true,
       mode: MODE,
       schema: {
-        version: 17,
+        version: 18,
         v7Migration: true,
         partialAndFutureRejected: true,
         rollbackRetention: true,

@@ -108,7 +108,8 @@ assert.match(
   readme,
   /docs\/114_ai-company-durable-staffing-plan-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /Durable StaffingPlan.*schema-v17.*implemented/s);
+assert.match(readme, /`DEC-166` consumes that handoff and implements[\s\S]*schema-v16-to-v17/);
+assert.match(readme, /`DEC-169` consumes[\s\S]*immutable schema-v18 StaffingEntry/);
 assert.match(taskLedger, /ai-company-multi-agent-completion-planning-post-m7-2006/);
 assert.match(
   taskLedger,
@@ -129,7 +130,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 17/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -157,7 +158,7 @@ process.stdout.write(
         implementation: 'accepted-dec-166',
       },
       currentRuntime: {
-        schemaVersion: 17,
+        schemaVersion: 18,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
@@ -165,7 +166,7 @@ process.stdout.write(
         continuationMaxSteps: 1,
       },
       firstImplementationTarget: {
-        schemaVersion: 17,
+        schemaVersion: 18,
         object: 'StaffingPlan',
         flow: 'preview-separate-accept-atomic-append-exact-inspection',
         councilBinding: false,

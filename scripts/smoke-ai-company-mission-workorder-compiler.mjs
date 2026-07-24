@@ -7,6 +7,7 @@ import blueprintModule from '../src/runtime/company-blueprint.js';
 import councilAdapterModule from '../src/execution/providers/council-local-stub-adapter.js';
 import compilerModule from '../src/runtime/mission-workorder-compiler.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { loadCompanyBlueprint } = blueprintModule;
@@ -68,9 +69,12 @@ function createConfiguredRuntime(name, adapter = createResolvedAdapter()) {
     goal: 'Compile one deterministic response-only Builder Reviewer QA preview.',
     constraints: 'Keep the response-only preview path and do not create or execute durable WorkOrders.',
   });
-  const started = runtime.startRealCouncilForMission({
+  const started = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: adapter,
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   return { runtime, runtimeRoot, project, mission, session: started.councilSession };
 }
@@ -112,7 +116,7 @@ try {
   const initialSession = initialSnapshot.councilSessions[success.session.id];
   const initialAttempt = initialSession.attempts[0];
 
-  assert.equal(initialSnapshot.schemaVersion, 17);
+  assert.equal(initialSnapshot.schemaVersion, 18);
   assert.deepEqual(initialAttempt.synthesis.unresolvedQuestions, []);
   assert.equal(initialSession.phase, 'awaiting-alignment');
   assertNoDownstreamRecords(initialSnapshot);
@@ -178,7 +182,7 @@ try {
   assert.ok(preview.workOrders.every((entry) => entry.authority.persistenceAllowed === false));
 
   const approvedSnapshot = success.runtime.getSnapshot();
-  assert.equal(approvedSnapshot.schemaVersion, 17);
+  assert.equal(approvedSnapshot.schemaVersion, 18);
   assertNoDownstreamRecords(approvedSnapshot);
   const stateBeforeReload = clone(approvedSnapshot);
   const reloaded = createRuntimeService({

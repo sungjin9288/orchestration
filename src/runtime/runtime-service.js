@@ -118,6 +118,7 @@ const {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertRun,
+  assertStaffingEntry,
   assertStaffingPlan,
   assertWorkOrder,
   assertWorkflowCheckpoint,
@@ -188,6 +189,12 @@ const {
   previewMissionStaffingPlan: compileMissionStaffingPlanPreview,
 } = require('./staffing-plans');
 const {
+  computeStaffingEntryApprovalDigest,
+  computeStaffingEntrySourceDigest,
+  createStaffingEntry,
+  normalizeStaffingEntryApproval,
+} = require('./staffing-entries');
+const {
   computeMissionMemoryContextTargetDigest,
   previewMissionMemoryContext: compileMissionMemoryContextPreview,
 } = require('./mission-memory-context-preview');
@@ -222,9 +229,8 @@ function createRuntimeService(options = {}) {
         ...companyBlueprintOptions,
       })
     : null;
-  const councilCoordinator = createCouncilCoordinator({
-    adapter: options.councilAdapter || createCouncilLocalStubAdapter(),
-  });
+  const councilAdapter = options.councilAdapter || createCouncilLocalStubAdapter();
+  const councilCoordinator = createCouncilCoordinator({ adapter: councilAdapter });
   const councilLiveAdapter =
     options.councilLiveAdapter ||
     createCouncilOpenAIResponsesAdapter({ repoRoot: options.companyRepoRoot });
@@ -288,6 +294,11 @@ function createRuntimeService(options = {}) {
   function nextStaffingPlanId(state) {
     state.sequences.staffingPlan += 1;
     return `staffing-plan-${String(state.sequences.staffingPlan).padStart(4, '0')}`;
+  }
+
+  function nextStaffingEntryId(state) {
+    state.sequences.staffingEntry += 1;
+    return `staffing-entry-${String(state.sequences.staffingEntry).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -1885,6 +1896,7 @@ function createRuntimeService(options = {}) {
       status: 'draft',
       linkedTaskId: null,
       councilSessionId: null,
+      staffingEntryId: null,
       createdAt: now,
       updatedAt: now,
     };
@@ -2174,6 +2186,12 @@ function createRuntimeService(options = {}) {
     const mission = assertMission(councilSession.missionId, state);
     const project = assertProject(mission.projectId, state);
 
+    if (councilSession.staffingEntryRef) {
+      throw conflict(
+        `StaffingEntry-bound Council session ${councilSession.id} cannot compile WorkOrders`,
+      );
+    }
+
     if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
       throw new Error('CompanyBlueprint must be ready before WorkOrder compilation');
     }
@@ -2367,6 +2385,259 @@ function createRuntimeService(options = {}) {
 
     return {
       staffingPlan: assertStaffingPlan(staffingPlanId, state),
+      persisted: true,
+    };
+  }
+
+  function buildStaffingSpecFromPlan(staffingPlan) {
+    return {
+      mode: staffingPlan.mode,
+      selectedAgentIds: [...staffingPlan.selectedAgentIds],
+      selectionRationale: staffingPlan.selectionRationale,
+      parallelGroups: structuredClone(staffingPlan.parallelGroups),
+      providerMode: staffingPlan.providerMode,
+      terminationPolicy: structuredClone(staffingPlan.terminationPolicy),
+    };
+  }
+
+  function findStaffingEntryByPlan(state, staffingPlanId) {
+    return (
+      Object.values(state.staffingEntries || {}).find(
+        (staffingEntry) => staffingEntry.staffingPlanId === staffingPlanId,
+      ) || null
+    );
+  }
+
+  function enterStaffingPlanCouncil(input) {
+    assertExactStaffingPlanRequest(
+      input,
+      [
+        'blueprintDigest',
+        'entryApproval',
+        'missionDigest',
+        'sourceDigest',
+        'staffingPlanId',
+        'staffingPlanRecordDigest',
+        'staffingSpecDigest',
+      ],
+      'StaffingEntry Council entry request',
+    );
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`StaffingEntry Council entry requires supported state: ${error.message}`);
+    }
+
+    const staffingPlan = assertStaffingPlan(input.staffingPlanId, state);
+    let entryApproval;
+    try {
+      entryApproval = normalizeStaffingEntryApproval(
+        input.entryApproval,
+        staffingPlan,
+        new Date().toISOString(),
+      );
+    } catch (error) {
+      throw conflict(error.message);
+    }
+    const entryApprovalDigest = computeStaffingEntryApprovalDigest(entryApproval);
+    const entrySourceDigest = computeStaffingEntrySourceDigest(
+      staffingPlan,
+      entryApprovalDigest,
+    );
+    const existing = findStaffingEntryByPlan(state, staffingPlan.id);
+
+    if (existing) {
+      for (const [field, expected] of [
+        ['staffingPlanRecordDigest', existing.staffingPlanRecordDigest],
+        ['sourceDigest', existing.sourceDigest],
+        ['missionDigest', existing.missionDigest],
+        ['blueprintDigest', existing.blueprintDigest],
+        ['staffingSpecDigest', existing.staffingSpecDigest],
+      ]) {
+        if (String(input[field] || '').trim() !== expected) {
+          throw conflict(`StaffingEntry replay ${field} does not match existing evidence`);
+        }
+      }
+      if (
+        entryApprovalDigest !== existing.entryApprovalDigest ||
+        entrySourceDigest !== existing.entrySourceDigest
+      ) {
+        throw conflict('StaffingEntry replay entryApproval does not match existing evidence');
+      }
+      return {
+        staffingEntry: assertStaffingEntry(existing.id, state),
+        councilSession: assertCouncilSession(existing.councilSessionId, state),
+        mission: assertMission(existing.missionId, state),
+        idempotent: true,
+      };
+    }
+
+    const mission = assertMission(staffingPlan.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    if (
+      state.activeProjectId !== project.id ||
+      staffingPlan.projectId !== project.id ||
+      staffingPlan.workspaceScope?.projectId !== project.id ||
+      mission.status !== 'draft' ||
+      mission.linkedTaskId !== null ||
+      mission.councilSessionId !== null ||
+      mission.staffingEntryId !== null
+    ) {
+      throw conflict('StaffingEntry requires one active, current, unbound draft Mission');
+    }
+    if (
+      staffingPlan.persisted !== true ||
+      staffingPlan.status !== 'accepted' ||
+      staffingPlan.mode !== 'council' ||
+      staffingPlan.providerMode !== 'local-stub' ||
+      staffingPlan.parallelGroups.length !== 0 ||
+      staffingPlan.terminationPolicy.maxProviderCalls !== 0
+    ) {
+      throw conflict('StaffingEntry requires one accepted local council StaffingPlan');
+    }
+    for (const [field, expected] of [
+      ['staffingPlanRecordDigest', staffingPlan.recordDigest],
+      ['sourceDigest', staffingPlan.sourceDigest],
+      ['missionDigest', staffingPlan.missionDigest],
+      ['blueprintDigest', staffingPlan.blueprintDigest],
+      ['staffingSpecDigest', staffingPlan.staffingSpecDigest],
+    ]) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`StaffingEntry ${field} does not match the accepted StaffingPlan`);
+      }
+    }
+
+    const staffingSpec = buildStaffingSpecFromPlan(staffingPlan);
+    const blueprintEvidence = loadCurrentStaffingBlueprintEvidence();
+    if (councilAdapter.mode !== 'local-stub') {
+      throw conflict('StaffingEntry Council entry requires the local-stub adapter');
+    }
+    let preview;
+    try {
+      preview = compileMissionStaffingPlanPreview(
+        {
+          activeProjectId: state.activeProjectId,
+          blueprintEvidence,
+          evaluatedAt: staffingPlan.evaluatedAt,
+          mission,
+          project,
+          staffingSpec,
+        },
+        { now: new Date().toISOString() },
+      );
+    } catch (error) {
+      throw conflict(`StaffingEntry source-current recomputation failed: ${error.message}`);
+    }
+    for (const [field, expected] of [
+      ['id', staffingPlan.sourcePreviewId],
+      ['previewDigest', staffingPlan.sourcePreviewDigest],
+      ['sourceDigest', staffingPlan.sourceDigest],
+      ['missionDigest', staffingPlan.missionDigest],
+      ['blueprintDigest', staffingPlan.blueprintDigest],
+      ['staffingSpecDigest', staffingPlan.staffingSpecDigest],
+    ]) {
+      if (preview[field] !== expected) {
+        throw conflict(`StaffingEntry current StaffingPlan ${field} does not match durable evidence`);
+      }
+    }
+
+    const staffingEntryId = `staffing-entry-${String(
+      state.sequences.staffingEntry + 1,
+    ).padStart(4, '0')}`;
+    const councilSessionId = `councilSession-${String(
+      state.sequences.councilSession + 1,
+    ).padStart(4, '0')}`;
+    const now = entryApproval.requestedAt;
+    let staffingEntry;
+    let councilSession;
+    try {
+      staffingEntry = createStaffingEntry(
+        {
+          id: staffingEntryId,
+          councilSessionId,
+          staffingPlan,
+          entryApproval,
+        },
+        { now },
+      );
+      const freshCompanyRuntime = {
+        status: 'ready',
+        blueprint: blueprintEvidence.blueprint,
+        sourceRefs: blueprintEvidence.sourceRefs,
+        errors: [],
+      };
+      councilSession = createRealCouncilSession({
+        id: councilSessionId,
+        mission,
+        project,
+        companyRuntime: freshCompanyRuntime,
+        staffingEntryRef: {
+          staffingEntryId: staffingEntry.id,
+          entrySourceDigest: staffingEntry.entrySourceDigest,
+          staffingPlanId: staffingPlan.id,
+          staffingPlanRecordDigest: staffingPlan.recordDigest,
+        },
+        now,
+      });
+      councilCoordinator.runAttempt({
+        session: councilSession,
+        blueprint: blueprintEvidence.blueprint,
+        projectPack: project.pack,
+        now,
+      });
+    } catch (error) {
+      throw conflict(`StaffingEntry local Council attempt failed: ${error.message}`);
+    }
+
+    const currentAttempt = councilSession.attempts.find(
+      (attempt) => attempt.id === councilSession.currentAttemptId,
+    );
+    if (
+      councilSession.phase !== 'awaiting-alignment' ||
+      councilSession.status !== 'pending-alignment' ||
+      currentAttempt?.status !== 'awaiting-alignment'
+    ) {
+      throw conflict('StaffingEntry local Council attempt did not reach human alignment');
+    }
+
+    if (
+      nextStaffingEntryId(state) !== staffingEntry.id ||
+      nextId(state, 'councilSession') !== councilSession.id
+    ) {
+      throw new Error('StaffingEntry or CouncilSession sequence is not deterministic');
+    }
+    state.staffingEntries[staffingEntry.id] = staffingEntry;
+    state.councilSessions[councilSession.id] = councilSession;
+    mission.staffingEntryId = staffingEntry.id;
+    mission.councilSessionId = councilSession.id;
+    mission.status = 'aligning';
+    mission.updatedAt = now;
+    state.activeProjectId = mission.projectId;
+    state.selectedMissionId = mission.id;
+    store.saveState(state);
+
+    return {
+      staffingEntry: state.staffingEntries[staffingEntry.id],
+      councilSession: state.councilSessions[councilSession.id],
+      mission: state.missions[mission.id],
+      idempotent: false,
+    };
+  }
+
+  function getStaffingEntry(staffingEntryId) {
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`StaffingEntry inspection requires current state: ${error.message}`);
+    }
+    const staffingEntry = assertStaffingEntry(staffingEntryId, state);
+    return {
+      staffingEntry,
+      councilSession: assertCouncilSession(staffingEntry.councilSessionId, state),
+      mission: assertMission(staffingEntry.missionId, state),
       persisted: true,
     };
   }
@@ -5207,6 +5478,12 @@ function createRuntimeService(options = {}) {
     const mission = assertMission(councilSession.missionId, state);
     const project = assertProject(mission.projectId, state);
 
+    if (councilSession.staffingEntryRef) {
+      throw conflict(
+        `StaffingEntry-bound Council session ${councilSession.id} cannot persist WorkOrders`,
+      );
+    }
+
     if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
       throw new Error('CompanyBlueprint must be ready before WorkOrder persistence');
     }
@@ -5597,50 +5874,15 @@ function createRuntimeService(options = {}) {
   }
 
   function startRealCouncilForMission(input) {
-    const state = store.loadState();
-    const mission = assertMission(input.missionId, state);
-    const project = assertProject(mission.projectId, state);
-    const now = new Date().toISOString();
-
     if (input.mode && input.mode !== REAL_COUNCIL_MODE) {
       throw new Error(`Unsupported Council mode: ${input.mode}`);
     }
-
-    if (mission.councilSessionId && state.councilSessions[mission.councilSessionId]) {
-      const error = new Error(
-        `Mission ${mission.id} already has a council session: ${mission.councilSessionId}`,
-      );
-      error.statusCode = 409;
-      throw error;
-    }
-
-    const councilSession = createRealCouncilSession({
-      id: nextId(state, 'councilSession'),
-      mission,
-      project,
-      companyRuntime,
-      now,
-    });
-
-    councilCoordinator.runAttempt({
-      session: councilSession,
-      blueprint: companyRuntime.blueprint,
-      projectPack: project.pack,
-      now,
-    });
-
-    state.councilSessions[councilSession.id] = councilSession;
-    mission.councilSessionId = councilSession.id;
-    mission.status = 'aligning';
-    mission.updatedAt = now;
-    state.activeProjectId = mission.projectId;
-    state.selectedMissionId = mission.id;
-    store.saveState(state);
-
-    return {
-      councilSession: state.councilSessions[councilSession.id],
-      mission: state.missions[mission.id],
-    };
+    const error = new Error(
+      'Local Council start requires one exact accepted StaffingPlan Council entry',
+    );
+    error.code = 'STAFFING_PLAN_ENTRY_REQUIRED';
+    error.statusCode = 409;
+    throw error;
   }
 
   async function startProviderCouncilForMission(input) {
@@ -5712,6 +5954,15 @@ function createRuntimeService(options = {}) {
 
     if (councilSession.mode !== REAL_COUNCIL_MODE) {
       throw new Error(`Council session ${councilSession.id} is not a Real Council session`);
+    }
+
+    if (councilSession.staffingEntryRef) {
+      const error = new Error(
+        `StaffingEntry-bound Council session ${councilSession.id} cannot resume`,
+      );
+      error.code = 'STAFFING_ENTRY_ACTION_BLOCKED';
+      error.statusCode = 409;
+      throw error;
     }
 
     if (councilSession.phase === 'terminal') {
@@ -5880,6 +6131,15 @@ function createRuntimeService(options = {}) {
 
     if (!['approve', 'request-revision', 'stop'].includes(action)) {
       throw new Error('Real Council decision must be approve, request-revision, or stop');
+    }
+
+    if (councilSession.staffingEntryRef && action === 'request-revision') {
+      const error = new Error(
+        `StaffingEntry-bound Council session ${councilSession.id} cannot request revision`,
+      );
+      error.code = 'STAFFING_ENTRY_ACTION_BLOCKED';
+      error.statusCode = 409;
+      throw error;
     }
 
     if (councilSession.phase === 'terminal') {
@@ -6987,6 +7247,7 @@ function createRuntimeService(options = {}) {
     getProject,
     getRun,
     getSnapshot,
+    getStaffingEntry,
     getStaffingPlan,
     getTask,
     getTaskGuardSummary,
@@ -7012,6 +7273,7 @@ function createRuntimeService(options = {}) {
     persistLearningCandidateMemoryItem,
     persistMemoryItemRecall,
     reviewLearningCandidate,
+    enterStaffingPlanCouncil,
     persistMissionWorkOrderPlan,
     listApprovals,
     listCouncilProviderReadinessSummaries,

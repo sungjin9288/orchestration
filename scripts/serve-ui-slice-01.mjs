@@ -847,6 +847,16 @@ function buildAutoChainStageRecord(stage, result = {}) {
 }
 
 async function runMissionAlignmentAutoChain(missionId, options = {}) {
+  const sourceMission = runtime.getMission(missionId);
+  if (sourceMission.staffingEntryId) {
+    const error = new Error(
+      `StaffingEntry-bound Mission ${missionId} cannot enter the alignment auto-chain`,
+    );
+    error.code = 'STAFFING_ENTRY_ACTION_BLOCKED';
+    error.statusCode = 409;
+    throw error;
+  }
+
   const approved = options.alignedResult || runtime.approveCouncilRecommendation({
     missionId,
   });
@@ -1459,6 +1469,68 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const staffingPlanCouncilEntryMatch = url.pathname.match(
+    /^\/api\/staffing-plans\/([^/]+)\/council-entry$/,
+  );
+  if (method === 'POST' && staffingPlanCouncilEntryMatch) {
+    try {
+      const staffingPlanId = decodeURIComponent(staffingPlanCouncilEntryMatch[1]);
+      const input = await readBoundedJsonBody(request, 32 * 1024);
+      const result = runtime.enterStaffingPlanCouncil({
+        ...input,
+        staffingPlanId,
+      });
+      json(
+        response,
+        result.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          staffingEntry: result.staffingEntry,
+          councilSession: result.councilSession,
+          mission: result.mission,
+          persisted: true,
+          downstreamAllowed: false,
+          mutation: {
+            councilSessionId: result.councilSession.id,
+            idempotent: result.idempotent,
+            kind: 'enter-staffing-plan-council',
+            missionId: result.mission.id,
+            staffingEntryId: result.staffingEntry.id,
+            staffingPlanId,
+            stoppedAt: 'human-alignment',
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        code: error.code || undefined,
+        error: error.message || 'StaffingEntry Council entry에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const staffingEntryInspectMatch = url.pathname.match(/^\/api\/staffing-entries\/([^/]+)$/);
+  if (staffingEntryInspectMatch) {
+    if (method !== 'GET') {
+      json(response, 405, { error: 'StaffingEntry exact inspection은 GET만 지원합니다.' });
+      return;
+    }
+
+    try {
+      const staffingEntryId = decodeURIComponent(staffingEntryInspectMatch[1]);
+      json(response, 200, runtime.getStaffingEntry(staffingEntryId));
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'StaffingEntry exact inspection에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const missionCreateLinkedTaskMatch = url.pathname.match(
     /^\/api\/missions\/([^/]+)\/create-linked-task$/,
   );
@@ -1567,6 +1639,7 @@ const server = createServer(async (request, response) => {
       const statusCode =
         error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, {
+        code: error.code || undefined,
         error: error.message || 'Real Council 시작에 실패했습니다.',
       });
       return;
@@ -1651,6 +1724,34 @@ const server = createServer(async (request, response) => {
         ? await runAbortableCouncilProviderRequest(request, response, (signal) =>
             runtime.decideProviderCouncilSession({ ...decisionInput, signal }))
         : runtime.decideRealCouncilSession(decisionInput);
+
+      if (
+        action === 'approve' &&
+        alignedResult.councilSession.staffingEntryRef
+      ) {
+        json(
+          response,
+          200,
+          buildSnapshotResponse({
+            councilSession: alignedResult.councilSession,
+            mission: alignedResult.mission,
+            persisted: true,
+            downstreamAllowed: false,
+            mutation: {
+              action: 'approve',
+              autoChain: null,
+              councilSessionId,
+              kind: 'decide-bound-council-alignment',
+              missionId: alignedResult.mission.id,
+              staffingEntryId:
+                alignedResult.councilSession.staffingEntryRef.staffingEntryId,
+              stoppedAt: 'alignment-only',
+              taskId: null,
+            },
+          }),
+        );
+        return;
+      }
 
       if (action === 'approve' && handoffMode === 'inert-workorder-preview') {
         const missionWorkOrderPreview = runtime.previewMissionWorkOrders({

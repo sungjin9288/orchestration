@@ -5,11 +5,12 @@
 이 문서는 현재의 고정형 Council과 Builder -> Reviewer -> QA pass path를 실제 multi-agent
 orchestration으로 완성하는 순서를 정의한다.
 
-현재 runtime은 schema v17에서 source-backed role identity, Real Council, durable ExecutionPlan과
+현재 runtime은 schema v18에서 source-backed role identity, Real Council, durable ExecutionPlan과
 WorkOrder, checkpoint recovery, reviewed delivery, Mission close-out, learning, memory audit,
-AcceptanceCriterion, VerificationProof, and one immutable accepted `StaffingPlan`을 보존한다.
-Accepted-plan Council/solo binding, general WorkOrder scheduler, bounded parallel specialist
-execution, Reviewer rework, Mission memory context application은 아직 없다.
+AcceptanceCriterion, VerificationProof, one immutable accepted `StaffingPlan`, and one immutable
+Council-first `StaffingEntry`를 보존한다. Solo binding, bound Council revision/resume/auto-chain,
+general WorkOrder scheduler, bounded parallel specialist execution, Reviewer rework, Mission memory
+context application은 아직 없다.
 
 완성 방향은 기존 runtime을 교체하는 것이 아니다. 검증된 evidence와 authority model 위에
 StaffingPlan부터 한 단계씩 추가하고, 각 단계에서 operator가 다음 권한을 명시적으로 열도록 한다.
@@ -95,8 +96,9 @@ Binding opens only the selected entrypoint. It does not create a general schedul
 
 The first Stage 2 plan is Council-first because no solo runtime contract exists. `DEC-167` accepts
 `docs/115_ai-company-staffing-entry-binding-plan.md` as planning-only authority, and `DEC-168`
-records its complete fielded schema-v18 implementation handoff. Runtime implementation remains
-blocked pending that exact operator decision.
+records its complete fielded schema-v18 implementation handoff. `DEC-169` accepts the bounded
+implementation: one exact current accepted council-mode plan and separate entry approval bind to one
+deterministic local-stub first attempt and stop at human alignment.
 
 ### Stage 3: Operator-Stepped WorkOrder Scheduler
 
@@ -379,5 +381,6 @@ fit.
   persistence, and inspection only.
 - Council-first StaffingEntry binding planning is recorded as `DEC-167`; its complete fielded
   implementation handoff is recorded as `DEC-168`.
-- StaffingEntry implementation, Council binding, solo entry/execution, and every later completion
-  stage remain blocked pending their own complete fielded decisions.
+- StaffingEntry implementation and Council-first binding are recorded as `DEC-169`.
+- Solo entry/execution, bound revision/resume/auto-chain, and every later completion stage remain
+  blocked pending their own complete fielded decisions.

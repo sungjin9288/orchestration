@@ -91,7 +91,7 @@ assert.match(verification, /id: 'ai-company-durable-memory-recall-implementation
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-memory-recall\.mjs'/);
 assert.match(verification, /script: 'scripts\/smoke-ui-slice-666\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 17/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
 assert.match(contracts, /memoryRecall/);
 assert.match(fileStore, /memoryRecalls/);
 assert.match(runtimeService, /persistMemoryItemRecall/);

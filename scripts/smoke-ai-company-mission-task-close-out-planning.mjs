@@ -143,7 +143,7 @@ assert.match(
 assertAll(readmeText, [
   /Mission\/task close-out planning-only authority is accepted by `DEC-104`/,
   /exact implementation is accepted by `DEC-106`/,
-  /execution state is schema v17/,
+  /execution state is schema v18/,
 ]);
 assert.match(taskLedger, /ai-company-mission-task-close-out-planning-post-m7-1956/);
 assert.match(
@@ -156,7 +156,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-mission-task-close-out-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 17/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
 assert.match(contracts, /missionCloseOut: 0/);
 assert.match(contracts, /missionCloseOuts: \{\}/);
 assert.match(fileStore, /validateMissionCloseOutRecords/);

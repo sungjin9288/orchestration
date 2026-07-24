@@ -130,11 +130,11 @@ async function main() {
       `/api/missions/${encodeURIComponent(localMission.payload.mission.id)}/council/start`,
       { mode: 'real-local-stub' },
     );
-    assert.equal(localStart.response.status, 201);
-    assert.equal(localStart.payload.councilSession.mode, 'real-local-stub');
-    assert.equal(isRealCouncilMode(localStart.payload.councilSession.mode), true);
-    assert.equal(getCurrentRealCouncilAttempt(localStart.payload.councilSession).status, 'awaiting-alignment');
-    assert.equal(getLatestRealCouncilPositions(localStart.payload.councilSession).length, 3);
+    assert.equal(localStart.response.status, 409);
+    assert.equal(localStart.payload.code, 'STAFFING_PLAN_ENTRY_REQUIRED');
+    assert.equal(isRealCouncilMode('real-local-stub'), true);
+    assert.equal(getCurrentRealCouncilAttempt(null), null);
+    assert.deepEqual(getLatestRealCouncilPositions(null), []);
 
     process.stdout.write(
       `${JSON.stringify(
@@ -145,7 +145,7 @@ async function main() {
             readinessGatedSelection: true,
             safeProviderEvidence: true,
             alignmentParity: true,
-            localStubUnchanged: true,
+            localStubRequiresStaffingEntry: true,
           },
           api: {
             missingConfigurationStatus: 409,

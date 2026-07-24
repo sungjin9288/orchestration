@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import councilAdapterModule from '../src/execution/providers/council-local-stub-adapter.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createCouncilLocalStubAdapter } = councilAdapterModule;
@@ -121,14 +122,17 @@ try {
   const successProbe = createInstrumentedAdapter();
   const success = createConfiguredRuntime('success', successProbe.adapter);
   const mission = createMission(success.runtime, success.project, 'success');
-  const started = success.runtime.startRealCouncilForMission({
+  const started = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot: success.runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: successProbe.adapter,
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   const session = started.councilSession;
   const firstAttempt = session.attempts[0];
 
-  assert.equal(success.runtime.getSnapshot().schemaVersion, 17);
+  assert.equal(success.runtime.getSnapshot().schemaVersion, 18);
   assert.equal(session.mode, 'real-local-stub');
   assert.equal(session.phase, 'awaiting-alignment');
   assert.equal(session.status, 'pending-alignment');
@@ -181,7 +185,7 @@ try {
   });
   const reloadedSession = reloaded.getCouncilSession(session.id);
 
-  assert.equal(reloaded.getSnapshot().schemaVersion, 17);
+  assert.equal(reloaded.getSnapshot().schemaVersion, 18);
   assert.equal(reloadedSession.mode, 'real-local-stub');
   assert.equal(reloadedSession.attempts.length, 2);
   assert.equal(reloadedSession.currentAttemptId, revised.attempt.id);
@@ -202,7 +206,12 @@ try {
   assert.equal(Object.keys(approvedSnapshot.approvals).length, 0);
 
   const stoppedMission = createMission(reloaded, success.project, 'operator stop');
-  const stoppedStart = reloaded.startRealCouncilForMission({ missionId: stoppedMission.id });
+  const stoppedStart = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot: success.runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    missionId: stoppedMission.id,
+  });
   const stopped = reloaded.decideRealCouncilSession({
     councilSessionId: stoppedStart.councilSession.id,
     action: 'stop',
@@ -229,7 +238,13 @@ try {
   const failureProbe = createInstrumentedAdapter({ failPositionRoleOnce: 'architect' });
   const failure = createConfiguredRuntime('position-failure', failureProbe.adapter);
   const failedMission = createMission(failure.runtime, failure.project, 'position failure');
-  const failedStart = failure.runtime.startRealCouncilForMission({ missionId: failedMission.id });
+  const failedStart = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot: failure.runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: failureProbe.adapter,
+    missionId: failedMission.id,
+  });
 
   assert.equal(failedStart.councilSession.status, 'failed');
   assert.equal(failedStart.councilSession.attempts[0].positions.length, 2);
@@ -252,7 +267,13 @@ try {
   const invalidProbe = createInstrumentedAdapter({ invalidPositionRoleOnce: 'strategist' });
   const invalid = createConfiguredRuntime('invalid-position', invalidProbe.adapter);
   const invalidMission = createMission(invalid.runtime, invalid.project, 'invalid output');
-  const invalidStart = invalid.runtime.startRealCouncilForMission({ missionId: invalidMission.id });
+  const invalidStart = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot: invalid.runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: invalidProbe.adapter,
+    missionId: invalidMission.id,
+  });
   assert.equal(invalidStart.councilSession.status, 'failed');
   assert.equal(invalidStart.councilSession.attempts[0].synthesis, null);
   assert.equal(
@@ -263,7 +284,13 @@ try {
   const evidenceProbe = createInstrumentedAdapter({ unsupportedEvidenceRoleOnce: 'decomposer' });
   const evidence = createConfiguredRuntime('unsupported-evidence', evidenceProbe.adapter);
   const evidenceMission = createMission(evidence.runtime, evidence.project, 'unsupported evidence');
-  const evidenceStart = evidence.runtime.startRealCouncilForMission({ missionId: evidenceMission.id });
+  const evidenceStart = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot: evidence.runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: evidenceProbe.adapter,
+    missionId: evidenceMission.id,
+  });
   assert.deepEqual(
     evidenceStart.councilSession.attempts[0].conflictSummary.unsupportedEvidenceRefs,
     ['provider.hidden-memory'],
@@ -278,7 +305,11 @@ try {
   const synthesisProbe = createInstrumentedAdapter({ failSynthesisOnce: true });
   const synthesis = createConfiguredRuntime('synthesis-failure', synthesisProbe.adapter);
   const synthesisMission = createMission(synthesis.runtime, synthesis.project, 'synthesis failure');
-  const synthesisStart = synthesis.runtime.startRealCouncilForMission({
+  const synthesisStart = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot: synthesis.runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: synthesisProbe.adapter,
     missionId: synthesisMission.id,
   });
   assert.equal(synthesisStart.councilSession.status, 'failed');
@@ -294,7 +325,12 @@ try {
 
   const stale = createConfiguredRuntime('stale-source');
   const staleMission = createMission(stale.runtime, stale.project, 'stale source');
-  const staleStart = stale.runtime.startRealCouncilForMission({ missionId: staleMission.id });
+  const staleStart = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot: stale.runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    missionId: staleMission.id,
+  });
   const statePath = path.join(stale.runtimeRoot, 'state.json');
   const staleState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
   staleState.missions[staleMission.id].goal = 'Changed after Council execution.';
@@ -326,7 +362,15 @@ try {
   );
   assert.throws(
     () =>
-      invalidBlueprintRuntime.startRealCouncilForMission({
+      startHistoricalUnboundRealCouncilFixture({
+        runtimeRoot: invalidBlueprintRoot,
+        companyBlueprintPath: path.join(
+          tempRoot,
+          'missing-repo',
+          'company',
+          'blueprint.json',
+        ),
+        companyRepoRoot: path.join(tempRoot, 'missing-repo'),
         missionId: invalidBlueprintMission.id,
       }),
     /CompanyBlueprint must be ready/,

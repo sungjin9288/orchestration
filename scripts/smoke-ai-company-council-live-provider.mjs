@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import blueprintModule from '../src/runtime/company-blueprint.js';
 import adapterModule from '../src/execution/providers/council-openai-responses-adapter.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { readCompanyBlueprintStatus } = blueprintModule;
@@ -227,7 +228,7 @@ try {
     companyBlueprintPath: blueprintPath,
     companyRepoRoot: repoRoot,
   });
-  assert.equal(reloaded.getSnapshot().schemaVersion, 17);
+  assert.equal(reloaded.getSnapshot().schemaVersion, 18);
   assert.equal(reloaded.getCouncilSession(session.id).mode, 'real-openai-responses');
 
   let retryCalls = 0;
@@ -349,15 +350,21 @@ try {
   );
   process.env[API_KEY_VAR] = missingEnv;
 
+  const localRuntimeRoot = path.join(tempRoot, 'local-compatibility');
   const local = createRuntimeService({
-    runtimeRoot: path.join(tempRoot, 'local-compatibility'),
+    runtimeRoot: localRuntimeRoot,
     companyBlueprintPath: blueprintPath,
     companyRepoRoot: repoRoot,
   });
   local.resetRuntime();
   const localProject = local.createProject({ name: 'local', projectPath: repoRoot });
   const localMission = createMission(local, localProject, 'local compatibility');
-  const localSession = local.startRealCouncilForMission({ missionId: localMission.id });
+  const localSession = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot: localRuntimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    missionId: localMission.id,
+  });
   assert.equal(localSession.councilSession.mode, 'real-local-stub');
   assert.equal(localSession.councilSession.attempts[0].providerCallCount, undefined);
 

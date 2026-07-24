@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
 import { getLatestRealCouncilPositions } from '../ui/council-signals.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createRuntimeService } = runtimeServiceModule;
@@ -63,9 +64,39 @@ async function main() {
   fs.rmSync(runtimeRoot, { force: true, recursive: true, maxRetries: 10, retryDelay: 50 });
   const bootstrapRuntime = createRuntimeService({ runtimeRoot });
   bootstrapRuntime.resetRuntime();
-  bootstrapRuntime.createProject({
+  const project = bootstrapRuntime.createProject({
     name: 'ui-slice-651',
     projectPath: repoRoot,
+  });
+  const revisionMission = bootstrapRuntime.createMission({
+    projectId: project.id,
+    title: 'Historical Real Council API and UI',
+    goal: 'Expose independent position and synthesis evidence.',
+    constraints: 'Preserve an existing unbound local-stub session.',
+  });
+  const stopMission = bootstrapRuntime.createMission({
+    projectId: project.id,
+    title: 'Stop historical Real Council',
+    goal: 'Prove stop creates no downstream task.',
+    constraints: 'Stop before handoff.',
+  });
+  const approveMission = bootstrapRuntime.createMission({
+    projectId: project.id,
+    title: 'Approve historical Real Council',
+    goal: 'Reuse the existing bounded execution handoff.',
+    constraints: 'Stop at the existing approval boundary.',
+  });
+  const revisionFixture = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    missionId: revisionMission.id,
+  });
+  const stopFixture = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    missionId: stopMission.id,
+  });
+  const approveFixture = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    missionId: approveMission.id,
   });
 
   const server = spawn(
@@ -110,23 +141,33 @@ async function main() {
     assert.match(signalSource, /getCurrentRealCouncilAttempt/);
     assert.match(signalSource, /positionStatus/);
 
-    const missionPayload = await postJson('/api/missions', {
-      title: 'Real Council API and UI',
-      goal: 'Expose independent position and synthesis evidence.',
-      constraints: 'Keep the path local-stub-only.',
+    const blockedMission = await postJson('/api/missions', {
+      title: 'Blocked direct Real Council API',
+      goal: 'Require a StaffingEntry before local Council starts.',
+      constraints: 'Do not bypass the durable staffing boundary.',
     });
-    const startPayload = await postJson(
-      `/api/missions/${encodeURIComponent(missionPayload.mission.id)}/council/start`,
-      { mode: 'real-local-stub' },
+    const blockedStartResponse = await fetch(
+      `${baseUrl}/api/missions/${encodeURIComponent(blockedMission.mission.id)}/council/start`,
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mode: 'real-local-stub' }),
+      },
     );
-    const session = startPayload.councilSession;
+    const blockedStartPayload = await blockedStartResponse.json();
+    assert.equal(blockedStartResponse.status, 409);
+    assert.equal(blockedStartPayload.code, 'STAFFING_PLAN_ENTRY_REQUIRED');
 
-    assert.equal(startPayload.mutation.kind, 'start-real-council-for-mission');
+    const snapshotPayload = await fetchJson('/api/snapshot');
+    const session = snapshotPayload.snapshot.councilSessions[revisionFixture.councilSession.id];
     assert.equal(session.mode, 'real-local-stub');
     assert.equal(session.phase, 'awaiting-alignment');
     assert.equal(session.attempts[0].positions.length, 3);
     assert.ok(session.attempts[0].synthesis);
-    assert.equal(startPayload.snapshot.schemaVersion, 17);
+    assert.equal(snapshotPayload.snapshot.schemaVersion, 18);
 
     const revisionPayload = await postJson(
       `/api/council-sessions/${encodeURIComponent(session.id)}/decision`,
@@ -146,35 +187,17 @@ async function main() {
       ['strategist', 'architect', 'decomposer'],
     );
 
-    const stopMission = await postJson('/api/missions', {
-      title: 'Stop Real Council',
-      goal: 'Prove stop creates no downstream task.',
-      constraints: 'Stop before handoff.',
-    });
-    const stopStart = await postJson(
-      `/api/missions/${encodeURIComponent(stopMission.mission.id)}/council/start`,
-      { mode: 'real-local-stub' },
-    );
-    const taskCountBeforeStop = Object.keys(stopStart.snapshot.tasks).length;
+    const taskCountBeforeStop = Object.keys(snapshotPayload.snapshot.tasks).length;
     const stopPayload = await postJson(
-      `/api/council-sessions/${encodeURIComponent(stopStart.councilSession.id)}/decision`,
+      `/api/council-sessions/${encodeURIComponent(stopFixture.councilSession.id)}/decision`,
       { action: 'stop' },
     );
     assert.equal(stopPayload.councilSession.terminalReason, 'operator-stopped');
     assert.equal(stopPayload.mission.linkedTaskId, null);
     assert.equal(Object.keys(stopPayload.snapshot.tasks).length, taskCountBeforeStop);
 
-    const approveMission = await postJson('/api/missions', {
-      title: 'Approve Real Council',
-      goal: 'Reuse the existing bounded execution handoff.',
-      constraints: 'Stop at the existing approval boundary.',
-    });
-    const approveStart = await postJson(
-      `/api/missions/${encodeURIComponent(approveMission.mission.id)}/council/start`,
-      { mode: 'real-local-stub' },
-    );
     const approvePayload = await postJson(
-      `/api/council-sessions/${encodeURIComponent(approveStart.councilSession.id)}/decision`,
+      `/api/council-sessions/${encodeURIComponent(approveFixture.councilSession.id)}/decision`,
       { action: 'approve' },
     );
     assert.equal(approvePayload.mutation.action, 'approve');
@@ -206,7 +229,8 @@ async function main() {
           ok: true,
           mode: MODE,
           api: {
-            start: true,
+            directStartBlocked: true,
+            historicalSessionRead: true,
             revision: true,
             stop: true,
             approveHandoff: true,

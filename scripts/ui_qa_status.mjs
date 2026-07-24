@@ -329,6 +329,12 @@ const smokeChecks = [
       'Durable StaffingPlan UI and API preserve bounded JSON-only preview, exact separate acceptance, immutable exact inspection, browser-memory invalidation, safe failures, responsive Council staffing gate rendering, and absent downstream start or execution controls',
   },
   {
+    id: 'ai-company-staffing-entry-binding-ui-api',
+    script: 'scripts/smoke-ui-slice-697.mjs',
+    purpose:
+      'StaffingEntry UI and API preserve exact-gated local Council entry, durable evidence, solo-without-action rendering, blocked unbound and downstream controls, safe failures, alignment-only approval, and responsive desktop/mobile layout rules',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

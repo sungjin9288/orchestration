@@ -167,7 +167,7 @@ assert.match(
 );
 
 // Consumed planning must remain truthful about the current schema-v7 implementation boundary.
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 17/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
 assert.match(contracts, /executionPlans: \{\}/);
 assert.match(contracts, /workOrders: \{\}/);
 assert.match(fileStore, /executionPlans: state\.executionPlans \|\| \{\}/);

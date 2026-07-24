@@ -1,5 +1,9 @@
 # lessons
 
+- A durable entry boundary should bind intent, source evidence, and the first real attempt in one
+  atomic transition. Run deterministic pre-save work in memory, persist only after the stop condition
+  is reached, and make the bound session reject every downstream action that the entry decision did
+  not explicitly authorize.
 - Do not advance a Mission lifecycle for an inert staffing mode when no executable role contract exists.
   Preserve the accepted plan as truthful evidence, implement the path that has real request/output and
   failure semantics first, and require a separate decision before adding a synthetic ready state.

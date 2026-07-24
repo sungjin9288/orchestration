@@ -13,6 +13,7 @@ import {
   getMissionExecutionPlanBundle,
   getMissionWorkflowCheckpointSummary,
 } from '../ui/council-signals.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createCouncilLocalStubAdapter } = councilAdapterModule;
@@ -126,9 +127,12 @@ async function seedReviewerReadyState() {
     goal: 'Resume exactly one durable reviewed-delivery boundary.',
     constraints: 'No automatic replay, provider expansion, Mission done, commit, push, or release.',
   });
-  const council = runtime.startRealCouncilForMission({
+  const council = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: createResolvedAdapter(),
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   runtime.decideRealCouncilSession({ councilSessionId: council.councilSession.id, action: 'approve' });
   const preview = runtime.previewMissionWorkOrders({

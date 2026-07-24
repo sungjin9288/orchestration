@@ -61,9 +61,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
   runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
   envelope로 노출된다.
-- Persisted runtime은 schema v17이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
+- Persisted runtime은 schema v18이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
   WorkflowCheckpoint, DeliveryPackage, acceptance, MissionCloseOut, LearningCandidate, MemoryItem,
-  MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan evidence를 보존한다.
+  MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan, and StaffingEntry evidence를
+  보존한다.
 - One exact MissionMemoryContextPreview, WorkOrderVerificationPlanPreview, and bounded one-step
   continuation preview는 response/browser memory에서만 동작한다.
 - Provider 기본값은 local stub이다. OpenAI Responses는 현재 Council 역할에만 명시적 opt-in으로
@@ -71,9 +72,12 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Mission memory는 exact item과 recall audit까지 저장할 수 있지만 Mission, WorkOrder, prompt,
   policy에 적용하거나 자동 검색·추천하지 않는다.
 - Durable StaffingPlan은 one active draft Mission에서 response-only preview, separate exact
-  acceptance, immutable persistence, exact-id inspection까지만 구현됐다. Accepted-plan Council/solo
-  binding, general scheduler, parallel specialists, Reviewer rework, Ops commands, and Mission
-  context application은 아직 구현되지 않았다.
+  acceptance, immutable persistence, exact-id inspection까지 구현됐다. Council-first
+  StaffingEntry binding is implemented as `DEC-169`: one exact current accepted council-mode plan과
+  separate entry approval이 one deterministic local-stub first attempt에 bind되고 human
+  alignment에서 멈춘다. Solo binding, bound revision/resume/auto-chain, general scheduler, parallel
+  specialists, Reviewer rework, Ops commands, and Mission context application은 아직 구현되지
+  않았다.
 
 ## Approved Real Council Planning Authority
 
@@ -113,7 +117,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`, `DEC-167`, `DEC-168`
+- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`, `DEC-167`, `DEC-168`, `DEC-169`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -124,14 +128,14 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   role-source digest, existing role/provider vocabulary, exact staffingSpec resubmission, separate
   acceptance evidence, one termination policy, source and blocked-action evidence, timestamp policy,
   and schema-sensitive fixture migration
-- Implemented: schema-v17 migration, fresh blueprint and nine role-source digest, exact staffingSpec
-  preview, separate acceptance, one immutable accepted record, exact GET inspection, bounded API and
-  Council UI, focused runtime/API/UI verification
-- Planned next gate: one schema-v18 immutable StaffingEntry from an exact current accepted
-  council-mode plan, separate entry approval, and one deterministic local-stub Council first attempt;
-  solo remains deferred because no executable solo contract exists
-- Still blocked: StaffingEntry implementation and Council binding, solo entry/execution, scheduling,
-  parallel execution, retry/rework,
+- Implemented: schema-v17 StaffingPlan migration plus preview, separate acceptance, immutable record,
+  exact inspection; schema-v18 StaffingEntry migration plus separate entry approval, one exact
+  council-mode plan binding, one deterministic local-stub first attempt, atomic persistence, exact
+  replay/inspection, and alignment-only approve or stop
+- Next gate: solo remains deferred because no executable solo contract exists; any bound Council
+  continuation requires a separate decision
+- Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain, scheduling,
+  parallel execution,
   Ops commands, memory application, provider-backed
   WorkOrders, source mutation expansion, runtime-agent commit/push/release, policy mutation, bypass,
   and connectors

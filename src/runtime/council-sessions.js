@@ -194,6 +194,7 @@ function createRealCouncilSession({
   project,
   companyRuntime,
   mode = REAL_COUNCIL_MODE,
+  staffingEntryRef = null,
   now,
 }) {
   if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
@@ -212,7 +213,7 @@ function createRealCouncilSession({
   const requiredProfiles = REQUIRED_POSITION_ROLES.map((role) => profilesByRole[role]);
   const conductorProfile = profilesByRole[SYNTHESIS_ROLE];
 
-  return {
+  const session = {
     id,
     missionId: mission.id,
     mode,
@@ -257,6 +258,22 @@ function createRealCouncilSession({
     createdAt: now,
     updatedAt: now,
   };
+
+  if (staffingEntryRef !== null) {
+    assertExactKeys(
+      staffingEntryRef,
+      [
+        'entrySourceDigest',
+        'staffingEntryId',
+        'staffingPlanId',
+        'staffingPlanRecordDigest',
+      ],
+      'Council staffingEntryRef',
+    );
+    session.staffingEntryRef = cloneJson(staffingEntryRef);
+  }
+
+  return session;
 }
 
 function validatePositionOutput(output) {

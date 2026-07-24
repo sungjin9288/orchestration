@@ -1096,6 +1096,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one local-only immutable StaffingEntry, one bound real-local-stub Council first attempt, exact inspection, alignment-only approve, and stop. It explicitly excludes solo lifecycle fabrication, revision, resume, auto-chain, WorkOrders, scheduling, providers, memory application, source mutation, Git/release, policy mutation, approval bypass, lifecycle deletion, and connectors. No implementation authority is recorded.
 - Needed Before: The operator must supply every required field in one valid architecture-sensitive implementation decision. `DEC-167`, this handoff, broad approval, delegated non-critical self-approval, or continuation does not authorize schema, runtime, API, UI, durable entry, or Council mutation.
 
+### DEC-169
+- Status: `Accepted`
+- Decision: Accept the complete fielded operator decision for one deterministic local schema-v18 immutable StaffingEntry binding from one exact source-current accepted council-mode StaffingPlan to one real-local-stub Council first attempt.
+- Why: `DEC-167` and `DEC-168` fixed the architecture and decision fields, and the operator supplied the exact implementation, compatibility, migration, rollback, focused-smoke, and still-blocked-authority contract required to open only this bounded entry path.
+- Impact: Runtime now recomputes the exact accepted StaffingPlan against the current Mission, CompanyBlueprint, and nine role sources, validates a separate entry approval, runs one deterministic local Council attempt in memory, and atomically persists the schema-v18 StaffingEntry, CouncilSession, Mission refs, and sequences only after the attempt reaches human alignment. New unbound local Council starts are rejected; bound approve is alignment-only, stop remains available, and bound revision, resume, auto-chain, WorkOrder, scheduling, provider, source, Git, release, policy, bypass, and connector actions remain blocked.
+- Needed Before: Solo execution, bound revision or retry, WorkOrder compilation or dispatch, scheduling, providers, memory application, source mutation expansion, runtime-agent commit/push/release, lifecycle mutation, policy bypass, or connectors require separate complete fielded decisions and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

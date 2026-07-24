@@ -419,6 +419,10 @@ const state = {
     rationale: '',
     acknowledgement: 'reviewed-exact-staffing-plan-for-local-record',
   },
+  missionStaffingEntryDraft: {
+    rationale: '',
+    acknowledgement: 'bind-exact-accepted-staffing-plan-to-local-council',
+  },
   missionDeliveryPackagePreview: null,
   missionDurableDeliveryPackage: null,
   missionDeliveryPackageAcceptance: null,
@@ -2995,6 +2999,7 @@ function getDerived() {
     snapshot.proposalApplicationAttempts || {},
   ).sort(sortByCreatedDesc);
   const staffingPlans = Object.values(snapshot.staffingPlans || {}).sort(sortByCreatedDesc);
+  const staffingEntries = Object.values(snapshot.staffingEntries || {}).sort(sortByCreatedDesc);
 
   const activeProject = snapshot.activeProjectId
     ? snapshot.projects[snapshot.activeProjectId] || null
@@ -3065,6 +3070,9 @@ function getDerived() {
     proposalApplicationAttempts: projectProposalApplicationAttempts,
     staffingPlans: activeProject
       ? staffingPlans.filter((staffingPlan) => staffingPlan.projectId === activeProject.id)
+      : [],
+    staffingEntries: activeProject
+      ? staffingEntries.filter((staffingEntry) => staffingEntry.projectId === activeProject.id)
       : [],
     companyRuntime: snapshot.companyRuntime || null,
     taskMap,
@@ -6255,6 +6263,12 @@ async function submitCreateMission(options = {}) {
     throw new Error('미션 목표가 필요합니다.');
   }
 
+  if (options.councilMode === 'real-local-stub') {
+    throw new Error(
+      'Local Council은 Mission 생성 후 accepted StaffingPlan entry로만 시작할 수 있습니다.',
+    );
+  }
+
   state.error = null;
   state.mutating = true;
   elements.refreshStatus.textContent = '미션을 만들고 협의회를 초안 작성하는 중…';
@@ -6498,6 +6512,82 @@ async function acceptMissionStaffingPlan(actionButton) {
     render();
     elements.refreshStatus.textContent =
       `${payload.staffingPlan.id} acceptance와 exact inspection을 확인했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function enterStaffingPlanCouncil(actionButton) {
+  const staffingPlanId = String(actionButton?.dataset.id || '').trim();
+  const form = actionButton?.closest?.('[data-form="staffing-plan-entry"]');
+  const data = getDerived();
+  const staffingPlan =
+    data.staffingPlans.find((entry) => entry.id === staffingPlanId) || null;
+  const mission = staffingPlan
+    ? data.missionMap.get(staffingPlan.missionId) || null
+    : null;
+  const staffingEntry =
+    data.staffingEntries.find((entry) => entry.staffingPlanId === staffingPlanId) || null;
+  const summary = getMissionStaffingPlanSummary(
+    mission,
+    null,
+    staffingPlan,
+    staffingEntry,
+  );
+
+  if (!form || !staffingPlan || !summary?.canEnterCouncil) {
+    throw new Error('현재 accepted Council StaffingPlan만 local Council에 진입할 수 있습니다.');
+  }
+
+  const formData = new FormData(form);
+  const rationale = String(formData.get('entryRationale') || '').trim();
+  const acknowledgement = String(formData.get('entryAcknowledgement') || '').trim();
+  const requestedAt = new Date().toISOString();
+  state.missionStaffingEntryDraft = {
+    rationale,
+    acknowledgement,
+  };
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent =
+    `${staffingPlan.id}을 exact local Council entry에 binding하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/staffing-plans/${encodeURIComponent(staffingPlan.id)}/council-entry`,
+      {
+        staffingPlanRecordDigest: staffingPlan.recordDigest,
+        sourceDigest: staffingPlan.sourceDigest,
+        missionDigest: staffingPlan.missionDigest,
+        blueprintDigest: staffingPlan.blueprintDigest,
+        staffingSpecDigest: staffingPlan.staffingSpecDigest,
+        entryApproval: {
+          decision: 'enter',
+          acknowledgement,
+          rationale,
+          requestedAt,
+        },
+      },
+    );
+    applySnapshotPayload(payload);
+    const inspected = await fetchJson(
+      `/api/staffing-entries/${encodeURIComponent(payload.staffingEntry.id)}`,
+    );
+    if (inspected.staffingEntry?.recordDigest !== payload.staffingEntry.recordDigest) {
+      throw new Error('Durable StaffingEntry exact inspection digest가 일치하지 않습니다.');
+    }
+    state.missionStaffingEntryDraft = {
+      rationale: '',
+      acknowledgement: 'bind-exact-accepted-staffing-plan-to-local-council',
+    };
+    syncSelectionsFromMission(payload.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.staffingEntry.id}을 기록하고 ${payload.councilSession.id}에서 human alignment를 기다립니다`;
   } finally {
     state.mutating = false;
     render();
@@ -7890,15 +7980,19 @@ async function submitRealCouncilDecision(councilSessionId, action, handoffMode =
       });
     }
     await hydrateSelectedDetails();
-    state.surface = action === 'approve' && handoffMode !== 'inert-workorder-preview'
-      ? 'execution'
-      : 'council';
+    const alignmentOnly = payload.mutation?.kind === 'decide-bound-council-alignment';
+    state.surface =
+      action === 'approve' && handoffMode !== 'inert-workorder-preview' && !alignmentOnly
+        ? 'execution'
+        : 'council';
     render();
     elements.refreshStatus.textContent =
       action === 'approve'
         ? handoffMode === 'inert-workorder-preview'
           ? `${payload.missionWorkOrderPreview.previewId}를 만들고 실행 연결 전에 멈췄습니다`
-          : `Real Council 결론을 승인하고 ${payload.mutation?.autoChain?.stoppedAt || 'execution'}에서 멈췄습니다`
+          : alignmentOnly
+            ? 'Bound Real Council 결론을 alignment-only로 승인했습니다'
+            : `Real Council 결론을 승인하고 ${payload.mutation?.autoChain?.stoppedAt || 'execution'}에서 멈췄습니다`
         : action === 'request-revision'
           ? `수정 attempt ${payload.attempt?.id || 'pending'}를 기록했습니다`
           : 'Real Council을 operator-stopped 상태로 닫았습니다';
@@ -11491,12 +11585,21 @@ function renderMission(data) {
   const missionCouncilProviderReadiness =
     data.councilProviderReadinessSummaries?.[data.activeProject?.id] || null;
   const missionCouncilProviderReady = missionCouncilProviderReadiness?.allowed === true;
-  const missionCouncilModeView = createMissionCouncilModeView({
+  const baseMissionCouncilModeView = createMissionCouncilModeView({
     knowledgeWork: missionUsesKnowledgeWork,
     providerBlockedReason: missionCouncilProviderReadiness?.reasons?.[0],
     providerReady: missionCouncilProviderReady,
-    requestedMode: state.missionDraftCouncilMode,
+    requestedMode:
+      state.missionDraftCouncilMode === 'real-local-stub'
+        ? 'legacy-deterministic'
+        : state.missionDraftCouncilMode,
   });
+  const missionCouncilModeView = {
+    ...baseMissionCouncilModeView,
+    options: baseMissionCouncilModeView.options.filter(
+      (option) => option.value !== 'real-local-stub',
+    ),
+  };
   const linkedTaskCreateDisabled =
     state.loading || state.mutating || !selectedMission || Boolean(selectedMission.linkedTaskId);
   const missionEntries = data.missions.map((mission) => ({
@@ -14252,6 +14355,7 @@ function renderMemoryCandidatePreview(
 function renderRealCouncilAlignmentControls(councilSession) {
   const attempt = getCurrentRealCouncilAttempt(councilSession);
   const busy = state.loading || state.mutating;
+  const staffingEntryBound = Boolean(councilSession.staffingEntryRef);
   const unresolvedQuestions = attempt?.synthesis?.unresolvedQuestions;
   const previewBlockedReason = !attempt?.synthesis
     ? 'Conductor synthesis가 있어야 WorkOrder 초안을 계산할 수 있습니다.'
@@ -14267,7 +14371,7 @@ function renderRealCouncilAlignmentControls(councilSession) {
         ${escapeHtml(councilSession.terminalReason || councilSession.alignment?.status || 'terminal')}
       </p>
       ${
-        councilSession.alignment?.status === 'approved'
+        councilSession.alignment?.status === 'approved' && !staffingEntryBound
           ? `
             <details
               class="council-alignment-secondary"
@@ -14283,6 +14387,34 @@ function renderRealCouncilAlignmentControls(councilSession) {
           `
           : ''
       }
+    `;
+  }
+
+  if (staffingEntryBound) {
+    return `
+      <div class="relation-button-row">
+        <button
+          class="primary-button"
+          type="button"
+          data-action="approve-real-council-session"
+          data-id="${escapeHtml(councilSession.id)}"
+          ${busy ? 'disabled' : ''}
+        >
+          Alignment 승인
+        </button>
+        <button
+          class="secondary-button"
+          type="button"
+          data-action="stop-real-council-session"
+          data-id="${escapeHtml(councilSession.id)}"
+          ${busy ? 'disabled' : ''}
+        >
+          회의 중지
+        </button>
+      </div>
+      <p class="form-help council-approval-help">
+        이 bound session은 alignment-only입니다. Revision, resume, auto-chain과 WorkOrder는 차단됩니다.
+      </p>
     `;
   }
 
@@ -14568,15 +14700,6 @@ function renderCouncilConversationSurface(options) {
               <p>같은 Mission evidence를 역할별로 검토한 뒤 Conductor가 하나의 권고안으로 정리합니다.</p>
               <div class="form-actions form-actions-inline">
                 <button
-                  class="primary-button"
-                  type="button"
-                  data-action="start-real-council-for-mission"
-                  data-id="${escapeHtml(mission.id)}"
-                  ${busy ? 'disabled' : ''}
-                >
-                  독립 역할 회의
-                </button>
-                <button
                   class="secondary-button"
                   type="button"
                   data-action="start-provider-council-for-mission"
@@ -14597,7 +14720,7 @@ function renderCouncilConversationSurface(options) {
               </div>
               <p class="form-help">${
                 councilProviderReady
-                  ? 'Provider mode는 명시적으로 선택할 때만 사용합니다.'
+                  ? 'Local Council은 accepted StaffingPlan의 Enter local Council에서만 시작합니다. Provider mode는 별도 opt-in입니다.'
                   : `OpenAI 역할 회의 차단: ${escapeHtml(councilProviderReadiness?.reasons?.[0] || 'provider readiness가 준비되지 않았습니다.')}`
               }</p>
             </section>
@@ -14752,13 +14875,21 @@ function renderMissionStaffingPlan(data, mission) {
   const blueprint = data.companyRuntime?.blueprint || null;
   const staffingPlan =
     data.staffingPlans.find((entry) => entry.missionId === mission.id) || null;
+  const staffingEntry =
+    data.staffingEntries.find((entry) => entry.missionId === mission.id) || null;
   const preview =
     state.missionStaffingPlanPreview?.missionId === mission.id
       ? state.missionStaffingPlanPreview
       : null;
-  const summary = getMissionStaffingPlanSummary(mission, preview, staffingPlan);
+  const summary = getMissionStaffingPlanSummary(
+    mission,
+    preview,
+    staffingPlan,
+    staffingEntry,
+  );
   const draft = state.missionStaffingPlanDraft;
   const acceptanceDraft = state.missionStaffingPlanAcceptanceDraft;
+  const entryDraft = state.missionStaffingEntryDraft;
   const availableProfiles = (blueprint?.agentProfiles || []).filter(
     (profile) =>
       profile.supportedPacks?.includes(data.activeProject.pack) &&
@@ -14778,7 +14909,9 @@ function renderMissionStaffingPlan(data, mission) {
   const busy = state.loading || state.mutating;
   const controlsDisabled = busy || !summary?.canPreview || !blueprint;
   const statusLabel =
-    summary?.status === 'accepted'
+    summary?.status === 'bound'
+      ? 'Bound'
+      : summary?.status === 'accepted'
       ? 'Accepted'
       : summary?.status === 'review-ready'
         ? 'Review ready'
@@ -14786,7 +14919,9 @@ function renderMissionStaffingPlan(data, mission) {
           ? 'Draft ready'
           : 'Blocked';
   const statusTone =
-    summary?.status === 'accepted'
+    summary?.status === 'bound'
+      ? 'success'
+      : summary?.status === 'accepted'
       ? 'success'
       : summary?.status === 'review-ready'
         ? 'accent'
@@ -14830,10 +14965,82 @@ function renderMissionStaffingPlan(data, mission) {
                 <div><dt>Roles</dt><dd>${escapeHtml(selectedDisplay.join(' · '))}</dd></div>
                 <div><dt>Accepted</dt><dd>${escapeHtml(formatDate(staffingPlan.acceptedAt))}</dd></div>
                 <div><dt>Source</dt><dd><code>${escapeHtml(sourceDigest?.slice(0, 16) || 'n/a')}</code></dd></div>
-                <div><dt>Boundary</dt><dd>Inspection only · Council/WorkOrder start blocked</dd></div>
+                <div><dt>Boundary</dt><dd>${
+                  staffingEntry
+                    ? 'Alignment only · downstream blocked'
+                    : staffingPlan.mode === 'council'
+                      ? 'Exact Council entry available'
+                      : 'Solo runtime unavailable'
+                }</dd></div>
               </dl>
               <p class="staffing-plan-rationale">${escapeHtml(staffingPlan.selectionRationale)}</p>
             </div>
+            ${
+              staffingEntry
+                ? `
+                  <div
+                    class="staffing-entry-record"
+                    data-staffing-entry-id="${escapeHtml(staffingEntry.id)}"
+                    aria-label="Durable StaffingEntry evidence"
+                  >
+                    <div class="staffing-plan-record-lead">
+                      <div>
+                        <span>Bound entry</span>
+                        <strong>${escapeHtml(staffingEntry.id)}</strong>
+                      </div>
+                      ${createToken(staffingEntry.status, 'success')}
+                    </div>
+                    <dl class="staffing-plan-facts">
+                      <div><dt>Plan</dt><dd>${escapeHtml(staffingEntry.staffingPlanId)}</dd></div>
+                      <div><dt>Session</dt><dd>${escapeHtml(staffingEntry.councilSessionId)}</dd></div>
+                      <div><dt>Roles</dt><dd>${escapeHtml(staffingEntry.selectedRoles.join(' · '))}</dd></div>
+                      <div><dt>Source</dt><dd><code>${escapeHtml(staffingEntry.entrySourceDigest.slice(0, 16))}</code></dd></div>
+                    </dl>
+                    <p class="form-help">
+                      Human alignment에서 멈춥니다. WorkOrder, scheduling, provider와 source mutation은 열리지 않습니다.
+                    </p>
+                  </div>
+                `
+                : staffingPlan.mode === 'solo'
+                  ? `
+                    <div class="staffing-entry-unavailable" aria-label="Solo runtime unavailable">
+                      ${createToken('solo runtime not implemented', 'warning')}
+                      <p>Accepted solo evidence는 보존되지만 실행 entry action은 제공하지 않습니다.</p>
+                    </div>
+                  `
+                  : `
+                    <form class="staffing-entry-form" data-form="staffing-plan-entry">
+                      <label class="field">
+                        <span>Entry rationale</span>
+                        <textarea
+                          name="entryRationale"
+                          rows="2"
+                          placeholder="이 accepted plan으로 한 번의 local Council attempt를 시작하는 이유"
+                          ${busy ? 'disabled' : ''}
+                        >${escapeHtml(entryDraft.rationale)}</textarea>
+                      </label>
+                      <input
+                        name="entryAcknowledgement"
+                        type="hidden"
+                        value="${escapeHtml(entryDraft.acknowledgement)}"
+                      />
+                      <div class="staffing-plan-actions">
+                        <button
+                          class="primary-button"
+                          type="button"
+                          data-action="enter-staffing-plan-council"
+                          data-id="${escapeHtml(staffingPlan.id)}"
+                          ${busy || !summary.canEnterCouncil ? 'disabled' : ''}
+                        >
+                          Enter local Council
+                        </button>
+                      </div>
+                      <p class="form-help">
+                        Exact plan과 별도 entry approval을 bind한 뒤 첫 deterministic attempt만 실행합니다.
+                      </p>
+                    </form>
+                  `
+            }
           `
           : `
             <form class="staffing-plan-form" data-form="mission-staffing-plan">
@@ -15208,15 +15415,6 @@ function renderCouncil(data) {
               ? `
                 <div class="form-actions form-actions-inline">
                   <button
-                    class="primary-button"
-                    type="button"
-                    data-action="start-real-council-for-mission"
-                    data-id="${escapeHtml(selectedMission.id)}"
-                    ${councilDraftDisabled ? 'disabled' : ''}
-                  >
-                    독립 역할 회의
-                  </button>
-                  <button
                     class="secondary-button"
                     type="button"
                     data-action="start-provider-council-for-mission"
@@ -15236,7 +15434,7 @@ function renderCouncil(data) {
                   </button>
                   <p class="form-help">${
                     councilProviderReady
-                      ? '안건이 올라온 뒤 local-stub 또는 명시적 OpenAI Responses 역할 회의를 엽니다.'
+                      ? 'Local Council은 accepted StaffingPlan entry로만 열고, OpenAI Responses는 명시적 opt-in으로 유지합니다.'
                       : `OpenAI 역할 회의 차단: ${escapeHtml(councilProviderReadiness?.reasons?.[0] || 'provider readiness가 준비되지 않았습니다.')}`
                   }</p>
                 </div>
@@ -21051,6 +21249,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'enter-staffing-plan-council') {
+        await enterStaffingPlanCouncil(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'request-builder-live-mutation-approval') {
         await requestBuilderLiveMutationApproval(actionButton.dataset.id);
         return;
@@ -21335,6 +21538,9 @@ function handleFormInput(event) {
   const staffingPlanForm = event.target.closest(
     '[data-form="mission-staffing-plan"]',
   );
+  const staffingEntryForm = event.target.closest(
+    '[data-form="staffing-plan-entry"]',
+  );
   const learningCandidateReviewForm = event.target.closest(
     '[data-form="review-learning-candidate"]',
   );
@@ -21466,6 +21672,13 @@ function handleFormInput(event) {
     }
     if (event.type === 'change' && event.target.name === 'staffingMode') {
       render();
+    }
+    return;
+  }
+
+  if (staffingEntryForm) {
+    if (event.target.name === 'entryRationale') {
+      state.missionStaffingEntryDraft.rationale = event.target.value;
     }
     return;
   }

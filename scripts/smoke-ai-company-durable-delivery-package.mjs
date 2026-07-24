@@ -8,6 +8,7 @@ import executionCoordinatorModule from '../src/execution/execution-coordinator.j
 import localStubAdapterModule from '../src/execution/providers/local-stub-adapter.js';
 import fileStoreModule from '../src/runtime/file-store.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createCouncilLocalStubAdapter } = councilAdapterModule;
@@ -117,9 +118,12 @@ function createContext() {
     goal: 'Prove one exact durable review-required record.',
     constraints: 'Local-stub only; stop before acceptance, done, commit, push, or release.',
   });
-  const started = runtime.startRealCouncilForMission({
+  const started = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: createResolvedCouncilAdapter(),
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   runtime.decideRealCouncilSession({
     councilSessionId: started.councilSession.id,
@@ -297,7 +301,7 @@ async function main() {
     const schema8 = stripV9Fields(currentState);
     writeState(migrationRoot, schema8);
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 17);
+    assert.equal(migrated.schemaVersion, 18);
     assert.equal(migrated.sequences.deliveryPackage, 0);
     assert.equal(migrated.sequences.deliveryPackageAcceptance, 0);
     assert.deepEqual(migrated.deliveryPackages, {});
@@ -314,7 +318,7 @@ async function main() {
     writeState(partialRoot, partial);
     assert.throws(() => createFileStore({ runtimeRoot: partialRoot }).loadState(), /missing DeliveryPackage fields/);
     const futureRoot = path.join(tempRoot, 'future');
-    writeState(futureRoot, { ...currentState, schemaVersion: 18 });
+    writeState(futureRoot, { ...currentState, schemaVersion: 19 });
     assert.throws(() => createFileStore({ runtimeRoot: futureRoot }).loadState(), /Unsupported runtime state/);
 
     const exactTuple = {
@@ -399,7 +403,7 @@ async function main() {
     });
     const durable = reloaded.getExecutionPlanDeliveryPackage(executionPlanId).deliveryPackage;
     assert.deepEqual(durable, result.deliveryPackage);
-    assert.equal(reloaded.getSnapshot().schemaVersion, 17);
+    assert.equal(reloaded.getSnapshot().schemaVersion, 18);
     assert.equal(reloaded.getDeliveryPackageAcceptance(durable.id).acceptance, null);
     assert.equal(typeof reloaded.acceptDeliveryPackage, 'function');
     assert.equal(typeof reloaded.completeMissionFromDeliveryPackage, 'undefined');

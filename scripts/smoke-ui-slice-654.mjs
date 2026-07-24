@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import councilAdapterModule from '../src/execution/providers/council-local-stub-adapter.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
 import { getMissionExecutionPlanBundle } from '../ui/council-signals.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createCouncilLocalStubAdapter } = councilAdapterModule;
@@ -92,9 +93,12 @@ async function main() {
     goal: 'Persist one approved plan and stop Builder at the existing mutation gate.',
     constraints: 'Do not dispatch Reviewer or QA and do not mutate source.',
   });
-  const started = seedRuntime.startRealCouncilForMission({
+  const started = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: createResolvedAdapter(),
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   seedRuntime.decideRealCouncilSession({
     councilSessionId: started.councilSession.id,
@@ -162,7 +166,7 @@ async function main() {
       },
     );
     assert.equal(persisted.response.status, 201);
-    assert.equal(persisted.payload.snapshot.schemaVersion, 17);
+    assert.equal(persisted.payload.snapshot.schemaVersion, 18);
     assert.equal(persisted.payload.executionPlanBundle.executionPlan.status, 'pending-approval');
     assert.equal(persisted.payload.executionPlanBundle.workOrders.length, 3);
     assert.equal(persisted.payload.executionPlanBundle.handoffPackets.length, 3);

@@ -7,6 +7,7 @@ import contractsModule from '../src/runtime/contracts.js';
 import councilAdapterModule from '../src/execution/providers/council-local-stub-adapter.js';
 import graphModule from '../src/runtime/mission-evidence-graph.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createEmptyState } = contractsModule;
@@ -95,9 +96,12 @@ async function main() {
       goal: 'SENSITIVE_GOAL_BODY must never enter the graph payload.',
       constraints: 'SENSITIVE_CONSTRAINT_BODY must never enter the graph payload.',
     });
-    const started = runtime.startRealCouncilForMission({
+    const started = startHistoricalUnboundRealCouncilFixture({
+      runtimeRoot,
+      companyBlueprintPath: blueprintPath,
+      companyRepoRoot: repoRoot,
+      councilAdapter: createResolvedAdapter(),
       missionId: mission.id,
-      mode: 'real-local-stub',
     });
     runtime.decideRealCouncilSession({
       councilSessionId: started.councilSession.id,

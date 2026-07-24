@@ -97,7 +97,10 @@ async function main() {
     assert.match(staffingPanelSource, /data-action="preview-mission-staffing-plan"/);
     assert.match(staffingPanelSource, /data-action="accept-mission-staffing-plan"/);
     assert.match(staffingPanelSource, /Response-only preview/);
-    assert.match(staffingPanelSource, /Inspection only/);
+    assert.match(staffingPanelSource, /data-form="staffing-plan-entry"/);
+    assert.match(staffingPanelSource, /data-action="enter-staffing-plan-council"/);
+    assert.match(staffingPanelSource, /Enter local Council/);
+    assert.match(staffingPanelSource, /solo runtime not implemented/);
     assert.match(staffingPanelSource, /data-staffing-plan-derived/);
     assert.doesNotMatch(staffingPanelSource, /data-action="start-/);
     assert.doesNotMatch(staffingPanelSource, /data-action="run-/);
@@ -118,7 +121,7 @@ async function main() {
 
     const snapshot = await fetchJson('/api/snapshot');
     assert.equal(snapshot.response.status, 200);
-    assert.equal(snapshot.payload.snapshot.schemaVersion, 17);
+    assert.equal(snapshot.payload.snapshot.schemaVersion, 18);
     assert.deepEqual(snapshot.payload.snapshot.staffingPlans, {});
     const blueprint = snapshot.payload.snapshot.companyRuntime.blueprint;
     const staffingSpec = {
@@ -175,8 +178,10 @@ async function main() {
       {
         canAccept: true,
         canPreview: true,
+        canEnterCouncil: false,
         downstreamAllowed: false,
         durableCurrent: false,
+        entryCurrent: false,
         previewCurrent: true,
         sourceReady: true,
         status: 'review-ready',
@@ -239,7 +244,7 @@ async function main() {
     assert.equal(replay.response.status, 200);
     assert.equal(replay.payload.mutation.idempotent, true);
     const finalState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(finalState.schemaVersion, 17);
+    assert.equal(finalState.schemaVersion, 18);
     assert.equal(Object.keys(finalState.staffingPlans).length, 1);
     assert.equal(Object.keys(finalState.councilSessions).length, 0);
     assert.equal(Object.keys(finalState.executionPlans).length, 0);
@@ -249,8 +254,8 @@ async function main() {
     assert.equal(Object.keys(finalState.approvals).length, 0);
     assert.equal(Object.keys(finalState.decisionInboxItems).length, 0);
     assert.equal(
-      getMissionStaffingPlanSummary(mission, preview, staffingPlan).downstreamAllowed,
-      false,
+      getMissionStaffingPlanSummary(mission, preview, staffingPlan).canEnterCouncil,
+      true,
     );
 
     process.stdout.write(
@@ -271,7 +276,8 @@ async function main() {
             explicitPreviewAndAcceptance: true,
             exactInspectionVisible: true,
             browserMemoryInvalidationPresent: true,
-            downstreamControlsAbsent: true,
+            councilEntryVisibleAfterAcceptance: true,
+            soloRuntimeUnavailable: true,
             desktopMobileRulesPresent: true,
           },
         },

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import councilAdapterModule from '../src/execution/providers/council-local-stub-adapter.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
 import verificationModule from '../src/runtime/workorder-verification-plan-preview.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createCouncilLocalStubAdapter } = councilAdapterModule;
@@ -71,9 +72,12 @@ function seedExecutionPlan(runtimeRoot) {
     goal: 'Review exact WorkOrder criteria without executing or persisting proof.',
     constraints: 'Keep the current schema and every downstream authority closed.',
   });
-  const started = runtime.startRealCouncilForMission({
+  const started = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: createResolvedAdapter(),
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   runtime.decideRealCouncilSession({
     councilSessionId: started.councilSession.id,

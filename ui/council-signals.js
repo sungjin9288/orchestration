@@ -73,13 +73,19 @@ export function getMissionWorkOrderPreviewSummary(preview, councilSessionId) {
   };
 }
 
-export function getMissionStaffingPlanSummary(mission, preview, staffingPlan) {
+export function getMissionStaffingPlanSummary(
+  mission,
+  preview,
+  staffingPlan,
+  staffingEntry = null,
+) {
   if (!mission) return null;
 
   const sourceReady = Boolean(
     mission.status === 'draft' &&
       !mission.linkedTaskId &&
-      !mission.councilSessionId,
+      !mission.councilSessionId &&
+      !mission.staffingEntryId,
   );
   const previewCurrent = Boolean(
     preview &&
@@ -95,15 +101,33 @@ export function getMissionStaffingPlanSummary(mission, preview, staffingPlan) {
       staffingPlan.missionId === mission.id &&
       staffingPlan.projectId === mission.projectId,
   );
+  const entryCurrent = Boolean(
+    staffingEntry &&
+      staffingEntry.persisted === true &&
+      staffingEntry.status === 'bound' &&
+      staffingEntry.missionId === mission.id &&
+      staffingEntry.projectId === mission.projectId &&
+      staffingEntry.staffingPlanId === staffingPlan?.id &&
+      staffingEntry.id === mission.staffingEntryId,
+  );
 
   return {
     canAccept: sourceReady && previewCurrent && !durableCurrent,
     canPreview: sourceReady && !durableCurrent,
+    canEnterCouncil:
+      sourceReady &&
+      durableCurrent &&
+      staffingPlan.mode === 'council' &&
+      staffingPlan.providerMode === 'local-stub' &&
+      !entryCurrent,
     downstreamAllowed: false,
     durableCurrent,
+    entryCurrent,
     previewCurrent,
     sourceReady,
-    status: durableCurrent
+    status: entryCurrent
+      ? 'bound'
+      : durableCurrent
       ? 'accepted'
       : previewCurrent
         ? 'review-ready'

@@ -158,7 +158,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ui-slice-662\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 17/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
 assert.match(contracts, /learningCandidateReview/);
 assert.match(fileStore, /validateLearningCandidateReviewRecords/);
 assert.match(runtimeService, /function reviewLearningCandidate\(/);

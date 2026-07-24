@@ -167,7 +167,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-memory-candidate-preview-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 17/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
 assert.match(contracts, /learningCandidateReviews: \{\}/);
 assert.doesNotMatch(contracts, /memoryCandidateReviews: \{\}/);
 assert.match(memoryCandidatePreview, /function previewLearningCandidateMemory\(/);

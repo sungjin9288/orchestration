@@ -9,6 +9,7 @@ import councilAdapterModule from '../src/execution/providers/council-local-stub-
 import executionCoordinatorModule from '../src/execution/execution-coordinator.js';
 import fileStoreModule from '../src/runtime/file-store.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createEmptyState } = contractsModule;
@@ -59,9 +60,12 @@ function createApprovedContext(name) {
     goal: 'Persist and dispatch one approval-bound Builder WorkOrder.',
     constraints: 'Stop before source mutation and keep Reviewer and QA blocked.',
   });
-  const started = runtime.startRealCouncilForMission({
+  const started = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: createResolvedAdapter(),
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   runtime.decideRealCouncilSession({
     councilSessionId: started.councilSession.id,
@@ -121,7 +125,7 @@ async function main() {
     delete legacy.staffingPlans;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(legacy));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 17);
+    assert.equal(migrated.schemaVersion, 18);
     assert.deepEqual(
       [migrated.sequences.executionPlan, migrated.sequences.workOrder, migrated.sequences.handoffPacket],
       [0, 0, 0],
@@ -133,7 +137,7 @@ async function main() {
     assert.deepEqual(migrated.acceptanceCriteria, {});
     assert.deepEqual(migrated.verificationProofs, {});
 
-    for (const invalidVersion of [8, 18]) {
+    for (const invalidVersion of [8, 19]) {
       const invalidRoot = path.join(tempRoot, `invalid-${invalidVersion}`);
       fs.mkdirSync(invalidRoot, { recursive: true });
       const invalid = createEmptyState();
@@ -279,7 +283,7 @@ async function main() {
     }).getExecutionPlan(first.executionPlan.id);
     assert.deepEqual(reloaded.executionPlan, stopped.executionPlan);
     assert.deepEqual(reloaded.workOrders, stopped.workOrders);
-    assert.equal(JSON.parse(fs.readFileSync(statePath, 'utf8')).schemaVersion, 17);
+    assert.equal(JSON.parse(fs.readFileSync(statePath, 'utf8')).schemaVersion, 18);
 
     const rejected = createApprovedContext('rejected');
     const rejectedPlan = persist(rejected);

@@ -420,11 +420,12 @@ complete durable StaffingPlan implementation handoff는 `DEC-164`, implementatio
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한
 blueprint의 exact four required ids를 선택하지만 accepted plan을 Council에 연결하지 않는다.
 Council-first entry binding planning과 complete fielded handoff는 `DEC-167`, `DEC-168`로
-기록됐다. The planned schema-v18 slice preserves the accepted plan and existing staffingSnapshot,
-records one separate immutable StaffingEntry, runs exactly one current deterministic local-stub
-attempt, and stops at alignment-only approve or stop. Bound revision, resume, auto-chain, WorkOrder,
-provider, and solo behavior remain blocked. Current runtime behavior remains unchanged until the
-complete handoff is approved.
+기록됐고 exact implementation은 `DEC-169`로 accepted됐다. Bound StaffingEntry sessions preserve
+the accepted plan and existing staffingSnapshot, record one separate immutable StaffingEntry, run
+exactly one current deterministic local-stub attempt, and stop at alignment-only approve or stop.
+Bound revision, resume, auto-chain, WorkOrder, provider, and solo behavior remain blocked. New
+operator-facing unbound local Council starts are rejected while historical sessions remain
+inspectable.
 
 ## Verification
 

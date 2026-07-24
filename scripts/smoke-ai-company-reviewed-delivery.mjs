@@ -10,6 +10,7 @@ import executionCoordinatorModule from '../src/execution/execution-coordinator.j
 import localStubAdapterModule from '../src/execution/providers/local-stub-adapter.js';
 import qaRunnerModule from '../src/execution/qa-node-check-runner.js';
 import runtimeModule from '../src/runtime/runtime-service.js';
+import { startHistoricalUnboundRealCouncilFixture } from './ai-company-council-fixtures.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const { createCouncilLocalStubAdapter } = councilAdapterModule;
@@ -112,9 +113,12 @@ function createContext(name, goal = 'Build one bounded reviewed delivery pass pa
     goal,
     constraints: 'Use local-stub only and stop before commit, push, release, or Mission done.',
   });
-  const started = runtime.startRealCouncilForMission({
+  const started = startHistoricalUnboundRealCouncilFixture({
+    runtimeRoot,
+    companyBlueprintPath: blueprintPath,
+    companyRepoRoot: repoRoot,
+    councilAdapter: createResolvedAdapter(),
     missionId: mission.id,
-    mode: 'real-local-stub',
   });
   runtime.decideRealCouncilSession({
     councilSessionId: started.councilSession.id,
@@ -462,7 +466,7 @@ async function main() {
       companyBlueprintPath: blueprintPath,
       companyRepoRoot: repoRoot,
     });
-    assert.equal(reloaded.getSnapshot().schemaVersion, 17);
+    assert.equal(reloaded.getSnapshot().schemaVersion, 18);
     assert.deepEqual(
       reloaded.previewExecutionPlanDelivery({
         executionPlanId: success.persisted.executionPlan.id,
@@ -516,7 +520,7 @@ async function main() {
       ok: true,
       mode: MODE,
       runtime: {
-        schemaVersion: 17,
+        schemaVersion: 18,
         sequence: ['builder-live-mutation', 'reviewer', 'node-check-qa'],
         finalPlanStatus: 'delivery-ready',
         missionDone: false,

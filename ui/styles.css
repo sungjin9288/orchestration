@@ -12542,7 +12542,8 @@ body .llm-app-shell .llm-mission-composer .form-help {
   line-height: 1.55;
 }
 
-.staffing-plan-form {
+.staffing-plan-form,
+.staffing-entry-form {
   display: grid;
   gap: 16px;
 }
@@ -12606,8 +12607,30 @@ body .llm-app-shell .llm-mission-composer .form-help {
   background: #edf7f2;
 }
 
+.staffing-entry-record,
+.staffing-entry-unavailable {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #c8d3ce;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.staffing-entry-unavailable {
+  justify-items: start;
+  border-color: #ddd7c8;
+  background: #fcfaf4;
+}
+
+.staffing-entry-unavailable p,
+.staffing-entry-record .form-help {
+  margin: 0;
+}
+
 .staffing-plan-preview strong,
-.staffing-plan-record-lead strong {
+.staffing-plan-record-lead strong,
+.staffing-entry-record strong {
   color: #202423;
   font-size: 0.88rem;
 }

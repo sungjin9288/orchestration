@@ -28,6 +28,7 @@ const taskLedger = read('tasks/todo.md');
 const lessons = read('tasks/lessons.md');
 const verification = read('scripts/verification_status.mjs');
 const contracts = read('src/runtime/contracts.js');
+const staffingEntries = read('src/runtime/staffing-entries.js');
 const staffingPlans = read('src/runtime/staffing-plans.js');
 const councilSessions = read('src/runtime/council-sessions.js');
 const runtimeService = read('src/runtime/runtime-service.js');
@@ -99,7 +100,7 @@ assert.match(
   /scripts\/smoke-ai-company-staffing-entry-binding-planning\.mjs/,
 );
 
-for (const decisionId of ['DEC-167', 'DEC-168']) {
+for (const decisionId of ['DEC-167', 'DEC-168', 'DEC-169']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -110,12 +111,16 @@ assert.match(
   decisionLog,
   /### DEC-168[\s\S]*Status: `Accepted`[\s\S]*No implementation authority is recorded[\s\S]*does not authorize schema, runtime, API, UI, durable entry, or Council mutation/,
 );
+assert.match(
+  decisionLog,
+  /### DEC-169[\s\S]*Status: `Accepted`[\s\S]*schema-v18[\s\S]*StaffingEntry[\s\S]*alignment-only/,
+);
 
-assert.match(masterPlan, /Council-first entry binding plan and handoff/);
-assert.match(runtimeContract, /Council-first binding planning.*complete fielded handoff/);
-assert.match(councilProtocol, /Council-first entry binding planning/);
-assert.match(deliveryRoadmap, /Council-first binding planning is\s+accepted as `DEC-167`/);
-assert.match(inventory, /AI Company StaffingEntry Council binding planning \| pass/);
+assert.match(masterPlan, /Council-first\s+StaffingEntry binding is implemented as `DEC-169`/);
+assert.match(runtimeContract, /schema-v18 StaffingEntry implementation/);
+assert.match(councilProtocol, /Bound StaffingEntry sessions/);
+assert.match(deliveryRoadmap, /StaffingEntry\s+implementation is accepted as `DEC-169`/);
+assert.match(inventory, /AI Company StaffingEntry Council binding implementation \| pass/);
 assert.match(readme, /docs\/115_ai-company-staffing-entry-binding-plan\.md/);
 assert.match(
   readme,
@@ -132,19 +137,28 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-staffing-entry-binding-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 17/);
-assert.doesNotMatch(contracts, /staffingEntries/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
+assert.match(contracts, /staffingEntries: \{\}/);
+assert.match(staffingEntries, /function createStaffingEntry/);
+assert.match(staffingEntries, /function assertStaffingEntryRecord/);
 assert.match(staffingPlans, /'solo', 'council', 'parallel-specialists'/);
 assert.match(staffingPlans, /'council-start'/);
 assert.match(councilSessions, /staffingSnapshot:/);
-assert.doesNotMatch(councilSessions, /staffingEntryRef/);
+assert.match(councilSessions, /staffingEntryRef = null/);
+assert.match(councilSessions, /session\.staffingEntryRef = cloneJson\(staffingEntryRef\)/);
+assert.match(runtimeService, /function enterStaffingPlanCouncil\(input\)/);
+assert.match(runtimeService, /function getStaffingEntry\(staffingEntryId\)/);
 assert.match(runtimeService, /function startRealCouncilForMission\(input\)/);
-assert.match(runtimeService, /startRealCouncilForMission,/);
-assert.match(server, /runtime\.startRealCouncilForMission\(\{ missionId, mode \}\)/);
-assert.match(server, /runMissionAlignmentAutoChain\(alignedResult\.mission\.id/);
+assert.match(runtimeService, /STAFFING_PLAN_ENTRY_REQUIRED/);
+assert.match(runtimeService, /STAFFING_ENTRY_ACTION_BLOCKED/);
+assert.match(
+  server,
+  /runtime\.enterStaffingPlanCouncil\(\{\s*\.\.\.input,\s*staffingPlanId,\s*\}\)/,
+);
+assert.match(server, /runtime\.getStaffingEntry\(staffingEntryId\)/);
 assert.match(
   app,
-  /async function submitStartRealCouncilForMission\(missionId, mode = 'real-local-stub'\)[\s\S]*\/api\/missions\/\$\{encodeURIComponent\(missionId\)\}\/council\/start[\s\S]*\{ mode \}/,
+  /async function enterStaffingPlanCouncil\(actionButton\)[\s\S]*\/api\/staffing-plans\/\$\{encodeURIComponent\(staffingPlan\.id\)\}\/council-entry/,
 );
 assert.match(
   plan,
@@ -157,12 +171,12 @@ assert.match(
 assert.match(plan, /scripts\/smoke-ai-company-staffing-entry-binding-planning\.mjs/);
 assert.match(plan, /must not be deleted, deregistered, or weakened/);
 assert.doesNotMatch(runtimeService, /function startSolo/);
-assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/staffing-entries.js')), false);
+assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/staffing-entries.js')), true);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-staffing-entry-binding.mjs')),
-  false,
+  true,
 );
-assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-697.mjs')), false);
+assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-697.mjs')), true);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -172,17 +186,17 @@ process.stdout.write(
       decisions: {
         planning: 'accepted-dec-167',
         handoff: 'documented-dec-168',
-        implementation: 'operator-decision-required',
+        implementation: 'accepted-dec-169',
       },
       currentRuntime: {
-        schemaVersion: 17,
+        schemaVersion: 18,
         durableStaffingPlan: true,
-        staffingEntry: false,
-        acceptedPlanBoundToCouncil: false,
+        staffingEntry: true,
+        acceptedPlanBoundToCouncil: true,
         soloRuntime: false,
-        localCouncilCanAutoChain: true,
+        boundCouncilAutoChainBlocked: true,
       },
-      plannedSlice: {
+      implementedSlice: {
         schemaVersion: 18,
         object: 'StaffingEntry',
         entryKind: 'real-council',
@@ -193,10 +207,10 @@ process.stdout.write(
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        schemaMigrationAllowed: false,
-        durableEntryAllowed: false,
-        councilBindingAllowed: false,
+        implementationAllowed: true,
+        schemaMigrationAllowed: true,
+        durableEntryAllowed: true,
+        councilBindingAllowed: true,
         soloExecutionAllowed: false,
         schedulingAllowed: false,
         workOrderAllowed: false,

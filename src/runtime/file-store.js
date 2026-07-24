@@ -42,6 +42,7 @@ const {
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
+  STAFFING_ENTRY_STATE_SCHEMA_VERSION,
   STAFFING_PLAN_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,
   WORK_ORDER_STATUS,
@@ -104,6 +105,13 @@ const {
   STAFFING_PLAN_STATUS,
   computeStaffingPlanRecordDigest,
 } = require('./staffing-plans');
+const {
+  STAFFING_ENTRY_ALLOWED_ACTION,
+  STAFFING_ENTRY_KIND,
+  STAFFING_ENTRY_STATUS,
+  assertStaffingEntryRecord,
+  computeStaffingEntrySourceDigest,
+} = require('./staffing-entries');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 const {
   BLOCKED_ACTIONS: VERIFICATION_PROOF_BLOCKED_ACTIONS,
@@ -1760,6 +1768,144 @@ function validateStaffingPlanRecords(state) {
   }
 }
 
+function validateStaffingEntryRecords(state) {
+  const missionIds = new Set();
+  const staffingPlanIds = new Set();
+  const councilSessionIds = new Set();
+
+  for (const [key, staffingEntry] of Object.entries(state.staffingEntries)) {
+    const label = `StaffingEntry ${key}`;
+    if (
+      !staffingEntry ||
+      typeof staffingEntry !== 'object' ||
+      Array.isArray(staffingEntry) ||
+      staffingEntry.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertStaffingEntryRecord(staffingEntry);
+
+    const staffingPlan = state.staffingPlans[staffingEntry.staffingPlanId];
+    const mission = state.missions[staffingEntry.missionId];
+    const councilSession = state.councilSessions[staffingEntry.councilSessionId];
+    if (
+      !staffingPlan ||
+      staffingPlan.persisted !== true ||
+      staffingPlan.status !== 'accepted' ||
+      staffingPlan.mode !== 'council' ||
+      staffingPlan.id !== staffingEntry.staffingPlanId ||
+      staffingPlan.recordDigest !== staffingEntry.staffingPlanRecordDigest ||
+      staffingPlan.missionId !== staffingEntry.missionId ||
+      staffingPlan.projectId !== staffingEntry.projectId ||
+      staffingPlan.projectPack !== staffingEntry.projectPack ||
+      staffingPlan.sourceDigest !== staffingEntry.sourceDigest ||
+      staffingPlan.missionDigest !== staffingEntry.missionDigest ||
+      staffingPlan.blueprintDigest !== staffingEntry.blueprintDigest ||
+      staffingPlan.staffingSpecDigest !== staffingEntry.staffingSpecDigest ||
+      !sameStringArrays(staffingPlan.selectedAgentIds, staffingEntry.selectedAgentIds) ||
+      !sameStringArrays(staffingPlan.selectedRoles, staffingEntry.selectedRoles) ||
+      JSON.stringify(staffingPlan.terminationPolicy) !==
+        JSON.stringify(staffingEntry.terminationPolicy) ||
+      Date.parse(staffingEntry.boundAt) < Date.parse(staffingPlan.acceptedAt)
+    ) {
+      throw new Error(`${label} has invalid immutable StaffingPlan binding`);
+    }
+    if (
+      computeStaffingEntrySourceDigest(staffingPlan, staffingEntry.entryApprovalDigest) !==
+      staffingEntry.entrySourceDigest
+    ) {
+      throw new Error(`${label} entrySourceDigest does not match its StaffingPlan binding`);
+    }
+    if (
+      !mission ||
+      mission.projectId !== staffingEntry.projectId ||
+      mission.staffingEntryId !== staffingEntry.id ||
+      mission.councilSessionId !== staffingEntry.councilSessionId ||
+      mission.linkedTaskId !== null
+    ) {
+      throw new Error(`${label} has invalid Mission binding`);
+    }
+    if (
+      !councilSession ||
+      councilSession.id !== staffingEntry.councilSessionId ||
+      councilSession.missionId !== staffingEntry.missionId ||
+      councilSession.mode !== 'real-local-stub' ||
+      !Array.isArray(councilSession.attempts) ||
+      councilSession.attempts.length !== 1 ||
+      councilSession.currentAttemptId !== councilSession.attempts[0]?.id ||
+      councilSession.attempts[0]?.status !== 'awaiting-alignment' ||
+      !councilSession.staffingEntryRef ||
+      typeof councilSession.staffingEntryRef !== 'object' ||
+      Array.isArray(councilSession.staffingEntryRef)
+    ) {
+      throw new Error(`${label} has invalid CouncilSession binding`);
+    }
+    assertExactObjectKeys(
+      councilSession.staffingEntryRef,
+      [
+        'entrySourceDigest',
+        'staffingEntryId',
+        'staffingPlanId',
+        'staffingPlanRecordDigest',
+      ],
+      `${label} CouncilSession staffingEntryRef`,
+    );
+    if (
+      councilSession.staffingEntryRef.staffingEntryId !== staffingEntry.id ||
+      councilSession.staffingEntryRef.entrySourceDigest !== staffingEntry.entrySourceDigest ||
+      councilSession.staffingEntryRef.staffingPlanId !== staffingEntry.staffingPlanId ||
+      councilSession.staffingEntryRef.staffingPlanRecordDigest !==
+        staffingEntry.staffingPlanRecordDigest
+    ) {
+      throw new Error(`${label} CouncilSession staffingEntryRef is stale`);
+    }
+    const boundAgentIds = [
+      councilSession.staffingSnapshot?.conductorAgentId,
+      ...(councilSession.staffingSnapshot?.requiredAgentIds || []),
+    ].sort();
+    if (
+      councilSession.staffingSnapshot?.mode !== 'council' ||
+      councilSession.staffingSnapshot?.providerMode !== 'local-stub' ||
+      !sameStringArrays(boundAgentIds, staffingEntry.selectedAgentIds)
+    ) {
+      throw new Error(`${label} CouncilSession staffingSnapshot is stale`);
+    }
+    if (
+      staffingEntry.status !== STAFFING_ENTRY_STATUS ||
+      staffingEntry.entryKind !== STAFFING_ENTRY_KIND ||
+      staffingEntry.allowedAction !== STAFFING_ENTRY_ALLOWED_ACTION
+    ) {
+      throw new Error(`${label} has invalid bound authority`);
+    }
+    if (
+      missionIds.has(staffingEntry.missionId) ||
+      staffingPlanIds.has(staffingEntry.staffingPlanId) ||
+      councilSessionIds.has(staffingEntry.councilSessionId)
+    ) {
+      throw new Error(`${label} duplicates a StaffingEntry source binding`);
+    }
+    missionIds.add(staffingEntry.missionId);
+    staffingPlanIds.add(staffingEntry.staffingPlanId);
+    councilSessionIds.add(staffingEntry.councilSessionId);
+  }
+
+  for (const mission of Object.values(state.missions)) {
+    if (mission.staffingEntryId === null) continue;
+    const staffingEntry = state.staffingEntries[mission.staffingEntryId];
+    if (!staffingEntry || staffingEntry.missionId !== mission.id) {
+      throw new Error(`Mission ${mission.id} has an invalid StaffingEntry reference`);
+    }
+  }
+
+  for (const councilSession of Object.values(state.councilSessions)) {
+    if (!councilSession.staffingEntryRef) continue;
+    const staffingEntry = state.staffingEntries[councilSession.staffingEntryRef.staffingEntryId];
+    if (!staffingEntry || staffingEntry.councilSessionId !== councilSession.id) {
+      throw new Error(`CouncilSession ${councilSession.id} has an orphan StaffingEntry reference`);
+    }
+  }
+}
+
 function validateDurableWorkOrderRecords(state) {
   const planStatuses = new Set(Object.values(EXECUTION_PLAN_STATUS));
   const workOrderStatuses = new Set(Object.values(WORK_ORDER_STATUS));
@@ -2470,6 +2616,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== MEMORY_ITEM_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MEMORY_RECALL_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== STAFFING_PLAN_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -2638,6 +2785,22 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= STAFFING_ENTRY_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.staffingEntry) ||
+        !state.staffingEntries ||
+        typeof state.staffingEntries !== 'object' ||
+        Array.isArray(state.staffingEntries) ||
+        Object.values(state.missions || {}).some(
+          (mission) => !Object.prototype.hasOwnProperty.call(mission, 'staffingEntryId'),
+        )
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing StaffingEntry fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -2671,6 +2834,7 @@ function createFileStore(options = {}) {
       acceptanceCriteria: state.acceptanceCriteria || {},
       verificationProofs: state.verificationProofs || {},
       staffingPlans: state.staffingPlans || {},
+      staffingEntries: state.staffingEntries || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -2704,6 +2868,10 @@ function createFileStore(options = {}) {
 
       if (mission.councilSessionId === undefined) {
         mission.councilSessionId = null;
+      }
+
+      if (mission.staffingEntryId === undefined) {
+        mission.staffingEntryId = null;
       }
     }
 
@@ -2950,6 +3118,7 @@ function createFileStore(options = {}) {
     validateMemoryItemRecords(normalizedState);
     validateMemoryRecallRecords(normalizedState);
     validateStaffingPlanRecords(normalizedState);
+    validateStaffingEntryRecords(normalizedState);
     return normalizedState;
   }
 
