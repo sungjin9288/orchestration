@@ -61,10 +61,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
   runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
   envelope로 노출된다.
-- Persisted runtime은 schema v18이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
+- Persisted runtime은 schema v19이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
   WorkflowCheckpoint, DeliveryPackage, acceptance, MissionCloseOut, LearningCandidate, MemoryItem,
-  MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan, and StaffingEntry evidence를
-  보존한다.
+  MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan, StaffingEntry, and
+  WorkOrderAttempt evidence를 보존한다.
 - One exact MissionMemoryContextPreview, WorkOrderVerificationPlanPreview, and bounded one-step
   continuation preview는 response/browser memory에서만 동작한다.
 - Provider 기본값은 local stub이다. OpenAI Responses는 현재 Council 역할에만 명시적 opt-in으로
@@ -75,11 +75,12 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   acceptance, immutable persistence, exact-id inspection까지 구현됐다. Council-first
   StaffingEntry binding is implemented as `DEC-169`: one exact current accepted council-mode plan과
   separate entry approval이 one deterministic local-stub first attempt에 bind되고 human
-  alignment에서 멈춘다. Solo binding, bound revision/resume/auto-chain, general scheduler, parallel
-  specialists, Reviewer rework, Ops commands, and Mission context application은 아직 구현되지
-  않았다. Stage 3 operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`, and its
-  complete fielded implementation handoff is `DEC-171`; schema-v19 and dispatch authority remain
-  blocked.
+  alignment에서 멈춘다. `DEC-172` implements the Stage 3 operator-stepped WorkOrder scheduler from
+  the `DEC-170` plan and `DEC-171` handoff: one exact bound Builder/Reviewer/QA graph, one durable
+  active-before-coordinator WorkOrderAttempt, and one local role boundary per explicit start or step.
+  Solo binding, bound Council revision/resume/auto-chain, parallel specialists, Reviewer rework,
+  interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
+  application은 아직 구현되지 않았다.
 
 ## Approved Real Council Planning Authority
 
@@ -119,7 +120,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`, `DEC-167`, `DEC-168`, `DEC-169`, `DEC-170`, `DEC-171`
+- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`, `DEC-167`, `DEC-168`, `DEC-169`, `DEC-170`, `DEC-171`, `DEC-172`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -136,12 +137,13 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Implemented: schema-v17 StaffingPlan migration plus preview, separate acceptance, immutable record,
   exact inspection; schema-v18 StaffingEntry migration plus separate entry approval, one exact
   council-mode plan binding, one deterministic local-stub first attempt, atomic persistence, exact
-  replay/inspection, and alignment-only approve or stop
-- Next gate: the Stage 3 handoff requires one complete fielded operator decision before schema-v19
-  WorkOrderAttempt, bound WorkOrder compilation, or explicit start/step implementation; solo remains
-  deferred because no executable solo contract exists
-- Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain, scheduling,
-  parallel execution,
+  replay/inspection, and alignment-only approve or stop; schema-v19 WorkOrderAttempt migration,
+  exact bound WorkOrder preview/persistence, deterministic dependency-ready selection,
+  active-before-coordinator persistence, one role per start/step, and exact attempt inspection
+- Next gate: Stage 4 bounded read-only parallel specialists requires a separate complete fielded
+  decision; solo remains deferred because no executable solo contract exists
+- Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
+  active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
   WorkOrders, source mutation expansion, runtime-agent commit/push/release, policy mutation, bypass,
   and connectors

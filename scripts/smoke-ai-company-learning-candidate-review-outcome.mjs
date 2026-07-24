@@ -199,7 +199,7 @@ async function main() {
     assert.equal(created.learningCandidate.promotionStatus, 'proposed');
 
     const persisted = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 18);
+    assert.equal(persisted.schemaVersion, 19);
     assert.equal(persisted.sequences.learningCandidateReview, 1);
     assert.equal(Object.keys(persisted.learningCandidateReviews).length, 1);
     assert.deepEqual(
@@ -259,7 +259,7 @@ async function main() {
     const migrationOnlyRoot = path.join(tempRoot, 'migration-only');
     writeState(migrationOnlyRoot, schemaV12Baseline);
     const migratedOnly = createFileStore({ runtimeRoot: migrationOnlyRoot }).loadState();
-    assert.equal(migratedOnly.schemaVersion, 18);
+    assert.equal(migratedOnly.schemaVersion, 19);
     assert.equal(migratedOnly.sequences.learningCandidateReview, 0);
     assert.deepEqual(migratedOnly.learningCandidateReviews, {});
     const migratedOnlyBytes = fs.readFileSync(
@@ -291,7 +291,7 @@ async function main() {
       /missing LearningCandidateReview fields/,
     );
     const futureRoot = path.join(tempRoot, 'future');
-    writeState(futureRoot, { ...persisted, schemaVersion: 19 });
+    writeState(futureRoot, { ...persisted, schemaVersion: 20 });
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadState(),
       /Unsupported runtime state/,

@@ -187,7 +187,7 @@ async function main() {
     assert.equal(created.payload.missionCloseOutStatus, 'closed-out');
     assert.equal(created.payload.missionCloseOut.decision, 'closed-out');
     assert.match(created.payload.missionCloseOut.closeOutDigest, /^[a-f0-9]{64}$/);
-    assert.equal(created.payload.snapshot.schemaVersion, 18);
+    assert.equal(created.payload.snapshot.schemaVersion, 19);
     assert.equal(Object.keys(created.payload.snapshot.missionCloseOuts).length, 1);
     assert.equal(created.payload.executionPlanBundle.mission.status, 'completed');
     assert.equal(created.payload.executionPlanBundle.controlTask.lifecycleState, 'Done');

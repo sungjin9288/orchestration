@@ -549,7 +549,7 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Current runtime is schema v18. The accepted implementation chain through `DEC-130` provides exact
+Current runtime is schema v19. The accepted implementation chain through `DEC-130` provides exact
 Mission memory context review without injection. `DEC-131` through `DEC-136` add WorkOrder
 verification planning, optimistic state transactions, AcceptanceCriterion and VerificationProof
 records, one-step continuation preview, optional exact fetch, and measurement-only context telemetry.
@@ -562,14 +562,14 @@ implementation is accepted as `DEC-169`: one schema-v18 immutable record binds o
 accepted council-mode plan and separate entry approval to one deterministic local-stub Council first
 attempt, stopping at alignment-only approve or stop. Solo remains deferred because no executable
 solo contract exists.
-Operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`, and `DEC-171` records the
-complete fielded implementation handoff in
-`docs/118_ai-company-operator-stepped-workorder-scheduler-implementation-decision-handoff.md`.
-The planned slice adds one future schema-v19 WorkOrderAttempt and executes one local dependency-ready
-role per explicit start or step, but no implementation authority is accepted yet. Automatic
-staffing, general/background scheduling, parallel execution, retry/rework, Ops recovery, context
-application, provider-backed WorkOrders, source/Git/release, policy, bypass, and connectors remain
-separate later decisions.
+Operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`, `DEC-171` records the
+complete fielded implementation handoff, and `DEC-172` implements the bounded schema-v19 path.
+One exact bound plan now persists an active WorkOrderAttempt before coordinator execution and runs
+one local dependency-ready Builder, Reviewer, or QA role per explicit start or step. Automatic
+retry/rework, interrupted-attempt recovery, parallel/provider/background scheduling, source/Git/
+release, memory application, policy mutation, bypass, and connectors remain blocked. The immediate
+next completion gate is Stage 4 bounded read-only parallel specialists, which still requires a
+separate complete fielded decision.
 
 Implemented acceptance target:
 

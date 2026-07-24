@@ -273,7 +273,7 @@ async function main() {
     );
 
     const persisted = readState(runtimeRoot);
-    assert.equal(persisted.schemaVersion, 18);
+    assert.equal(persisted.schemaVersion, 19);
     assert.equal(persisted.sequences.staffingEntry, 1);
     assert.equal(persisted.sequences.councilSession, 1);
     assert.equal(
@@ -339,7 +339,7 @@ async function main() {
           councilSessionId: created.councilSession.id,
           compileSpec: {},
         }),
-      /cannot compile WorkOrders/,
+      /requires one approved source-bound Council synthesis/,
     );
     assertNoWrite(
       runtimeRoot,
@@ -350,7 +350,7 @@ async function main() {
           previewId: 'blocked',
           sourceDigest: 'blocked',
         }),
-      /cannot persist WorkOrders/,
+      /requires one approved source-bound Council synthesis/,
     );
 
     const approved = runtime.decideRealCouncilSession({
@@ -443,13 +443,13 @@ async function main() {
 
     const futureRoot = path.join(tempRoot, 'future-schema');
     copyState(runtimeRoot, futureRoot, (state) => {
-      state.schemaVersion = 19;
+      state.schemaVersion = 20;
       return state;
     });
     const futureBytes = readStateBytes(futureRoot);
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadStateSupportedReadonly(),
-      /Unsupported runtime state schemaVersion: 19/,
+      /Unsupported runtime state schemaVersion: 20/,
     );
     assert.equal(readStateBytes(futureRoot), futureBytes);
 
@@ -485,7 +485,7 @@ async function main() {
         {
           ok: true,
           mode: MODE,
-          schemaVersion: 18,
+          schemaVersion: 19,
           staffingEntryId: created.staffingEntry.id,
           councilSessionId: created.councilSession.id,
           exactReplay: 'no-write',

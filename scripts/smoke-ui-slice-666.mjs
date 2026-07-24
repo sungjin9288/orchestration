@@ -121,7 +121,7 @@ async function main() {
 
     const snapshotResult = await fetchJson('/api/snapshot');
     assert.equal(snapshotResult.response.status, 200);
-    assert.equal(snapshotResult.payload.snapshot.schemaVersion, 18);
+    assert.equal(snapshotResult.payload.snapshot.schemaVersion, 19);
     assert.deepEqual(snapshotResult.payload.snapshot.memoryRecalls, {});
     const item = snapshotResult.payload.snapshot.memoryItems[seeded.memoryItem.id];
     assert.deepEqual(item, sourceItem);
@@ -194,7 +194,7 @@ async function main() {
     );
 
     const stateAfterCreate = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(stateAfterCreate.schemaVersion, 18);
+    assert.equal(stateAfterCreate.schemaVersion, 19);
     assert.deepEqual(stateAfterCreate.memoryItems[item.id], sourceItem);
     assert.deepEqual(stateAfterCreate.memoryRecalls[memoryRecall.id], memoryRecall);
     assert.deepEqual(

@@ -335,6 +335,12 @@ const smokeChecks = [
       'StaffingEntry UI and API preserve exact-gated local Council entry, durable evidence, solo-without-action rendering, blocked unbound and downstream controls, safe failures, alignment-only approval, and responsive desktop/mobile layout rules',
   },
   {
+    id: 'ai-company-operator-stepped-workorder-scheduler-ui-api',
+    script: 'scripts/smoke-ui-slice-698.mjs',
+    purpose:
+      'Operator-stepped WorkOrder UI and API preserve one dependency-ready role command, durable attempt evidence, exact start and inspection, safe stale failures, blocked multi-role continuation, hidden retry rework parallel provider controls, and bounded desktop/mobile text',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

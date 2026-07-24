@@ -178,6 +178,13 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
       (criterion) => criterion.id === proof.acceptanceCriterionId,
     ),
   );
+  const workOrderAttempts = Object.values(snapshot.workOrderAttempts || {})
+    .filter((attempt) => attempt.executionPlanId === executionPlan.id)
+    .sort(
+      (left, right) =>
+        left.startedAt.localeCompare(right.startedAt) || left.id.localeCompare(right.id),
+    );
+  const councilSession = snapshot.councilSessions?.[executionPlan.councilSessionId] || null;
 
   if (
     workOrders.length !== executionPlan.workOrderIds.length ||
@@ -201,6 +208,8 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
     missionCloseOuts,
     acceptanceCriteria,
     verificationProofs,
+    workOrderAttempts,
+    councilSession,
     latestCheckpoint: executionPlan.latestCheckpointId
       ? snapshot.workflowCheckpoints?.[executionPlan.latestCheckpointId] || null
       : null,
@@ -213,6 +222,7 @@ export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
         ) || null
       : null,
     latestMissionCloseOut: missionCloseOuts.at(-1) || null,
+    latestWorkOrderAttempt: workOrderAttempts.at(-1) || null,
   };
 }
 
@@ -866,6 +876,63 @@ export function getMissionReviewedDeliverySummary(bundle) {
     deliveryReady: bundle.executionPlan.status === 'delivery-ready',
     terminalGateApprovalId: bundle.terminalGateApproval?.id || null,
     terminalGateApprovalStatus: bundle.terminalGateApproval?.status || null,
+  };
+}
+
+export function getMissionOperatorSteppedSchedulerSummary(bundle) {
+  if (!bundle?.councilSession?.staffingEntryRef) return null;
+  const byRole = Object.fromEntries(bundle.workOrders.map((entry) => [entry.role, entry]));
+  const activeAttempt = bundle.workOrderAttempts.find(
+    (attempt) => attempt.status === 'active',
+  ) || null;
+  const checkpoint = bundle.latestCheckpoint;
+  const terminalGateApproved = Boolean(
+    bundle.terminalGateApproval?.id === bundle.executionPlan.terminalGateApprovalId &&
+      bundle.terminalGateApproval?.status === 'approved' &&
+      bundle.terminalGateApproval?.allowedNextAction === 'builder-live-mutation',
+  );
+  let action = null;
+  let expectedWorkOrder = null;
+  if (!activeAttempt && checkpoint?.status === 'ready') {
+    if (checkpoint.stage === 'builder-waiting-gate' && terminalGateApproved) {
+      action = 'continue-builder';
+      expectedWorkOrder = byRole.builder;
+    } else if (checkpoint.stage === 'reviewer-ready') {
+      action = 'run-reviewer';
+      expectedWorkOrder = byRole.reviewer;
+    } else if (checkpoint.stage === 'qa-ready') {
+      action = 'run-qa';
+      expectedWorkOrder = byRole.qa;
+    }
+  }
+  const startAllowed = Boolean(
+    !activeAttempt &&
+      bundle.workOrderAttempts.length === 0 &&
+      bundle.executionPlan.status === 'approved' &&
+      bundle.approval.status === 'approved',
+  );
+  const blockedReason = activeAttempt
+    ? `${activeAttempt.id} active 상태는 별도 recovery 승인 전까지 진행할 수 없습니다.`
+    : bundle.executionPlan.status === 'delivery-ready'
+      ? 'Builder, Reviewer, QA가 모두 완료됐습니다.'
+      : checkpoint?.stage === 'builder-waiting-gate' && !terminalGateApproved
+        ? 'Builder live-mutation 승인이 필요합니다.'
+        : ['blocked', 'rejected'].includes(bundle.executionPlan.status)
+          ? bundle.executionPlan.stopReason || `계획 상태: ${bundle.executionPlan.status}`
+          : action
+            ? null
+            : '현재 dependency-ready WorkOrder가 없습니다.';
+
+  return {
+    action,
+    activeAttempt,
+    blockedReason,
+    checkpoint,
+    expectedWorkOrder,
+    startAllowed,
+    stepAllowed: Boolean(action && expectedWorkOrder),
+    terminalGateApprovalId:
+      action === 'continue-builder' ? bundle.terminalGateApproval?.id || null : null,
   };
 }
 

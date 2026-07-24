@@ -167,7 +167,7 @@ async function main() {
     assert.equal(session.phase, 'awaiting-alignment');
     assert.equal(session.attempts[0].positions.length, 3);
     assert.ok(session.attempts[0].synthesis);
-    assert.equal(snapshotPayload.snapshot.schemaVersion, 18);
+    assert.equal(snapshotPayload.snapshot.schemaVersion, 19);
 
     const revisionPayload = await postJson(
       `/api/council-sessions/${encodeURIComponent(session.id)}/decision`,

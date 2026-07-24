@@ -121,6 +121,7 @@ const {
   assertStaffingEntry,
   assertStaffingPlan,
   assertWorkOrder,
+  assertWorkOrderAttempt,
   assertWorkflowCheckpoint,
   assertVerificationProof,
 } = require('./assertions');
@@ -185,15 +186,26 @@ const {
 } = require('./memory-recall-preview');
 const { createMemoryRecall } = require('./memory-recalls');
 const {
+  computeStaffingPlanRecordDigest,
   createStaffingPlan,
   previewMissionStaffingPlan: compileMissionStaffingPlanPreview,
 } = require('./staffing-plans');
 const {
   computeStaffingEntryApprovalDigest,
+  computeStaffingEntryRecordDigest,
   computeStaffingEntrySourceDigest,
   createStaffingEntry,
   normalizeStaffingEntryApproval,
 } = require('./staffing-entries');
+const {
+  WORK_ORDER_ATTEMPT_ACTION,
+  WORK_ORDER_ATTEMPT_COMMAND,
+  WORK_ORDER_ATTEMPT_STATUS,
+  computeWorkOrderAttemptAuthorityDigest,
+  computeWorkOrderAttemptDependencyDigest,
+  createWorkOrderAttempt,
+  transitionWorkOrderAttempt,
+} = require('./work-order-attempts');
 const {
   computeMissionMemoryContextTargetDigest,
   previewMissionMemoryContext: compileMissionMemoryContextPreview,
@@ -299,6 +311,11 @@ function createRuntimeService(options = {}) {
   function nextStaffingEntryId(state) {
     state.sequences.staffingEntry += 1;
     return `staffing-entry-${String(state.sequences.staffingEntry).padStart(4, '0')}`;
+  }
+
+  function nextWorkOrderAttemptId(state) {
+    state.sequences.workOrderAttempt += 1;
+    return `work-order-attempt-${String(state.sequences.workOrderAttempt).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -2180,6 +2197,131 @@ function createRuntimeService(options = {}) {
     }
   }
 
+  function assertBoundStaffingSchedulerSourceCurrent(
+    state,
+    councilSession,
+    { executionPlan = null, requireUnlinkedMission = false } = {},
+  ) {
+    if (!councilSession.staffingEntryRef) {
+      return null;
+    }
+
+    const mission = assertMission(councilSession.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    const staffingEntry = assertStaffingEntry(
+      councilSession.staffingEntryRef.staffingEntryId,
+      state,
+    );
+    const staffingPlan = assertStaffingPlan(staffingEntry.staffingPlanId, state);
+    const currentAttempt = councilSession.attempts?.find(
+      (attempt) => attempt.id === councilSession.currentAttemptId,
+    );
+    const closedMission = Object.values(state.missionCloseOuts || {}).some(
+      (closeOut) => closeOut.missionId === mission.id,
+    );
+
+    if (
+      state.activeProjectId !== project.id ||
+      mission.projectId !== project.id ||
+      mission.staffingEntryId !== staffingEntry.id ||
+      mission.councilSessionId !== councilSession.id ||
+      staffingPlan.missionId !== mission.id ||
+      staffingPlan.projectId !== project.id ||
+      staffingEntry.missionId !== mission.id ||
+      staffingEntry.projectId !== project.id ||
+      staffingEntry.staffingPlanId !== staffingPlan.id ||
+      staffingEntry.councilSessionId !== councilSession.id
+    ) {
+      throw conflict('Bound WorkOrder source chain does not match the active project');
+    }
+    if (
+      computeStaffingPlanRecordDigest(staffingPlan) !== staffingPlan.recordDigest ||
+      computeStaffingEntryRecordDigest(staffingEntry) !== staffingEntry.recordDigest ||
+      computeStaffingEntrySourceDigest(staffingPlan, staffingEntry.entryApprovalDigest) !==
+        staffingEntry.entrySourceDigest
+    ) {
+      throw conflict('Bound WorkOrder StaffingPlan or StaffingEntry digest is stale');
+    }
+    if (
+      staffingPlan.persisted !== true ||
+      staffingPlan.status !== 'accepted' ||
+      staffingPlan.mode !== 'council' ||
+      staffingPlan.providerMode !== 'local-stub' ||
+      staffingPlan.parallelGroups?.length !== 0 ||
+      staffingPlan.terminationPolicy?.maxProviderCalls !== 0 ||
+      staffingEntry.status !== 'bound' ||
+      staffingEntry.providerMode !== 'local-stub' ||
+      staffingEntry.sourceDigest !== staffingPlan.sourceDigest ||
+      staffingEntry.missionDigest !== staffingPlan.missionDigest ||
+      staffingEntry.blueprintDigest !== staffingPlan.blueprintDigest ||
+      staffingEntry.staffingSpecDigest !== staffingPlan.staffingSpecDigest
+    ) {
+      throw conflict('Bound WorkOrder requires one accepted local Council StaffingPlan');
+    }
+    const sessionRef = councilSession.staffingEntryRef;
+    if (
+      sessionRef.staffingPlanId !== staffingPlan.id ||
+      sessionRef.staffingPlanRecordDigest !== staffingPlan.recordDigest ||
+      sessionRef.staffingEntryId !== staffingEntry.id ||
+      sessionRef.entrySourceDigest !== staffingEntry.entrySourceDigest ||
+      councilSession.mode !== REAL_COUNCIL_MODE ||
+      councilSession.phase !== 'terminal' ||
+      councilSession.status !== 'approved' ||
+      councilSession.alignment?.action !== 'approve' ||
+      councilSession.alignment?.status !== 'approved' ||
+      currentAttempt?.status !== 'awaiting-alignment' ||
+      currentAttempt.sourceDigest !== councilSession.sourceDigest ||
+      !currentAttempt.synthesis ||
+      currentAttempt.synthesis.humanDecisionRequired !== true ||
+      currentAttempt.conflictSummary?.approvalReady !== true
+    ) {
+      throw conflict('Bound WorkOrder requires one approved source-bound Council synthesis');
+    }
+    if (
+      closedMission ||
+      (requireUnlinkedMission &&
+        (mission.status !== 'aligned' || mission.linkedTaskId !== null)) ||
+      (!requireUnlinkedMission &&
+        executionPlan &&
+        (mission.linkedTaskId !== executionPlan.controlTaskId ||
+          executionPlan.missionId !== mission.id ||
+          executionPlan.projectId !== project.id ||
+          executionPlan.councilSessionId !== councilSession.id))
+    ) {
+      throw conflict('Bound WorkOrder Mission lifecycle is not current');
+    }
+    if (
+      project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+      project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB
+    ) {
+      throw conflict('Bound WorkOrder scheduler supports local-stub only');
+    }
+
+    assertRealCouncilSourceCurrent(councilSession, mission, project);
+    const blueprintEvidence = loadCurrentStaffingBlueprintEvidence();
+    const currentProfiles = staffingPlan.selectedAgentIds.map((agentId) =>
+      blueprintEvidence.blueprint.agentProfiles.find((profile) => profile.id === agentId));
+    if (
+      blueprintEvidence.blueprintDigest !== staffingPlan.blueprintDigest ||
+      blueprintEvidence.roleSourceDigests.length !== 9 ||
+      currentProfiles.some((profile) => !profile) ||
+      currentProfiles.map((profile) => profile.role).sort().join('\u0000') !==
+        staffingPlan.selectedRoles.join('\u0000')
+    ) {
+      throw conflict('Bound WorkOrder CompanyBlueprint or role sources are stale');
+    }
+
+    return {
+      blueprintEvidence,
+      councilSession,
+      currentAttempt,
+      mission,
+      project,
+      staffingEntry,
+      staffingPlan,
+    };
+  }
+
   function getMissionWorkOrderCompilerInput(input) {
     const state = store.loadState();
     const councilSession = assertCouncilSession(input.councilSessionId, state);
@@ -2187,9 +2329,16 @@ function createRuntimeService(options = {}) {
     const project = assertProject(mission.projectId, state);
 
     if (councilSession.staffingEntryRef) {
-      throw conflict(
-        `StaffingEntry-bound Council session ${councilSession.id} cannot compile WorkOrders`,
-      );
+      const bound = assertBoundStaffingSchedulerSourceCurrent(state, councilSession, {
+        requireUnlinkedMission: true,
+      });
+      return {
+        mission,
+        project,
+        councilSession,
+        companyBlueprint: bound.blueprintEvidence.blueprint,
+        compileSpec: input.compileSpec,
+      };
     }
 
     if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
@@ -2649,6 +2798,12 @@ function createRuntimeService(options = {}) {
   function getExecutionPlanBundleFromState(state, executionPlanId) {
     const executionPlan = assertExecutionPlan(executionPlanId, state);
     const workOrders = executionPlan.workOrderIds.map((id) => assertWorkOrder(id, state));
+    const workOrderAttempts = Object.values(state.workOrderAttempts || {})
+      .filter((attempt) => attempt.executionPlanId === executionPlan.id)
+      .sort(
+        (left, right) =>
+          left.startedAt.localeCompare(right.startedAt) || left.id.localeCompare(right.id),
+      );
     const handoffPackets = executionPlan.handoffPacketIds.map((id) =>
       assertHandoffPacket(id, state));
     const workflowCheckpoints = executionPlan.checkpointRefs.map((id) =>
@@ -2670,6 +2825,7 @@ function createRuntimeService(options = {}) {
     return {
       executionPlan,
       workOrders,
+      workOrderAttempts,
       handoffPackets,
       workflowCheckpoints,
       deliveryPackages,
@@ -2689,6 +2845,7 @@ function createRuntimeService(options = {}) {
           ) || null
         : null,
       latestMissionCloseOut: missionCloseOuts.at(-1) || null,
+      latestWorkOrderAttempt: workOrderAttempts.at(-1) || null,
       approval: assertApproval(executionPlan.approvalId, state),
       terminalGateApproval: executionPlan.terminalGateApprovalId
         ? assertApproval(executionPlan.terminalGateApprovalId, state)
@@ -2701,6 +2858,19 @@ function createRuntimeService(options = {}) {
 
   function getExecutionPlan(executionPlanId) {
     return getExecutionPlanBundleFromState(store.loadState(), executionPlanId);
+  }
+
+  function getWorkOrderAttempt(workOrderAttemptId) {
+    const state = store.loadStateReadonly();
+    const workOrderAttempt = assertWorkOrderAttempt(workOrderAttemptId, state);
+    return {
+      workOrderAttempt,
+      executionPlanBundle: getExecutionPlanBundleFromState(
+        state,
+        workOrderAttempt.executionPlanId,
+      ),
+      persisted: true,
+    };
   }
 
   function getExactResearchReadiness() {
@@ -3364,6 +3534,11 @@ function createRuntimeService(options = {}) {
 
     const state = store.loadStateReadonly();
     const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    if (bundle.councilSession.staffingEntryRef) {
+      throw conflict(
+        `ExecutionPlan ${bundle.executionPlan.id} uses the operator-stepped scheduler`,
+      );
+    }
     const checkpoint = assertWorkflowCheckpoint(input.checkpointId, state);
     if (
       checkpoint.executionPlanId !== bundle.executionPlan.id ||
@@ -3418,6 +3593,11 @@ function createRuntimeService(options = {}) {
   function resumeExecutionPlanFromCheckpoint(input) {
     const state = store.loadState();
     const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    if (bundle.councilSession.staffingEntryRef) {
+      throw conflict(
+        `ExecutionPlan ${bundle.executionPlan.id} requires the operator step endpoint`,
+      );
+    }
     const checkpoint = assertWorkflowCheckpoint(input.checkpointId, state);
     if (checkpoint.executionPlanId !== bundle.executionPlan.id) {
       throw conflict('WorkflowCheckpoint does not belong to the requested ExecutionPlan');
@@ -3512,6 +3692,11 @@ function createRuntimeService(options = {}) {
   function cancelExecutionPlanCheckpoint(input) {
     const state = store.loadState();
     const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    if (bundle.councilSession.staffingEntryRef) {
+      throw conflict(
+        `ExecutionPlan ${bundle.executionPlan.id} recovery commands remain blocked`,
+      );
+    }
     const checkpoint = assertWorkflowCheckpoint(input.checkpointId, state);
     if (checkpoint.executionPlanId !== bundle.executionPlan.id) {
       throw conflict('WorkflowCheckpoint does not belong to the requested ExecutionPlan');
@@ -3554,12 +3739,219 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  function assertOperatorStepInput(input) {
+    const expectedFields = [
+      'action',
+      'authorityDigest',
+      'checkpointDigest',
+      'checkpointId',
+      'evaluatedAt',
+      'executionPlanId',
+      'expectedWorkOrderId',
+      'inputDigest',
+      'sourceDigest',
+      'terminalGateApprovalId',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('Operator WorkOrder step has unexpected or missing fields');
+    }
+    if (
+      ![
+        WORK_ORDER_ATTEMPT_ACTION.CONTINUE_BUILDER,
+        WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER,
+        WORK_ORDER_ATTEMPT_ACTION.RUN_QA,
+      ].includes(input.action)
+    ) {
+      throw conflict('Operator WorkOrder step action is invalid');
+    }
+    const evaluatedAt = String(input.evaluatedAt || '').trim();
+    if (
+      !Number.isFinite(Date.parse(evaluatedAt)) ||
+      new Date(evaluatedAt).toISOString() !== evaluatedAt ||
+      Date.parse(evaluatedAt) > Date.now() + 5 * 60 * 1000
+    ) {
+      throw conflict('Operator WorkOrder step evaluatedAt is invalid');
+    }
+    return evaluatedAt;
+  }
+
+  function beginOperatorSteppedWorkOrderStep(input) {
+    const evaluatedAt = assertOperatorStepInput(input);
+    const state = store.loadState();
+    const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
+    const { executionPlan, terminalGateApproval, byRole, councilSession } = bundle;
+    const source = assertBoundStaffingSchedulerSourceCurrent(state, councilSession, {
+      executionPlan,
+    });
+    if (input.sourceDigest !== executionPlan.sourceDigest) {
+      throw conflict('Operator WorkOrder step sourceDigest does not match the durable plan');
+    }
+    assertReviewedDeliveryPlanApproval(bundle);
+
+    const checkpoint = assertWorkflowCheckpoint(input.checkpointId, state);
+    const requiredBoundary = {
+      [WORK_ORDER_ATTEMPT_ACTION.CONTINUE_BUILDER]: {
+        stage: WORKFLOW_CHECKPOINT_STAGE.BUILDER_WAITING_GATE,
+        workOrder: byRole.builder,
+      },
+      [WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER]: {
+        stage: WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY,
+        workOrder: byRole.reviewer,
+      },
+      [WORK_ORDER_ATTEMPT_ACTION.RUN_QA]: {
+        stage: WORKFLOW_CHECKPOINT_STAGE.QA_READY,
+        workOrder: byRole.qa,
+      },
+    }[input.action];
+    if (
+      checkpoint.executionPlanId !== executionPlan.id ||
+      checkpoint.stage !== requiredBoundary.stage ||
+      checkpoint.sourceDigest !== executionPlan.sourceDigest ||
+      input.checkpointDigest !== checkpoint.checkpointDigest ||
+      input.inputDigest !== checkpoint.inputDigest ||
+      input.authorityDigest !== checkpoint.authorityDigest ||
+      input.expectedWorkOrderId !== requiredBoundary.workOrder.id ||
+      Date.parse(evaluatedAt) < Date.parse(checkpoint.createdAt)
+    ) {
+      throw conflict('Operator WorkOrder step checkpoint tuple is stale or divergent');
+    }
+
+    const approvalRefs = [...new Set(checkpoint.approvalRefs || [])];
+    const expectedAuthorityDigest = computeWorkOrderAttemptAuthorityDigest({
+      executionPlanId: executionPlan.id,
+      expectedWorkOrderId: requiredBoundary.workOrder.id,
+      command: WORK_ORDER_ATTEMPT_COMMAND.STEP,
+      action: input.action,
+      sourceDigest: executionPlan.sourceDigest,
+      checkpointRef: checkpoint.id,
+      checkpointDigest: checkpoint.checkpointDigest,
+      approvalRefs,
+    });
+    const prior = getPlanWorkOrderAttempts(state, executionPlan.id).find(
+      (attempt) => attempt.action === input.action,
+    );
+    if (prior) {
+      if (prior.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE) {
+        throw conflict(
+          `WorkOrderAttempt ${prior.id} is active and requires separately authorized recovery`,
+        );
+      }
+      if (
+        prior.workOrderId !== requiredBoundary.workOrder.id ||
+        prior.sourceDigest !== executionPlan.sourceDigest ||
+        prior.authorityDigest !== expectedAuthorityDigest
+      ) {
+        throw conflict(`ExecutionPlan ${executionPlan.id} step replay diverges`);
+      }
+      return {
+        ...getExecutionPlanBundleFromState(state, executionPlan.id),
+        workOrderAttempt: prior,
+        idempotent: true,
+      };
+    }
+    if (
+      checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.READY ||
+      executionPlan.latestCheckpointId !== checkpoint.id
+    ) {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} is not current`);
+    }
+    const recomputed = recomputeWorkflowCheckpoint(
+      checkpoint,
+      getWorkflowCheckpointContext(state, bundle),
+    );
+    if (!recomputed.current) {
+      throw conflict(`WorkflowCheckpoint ${checkpoint.id} is stale`);
+    }
+
+    if (input.action === WORK_ORDER_ATTEMPT_ACTION.CONTINUE_BUILDER) {
+      const requestedApprovalId = String(input.terminalGateApprovalId || '').trim();
+      if (
+        !terminalGateApproval ||
+        requestedApprovalId !== terminalGateApproval.id ||
+        executionPlan.terminalGateApprovalId !== terminalGateApproval.id ||
+        terminalGateApproval.status !== APPROVAL_STATUS.APPROVED ||
+        terminalGateApproval.taskId !== executionPlan.controlTaskId ||
+        terminalGateApproval.allowedNextAction !== BUILDER_ACTION.LIVE_MUTATION
+      ) {
+        throw conflict('Builder step requires the exact approved terminal gate');
+      }
+      const targetArtifact = assertArtifact(terminalGateApproval.targetArtifactId, state);
+      const targetRun = assertRun(terminalGateApproval.targetRunId, state);
+      if (
+        targetArtifact.type !== ARTIFACT_TYPE.PREFLIGHT ||
+        targetArtifact.taskId !== executionPlan.controlTaskId ||
+        targetArtifact.runId !== targetRun.id ||
+        !byRole.builder.artifactRefs.includes(targetArtifact.id) ||
+        !byRole.builder.runRefs.includes(targetRun.id) ||
+        listPendingBlockingDecisionItems(executionPlan.controlTaskId, state).length > 0
+      ) {
+        throw conflict('Builder terminal gate does not match current preflight evidence');
+      }
+    } else if (input.terminalGateApprovalId !== null) {
+      throw conflict('Reviewer and QA steps must not provide terminalGateApprovalId');
+    }
+    if (input.action === WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER) {
+      assertBuilderVerificationReady(state, bundle);
+    }
+
+    const workOrder = selectOperatorSteppedWorkOrder(
+      state,
+      executionPlan,
+      input.action,
+      input.expectedWorkOrderId,
+    );
+    const attempt = createActiveSchedulerAttempt(state, {
+      action: input.action,
+      approvalRefs,
+      checkpoint,
+      command: WORK_ORDER_ATTEMPT_COMMAND.STEP,
+      executionPlan,
+      source,
+      workOrder,
+    });
+    consumeLatestCheckpoint(
+      state,
+      executionPlan,
+      checkpoint.stage,
+      `operator-stepped:${input.action}`,
+    );
+    const now = attempt.startedAt;
+    workOrder.status = WORK_ORDER_STATUS.ACTIVE;
+    workOrder.startedAt ||= now;
+    workOrder.updatedAt = now;
+    executionPlan.stopReason = null;
+    executionPlan.stoppedAt = null;
+    executionPlan.updatedAt = now;
+    if (input.action === WORK_ORDER_ATTEMPT_ACTION.CONTINUE_BUILDER) {
+      workOrder.continuedAt = now;
+      executionPlan.reviewedDeliveryDecisionRef = 'DEC-172';
+    } else if (input.action === WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER) {
+      executionPlan.status = EXECUTION_PLAN_STATUS.REVIEWING;
+    }
+    store.saveState(state);
+    return {
+      ...getExecutionPlanBundleFromState(state, executionPlan.id),
+      workOrderAttempt: attempt,
+      idempotent: false,
+    };
+  }
+
   function beginReviewedDeliveryContinuation(input) {
     const state = store.loadState();
     const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
     const { executionPlan, terminalGateApproval, byRole } = bundle;
     const requestedApprovalId = String(input.terminalGateApprovalId || '').trim();
     const requestedSourceDigest = String(input.sourceDigest || '').trim();
+
+    if (bundle.councilSession.staffingEntryRef) {
+      throw conflict(
+        `ExecutionPlan ${executionPlan.id} requires one explicit operator step per role`,
+      );
+    }
 
     if (!requestedSourceDigest || requestedSourceDigest !== executionPlan.sourceDigest) {
       throw conflict('Reviewed-delivery sourceDigest does not match the durable plan');
@@ -3698,7 +4090,7 @@ function createRuntimeService(options = {}) {
     );
     executionPlan.updatedAt = now;
     const resumedFromCheckpointId = executionPlan.latestCheckpointId;
-    appendWorkflowCheckpoint(
+    const checkpoint = appendWorkflowCheckpoint(
       state,
       bundle,
       WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY,
@@ -3708,6 +4100,21 @@ function createRuntimeService(options = {}) {
         stopReason: 'builder-completed-reviewer-ready',
       },
     );
+    if (bundle.councilSession.staffingEntryRef) {
+      transitionActiveSchedulerAttempt(state, executionPlan, {
+        status: WORK_ORDER_ATTEMPT_STATUS.COMPLETED,
+        checkpointRef: checkpoint.id,
+        approvalRefs: [
+          executionPlan.approvalId,
+          executionPlan.terminalGateApprovalId,
+          ...byRole.builder.approvalRefs,
+        ].filter(Boolean),
+        runRefs: byRole.builder.runRefs,
+        artifactRefs: byRole.builder.artifactRefs,
+        decisionInboxItemRefs: byRole.builder.inboxItemRefs,
+        stopReason: null,
+      });
+    }
     store.saveState(state);
     return getExecutionPlanBundleFromState(state, executionPlan.id);
   }
@@ -3716,6 +4123,11 @@ function createRuntimeService(options = {}) {
     const state = store.loadState();
     const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
     const { executionPlan, byRole } = bundle;
+    if (bundle.councilSession.staffingEntryRef) {
+      throw conflict(
+        `ExecutionPlan ${executionPlan.id} requires an explicit run-reviewer step`,
+      );
+    }
     if (
       executionPlan.status !== EXECUTION_PLAN_STATUS.ACTIVE ||
       executionPlan.activeWorkOrderId !== byRole.reviewer.id ||
@@ -3807,6 +4219,7 @@ function createRuntimeService(options = {}) {
     executionPlan.runRefs = appendUniqueRefs(executionPlan.runRefs, [run.id]);
     executionPlan.artifactRefs = appendUniqueRefs(executionPlan.artifactRefs, [artifact.id]);
     executionPlan.updatedAt = now;
+    let checkpoint = null;
 
     if (reviewStatus === REVIEW_STATUS.PASSED && !decisionInboxItem) {
       byRole.reviewer.status = WORK_ORDER_STATUS.COMPLETED;
@@ -3816,7 +4229,7 @@ function createRuntimeService(options = {}) {
       executionPlan.activeWorkOrderId = byRole.qa.id;
       executionPlan.stopReason = null;
       executionPlan.stoppedAt = null;
-      appendWorkflowCheckpoint(state, bundle, WORKFLOW_CHECKPOINT_STAGE.QA_READY, {
+      checkpoint = appendWorkflowCheckpoint(state, bundle, WORKFLOW_CHECKPOINT_STAGE.QA_READY, {
         createdAt: now,
         resumedFromCheckpointId: executionPlan.latestCheckpointId,
         stopReason: 'reviewer-passed-qa-ready',
@@ -3833,6 +4246,20 @@ function createRuntimeService(options = {}) {
       executionPlan.stoppedAt = 'reviewer';
     }
 
+    if (bundle.councilSession.staffingEntryRef) {
+      transitionActiveSchedulerAttempt(state, executionPlan, {
+        status: checkpoint
+          ? WORK_ORDER_ATTEMPT_STATUS.COMPLETED
+          : WORK_ORDER_ATTEMPT_STATUS.CHANGES_REQUESTED,
+        checkpointRef: checkpoint?.id || null,
+        approvalRefs: byRole.reviewer.approvalRefs,
+        runRefs: byRole.reviewer.runRefs,
+        artifactRefs: byRole.reviewer.artifactRefs,
+        decisionInboxItemRefs: byRole.reviewer.inboxItemRefs,
+        stopReason: checkpoint ? null : 'reviewer-changes-requested',
+      });
+    }
+
     store.saveState(state);
     return getExecutionPlanBundleFromState(state, executionPlan.id);
   }
@@ -3841,6 +4268,9 @@ function createRuntimeService(options = {}) {
     const state = store.loadState();
     const bundle = getReviewedDeliveryRoleBundle(state, input.executionPlanId);
     const { executionPlan, byRole } = bundle;
+    if (bundle.councilSession.staffingEntryRef) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} requires an explicit run-qa step`);
+    }
     if (
       executionPlan.status !== EXECUTION_PLAN_STATUS.REVIEWING ||
       executionPlan.activeWorkOrderId !== byRole.qa.id ||
@@ -3931,13 +4361,14 @@ function createRuntimeService(options = {}) {
       Array.isArray(evidence.checks) &&
       evidence.checks.length > 0 &&
       evidence.checks.every((check) => check.passed === true);
+    let checkpoint = null;
     if (passed) {
       byRole.qa.status = WORK_ORDER_STATUS.COMPLETED;
       executionPlan.status = EXECUTION_PLAN_STATUS.DELIVERY_READY;
       executionPlan.stopReason = null;
       executionPlan.stoppedAt = 'response-only-delivery-package-preview';
       executionPlan.deliveryReadyAt = now;
-      appendWorkflowCheckpoint(state, bundle, WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY, {
+      checkpoint = appendWorkflowCheckpoint(state, bundle, WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY, {
         createdAt: now,
         resumedFromCheckpointId: executionPlan.latestCheckpointId,
         stopReason: 'reviewed-delivery-completed',
@@ -3950,6 +4381,20 @@ function createRuntimeService(options = {}) {
     }
     mission.status = 'executing';
     mission.updatedAt = now;
+
+    if (bundle.councilSession.staffingEntryRef) {
+      transitionActiveSchedulerAttempt(state, executionPlan, {
+        status: passed
+          ? WORK_ORDER_ATTEMPT_STATUS.COMPLETED
+          : WORK_ORDER_ATTEMPT_STATUS.FAILED,
+        checkpointRef: checkpoint?.id || null,
+        approvalRefs: byRole.qa.approvalRefs,
+        runRefs: byRole.qa.runRefs,
+        artifactRefs: byRole.qa.artifactRefs,
+        decisionInboxItemRefs: byRole.qa.inboxItemRefs,
+        stopReason: passed ? null : 'qa-failed',
+      });
+    }
 
     store.saveState(state);
     return getExecutionPlanBundleFromState(state, executionPlan.id);
@@ -3976,6 +4421,21 @@ function createRuntimeService(options = {}) {
     ) {
       active.status = WORK_ORDER_STATUS.BLOCKED;
       active.updatedAt = now;
+    }
+    if (
+      bundle.councilSession.staffingEntryRef &&
+      getPlanWorkOrderAttempts(state, executionPlan.id).some(
+        (attempt) => attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+      )
+    ) {
+      transitionActiveSchedulerAttempt(state, executionPlan, {
+        status: WORK_ORDER_ATTEMPT_STATUS.FAILED,
+        approvalRefs: active?.approvalRefs || [],
+        runRefs: active?.runRefs || [],
+        artifactRefs: active?.artifactRefs || [],
+        decisionInboxItemRefs: active?.inboxItemRefs || [],
+        stopReason: executionPlan.stopReason,
+      });
     }
     store.saveState(state);
     return getExecutionPlanBundleFromState(state, executionPlan.id);
@@ -5477,14 +5937,20 @@ function createRuntimeService(options = {}) {
     const councilSession = assertCouncilSession(input.councilSessionId, state);
     const mission = assertMission(councilSession.missionId, state);
     const project = assertProject(mission.projectId, state);
+    const existing = Object.values(state.executionPlans).find(
+      (entry) => entry.councilSessionId === councilSession.id,
+    );
+    let companyBlueprint = companyRuntime?.blueprint || null;
 
     if (councilSession.staffingEntryRef) {
-      throw conflict(
-        `StaffingEntry-bound Council session ${councilSession.id} cannot persist WorkOrders`,
-      );
+      const bound = assertBoundStaffingSchedulerSourceCurrent(state, councilSession, {
+        executionPlan: existing || null,
+        requireUnlinkedMission: !existing,
+      });
+      companyBlueprint = bound.blueprintEvidence.blueprint;
     }
 
-    if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
+    if (!companyBlueprint) {
       throw new Error('CompanyBlueprint must be ready before WorkOrder persistence');
     }
     assertRealCouncilSourceCurrent(councilSession, mission, project);
@@ -5493,7 +5959,7 @@ function createRuntimeService(options = {}) {
       mission,
       project,
       councilSession,
-      companyBlueprint: companyRuntime.blueprint,
+      companyBlueprint,
       compileSpec: input.compileSpec,
     });
     const previewId = String(input.previewId || '').trim();
@@ -5505,9 +5971,6 @@ function createRuntimeService(options = {}) {
       throw conflict('WorkOrder sourceDigest does not match the source-current preview');
     }
 
-    const existing = Object.values(state.executionPlans).find(
-      (entry) => entry.councilSessionId === councilSession.id,
-    );
     if (existing) {
       if (existing.previewId === previewId && existing.sourceDigest === sourceDigest) {
         return { ...getExecutionPlanBundleFromState(state, existing.id), idempotent: true };
@@ -5685,13 +6148,322 @@ function createRuntimeService(options = {}) {
     executionPlan.updatedAt = now;
   }
 
+  function getPlanWorkOrderAttempts(state, executionPlanId) {
+    return Object.values(state.workOrderAttempts || {})
+      .filter((attempt) => attempt.executionPlanId === executionPlanId)
+      .sort(
+        (left, right) =>
+          left.startedAt.localeCompare(right.startedAt) || left.id.localeCompare(right.id),
+      );
+  }
+
+  function validateOperatorSteppedGraph(state, executionPlan) {
+    if (
+      !Array.isArray(executionPlan.workOrderIds) ||
+      executionPlan.workOrderIds.length !== 3 ||
+      new Set(executionPlan.workOrderIds).size !== executionPlan.workOrderIds.length
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} has an invalid WorkOrder graph`);
+    }
+    const workOrders = executionPlan.workOrderIds.map((id) => assertWorkOrder(id, state));
+    const byId = new Map(workOrders.map((workOrder) => [workOrder.id, workOrder]));
+    for (const workOrder of workOrders) {
+      if (
+        workOrder.executionPlanId !== executionPlan.id ||
+        !Number.isInteger(workOrder.position) ||
+        workOrder.position < 1 ||
+        !Array.isArray(workOrder.dependencyIds) ||
+        new Set(workOrder.dependencyIds).size !== workOrder.dependencyIds.length ||
+        workOrder.dependencyIds.some(
+          (dependencyId) => dependencyId === workOrder.id || !byId.has(dependencyId),
+        )
+      ) {
+        throw conflict(`WorkOrder ${workOrder.id} has an invalid dependency graph`);
+      }
+    }
+    const visiting = new Set();
+    const visited = new Set();
+    function visit(workOrderId) {
+      if (visiting.has(workOrderId)) {
+        throw conflict(`ExecutionPlan ${executionPlan.id} contains a dependency cycle`);
+      }
+      if (visited.has(workOrderId)) return;
+      visiting.add(workOrderId);
+      for (const dependencyId of byId.get(workOrderId).dependencyIds) {
+        visit(dependencyId);
+      }
+      visiting.delete(workOrderId);
+      visited.add(workOrderId);
+    }
+    for (const workOrder of workOrders) visit(workOrder.id);
+    return workOrders.sort(
+      (left, right) => left.position - right.position || left.id.localeCompare(right.id),
+    );
+  }
+
+  function assertNoActiveSchedulerAttempt(state, executionPlan) {
+    const active = getPlanWorkOrderAttempts(state, executionPlan.id).find(
+      (attempt) => attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+    );
+    if (active) {
+      throw conflict(
+        `WorkOrderAttempt ${active.id} is active and requires separately authorized recovery`,
+      );
+    }
+  }
+
+  function selectOperatorSteppedWorkOrder(state, executionPlan, action, expectedWorkOrderId) {
+    const workOrders = validateOperatorSteppedGraph(state, executionPlan);
+    assertNoActiveSchedulerAttempt(state, executionPlan);
+    const actionBoundary = {
+      [WORK_ORDER_ATTEMPT_ACTION.START_BUILDER]: {
+        planStatuses: [EXECUTION_PLAN_STATUS.APPROVED],
+        role: 'builder',
+        workOrderStatuses: [WORK_ORDER_STATUS.QUEUED],
+      },
+      [WORK_ORDER_ATTEMPT_ACTION.CONTINUE_BUILDER]: {
+        planStatuses: [EXECUTION_PLAN_STATUS.ACTIVE],
+        role: 'builder',
+        workOrderStatuses: [WORK_ORDER_STATUS.WAITING_GATE],
+      },
+      [WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER]: {
+        planStatuses: [EXECUTION_PLAN_STATUS.ACTIVE],
+        role: 'reviewer',
+        workOrderStatuses: [WORK_ORDER_STATUS.QUEUED],
+      },
+      [WORK_ORDER_ATTEMPT_ACTION.RUN_QA]: {
+        planStatuses: [EXECUTION_PLAN_STATUS.REVIEWING],
+        role: 'qa',
+        workOrderStatuses: [WORK_ORDER_STATUS.QUEUED],
+      },
+    }[action];
+    if (!actionBoundary || !actionBoundary.planStatuses.includes(executionPlan.status)) {
+      throw conflict(
+        `ExecutionPlan ${executionPlan.id} is not at the ${action || 'unknown'} boundary`,
+      );
+    }
+    const ready = workOrders.filter(
+      (workOrder) =>
+        workOrder.role === actionBoundary.role &&
+        actionBoundary.workOrderStatuses.includes(workOrder.status) &&
+        workOrder.dependencyIds.every(
+          (dependencyId) => state.workOrders[dependencyId].status === WORK_ORDER_STATUS.COMPLETED,
+        ),
+    );
+    const selected = ready[0] || null;
+    if (
+      !selected ||
+      ready.length !== 1 ||
+      selected.id !== expectedWorkOrderId ||
+      (executionPlan.activeWorkOrderId !== null &&
+        executionPlan.activeWorkOrderId !== selected.id)
+    ) {
+      throw conflict(
+        `Expected WorkOrder ${expectedWorkOrderId || 'empty'} is not dependency-ready`,
+      );
+    }
+    return selected;
+  }
+
+  function assertNoOverlappingBuilderAttempt(state, projectId, workOrder) {
+    const targets = new Set(workOrder.targetPathAllowlist || []);
+    for (const attempt of Object.values(state.workOrderAttempts || {})) {
+      if (
+        attempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE ||
+        attempt.role !== 'builder' ||
+        attempt.projectId !== projectId
+      ) {
+        continue;
+      }
+      const activeWorkOrder = assertWorkOrder(attempt.workOrderId, state);
+      if ((activeWorkOrder.targetPathAllowlist || []).some((target) => targets.has(target))) {
+        throw conflict(
+          `Builder WorkOrder ${workOrder.id} overlaps active attempt ${attempt.id}`,
+        );
+      }
+    }
+  }
+
+  function createActiveSchedulerAttempt(
+    state,
+    { action, approvalRefs, checkpoint, command, executionPlan, source, workOrder },
+  ) {
+    if (workOrder.role === 'builder') {
+      assertNoOverlappingBuilderAttempt(state, executionPlan.projectId, workOrder);
+    }
+    const dependencies = workOrder.dependencyIds.map((dependencyId) => {
+      const dependency = assertWorkOrder(dependencyId, state);
+      return { id: dependency.id, status: dependency.status };
+    });
+    const checkpointRef = checkpoint?.id || null;
+    const checkpointDigest = checkpoint?.checkpointDigest || null;
+    const authorityDigest = computeWorkOrderAttemptAuthorityDigest({
+      executionPlanId: executionPlan.id,
+      expectedWorkOrderId: workOrder.id,
+      command,
+      action,
+      sourceDigest: executionPlan.sourceDigest,
+      checkpointRef,
+      checkpointDigest,
+      approvalRefs,
+    });
+    const attemptNumber =
+      getPlanWorkOrderAttempts(state, executionPlan.id).filter(
+        (attempt) => attempt.workOrderId === workOrder.id,
+      ).length + 1;
+    const attempt = createWorkOrderAttempt({
+      id: nextWorkOrderAttemptId(state),
+      executionPlanId: executionPlan.id,
+      workOrderId: workOrder.id,
+      missionId: executionPlan.missionId,
+      projectId: executionPlan.projectId,
+      staffingPlanId: source.staffingPlan.id,
+      staffingEntryId: source.staffingEntry.id,
+      councilSessionId: source.councilSession.id,
+      role: workOrder.role,
+      position: workOrder.position,
+      attemptNumber,
+      command,
+      action,
+      sourceDigest: executionPlan.sourceDigest,
+      workOrderDigest: computeWorkOrderRecordDigest(workOrder),
+      dependencyDigest: computeWorkOrderAttemptDependencyDigest({
+        executionPlanId: executionPlan.id,
+        workOrderId: workOrder.id,
+        dependencies,
+      }),
+      authorityDigest,
+      checkpointRef,
+      approvalRefs,
+      startedAt: new Date().toISOString(),
+    });
+    state.workOrderAttempts[attempt.id] = attempt;
+    return attempt;
+  }
+
+  function transitionActiveSchedulerAttempt(state, executionPlan, input) {
+    const attempt = getPlanWorkOrderAttempts(state, executionPlan.id).find(
+      (candidate) => candidate.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+    );
+    if (!attempt) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} has no active WorkOrderAttempt`);
+    }
+    const next = transitionWorkOrderAttempt(attempt, {
+      status: input.status,
+      checkpointRef: input.checkpointRef || null,
+      approvalRefs: [...new Set([...attempt.approvalRefs, ...(input.approvalRefs || [])])],
+      runRefs: [...new Set([...attempt.runRefs, ...(input.runRefs || [])])],
+      artifactRefs: [...new Set([...attempt.artifactRefs, ...(input.artifactRefs || [])])],
+      decisionInboxItemRefs: [
+        ...new Set([
+          ...attempt.decisionInboxItemRefs,
+          ...(input.decisionInboxItemRefs || []),
+        ]),
+      ],
+      stopReason: input.stopReason || null,
+      completedAt: new Date().toISOString(),
+    });
+    state.workOrderAttempts[next.id] = next;
+    return next;
+  }
+
+  function beginOperatorSteppedWorkOrderExecution(state, input) {
+    const executionPlan = assertExecutionPlan(input.executionPlanId, state);
+    const approval = assertApproval(input.approvalId, state);
+    const councilSession = assertCouncilSession(executionPlan.councilSessionId, state);
+    const source = assertBoundStaffingSchedulerSourceCurrent(state, councilSession, {
+      executionPlan,
+    });
+    const priorStart = getPlanWorkOrderAttempts(state, executionPlan.id).find(
+      (attempt) => attempt.action === WORK_ORDER_ATTEMPT_ACTION.START_BUILDER,
+    );
+    if (priorStart) {
+      if (priorStart.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE) {
+        throw conflict(
+          `WorkOrderAttempt ${priorStart.id} is active and requires separately authorized recovery`,
+        );
+      }
+      if (
+        priorStart.sourceDigest !== executionPlan.sourceDigest ||
+        !priorStart.approvalRefs.includes(approval.id)
+      ) {
+        throw conflict(`ExecutionPlan ${executionPlan.id} start replay diverges`);
+      }
+      return {
+        ...getExecutionPlanBundleFromState(state, executionPlan.id),
+        workOrderAttempt: priorStart,
+        idempotent: true,
+      };
+    }
+    if (
+      approval.id !== executionPlan.approvalId ||
+      approval.status !== APPROVAL_STATUS.APPROVED ||
+      approval.allowedNextAction !== WORK_ORDER_ACTION.START_SEQUENTIAL ||
+      approval.taskId !== executionPlan.controlTaskId ||
+      approval.metadata?.executionPlanId !== executionPlan.id ||
+      approval.metadata?.controlTaskId !== executionPlan.controlTaskId ||
+      approval.metadata?.previewId !== executionPlan.previewId ||
+      approval.metadata?.sourceDigest !== executionPlan.sourceDigest
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} does not have the required approval`);
+    }
+    const expectedWorkOrderId = executionPlan.workOrderIds
+      .map((id) => assertWorkOrder(id, state))
+      .sort(
+        (left, right) => left.position - right.position || left.id.localeCompare(right.id),
+      )[0]?.id;
+    const workOrder = selectOperatorSteppedWorkOrder(
+      state,
+      executionPlan,
+      WORK_ORDER_ATTEMPT_ACTION.START_BUILDER,
+      expectedWorkOrderId,
+    );
+    const attempt = createActiveSchedulerAttempt(state, {
+      action: WORK_ORDER_ATTEMPT_ACTION.START_BUILDER,
+      approvalRefs: [approval.id],
+      checkpoint: null,
+      command: WORK_ORDER_ATTEMPT_COMMAND.START,
+      executionPlan,
+      source,
+      workOrder,
+    });
+    const now = attempt.startedAt;
+    executionPlan.status = EXECUTION_PLAN_STATUS.ACTIVE;
+    executionPlan.activeWorkOrderId = workOrder.id;
+    executionPlan.startedAt = now;
+    executionPlan.updatedAt = now;
+    workOrder.status = WORK_ORDER_STATUS.ACTIVE;
+    workOrder.startedAt = now;
+    workOrder.updatedAt = now;
+    source.mission.status = 'executing';
+    source.mission.updatedAt = now;
+    store.saveState(state);
+    return {
+      ...getExecutionPlanBundleFromState(state, executionPlan.id),
+      workOrderAttempt: attempt,
+      idempotent: false,
+    };
+  }
+
   function beginSequentialWorkOrderExecution(input) {
+    const expectedFields = ['approvalId', 'executionPlanId'];
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict('Sequential WorkOrder start has unexpected or missing fields');
+    }
     const state = store.loadState();
     const executionPlan = assertExecutionPlan(input.executionPlanId, state);
     const approval = assertApproval(input.approvalId, state);
     const mission = assertMission(executionPlan.missionId, state);
     const project = assertProject(executionPlan.projectId, state);
     const councilSession = assertCouncilSession(executionPlan.councilSessionId, state);
+
+    if (councilSession.staffingEntryRef) {
+      return beginOperatorSteppedWorkOrderExecution(state, input);
+    }
 
     if (executionPlan.status !== EXECUTION_PLAN_STATUS.APPROVED) {
       throw conflict(`ExecutionPlan ${executionPlan.id} is not approved`);
@@ -5766,6 +6538,7 @@ function createRuntimeService(options = {}) {
     executionPlan.stoppedAt = String(input.stoppedAt || '').trim() || null;
     executionPlan.updatedAt = now;
     workOrder.updatedAt = now;
+    let checkpoint = null;
 
     if (
       executionPlan.stoppedAt === 'request-builder-live-mutation-approval' &&
@@ -5780,7 +6553,7 @@ function createRuntimeService(options = {}) {
         throw conflict('Builder terminal gate approval does not match the control task');
       }
       workOrder.status = WORK_ORDER_STATUS.WAITING_GATE;
-      appendWorkflowCheckpoint(
+      checkpoint = appendWorkflowCheckpoint(
         state,
         getReviewedDeliveryRoleBundle(state, executionPlan.id),
         WORKFLOW_CHECKPOINT_STAGE.BUILDER_WAITING_GATE,
@@ -5792,6 +6565,28 @@ function createRuntimeService(options = {}) {
     } else {
       executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
       workOrder.status = WORK_ORDER_STATUS.BLOCKED;
+    }
+
+    if (getPlanWorkOrderAttempts(state, executionPlan.id).some(
+      (attempt) => attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+    )) {
+      transitionActiveSchedulerAttempt(state, executionPlan, {
+        status: checkpoint
+          ? WORK_ORDER_ATTEMPT_STATUS.WAITING_GATE
+          : WORK_ORDER_ATTEMPT_STATUS.FAILED,
+        checkpointRef: checkpoint?.id || null,
+        approvalRefs: [
+          executionPlan.approvalId,
+          executionPlan.terminalGateApprovalId,
+          ...workOrder.approvalRefs,
+        ].filter(Boolean),
+        runRefs: workOrder.runRefs,
+        artifactRefs: workOrder.artifactRefs,
+        decisionInboxItemRefs: workOrder.inboxItemRefs,
+        stopReason: checkpoint
+          ? 'builder-waiting-for-live-mutation-approval'
+          : executionPlan.stopReason || 'builder-preflight-failed',
+      });
     }
 
     store.saveState(state);
@@ -5811,6 +6606,18 @@ function createRuntimeService(options = {}) {
     if (workOrder && workOrder.status === WORK_ORDER_STATUS.ACTIVE) {
       workOrder.status = WORK_ORDER_STATUS.BLOCKED;
       workOrder.updatedAt = now;
+    }
+    if (getPlanWorkOrderAttempts(state, executionPlan.id).some(
+      (attempt) => attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+    )) {
+      transitionActiveSchedulerAttempt(state, executionPlan, {
+        status: WORK_ORDER_ATTEMPT_STATUS.FAILED,
+        approvalRefs: [executionPlan.approvalId].filter(Boolean),
+        runRefs: workOrder?.runRefs || [],
+        artifactRefs: workOrder?.artifactRefs || [],
+        decisionInboxItemRefs: workOrder?.inboxItemRefs || [],
+        stopReason: executionPlan.stopReason,
+      });
     }
     store.saveState(state);
     return getExecutionPlanBundleFromState(state, executionPlan.id);
@@ -7202,6 +8009,7 @@ function createRuntimeService(options = {}) {
     beginReviewedDeliveryContinuation,
     beginReviewedDeliveryQa,
     beginReviewedDeliveryReviewer,
+    beginOperatorSteppedWorkOrderStep,
     beginSequentialWorkOrderExecution,
     createApprovalPlaceholder,
     createCouncilSessionForMission,
@@ -7229,6 +8037,7 @@ function createRuntimeService(options = {}) {
     getDecisionInboxItem,
     getDeliveryPackageAcceptance,
     getExecutionPlan,
+    getWorkOrderAttempt,
     getExactResearchReadiness,
     getExecutionPlanDeliveryPackage,
     getExecutionPlanRecovery,

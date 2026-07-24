@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 18;
+const STATE_SCHEMA_VERSION = 19;
+const WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION = 19;
 const STAFFING_ENTRY_STATE_SCHEMA_VERSION = 18;
 const STAFFING_PLAN_STATE_SCHEMA_VERSION = 17;
 const ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION = 16;
@@ -397,6 +398,7 @@ function createEmptyState() {
       verificationProof: 0,
       staffingPlan: 0,
       staffingEntry: 0,
+      workOrderAttempt: 0,
     },
     missions: {},
     councilSessions: {},
@@ -424,6 +426,7 @@ function createEmptyState() {
     verificationProofs: {},
     staffingPlans: {},
     staffingEntries: {},
+    workOrderAttempts: {},
   };
 }
 
@@ -477,6 +480,7 @@ module.exports = {
   STATE_SCHEMA_VERSION,
   TASK_LIFECYCLE,
   WORK_ORDER_ACTION,
+  WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION,
   WORK_ORDER_STATUS,
   WORKFLOW_CHECKPOINT_ACTION,
   WORKFLOW_CHECKPOINT_STAGE,

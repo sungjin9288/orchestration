@@ -1,5 +1,15 @@
 # AI Company Operator-Stepped WorkOrder Scheduler Implementation Decision Handoff
 
+## Accepted Implementation Outcome
+
+The operator supplied the complete approval below, and `DEC-172` accepts this bounded implementation.
+Schema v19, durable `WorkOrderAttempt` evidence, exact bound source recomputation, one-role-per-command
+start and step routes, exact inspection, UI controls, and focused runtime/API/UI verification are now
+implemented. This outcome does not widen the original blocked-authority list: active-attempt
+recovery, retry/rework, parallel or provider scheduling, background execution, source mutation,
+runtime-agent Git/release, memory application, policy bypass, lifecycle search/delete, and
+connectors remain blocked.
+
 ## Purpose
 
 이 문서는 `docs/117_ai-company-operator-stepped-workorder-scheduler-plan.md`를 one
@@ -16,8 +26,10 @@ durable attempt creation, bound WorkOrder persistence, role dispatch, or API/UI 
 - Durable StaffingPlan and Council-first StaffingEntry are implemented through `DEC-169`.
 - Stage 3 planning-only authority is recorded as `DEC-170`.
 - This complete fielded implementation handoff is recorded as `DEC-171`.
-- Current runtime remains schema v18.
-- Bound Council WorkOrder preview, persistence, dispatch, and scheduling remain blocked.
+- The bounded implementation is accepted as `DEC-172`.
+- Current runtime is schema v19 with exact bound preview, persistence, start/step, and attempt inspection.
+- Retry/rework/recovery, parallel/provider/background scheduling, and every other listed downstream
+  authority remain blocked.
 - Implementation remains blocked until one complete valid operator decision below is supplied.
 
 ## Required Decision Fields
@@ -121,10 +133,9 @@ approvalStatement=I defer operator-stepped WorkOrder scheduler implementation. N
 
 ## Completion Rule
 
-Implementation may begin only after one complete valid decision is supplied and recorded as a new
-accepted decision. Until then:
+The completion rule was satisfied by the exact fielded decision recorded as `DEC-172`:
 
-- runtime remains schema v18;
-- WorkOrderAttempt does not exist;
-- bound WorkOrder preview, persistence, start, and step remain blocked;
-- this handoff is planning evidence only.
+- runtime is schema v19;
+- WorkOrderAttempt exists only for the approved bound local step path;
+- bound WorkOrder preview, persistence, start, step, and exact inspection are implemented;
+- every authority outside the named local sequential slice remains blocked.

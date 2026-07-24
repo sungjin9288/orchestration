@@ -64,6 +64,7 @@ assert.match(plan, /clarification is recorded as `DEC-165`/);
 assert.match(plan, /implementation is recorded as `DEC-166`/);
 assert.match(plan, /scheduler planning is recorded as `DEC-170`/);
 assert.match(plan, /implementation handoff is recorded as `DEC-171`/);
+assert.match(plan, /implemented as `DEC-172`/);
 
 assert.match(
   handoff,
@@ -102,6 +103,7 @@ for (const decisionId of [
   'DEC-169',
   'DEC-170',
   'DEC-171',
+  'DEC-172',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
@@ -144,7 +146,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 19/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -173,23 +175,22 @@ process.stdout.write(
         staffingEntryImplementation: 'accepted-dec-169',
         operatorSteppedSchedulerPlanning: 'accepted-dec-170',
         operatorSteppedSchedulerHandoff: 'documented-dec-171',
+        operatorSteppedSchedulerImplementation: 'accepted-dec-172',
       },
       currentRuntime: {
-        schemaVersion: 18,
+        schemaVersion: 19,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,
-        operatorSteppedScheduler: false,
+        operatorSteppedScheduler: true,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
-      nextImplementationTarget: {
-        schemaVersion: 19,
-        object: 'WorkOrderAttempt',
-        flow: 'active-before-execution-one-role-per-explicit-command',
-        councilBinding: true,
-        scheduling: 'operator-stepped-local-only',
+      nextPlanningTarget: {
+        stage: 4,
+        object: 'bounded-read-only-parallel-specialists',
+        implementationAllowed: false,
       },
       authority: {
         documentationAllowed: true,
@@ -198,8 +199,9 @@ process.stdout.write(
         durableRecordAllowed: true,
         councilBindingAllowed: true,
         operatorSteppedSchedulerPlanningAllowed: true,
-        workOrderAttemptImplementationAllowed: false,
-        schedulingAllowed: false,
+        workOrderAttemptImplementationAllowed: true,
+        operatorSteppedSchedulingAllowed: true,
+        generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,
         providerExpansionAllowed: false,
         memoryApplicationAllowed: false,

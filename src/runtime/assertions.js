@@ -22,6 +22,14 @@ function assertWorkOrder(workOrderId, state) {
   return workOrder;
 }
 
+function assertWorkOrderAttempt(workOrderAttemptId, state) {
+  const workOrderAttempt = state.workOrderAttempts[workOrderAttemptId];
+  if (!workOrderAttempt) {
+    throw new Error(`WorkOrderAttempt not found: ${workOrderAttemptId}`);
+  }
+  return workOrderAttempt;
+}
+
 function assertHandoffPacket(handoffPacketId, state) {
   const handoffPacket = state.handoffPackets[handoffPacketId];
   if (!handoffPacket) throw new Error(`HandoffPacket not found: ${handoffPacketId}`);
@@ -139,6 +147,7 @@ module.exports = {
   assertStaffingEntry,
   assertStaffingPlan,
   assertWorkOrder,
+  assertWorkOrderAttempt,
   assertWorkflowCheckpoint,
   assertVerificationProof,
 };

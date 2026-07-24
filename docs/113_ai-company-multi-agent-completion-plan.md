@@ -5,11 +5,12 @@
 이 문서는 현재의 고정형 Council과 Builder -> Reviewer -> QA pass path를 실제 multi-agent
 orchestration으로 완성하는 순서를 정의한다.
 
-현재 runtime은 schema v18에서 source-backed role identity, Real Council, durable ExecutionPlan과
+현재 runtime은 schema v19에서 source-backed role identity, Real Council, durable ExecutionPlan과
 WorkOrder, checkpoint recovery, reviewed delivery, Mission close-out, learning, memory audit,
 AcceptanceCriterion, VerificationProof, one immutable accepted `StaffingPlan`, and one immutable
-Council-first `StaffingEntry`를 보존한다. Solo binding, bound Council revision/resume/auto-chain,
-general WorkOrder scheduler, bounded parallel specialist execution, Reviewer rework, Mission memory
+Council-first `StaffingEntry`, and durable `WorkOrderAttempt` evidence를 보존한다. `DEC-172`
+implements one operator-stepped local Builder/Reviewer/QA boundary per explicit command. Solo
+binding, bound Council revision/resume/auto-chain, bounded parallel specialist execution, Reviewer rework, Mission memory
 context application은 아직 없다.
 
 완성 방향은 기존 runtime을 교체하는 것이 아니다. 검증된 evidence와 authority model 위에
@@ -105,6 +106,11 @@ deterministic local-stub first attempt and stop at human alignment.
 Replace the fixed active-role assumption with deterministic dependency-ready selection and durable
 role-attempt evidence. Initial operation remains explicit `/start` and `/step`; no background loop is
 introduced.
+
+Status: implemented as `DEC-172`. The schema-v19 runtime saves one active WorkOrderAttempt before
+coordinator execution, performs one local Builder, Reviewer, or QA boundary, then stops at the next
+checkpoint. Retry, rework, recovery, parallelism, provider WorkOrders, and background scheduling
+remain outside this stage.
 
 Mutable targets are serialized. Builder retains the current targeted live-mutation approval.
 
@@ -384,5 +390,6 @@ fit.
 - StaffingEntry implementation and Council-first binding are recorded as `DEC-169`.
 - Operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`; its complete fielded
   schema-v19 implementation handoff is recorded as `DEC-171`.
+- Operator-stepped WorkOrder scheduler implementation is recorded as `DEC-172`.
 - Solo entry/execution, bound revision/resume/auto-chain, and every later completion stage remain
   blocked pending their own complete fielded decisions.

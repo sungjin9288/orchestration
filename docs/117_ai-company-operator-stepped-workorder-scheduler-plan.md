@@ -1,5 +1,15 @@
 # AI Company Operator-Stepped WorkOrder Scheduler Plan
 
+## Implementation Outcome
+
+`DEC-172` consumes the complete fielded decision recorded in
+`docs/118_ai-company-operator-stepped-workorder-scheduler-implementation-decision-handoff.md`.
+The runtime now uses schema v19, persists one active `WorkOrderAttempt` before each coordinator
+boundary, executes exactly one local Builder, Reviewer, or QA role per explicit start or step, and
+exposes exact attempt inspection. The historical planning contract below remains the design
+rationale. Retry, rework, interrupted-attempt recovery, parallel or provider execution, background
+scheduling, source/Git/release, memory application, policy bypass, and connectors remain blocked.
+
 ## Purpose
 
 이 문서는 `docs/113_ai-company-multi-agent-completion-plan.md` Stage 3의 first vertical slice를

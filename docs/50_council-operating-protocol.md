@@ -428,10 +428,12 @@ operator-facing unbound local Council starts are rejected while historical sessi
 inspectable.
 
 Operator-stepped WorkOrder scheduler planning은 `DEC-170`, complete implementation decision handoff는
-`DEC-171`로 기록됐다. Approved bound sessions remain stopped before WorkOrder compilation in the
-current schema-v18 runtime. A future accepted implementation may reuse the exact approved synthesis
-only through deterministic dependency-ready selection and one explicit local role step; planning
-does not enable WorkOrders, attempts, dispatch, retry, parallelism, providers, or background loops.
+`DEC-171`, implementation은 `DEC-172`로 기록됐다. An approved source-current bound session may now
+enter one exact durable Builder/Reviewer/QA graph after separate plan approval. `start` and `step`
+select one dependency-ready WorkOrder deterministically, persist an active WorkOrderAttempt before
+the coordinator, execute exactly one local role boundary, and stop at the next checkpoint. There is
+no run-all, retry, rework, interrupted-attempt recovery, parallelism, provider WorkOrder, or
+background loop authority.
 
 ## Verification
 

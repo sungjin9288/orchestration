@@ -848,7 +848,7 @@ function buildAutoChainStageRecord(stage, result = {}) {
 
 async function runMissionAlignmentAutoChain(missionId, options = {}) {
   const sourceMission = runtime.getMission(missionId);
-  if (sourceMission.staffingEntryId) {
+  if (sourceMission.staffingEntryId && options.allowBoundWorkOrderStart !== true) {
     const error = new Error(
       `StaffingEntry-bound Mission ${missionId} cannot enter the alignment auto-chain`,
     );
@@ -1939,6 +1939,27 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, { error: error.message || 'ExecutionPlan 조회에 실패했습니다.' });
+      return;
+    }
+  }
+
+  const workOrderAttemptMatch = url.pathname.match(
+    /^\/api\/work-order-attempts\/([^/]+)$/,
+  );
+  if (method === 'GET' && workOrderAttemptMatch) {
+    try {
+      const workOrderAttemptId = decodeURIComponent(workOrderAttemptMatch[1]);
+      json(response, 200, {
+        ...runtime.getWorkOrderAttempt(workOrderAttemptId),
+        generatedAt: new Date().toISOString(),
+        runtimeRoot: options.runtimeRoot,
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'WorkOrderAttempt 조회에 실패했습니다.',
+      });
       return;
     }
   }
@@ -3142,6 +3163,151 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const executionPlanOperatorStepMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/step$/,
+  );
+  if (method === 'POST' && executionPlanOperatorStepMatch) {
+    let startedBundle = null;
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanOperatorStepMatch[1]);
+      const input = await readBoundedJsonBody(request, 32 * 1024);
+      const expectedFields = [
+        'action',
+        'authorityDigest',
+        'checkpointDigest',
+        'checkpointId',
+        'evaluatedAt',
+        'expectedWorkOrderId',
+        'inputDigest',
+        'sourceDigest',
+        'terminalGateApprovalId',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error('Operator WorkOrder step body has unexpected or missing fields');
+        error.statusCode = 400;
+        throw error;
+      }
+      startedBundle = runtime.beginOperatorSteppedWorkOrderStep({
+        executionPlanId,
+        ...input,
+      });
+      if (startedBundle.idempotent) {
+        json(
+          response,
+          200,
+          buildSnapshotResponse({
+            executionPlanBundle: runtime.getExecutionPlan(executionPlanId),
+            mutation: {
+              action: input.action,
+              executionPlanId,
+              idempotent: true,
+              kind: 'operator-step-workorder',
+              workOrderAttemptId: startedBundle.workOrderAttempt.id,
+            },
+          }),
+        );
+        return;
+      }
+
+      let executionPlanBundle;
+      let deliveryPackagePreview = null;
+      if (input.action === 'continue-builder') {
+        const builderResult = await executionCoordinator.runBuilderLiveMutation({
+          taskId: startedBundle.controlTask.id,
+        });
+        executionPlanBundle = runtime.completeReviewedDeliveryBuilder({
+          executionPlanId,
+          runId: builderResult.run.id,
+          changeSummaryArtifactId: builderResult.artifacts.changeSummary?.id,
+          patchArtifactId: builderResult.artifacts.patch?.id,
+          diffArtifactId: builderResult.artifacts.diff?.id,
+          changedFiles: builderResult.changedFiles,
+        });
+      } else if (input.action === 'run-reviewer') {
+        const reviewerResult = await executionCoordinator.runReviewer({
+          taskId: startedBundle.controlTask.id,
+        });
+        executionPlanBundle = runtime.completeReviewedDeliveryReviewer({
+          executionPlanId,
+          runId: reviewerResult.run.id,
+          reviewArtifactId: reviewerResult.artifact.id,
+          reviewStatus: reviewerResult.run.summary?.mappedReviewStatus,
+          decisionInboxItemId: reviewerResult.decisionInboxItem?.id || null,
+        });
+      } else if (input.action === 'run-qa') {
+        const workOrdersByRole = Object.fromEntries(
+          startedBundle.workOrders.map((workOrder) => [workOrder.role, workOrder]),
+        );
+        const qaResult = await executionCoordinator.runQaWorkOrder({
+          taskId: startedBundle.controlTask.id,
+          executionPlanId,
+          workOrderId: workOrdersByRole.qa.id,
+          builderRunId: workOrdersByRole.builder.completionRunId,
+          reviewerRunId: workOrdersByRole.reviewer.completionRunId,
+          sourceDigest: startedBundle.executionPlan.sourceDigest,
+          changedFiles: workOrdersByRole.builder.changedFiles,
+          targetPathAllowlist: workOrdersByRole.qa.targetPathAllowlist,
+          commands: workOrdersByRole.qa.verificationCommands,
+        });
+        executionPlanBundle = runtime.completeReviewedDeliveryQa({
+          executionPlanId,
+          runId: qaResult.run.id,
+          qaEvidenceArtifactId: qaResult.artifact.id,
+        });
+        if (executionPlanBundle.executionPlan.status === 'delivery-ready') {
+          deliveryPackagePreview = runtime.previewExecutionPlanDelivery({
+            executionPlanId,
+            sourceDigest: executionPlanBundle.executionPlan.sourceDigest,
+          });
+        }
+      } else {
+        throw new Error(`Unsupported operator step action: ${input.action}`);
+      }
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          deliveryPackagePreview,
+          executionPlanBundle,
+          mutation: {
+            action: input.action,
+            executionPlanId,
+            idempotent: false,
+            kind: 'operator-step-workorder',
+            stoppedAt:
+              executionPlanBundle.latestCheckpoint?.stage ||
+              executionPlanBundle.executionPlan.stoppedAt,
+            stopReason: executionPlanBundle.executionPlan.stopReason,
+            workOrderAttemptId: executionPlanBundle.latestWorkOrderAttempt?.id || null,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      if (startedBundle && !startedBundle.idempotent) {
+        try {
+          runtime.failReviewedDeliveryContinuation({
+            executionPlanId: startedBundle.executionPlan.id,
+            reason: error.message || 'operator-workorder-step-failed',
+            stoppedAt: startedBundle.workOrderAttempt?.role || 'operator-step',
+          });
+        } catch (_finalizeError) {
+          // Preserve the original role-boundary failure for the API caller.
+        }
+      }
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'WorkOrder step 실행에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const executionPlanReviewedDeliveryMatch = url.pathname.match(
     /^\/api\/execution-plans\/([^/]+)\/continue-reviewed-delivery$/,
   );
@@ -3319,12 +3485,43 @@ const server = createServer(async (request, response) => {
     let startedBundle = null;
     try {
       const executionPlanId = decodeURIComponent(executionPlanStartMatch[1]);
-      const input = await readJsonBody(request);
+      const input = await readBoundedJsonBody(request, 32 * 1024);
+      const expectedFields = ['approvalId'];
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'Sequential WorkOrder start body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
       startedBundle = runtime.beginSequentialWorkOrderExecution({
         executionPlanId,
         approvalId: input.approvalId,
       });
+      if (startedBundle.idempotent) {
+        json(
+          response,
+          200,
+          buildSnapshotResponse({
+            executionPlanBundle: runtime.getExecutionPlan(executionPlanId),
+            mutation: {
+              approvalId: startedBundle.approval.id,
+              executionPlanId,
+              idempotent: true,
+              kind: 'start-sequential-workorder-plan',
+              taskId: startedBundle.controlTask.id,
+              workOrderAttemptId: startedBundle.workOrderAttempt?.id || null,
+            },
+          }),
+        );
+        return;
+      }
       const result = await runMissionAlignmentAutoChain(startedBundle.mission.id, {
+        allowBoundWorkOrderStart: Boolean(startedBundle.councilSession.staffingEntryRef),
         alignedResult: {
           mission: startedBundle.mission,
           councilSession: startedBundle.councilSession,
@@ -3358,6 +3555,7 @@ const server = createServer(async (request, response) => {
             terminalGateApprovalId:
               executionPlanBundle.executionPlan.terminalGateApprovalId || null,
             workOrderId: startedBundle.executionPlan.activeWorkOrderId,
+            workOrderAttemptId: executionPlanBundle.latestWorkOrderAttempt?.id || null,
           },
         }),
       );

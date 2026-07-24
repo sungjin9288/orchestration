@@ -133,7 +133,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v18 after the additive Durable StaffingEntry migration, while
+execution state is schema v19 after the additive Durable WorkOrderAttempt migration, while
 `companyRuntime` remains an additive read-only snapshot on the configured local server path. The
 editable company roster remains browser presentation only.
 
@@ -158,7 +158,11 @@ verified stages. `DEC-170` records Stage 3 operator-stepped WorkOrder scheduler 
 `docs/117_ai-company-operator-stepped-workorder-scheduler-plan.md`; `DEC-171` records the complete
 fielded schema-v19 implementation handoff in
 `docs/118_ai-company-operator-stepped-workorder-scheduler-implementation-decision-handoff.md`.
-Current runtime remains schema v18 and no WorkOrderAttempt or bound dispatch authority is open.
+`DEC-172` implements the bounded local path: one exact source-current StaffingEntry-bound
+Builder/Reviewer/QA plan, one active-before-coordinator WorkOrderAttempt per explicit start or step,
+one local role boundary per command, and exact attempt inspection. Solo, parallel specialists,
+retry/rework, interrupted-attempt recovery, provider/background WorkOrders, memory application,
+source/Git/release, policy bypass, and connectors remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -365,10 +369,11 @@ dissent evidence, Conductor synthesis, additive revision attempts, and explicit
 available as compatibility behavior. DEC-166 keeps StaffingPlan immutable, DEC-167 and DEC-168
 record the Council-first binding plan and handoff, and DEC-169 implements one exact StaffingEntry
 binding plus alignment-only stop boundary. New direct local-stub starts require this durable entry;
-historical unbound sessions remain compatible. DEC-170 and DEC-171 plan one explicit local
-dependency-ready role step with durable attempt evidence but do not implement it. Provider-backed
-WorkOrders, memory persistence expansion, autonomous scheduling, source/profile mutation, approval
-bypass, and runtime-agent commit/push/release remain blocked.
+historical unbound sessions remain compatible. DEC-170 and DEC-171 define one explicit local
+dependency-ready role step with durable attempt evidence, and DEC-172 implements that bounded
+schema-v19 path. Provider-backed WorkOrders, retry/rework/recovery, parallel or autonomous
+scheduling, memory application, source/profile mutation, approval bypass, and runtime-agent
+commit/push/release remain blocked.
 
 Phase 3 Council live-provider implementation is accepted by `DEC-085` from the planning and complete
 fielded gate documented by `DEC-083` and `DEC-084` in
@@ -649,9 +654,9 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The DEC-161 browser baseline plus DEC-162 through
-DEC-169 StaffingPlan and StaffingEntry implementation evidence plus DEC-170 through DEC-171 Stage 3
-planning evidence pass aggregate required `1/1`, informational `274/274`, total `275/275`, and UI QA
-required `75/75`. Focused browser checks at 1280x720 and
+DEC-169 StaffingPlan and StaffingEntry implementation evidence and DEC-170 through DEC-172 Stage 3
+scheduler evidence pass aggregate required `1/1`, informational `275/275`, total `276/276`, and UI QA
+required `76/76`. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
 The earlier DEC-158 matrix remains the evidence for the default-closed Task
@@ -2247,8 +2252,10 @@ Observed result:
 | `POST` | `/api/council-sessions/:sessionId/decision` | Approve, request a targeted revision, or stop a Real Council session. |
 | `POST` | `/api/council-sessions/:sessionId/work-order-preview` | Recompute one response-only source-current WorkOrder preview. |
 | `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview plan bundle and pending approval in current schema state. |
-| `GET` | `/api/execution-plans/:executionPlanId` | Inspect one durable plan, WorkOrders, handoffs, approval, and control task. |
-| `POST` | `/api/execution-plans/:executionPlanId/start-sequential` | Start only the approved local Builder preflight path and stop at live-mutation approval. |
+| `GET` | `/api/execution-plans/:executionPlanId` | Inspect one durable plan, WorkOrders, handoffs, attempts, approval, and control task. |
+| `GET` | `/api/work-order-attempts/:workOrderAttemptId` | Inspect one exact durable operator-stepped WorkOrderAttempt. |
+| `POST` | `/api/execution-plans/:executionPlanId/start-sequential` | Start only the approved local Builder preflight path, recording a bound attempt when applicable, and stop at live-mutation approval. |
+| `POST` | `/api/execution-plans/:executionPlanId/step` | Execute one exact bound local Builder, Reviewer, or QA boundary and stop at the next checkpoint. |
 | `POST` | `/api/execution-plans/:executionPlanId/continue-reviewed-delivery` | Continue one exact approved local Builder gate through Reviewer and constrained syntax QA. |
 | `GET` | `/api/execution-plans/:executionPlanId/recovery` | Recompute one read-only current checkpoint recovery classification. |
 | `POST` | `/api/execution-plans/:executionPlanId/continuation-preview` | Measure one bounded response-only next-step/no-progress/deadline/cancellation outcome. |
@@ -2309,9 +2316,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 955 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 957 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 697 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 698 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2883,12 +2890,13 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161, and
-  the first multi-agent completion runtime slices are evidence-closed through DEC-169.
-  DEC-169 implements Council-first StaffingEntry binding only; solo execution and all downstream
-  bound scheduling remain blocked. DEC-170 and DEC-171 add planning and a complete fielded handoff
-  for one future schema-v19 operator-stepped local scheduler, but no runtime authority. This is not
-  a claim of hosted production readiness. Focused source and compatibility checks, the local browser
-  matrix, UI QA `75/75`, and aggregate `275/275` pass. This remains local
+  the first multi-agent completion runtime slices are evidence-closed through DEC-172.
+  DEC-169 implements Council-first StaffingEntry binding; DEC-172 implements only the exact
+  schema-v19 operator-stepped local Builder/Reviewer/QA path. Solo execution, parallel specialists,
+  retry/rework, interrupted-attempt recovery, provider/background WorkOrders, memory application,
+  source/Git/release, policy bypass, and connectors remain blocked. This is not a claim of hosted
+  production readiness. Focused source and compatibility checks, the local browser matrix, UI QA
+  `76/76`, and aggregate `276/276` pass. This remains local
   synthetic/browser evidence rather than hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
@@ -3106,11 +3114,11 @@ Playwright CLI:
   `DEC-166` implements the exact schema-v17 preview, immutable accepted record, and inspection path.
   `DEC-167` plans a Council-first schema-v18 StaffingEntry, `DEC-168` records its complete fielded
   handoff, and `DEC-169` implements the exact accepted-plan binding plus one local-stub first attempt.
-  `DEC-170` plans one schema-v19 WorkOrderAttempt and explicit dependency-ready role step, while
-  `DEC-171` records its complete fielded implementation gate. Solo execution, schema-v19 migration,
-  bound WorkOrder dispatch, revision/resume/retry/rework/auto-chain, parallel execution, recovery,
-  memory application, provider-backed WorkOrder, source/Git/release, policy, bypass, and connector
-  authority remain blocked until an exact implementation decision is accepted.
+  `DEC-170` plans one schema-v19 WorkOrderAttempt and explicit dependency-ready role step,
+  `DEC-171` records its complete fielded implementation gate, and `DEC-172` implements that bounded
+  path. Solo execution, bound Council revision/resume/auto-chain, retry/rework, parallel execution,
+  interrupted-attempt recovery, memory application, provider/background WorkOrders,
+  source/Git/release, policy, bypass, and connector authority remain blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

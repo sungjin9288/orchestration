@@ -290,7 +290,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 18/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 19/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -384,9 +384,10 @@ process.stdout.write(
         'DEC-169',
         'DEC-170',
         'DEC-171',
+        'DEC-172',
       ],
       currentRuntime: {
-        schemaVersion: 18,
+        schemaVersion: 19,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -412,7 +413,7 @@ process.stdout.write(
         contextBudgetTelemetry: 'response-only-measurement-without-payload-mutation',
         staffingPlan: 'schema-v17-preview-accept-persist-exact-inspection',
         staffingEntry: 'schema-v18-exact-accepted-plan-local-council-binding',
-        operatorSteppedScheduler: 'schema-v19-planning-only-complete-fielded-decision-required',
+        operatorSteppedScheduler: 'schema-v19-operator-stepped-local-builder-reviewer-qa',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -460,8 +461,8 @@ process.stdout.write(
         staffingEntryBindingPlanningAllowed: true,
         staffingPlanCouncilBindingAllowed: true,
         operatorSteppedSchedulerPlanningAllowed: true,
-        operatorSteppedSchedulerImplementationAllowed: false,
-        workOrderAttemptPersistenceAllowed: false,
+        operatorSteppedSchedulerImplementationAllowed: true,
+        workOrderAttemptPersistenceAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -470,7 +471,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded schema-v19 operator-stepped WorkOrder scheduler decision required',
+      nextGate: 'Stage 4 bounded read-only parallel specialists decision required',
     },
     null,
     2,

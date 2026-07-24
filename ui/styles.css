@@ -8773,11 +8773,34 @@ h3 {
 }
 
 .workorder-verification-ledger,
-.workorder-verification-plan-preview {
+.workorder-verification-plan-preview,
+.workorder-attempt-ledger {
   width: 100%;
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--surface-control-border);
+}
+
+.workorder-attempt-ledger {
+  display: grid;
+  gap: 0;
+}
+
+.workorder-attempt-row {
+  min-width: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--surface-control-border);
+}
+
+.workorder-attempt-row .card-title-row {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.workorder-attempt-row .token {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .verification-approval-form,

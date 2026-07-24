@@ -45,6 +45,7 @@ const {
   STAFFING_ENTRY_STATE_SCHEMA_VERSION,
   STAFFING_PLAN_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,
+  WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION,
   WORK_ORDER_STATUS,
   WORKFLOW_CHECKPOINT_ACTION,
   WORKFLOW_CHECKPOINT_STAGE,
@@ -112,6 +113,10 @@ const {
   assertStaffingEntryRecord,
   computeStaffingEntrySourceDigest,
 } = require('./staffing-entries');
+const {
+  WORK_ORDER_ATTEMPT_STATUS,
+  assertWorkOrderAttemptRecord,
+} = require('./work-order-attempts');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 const {
   BLOCKED_ACTIONS: VERIFICATION_PROOF_BLOCKED_ACTIONS,
@@ -1816,12 +1821,22 @@ function validateStaffingEntryRecords(state) {
     ) {
       throw new Error(`${label} entrySourceDigest does not match its StaffingPlan binding`);
     }
+    const linkedExecutionPlans = Object.values(state.executionPlans).filter(
+      (plan) => plan.councilSessionId === staffingEntry.councilSessionId,
+    );
+    const hasNoExecutionPlan =
+      linkedExecutionPlans.length === 0 && mission?.linkedTaskId === null;
+    const hasOneBoundExecutionPlan =
+      linkedExecutionPlans.length === 1 &&
+      mission?.linkedTaskId === linkedExecutionPlans[0].controlTaskId &&
+      linkedExecutionPlans[0].missionId === staffingEntry.missionId &&
+      linkedExecutionPlans[0].projectId === staffingEntry.projectId;
     if (
       !mission ||
       mission.projectId !== staffingEntry.projectId ||
       mission.staffingEntryId !== staffingEntry.id ||
       mission.councilSessionId !== staffingEntry.councilSessionId ||
-      mission.linkedTaskId !== null
+      (!hasNoExecutionPlan && !hasOneBoundExecutionPlan)
     ) {
       throw new Error(`${label} has invalid Mission binding`);
     }
@@ -2008,6 +2023,118 @@ function validateDurableWorkOrderRecords(state) {
       workOrder.handoffPacketId !== packet.id
     ) {
       throw new Error(`${label} has invalid plan or WorkOrder references`);
+    }
+  }
+}
+
+function validateWorkOrderAttemptRecords(state) {
+  const attemptsByWorkOrder = new Map();
+  const activePlanIds = new Set();
+  const activeBuilderAttempts = [];
+
+  for (const [key, attempt] of Object.entries(state.workOrderAttempts)) {
+    const label = `WorkOrderAttempt ${key}`;
+    if (
+      !attempt ||
+      typeof attempt !== 'object' ||
+      Array.isArray(attempt) ||
+      attempt.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertWorkOrderAttemptRecord(attempt);
+
+    const plan = state.executionPlans[attempt.executionPlanId];
+    const workOrder = state.workOrders[attempt.workOrderId];
+    const mission = state.missions[attempt.missionId];
+    const staffingPlan = state.staffingPlans[attempt.staffingPlanId];
+    const staffingEntry = state.staffingEntries[attempt.staffingEntryId];
+    const councilSession = state.councilSessions[attempt.councilSessionId];
+    if (
+      !plan ||
+      !workOrder ||
+      !mission ||
+      !staffingPlan ||
+      !staffingEntry ||
+      !councilSession ||
+      plan.missionId !== attempt.missionId ||
+      plan.projectId !== attempt.projectId ||
+      plan.councilSessionId !== attempt.councilSessionId ||
+      plan.sourceDigest !== attempt.sourceDigest ||
+      workOrder.executionPlanId !== plan.id ||
+      workOrder.role !== attempt.role ||
+      workOrder.position !== attempt.position ||
+      mission.projectId !== attempt.projectId ||
+      mission.staffingEntryId !== attempt.staffingEntryId ||
+      mission.councilSessionId !== attempt.councilSessionId ||
+      staffingPlan.id !== attempt.staffingPlanId ||
+      staffingPlan.missionId !== attempt.missionId ||
+      staffingEntry.id !== attempt.staffingEntryId ||
+      staffingEntry.staffingPlanId !== attempt.staffingPlanId ||
+      staffingEntry.councilSessionId !== attempt.councilSessionId ||
+      councilSession.staffingEntryRef?.staffingEntryId !== attempt.staffingEntryId
+    ) {
+      throw new Error(`${label} has invalid bound source references`);
+    }
+    if (
+      attempt.checkpointRef !== null &&
+      state.workflowCheckpoints[attempt.checkpointRef]?.executionPlanId !== plan.id
+    ) {
+      throw new Error(`${label} has an invalid WorkflowCheckpoint reference`);
+    }
+    for (const [field, records] of [
+      ['approvalRefs', state.approvals],
+      ['runRefs', state.runs],
+      ['artifactRefs', state.artifacts],
+      ['decisionInboxItemRefs', state.decisionInboxItems],
+    ]) {
+      if (attempt[field].some((id) => !records[id])) {
+        throw new Error(`${label} has a missing ${field} reference`);
+      }
+    }
+    if (attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE) {
+      if (activePlanIds.has(plan.id)) {
+        throw new Error(`${label} duplicates an active attempt for ${plan.id}`);
+      }
+      activePlanIds.add(plan.id);
+      if (attempt.role === 'builder') {
+        activeBuilderAttempts.push({ attempt, workOrder });
+      }
+    }
+    const attempts = attemptsByWorkOrder.get(workOrder.id) || [];
+    attempts.push(attempt);
+    attemptsByWorkOrder.set(workOrder.id, attempts);
+  }
+
+  for (const [workOrderId, attempts] of attemptsByWorkOrder.entries()) {
+    attempts.sort(
+      (left, right) =>
+        left.startedAt.localeCompare(right.startedAt) || left.id.localeCompare(right.id),
+    );
+    attempts.forEach((attempt, index) => {
+      if (attempt.attemptNumber !== index + 1) {
+        throw new Error(
+          `WorkOrder ${workOrderId} has invalid WorkOrderAttempt numbering`,
+        );
+      }
+    });
+  }
+
+  for (let leftIndex = 0; leftIndex < activeBuilderAttempts.length; leftIndex += 1) {
+    const left = activeBuilderAttempts[leftIndex];
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < activeBuilderAttempts.length;
+      rightIndex += 1
+    ) {
+      const right = activeBuilderAttempts[rightIndex];
+      if (left.attempt.projectId !== right.attempt.projectId) continue;
+      const rightTargets = new Set(right.workOrder.targetPathAllowlist || []);
+      if ((left.workOrder.targetPathAllowlist || []).some((path) => rightTargets.has(path))) {
+        throw new Error(
+          `${left.attempt.id} overlaps active Builder targets with ${right.attempt.id}`,
+        );
+      }
     }
   }
 }
@@ -2617,6 +2744,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== MEMORY_RECALL_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STAFFING_PLAN_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== STAFFING_ENTRY_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -2801,6 +2929,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.workOrderAttempt) ||
+        !state.workOrderAttempts ||
+        typeof state.workOrderAttempts !== 'object' ||
+        Array.isArray(state.workOrderAttempts)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing WorkOrderAttempt fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -2835,6 +2976,7 @@ function createFileStore(options = {}) {
       verificationProofs: state.verificationProofs || {},
       staffingPlans: state.staffingPlans || {},
       staffingEntries: state.staffingEntries || {},
+      workOrderAttempts: state.workOrderAttempts || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -3119,6 +3261,7 @@ function createFileStore(options = {}) {
     validateMemoryRecallRecords(normalizedState);
     validateStaffingPlanRecords(normalizedState);
     validateStaffingEntryRecords(normalizedState);
+    validateWorkOrderAttemptRecords(normalizedState);
     return normalizedState;
   }
 

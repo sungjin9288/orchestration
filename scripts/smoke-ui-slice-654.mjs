@@ -166,7 +166,7 @@ async function main() {
       },
     );
     assert.equal(persisted.response.status, 201);
-    assert.equal(persisted.payload.snapshot.schemaVersion, 18);
+    assert.equal(persisted.payload.snapshot.schemaVersion, 19);
     assert.equal(persisted.payload.executionPlanBundle.executionPlan.status, 'pending-approval');
     assert.equal(persisted.payload.executionPlanBundle.workOrders.length, 3);
     assert.equal(persisted.payload.executionPlanBundle.handoffPackets.length, 3);

@@ -14,14 +14,15 @@ execution, WorkOrder, provider, source mutation, Git, release authority를 열�
 ## Implementation Outcome
 
 `DEC-169` consumes the complete operator decision recorded by the companion handoff and implements
-this bounded slice. Current runtime is schema v18 with immutable `StaffingEntry` records, exact
+this bounded slice. Current runtime is schema v19 with immutable schema-v18 `StaffingEntry` records, exact
 accepted-plan and source recomputation, one deterministic local-stub first attempt before one atomic
 save, exact inspection and replay, and alignment-only approve or stop.
 
 The historical planning boundary below remains authoritative evidence for why this shape was chosen.
-Solo execution, bound revision/resume/retry/rework/auto-chain, WorkOrders, scheduling, providers,
-memory application, source mutation, runtime-agent Git/release, policy bypass, lifecycle mutation,
-and connectors remain blocked.
+`DEC-172` separately implements exact bound WorkOrder preview, persistence, and one-role-per-command
+local scheduling. Solo execution, bound Council revision/resume/auto-chain, parallel scheduling,
+retry/rework, active-attempt recovery, provider WorkOrders, memory application, source mutation,
+runtime-agent Git/release, policy bypass, lifecycle mutation, and connectors remain blocked.
 
 ## Accepted Planning-Only Decision
 
@@ -291,7 +292,7 @@ synthesis, and human alignment evidence. It changes only entry provenance and do
 Stage 3 must separately decide how one approved bound Council synthesis becomes a durable
 operator-stepped WorkOrder schedule. That planning is now recorded in
 `docs/117_ai-company-operator-stepped-workorder-scheduler-plan.md` as `DEC-170`, with complete
-fielded implementation handoff `DEC-171`; current schema-v18 runtime remains blocked.
+fielded implementation handoff `DEC-171`; `DEC-172` now implements the bounded schema-v19 path.
 
 ## API Contract
 

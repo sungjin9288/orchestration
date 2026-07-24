@@ -242,7 +242,7 @@ async function main() {
     delete v15.staffingPlans;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(v15));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 18);
+    assert.equal(migrated.schemaVersion, 19);
     assert.equal(migrated.sequences.acceptanceCriterion, 0);
     assert.equal(migrated.sequences.verificationProof, 0);
     assert.deepEqual(migrated.acceptanceCriteria, {});
@@ -298,7 +298,7 @@ async function main() {
       persistedCriteria.acceptanceCriteria.map((criterion) => criterion.kind),
       ['happy-path', 'risk', 'regression', 'manual'],
     );
-    assert.equal(runtime.getSnapshot().schemaVersion, 18);
+    assert.equal(runtime.getSnapshot().schemaVersion, 19);
     assert.equal(Object.keys(runtime.getSnapshot().verificationProofs).length, 0);
     const repeatedCriteria = runtime.persistWorkOrderAcceptanceCriteria(persistenceRequest);
     assert.equal(repeatedCriteria.idempotent, true);
@@ -348,7 +348,7 @@ async function main() {
         ok: true,
         mode: MODE,
         seedStage,
-        schemaVersion: 18,
+        schemaVersion: 19,
         executionPlanId,
         workOrderId: builder.id,
         acceptanceCriteria: persistedCriteria.acceptanceCriteria.length,
@@ -444,7 +444,7 @@ async function main() {
         ok: true,
         mode: MODE,
         seedStage,
-        schemaVersion: 18,
+        schemaVersion: 19,
         executionPlanId,
         workOrderId: builder.id,
         acceptanceCriteria: persistedCriteria.acceptanceCriteria.length,
@@ -471,7 +471,7 @@ async function main() {
       companyRepoRoot: repoRoot,
     });
     const reloadedState = reloaded.getSnapshot();
-    assert.equal(reloadedState.schemaVersion, 18);
+    assert.equal(reloadedState.schemaVersion, 19);
     assert.equal(Object.keys(reloadedState.acceptanceCriteria).length, 4);
     assert.equal(Object.keys(reloadedState.verificationProofs).length, 6);
     assert.equal(
@@ -487,7 +487,7 @@ async function main() {
     console.log(JSON.stringify({
       ok: true,
       mode: MODE,
-      schemaVersion: 18,
+      schemaVersion: 19,
       migration: 'v15-to-v16-additive',
       acceptanceCriteria: 4,
       verificationProofs: 6,

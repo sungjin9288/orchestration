@@ -85,7 +85,7 @@ assert.match(
   /scripts\/smoke-ai-company-operator-stepped-workorder-scheduler-planning\.mjs/,
 );
 
-for (const decisionId of ['DEC-169', 'DEC-170', 'DEC-171']) {
+for (const decisionId of ['DEC-169', 'DEC-170', 'DEC-171', 'DEC-172']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -96,12 +96,16 @@ assert.match(
   decisionLog,
   /### DEC-171[\s\S]*Status: `Accepted`[\s\S]*No implementation authority is recorded[\s\S]*does not authorize schema, runtime, API, UI, durable attempt, WorkOrder, or dispatch mutation/,
 );
+assert.match(
+  decisionLog,
+  /### DEC-172[\s\S]*Status: `Accepted`[\s\S]*schema-v19 operator-stepped WorkOrder scheduler[\s\S]*one local role boundary per explicit start or step/,
+);
 
-assert.match(masterPlan, /operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`/);
-assert.match(runtimeContract, /Stage 3 operator-stepped scheduler remains planning-only/);
-assert.match(councilProtocol, /Approved bound sessions remain stopped before WorkOrder compilation/);
-assert.match(deliveryRoadmap, /Operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`/);
-assert.match(inventory, /AI Company operator-stepped WorkOrder scheduler planning \| pass/);
+assert.match(masterPlan, /`DEC-172` implements the Stage 3 operator-stepped WorkOrder scheduler/);
+assert.match(runtimeContract, /bounded implementation은 `DEC-172`/);
+assert.match(councilProtocol, /implementation은 `DEC-172`/);
+assert.match(deliveryRoadmap, /`DEC-172` implements the bounded schema-v19 path/);
+assert.match(inventory, /AI Company operator-stepped WorkOrder scheduler implementation \| pass/);
 assert.match(readme, /docs\/117_ai-company-operator-stepped-workorder-scheduler-plan\.md/);
 assert.match(
   readme,
@@ -119,31 +123,25 @@ assert.match(
 );
 
 assert.match(completionPlan, /### Stage 3: Operator-Stepped WorkOrder Scheduler/);
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
-assert.match(runtimeService, /if \(councilSession\.staffingEntryRef\) \{/);
-assert.match(
-  runtimeService,
-  /StaffingEntry-bound Council session \$\{councilSession\.id\} cannot compile WorkOrders/,
-);
-assert.match(
-  runtimeService,
-  /StaffingEntry-bound Council session \$\{councilSession\.id\} cannot persist WorkOrders/,
-);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 19/);
+assert.match(contracts, /workOrderAttempt: 0/);
+assert.match(contracts, /workOrderAttempts: \{\}/);
+assert.match(runtimeService, /function assertBoundStaffingSchedulerSourceCurrent/);
 assert.match(runtimeService, /function beginSequentialWorkOrderExecution\(input\)/);
-assert.match(runtimeService, /ready\[0\]\.role !== 'builder'/);
+assert.match(runtimeService, /function beginOperatorSteppedWorkOrderStep\(input\)/);
+assert.match(runtimeService, /selectOperatorSteppedWorkOrder/);
 assert.match(server, /continue-reviewed-delivery/);
-assert.match(server, /runtime\.beginReviewedDeliveryReviewer/);
-assert.match(server, /runtime\.beginReviewedDeliveryQa/);
-assert.doesNotMatch(contracts, /workOrderAttempt: 0/);
-assert.doesNotMatch(contracts, /workOrderAttempts: \{\}/);
-assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/work-order-attempts.js')), false);
+assert.match(server, /const executionPlanOperatorStepMatch = url\.pathname\.match/);
+assert.match(server, /runtime\.beginOperatorSteppedWorkOrderStep/);
+assert.match(server, /runtime\.getWorkOrderAttempt/);
+assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/work-order-attempts.js')), true);
 assert.equal(
   fs.existsSync(
     path.join(repoRoot, 'scripts/smoke-ai-company-operator-stepped-workorder-scheduler.mjs'),
   ),
-  false,
+  true,
 );
-assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-698.mjs')), false);
+assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-698.mjs')), true);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -151,16 +149,16 @@ process.stdout.write(
       ok: true,
       mode,
       decisions: {
-        implementation: 'blocked-complete-fielded-decision-required',
+        implementation: 'accepted-dec-172',
         planning: 'accepted-dec-170',
         handoff: 'documented-dec-171',
       },
       currentRuntime: {
-        schemaVersion: 18,
+        schemaVersion: 19,
         staffingEntryBoundCouncil: true,
-        boundWorkOrderCompilation: false,
-        workOrderAttempt: false,
-        operatorStep: false,
+        boundWorkOrderCompilation: true,
+        workOrderAttempt: true,
+        operatorStep: true,
       },
       plannedSlice: {
         schemaVersion: 19,
@@ -172,12 +170,12 @@ process.stdout.write(
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        schemaMigrationAllowed: false,
-        durableAttemptAllowed: false,
-        boundWorkOrderAllowed: false,
-        operatorStartAllowed: false,
-        operatorStepAllowed: false,
+        implementationAllowed: true,
+        schemaMigrationAllowed: true,
+        durableAttemptAllowed: true,
+        boundWorkOrderAllowed: true,
+        operatorStartAllowed: true,
+        operatorStepAllowed: true,
         parallelAllowed: false,
         retryOrReworkAllowed: false,
         providerWorkOrderAllowed: false,
@@ -187,7 +185,7 @@ process.stdout.write(
         runtimeAgentPushAllowed: false,
       },
       nextRequiredDecision:
-        'operator-decision-ai-company-operator-stepped-workorder-scheduler-implementation-001',
+        'operator-decision-ai-company-bounded-parallel-read-only-specialists-planning-001',
     },
     null,
     2,

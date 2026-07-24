@@ -407,6 +407,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 3 planning source-checks DEC-170 and DEC-171, the future schema-v19 WorkOrderAttempt lifecycle, exact bound source gate, deterministic dependency-ready selection, one-role start or step boundary, rollback, focused verification, and still-blocked implementation authority',
   },
   {
+    id: 'ai-company-operator-stepped-workorder-scheduler',
+    script: 'scripts/smoke-ai-company-operator-stepped-workorder-scheduler.mjs',
+    purpose: 'AI Company Stage 3 runtime proves schema-v18 to v19 migration, exact bound source and approval gates, active-before-coordinator WorkOrderAttempt evidence, deterministic one-role start and step commands, exact replay and inspection, failure blocking, and absent retry rework parallel provider background Git release memory policy bypass or connector authority',
+  },
+  {
     id: 'ai-company-staffing-entry-binding',
     script: 'scripts/smoke-ai-company-staffing-entry-binding.mjs',
     purpose: 'AI Company StaffingEntry runtime proves one-save schema-v17 to schema-v18 migration, exact accepted-plan and approval digests, one deterministic local Council attempt, no-write replay and rollback, alignment-only decisions, exact inspection, and blocked unbound start revision resume auto-chain WorkOrder provider source Git scheduling policy bypass and connector authority',

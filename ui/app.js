@@ -152,6 +152,7 @@ import {
   computeMissionMemoryContextTargetDigest,
   computeWorkOrderRecordDigest,
   getMissionMemoryContextPreviewSummary,
+  getMissionOperatorSteppedSchedulerSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
@@ -5963,6 +5964,11 @@ async function handleSelection(action, id) {
     return;
   }
 
+  if (action === 'operator-step-workorder') {
+    await submitOperatorWorkOrderStep(id);
+    return;
+  }
+
   if (action === 'request-revision-real-council-session') {
     await submitRealCouncilDecision(id, 'request-revision');
     return;
@@ -6976,7 +6982,56 @@ async function submitSequentialWorkOrderPlan(executionPlanId) {
     await hydrateSelectedDetails();
     state.surface = 'council';
     render();
-    elements.refreshStatus.textContent = `Builder WorkOrder가 ${payload.mutation.autoChain.stoppedAt}에서 멈췄습니다`;
+    elements.refreshStatus.textContent = payload.mutation.idempotent
+      ? `${payload.mutation.workOrderAttemptId}의 기존 start 결과를 확인했습니다`
+      : `Builder WorkOrder가 ${payload.mutation.autoChain.stoppedAt}에서 멈췄습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitOperatorWorkOrderStep(executionPlanId) {
+  const data = getDerived();
+  const executionPlan = data.snapshot.executionPlans?.[executionPlanId] || null;
+  const councilSession = executionPlan
+    ? data.councilSessionMap.get(executionPlan.councilSessionId) || null
+    : null;
+  const bundle = getMissionExecutionPlanBundle(data.snapshot, councilSession?.id);
+  const summary = getMissionOperatorSteppedSchedulerSummary(bundle);
+  if (!executionPlan || !bundle || !summary?.stepAllowed) {
+    throw new Error(summary?.blockedReason || '현재 실행할 dependency-ready WorkOrder가 없습니다.');
+  }
+  const checkpoint = summary.checkpoint;
+  const expectedWorkOrder = summary.expectedWorkOrder;
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${expectedWorkOrder.role} WorkOrder를 실행하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanId)}/step`,
+      {
+        action: summary.action,
+        expectedWorkOrderId: expectedWorkOrder.id,
+        sourceDigest: executionPlan.sourceDigest,
+        checkpointId: checkpoint.id,
+        checkpointDigest: checkpoint.checkpointDigest,
+        inputDigest: checkpoint.inputDigest,
+        authorityDigest: checkpoint.authorityDigest,
+        terminalGateApprovalId: summary.terminalGateApprovalId,
+        evaluatedAt: new Date().toISOString(),
+      },
+    );
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = payload.deliveryPackagePreview ? 'deliverables' : 'council';
+    render();
+    elements.refreshStatus.textContent = payload.mutation.idempotent
+      ? `${payload.mutation.workOrderAttemptId}의 기존 결과를 확인했습니다`
+      : `${expectedWorkOrder.role} step이 ${payload.mutation.stoppedAt || 'role boundary'}에서 멈췄습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -12854,8 +12909,10 @@ function renderMissionExecutionPlan(bundle, recovery) {
   if (!bundle) return '';
   const { executionPlan, workOrders, approval, terminalGateApproval } = bundle;
   const deliverySummary = getMissionReviewedDeliverySummary(bundle);
-  const startAllowed =
-    executionPlan.status === 'approved' && approval.status === 'approved';
+  const schedulerSummary = getMissionOperatorSteppedSchedulerSummary(bundle);
+  const startAllowed = schedulerSummary
+    ? schedulerSummary.startAllowed
+    : executionPlan.status === 'approved' && approval.status === 'approved';
   const workOrderRows = workOrders
     .map(
       (workOrder) => `
@@ -12900,6 +12957,42 @@ function renderMissionExecutionPlan(bundle, recovery) {
       `,
     )
     .join('');
+  const attemptRows = schedulerSummary
+    ? bundle.workOrderAttempts
+        .map(
+          (attempt) => `
+            <div class="workorder-attempt-row">
+              <div class="card-title-row card-title-row-tight">
+                <strong>${escapeHtml(attempt.role)}</strong>
+                ${createToken(attempt.action, 'accent')}
+                ${createToken(
+                  attempt.status,
+                  attempt.status === 'completed'
+                    ? 'success'
+                    : attempt.status === 'failed' || attempt.status === 'changes-requested'
+                      ? 'danger'
+                      : attempt.status === 'waiting-gate'
+                        ? 'warning'
+                        : 'neutral',
+                )}
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(attempt.id, 'neutral')}
+                ${createToken(`attempt:${attempt.attemptNumber}`, 'neutral')}
+                ${attempt.checkpointRef ? createToken(`checkpoint:${attempt.checkpointRef}`, 'neutral') : ''}
+                ${createToken(`runs:${attempt.runRefs.length}`, 'neutral')}
+                ${createToken(`artifacts:${attempt.artifactRefs.length}`, 'neutral')}
+              </div>
+              ${
+                attempt.stopReason
+                  ? `<p class="form-help">${escapeHtml(attempt.stopReason)}</p>`
+                  : ''
+              }
+            </div>
+          `,
+        )
+        .join('')
+    : '';
 
   return `
     <section class="mission-workorder-plan" aria-label="Durable ExecutionPlan">
@@ -12922,9 +13015,26 @@ function renderMissionExecutionPlan(bundle, recovery) {
         ${deliverySummary?.deliveryReady ? createToken('delivery:ready', 'success') : ''}
       </div>
       <div class="mission-workorder-list">${workOrderRows}</div>
+      ${
+        schedulerSummary
+          ? `
+            <section class="workorder-attempt-ledger" aria-label="WorkOrder attempt ledger">
+              <div class="card-title-row card-title-row-tight">
+                <strong>Operator Steps</strong>
+                ${createToken('one role per command', 'accent')}
+                ${createToken(`attempts:${bundle.workOrderAttempts.length}`, 'neutral')}
+              </div>
+              ${
+                attemptRows ||
+                '<p class="form-help">아직 실행된 operator step이 없습니다.</p>'
+              }
+            </section>
+          `
+          : ''
+      }
       ${renderWorkOrderVerificationPlanPreview(state.workOrderVerificationPlanPreview, bundle)}
       ${renderDurableWorkOrderVerification(bundle, state.workOrderVerificationStatus)}
-      ${renderWorkflowCheckpointRecovery(recovery, executionPlan)}
+      ${schedulerSummary ? '' : renderWorkflowCheckpointRecovery(recovery, executionPlan)}
       <div class="relation-button-row mission-workorder-actions">
         <button
           class="primary-button"
@@ -12933,19 +13043,46 @@ function renderMissionExecutionPlan(bundle, recovery) {
           data-id="${escapeHtml(executionPlan.id)}"
           ${state.loading || state.mutating || !startAllowed ? 'disabled' : ''}
         >
-          Builder 순차 시작
+          ${schedulerSummary ? 'Builder 시작' : 'Builder 순차 시작'}
         </button>
-        <button
-          class="primary-button"
-          type="button"
-          data-action="continue-reviewed-delivery"
-          data-id="${escapeHtml(executionPlan.id)}"
-          ${state.loading || state.mutating || !deliverySummary?.canContinue ? 'disabled' : ''}
-        >
-          검토·QA 이어서 실행
-        </button>
+        ${
+          schedulerSummary
+            ? `
+              <button
+                class="primary-button"
+                type="button"
+                data-action="operator-step-workorder"
+                data-id="${escapeHtml(executionPlan.id)}"
+                ${state.loading || state.mutating || !schedulerSummary.stepAllowed ? 'disabled' : ''}
+              >
+                ${
+                  schedulerSummary.action === 'continue-builder'
+                    ? 'Builder Step'
+                    : schedulerSummary.action === 'run-reviewer'
+                      ? 'Reviewer Step'
+                      : schedulerSummary.action === 'run-qa'
+                        ? 'QA Step'
+                        : '다음 Step 없음'
+                }
+              </button>
+            `
+            : `
+              <button
+                class="primary-button"
+                type="button"
+                data-action="continue-reviewed-delivery"
+                data-id="${escapeHtml(executionPlan.id)}"
+                ${state.loading || state.mutating || !deliverySummary?.canContinue ? 'disabled' : ''}
+              >
+                검토·QA 이어서 실행
+              </button>
+            `
+        }
         <p class="form-help">${escapeHtml(
-          executionPlan.status === 'pending-approval'
+          schedulerSummary?.blockedReason ||
+          (schedulerSummary?.stepAllowed
+            ? `${schedulerSummary.expectedWorkOrder.role} WorkOrder ${schedulerSummary.expectedWorkOrder.id}만 이번 명령에서 실행합니다.`
+            : executionPlan.status === 'pending-approval'
             ? 'Decision Inbox에서 digest-bound 계획 승인이 필요합니다.'
             : executionPlan.status === 'approved'
               ? '별도 시작 명령은 Builder preflight 뒤 live-mutation 승인에서 멈춥니다.'
@@ -12955,7 +13092,7 @@ function renderMissionExecutionPlan(bundle, recovery) {
                   ? `Builder live-mutation 승인 ${executionPlan.terminalGateApprovalId}에서 대기 중입니다.`
                   : deliverySummary?.deliveryReady
                     ? 'Reviewer와 node syntax QA가 통과했고 response-only 패킷이 준비됐습니다.'
-                : `현재 계획 상태: ${executionPlan.status}`,
+                : `현재 계획 상태: ${executionPlan.status}`),
         )}</p>
       </div>
     </section>

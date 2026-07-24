@@ -137,7 +137,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-staffing-entry-binding-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 18/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 19/);
 assert.match(contracts, /staffingEntries: \{\}/);
 assert.match(staffingEntries, /function createStaffingEntry/);
 assert.match(staffingEntries, /function assertStaffingEntryRecord/);
@@ -187,14 +187,16 @@ process.stdout.write(
         planning: 'accepted-dec-167',
         handoff: 'documented-dec-168',
         implementation: 'accepted-dec-169',
+        operatorSteppedScheduler: 'accepted-dec-172',
       },
       currentRuntime: {
-        schemaVersion: 18,
+        schemaVersion: 19,
         durableStaffingPlan: true,
         staffingEntry: true,
         acceptedPlanBoundToCouncil: true,
         soloRuntime: false,
         boundCouncilAutoChainBlocked: true,
+        operatorSteppedScheduler: true,
       },
       implementedSlice: {
         schemaVersion: 18,
@@ -212,8 +214,9 @@ process.stdout.write(
         durableEntryAllowed: true,
         councilBindingAllowed: true,
         soloExecutionAllowed: false,
-        schedulingAllowed: false,
-        workOrderAllowed: false,
+        operatorSteppedSchedulingAllowed: true,
+        generalSchedulingAllowed: false,
+        boundWorkOrderAllowed: true,
         providerExpansionAllowed: false,
         sourceMutationExpansionAllowed: false,
         runtimeAgentCommitAllowed: false,
