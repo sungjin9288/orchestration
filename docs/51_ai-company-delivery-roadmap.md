@@ -555,10 +555,15 @@ verification planning, optimistic state transactions, AcceptanceCriterion and Ve
 records, one-step continuation preview, optional exact fetch, and measurement-only context telemetry.
 
 The durable StaffingPlan slice planned by `DEC-163`, handed off by `DEC-164`, clarified by `DEC-165`,
-and implemented by `DEC-166` now stops after exact inspection. The immediate next runtime gate is
-accepted StaffingPlan binding to one Council or solo entry. Automatic staffing, general scheduling,
-parallel execution, retry/rework, Ops commands, context application, provider-backed
-WorkOrders, source/Git/release, policy, bypass, and connectors remain separate later decisions.
+and implemented by `DEC-166` now stops after exact inspection. Council-first binding planning is
+accepted as `DEC-167`, and `DEC-168` records the complete fielded implementation handoff in
+`docs/116_ai-company-staffing-entry-binding-implementation-decision-handoff.md`. The proposed next
+runtime gate is one schema-v18 immutable StaffingEntry from one exact current accepted council-mode
+plan, a separate entry approval, and one deterministic local-stub Council first attempt stopping at
+alignment-only approve or stop. Solo remains deferred because no executable solo contract exists.
+Automatic staffing, general scheduling, parallel execution, retry/rework, Ops commands, context
+application, provider-backed WorkOrders, source/Git/release, policy, bypass, and connectors remain
+separate later decisions.
 
 Implemented acceptance target:
 

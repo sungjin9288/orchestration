@@ -419,15 +419,19 @@ Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequenc
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한
 blueprint의 exact four required ids를 선택하지만 accepted plan을 Council에 연결하지 않는다.
-Conductor synthesis와 three position roles의 runtime mapping은 later binding slice가 소유한다.
-The first slice previews and persists one exact immutable plan only. Current Council entry, provider
-behavior, staffingSnapshot, alignment, and downstream gates remain unchanged.
+Council-first entry binding planning과 complete fielded handoff는 `DEC-167`, `DEC-168`로
+기록됐다. The planned schema-v18 slice preserves the accepted plan and existing staffingSnapshot,
+records one separate immutable StaffingEntry, runs exactly one current deterministic local-stub
+attempt, and stops at alignment-only approve or stop. Bound revision, resume, auto-chain, WorkOrder,
+provider, and solo behavior remain blocked. Current runtime behavior remains unchanged until the
+complete handoff is approved.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
 node scripts/smoke-ai-company-multi-agent-completion-planning.mjs
+node scripts/smoke-ai-company-staffing-entry-binding-planning.mjs
 node scripts/smoke-ai-company-real-council-planning.mjs
 node scripts/smoke-ai-company-real-council.mjs
 node scripts/smoke-ui-slice-651.mjs

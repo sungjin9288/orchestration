@@ -93,6 +93,11 @@ CompanyBlueprint, mode, selected agents, budget, and source digests still match.
 
 Binding opens only the selected entrypoint. It does not create a general scheduler.
 
+The first Stage 2 plan is Council-first because no solo runtime contract exists. `DEC-167` accepts
+`docs/115_ai-company-staffing-entry-binding-plan.md` as planning-only authority, and `DEC-168`
+records its complete fielded schema-v18 implementation handoff. Runtime implementation remains
+blocked pending that exact operator decision.
+
 ### Stage 3: Operator-Stepped WorkOrder Scheduler
 
 Replace the fixed active-role assumption with deterministic dependency-ready selection and durable
@@ -372,5 +377,7 @@ fit.
 - The implementation-readiness contract clarification is recorded as `DEC-165`.
 - The exact implementation is recorded as `DEC-166` and covers preview, acceptance, schema-v17
   persistence, and inspection only.
-- Council/solo entry binding and every later completion stage remain blocked pending their own
-  complete fielded decisions.
+- Council-first StaffingEntry binding planning is recorded as `DEC-167`; its complete fielded
+  implementation handoff is recorded as `DEC-168`.
+- StaffingEntry implementation, Council binding, solo entry/execution, and every later completion
+  stage remain blocked pending their own complete fielded decisions.

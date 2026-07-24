@@ -114,6 +114,10 @@ Planning source files:
 - `docs/110_llm-native-visual-system-convergence-plan.md`
 - `docs/111_llm-native-first-viewport-corrective-redesign-plan.md`
 - `docs/112_agent-operations-desk-visual-redesign-plan.md`
+- `docs/113_ai-company-multi-agent-completion-plan.md`
+- `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
+- `docs/115_ai-company-staffing-entry-binding-plan.md`
+- `docs/116_ai-company-staffing-entry-binding-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -139,9 +143,15 @@ the exact active-project, fresh blueprint and role-source digest, existing role/
 same-spec recomputation, separate acceptance, timestamp, blocked-authority, and migration contracts.
 `DEC-166` consumes that handoff and implements one source-current response-only preview, separate
 exact acceptance, atomic schema-v16-to-v17 migration plus immutable StaffingPlan append, exact-id
-inspection, and no downstream start action. Accepted-plan Council/solo binding, operator-stepped
-scheduling, bounded read-only parallel specialists, Reviewer rework, Ops recovery, reviewed Mission
-context attachment, provider expansion, and dogfood remain separate verified stages.
+inspection, and no downstream start action. `DEC-167` accepts the Council-first schema-v18
+StaffingEntry binding plan in `docs/115_ai-company-staffing-entry-binding-plan.md`, and `DEC-168`
+records the complete fielded implementation handoff in
+`docs/116_ai-company-staffing-entry-binding-implementation-decision-handoff.md`. The planned slice
+keeps StaffingPlan immutable, requires a separate exact entry approval, binds only a council-mode
+plan to one deterministic local-stub first attempt, and stops at alignment-only approve or stop.
+Implementation, solo execution, operator-stepped scheduling, bounded read-only parallel specialists,
+Reviewer rework, Ops recovery, reviewed Mission context attachment, provider expansion, and dogfood
+remain separate verified stages.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -346,8 +356,10 @@ path records isolated Strategist, Architect, and Decomposer positions, determini
 dissent evidence, Conductor synthesis, additive revision attempts, and explicit
 `approve/request-revision/stop` decisions. Existing deterministic draft/approve routes remain
 available as compatibility behavior. The later DEC-166 StaffingPlan record remains unbound to this
-Council entry path. Provider-backed WorkOrders, memory persistence expansion, autonomous scheduling,
-source/profile mutation, approval bypass, and runtime-agent commit/push/release remain blocked.
+Council entry path. DEC-167 and DEC-168 now define but do not implement one immutable Council-first
+StaffingEntry binding and alignment-only stop boundary. Provider-backed WorkOrders, memory
+persistence expansion, autonomous scheduling, source/profile mutation, approval bypass, and
+runtime-agent commit/push/release remain blocked.
 
 Phase 3 Council live-provider implementation is accepted by `DEC-085` from the planning and complete
 fielded gate documented by `DEC-083` and `DEC-084` in
@@ -628,8 +640,8 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The DEC-161 browser baseline plus DEC-162 through
-DEC-166 planning and Durable StaffingPlan evidence passes aggregate required `1/1`, informational
-`271/271`, total `272/272`, and UI QA required `74/74`. Focused browser checks at 1280x720 and
+DEC-168 StaffingPlan implementation and Council-binding planning evidence passes aggregate required
+`1/1`, informational `272/272`, total `273/273`, and UI QA required `74/74`. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
 The earlier DEC-158 matrix remains the evidence for the default-closed Task
@@ -2287,7 +2299,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 951 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 952 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 696 UI smoke files
 ```
@@ -2793,7 +2805,7 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required `74/74` pass. Snapshot reachability remains informational
   and was skipped because the optional port-4315 UI server was not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `271/271`, total `272/272`
+- `node scripts/verification_status.mjs`: required `1/1`, informational `272/272`, total `273/273`
   pass. The aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2862,8 +2874,9 @@ Playwright CLI:
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161, and
   the first multi-agent completion runtime slice is evidence-closed through DEC-166.
+  DEC-167 and DEC-168 are planning and handoff evidence only; StaffingEntry is not implemented.
   This is not a claim of hosted production readiness. Focused source and compatibility checks, the
-  local browser matrix, UI QA `74/74`, and aggregate `272/272` pass. This remains local
+  local browser matrix, UI QA `74/74`, and aggregate `273/273` pass. This remains local
   synthetic/browser evidence rather than hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
@@ -3079,9 +3092,10 @@ Playwright CLI:
   `DEC-164` records the durable StaffingPlan implementation handoff, and `DEC-165` clarifies its
   digest, current vocabulary, acceptance, immutable evidence, timestamp, and migration contracts.
   `DEC-166` implements the exact schema-v17 preview, immutable accepted record, and inspection path.
-  Council/solo binding, scheduler, parallel execution, retry/rework, memory application,
-  provider-backed WorkOrder, source/Git/release, policy, bypass, and connector authority remain
-  blocked.
+  `DEC-167` plans a Council-first schema-v18 StaffingEntry, and `DEC-168` records its complete fielded
+  implementation handoff without authorizing implementation. Council binding, solo execution,
+  scheduler, parallel execution, retry/rework, memory application, provider-backed WorkOrder,
+  source/Git/release, policy, bypass, and connector authority remain blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

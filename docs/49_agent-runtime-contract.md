@@ -429,8 +429,12 @@ schema-v6 foundation을 만들었고, current persisted runtime은 schema v17이
 Direct runtime caller가 blueprint path를 생략하면 기존 snapshot shape를
 유지하고, configured local server만 additive read-only `companyRuntime` envelope를 노출한다.
 One exact immutable StaffingPlan preview/accept/inspection path는 `DEC-166`으로 구현됐다.
-Accepted-plan Council/solo binding, general scheduling, parallel specialists, and profile mutation은
-별도 fielded decision 전까지 구현하지 않는다.
+Council-first binding planning과 complete fielded handoff는 `DEC-167`, `DEC-168`로 문서화됐다.
+The planned schema-v18 `StaffingEntry` keeps StaffingPlan immutable, requires a separate exact entry
+approval, binds only `mode=council` to one existing deterministic local-stub first attempt, and stops
+at alignment-only approve or stop. Solo entry/execution, StaffingEntry implementation, general
+scheduling, parallel specialists, and profile mutation은 별도 complete fielded decision 전까지
+구현하지 않는다.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

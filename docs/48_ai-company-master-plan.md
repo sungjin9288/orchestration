@@ -113,10 +113,13 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`
+- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`, `DEC-167`, `DEC-168`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
+- Council-first entry binding plan and handoff:
+  `docs/115_ai-company-staffing-entry-binding-plan.md`,
+  `docs/116_ai-company-staffing-entry-binding-implementation-decision-handoff.md`
 - Readiness clarification: exact active-project binding, fresh normalized-blueprint plus nine
   role-source digest, existing role/provider vocabulary, exact staffingSpec resubmission, separate
   acceptance evidence, one termination policy, source and blocked-action evidence, timestamp policy,
@@ -124,7 +127,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Implemented: schema-v17 migration, fresh blueprint and nine role-source digest, exact staffingSpec
   preview, separate acceptance, one immutable accepted record, exact GET inspection, bounded API and
   Council UI, focused runtime/API/UI verification
-- Still blocked: accepted-plan Council/solo binding, scheduling, parallel execution, retry/rework,
+- Planned next gate: one schema-v18 immutable StaffingEntry from an exact current accepted
+  council-mode plan, separate entry approval, and one deterministic local-stub Council first attempt;
+  solo remains deferred because no executable solo contract exists
+- Still blocked: StaffingEntry implementation and Council binding, solo entry/execution, scheduling,
+  parallel execution, retry/rework,
   Ops commands, memory application, provider-backed
   WorkOrders, source mutation expansion, runtime-agent commit/push/release, policy mutation, bypass,
   and connectors

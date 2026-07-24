@@ -1,5 +1,8 @@
 # lessons
 
+- Do not advance a Mission lifecycle for an inert staffing mode when no executable role contract exists.
+  Preserve the accepted plan as truthful evidence, implement the path that has real request/output and
+  failure semantics first, and require a separate decision before adding a synthetic ready state.
 - Source-backed policy cached at runtime startup is identity evidence, not freshness evidence. Reload
   and strictly validate the blueprint plus every role source for both preview and acceptance, then
   bind their raw-byte digests so a source edit invalidates an unaccepted plan without changing state.

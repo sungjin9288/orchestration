@@ -397,6 +397,11 @@ const informationalChecks = [
     purpose: 'AI Company multi-agent completion planning source-checks DEC-162 through DEC-165, the staged completion sequence, clarified schema-v17 StaffingPlan contract, complete fielded handoff, rollback, focused verification, and every still-blocked runtime authority',
   },
   {
+    id: 'ai-company-staffing-entry-binding-planning',
+    script: 'scripts/smoke-ai-company-staffing-entry-binding-planning.mjs',
+    purpose: 'AI Company Council-first StaffingEntry planning source-checks DEC-167 and DEC-168, the proposed schema-v18 immutable accepted-plan binding, separate entry approval and digests, atomic pre-save local Council attempt, alignment-only downstream guards, solo deferral, rollback, focused verification, and every still-blocked implementation authority',
+  },
+  {
     id: 'ai-company-durable-staffing-plan',
     script: 'scripts/smoke-ai-company-durable-staffing-plan.mjs',
     purpose: 'AI Company durable StaffingPlan runtime proves one-save schema-v16 to schema-v17 migration and immutable accepted record append from exact active Mission project fresh blueprint role-source staffingSpec preview and separate acceptance evidence, plus idempotent exact inspection, strict no-write failures, and blocked Council WorkOrder provider source Git scheduling policy bypass and connector authority',
