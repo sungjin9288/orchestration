@@ -35,6 +35,7 @@ const verification = read('scripts/verification_status.mjs');
 const runtimeContracts = read('src/runtime/contracts.js');
 const companyBlueprintLoader = read('src/runtime/company-blueprint.js');
 const runtimeService = read('src/runtime/runtime-service.js');
+const staffingPlans = read('src/runtime/staffing-plans.js');
 const companyConfig = read('ui/company-config.js');
 const masterPlanText = compact(masterPlan);
 const runtimeContractText = compact(runtimeContract);
@@ -112,7 +113,7 @@ assert.match(runtimeContractText, /company\/blueprint\.json/);
 assert.match(runtimeContractText, /solo \| council \| parallel-specialists/);
 assert.match(runtimeContractText, /canCommit.*canPush/);
 assert.match(runtimeContractText, /Raw chain-of-thought를 저장하거나 전달하지 않는다/);
-assert.match(runtimeContractText, /current schema v16에서도 유지된다/);
+assert.match(runtimeContractText, /current schema v17에서도 유지된다/);
 assert.match(runtimeContractText, /company policy는 여전히 `state\.json`에 저장되지 않는다/);
 
 assert.match(councilProtocol, /^# Council Operating Protocol$/m);
@@ -289,11 +290,13 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 16/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 17/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
 assert.match(runtimeService, /companyRuntime/);
+assert.match(staffingPlans, /function previewMissionStaffingPlan/);
+assert.match(staffingPlans, /function createStaffingPlan/);
 assert.match(runtimeService, /function buildCouncilSessionRecord\(state, mission, project, now\)/);
 assert.match(runtimeService, /participants: \[[\s\S]*role: 'Conductor'[\s\S]*role: 'Strategist'[\s\S]*role: 'Architect'[\s\S]*role: 'Decomposer'/);
 assert.match(companyConfig, /COMPANY_MEMBER_STORAGE_KEY = 'orchestration\.company-members\.v1'/);
@@ -375,9 +378,10 @@ process.stdout.write(
         'DEC-163',
         'DEC-164',
         'DEC-165',
+        'DEC-166',
       ],
       currentRuntime: {
-        schemaVersion: 16,
+        schemaVersion: 17,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -394,14 +398,14 @@ process.stdout.write(
         durableMemoryItem: 'schema-v14-exact-stored-record',
         memoryRecallPreview: 'schema-v14-response-only-exact-id-recall-ready',
         durableMemoryRecall: 'schema-v15-exact-recorded-audit',
-        missionMemoryContextPreview: 'schema-v16-response-only-exact-recorded-recall-and-draft-mission',
-        workOrderVerificationPlanPreview: 'schema-v16-response-only-exact-workorder-evidence',
-        stateTransactions: 'schema-v16-optimistic-commit-lock-and-stale-revision-guard',
-        acceptanceEvidence: 'schema-v16-immutable-criteria-and-append-only-proofs',
-        boundedContinuation: 'schema-v16-response-only-max-steps-one',
+        missionMemoryContextPreview: 'schema-v17-preserving-response-only-exact-recorded-recall-and-draft-mission',
+        workOrderVerificationPlanPreview: 'schema-v17-preserving-response-only-exact-workorder-evidence',
+        stateTransactions: 'schema-v17-optimistic-commit-lock-and-stale-revision-guard',
+        acceptanceEvidence: 'schema-v17-preserving-immutable-criteria-and-append-only-proofs',
+        boundedContinuation: 'schema-v17-preserving-response-only-max-steps-one',
         exactResearchFetch: 'disabled-by-default-operator-installed-sidecar',
         contextBudgetTelemetry: 'response-only-measurement-without-payload-mutation',
-        staffingPlan: 'planning-and-fielded-handoff-only',
+        staffingPlan: 'schema-v17-preview-accept-persist-exact-inspection',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -444,8 +448,8 @@ process.stdout.write(
         optionalExactFetchAllowed: true,
         contextBudgetTelemetryAllowed: true,
         staffingPlanPlanningAllowed: true,
-        staffingPlanImplementationAllowed: false,
-        staffingPlanPersistenceAllowed: false,
+        staffingPlanImplementationAllowed: true,
+        staffingPlanPersistenceAllowed: true,
         staffingPlanCouncilBindingAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
@@ -455,7 +459,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Complete fielded durable StaffingPlan implementation decision required',
+      nextGate: 'Complete fielded accepted StaffingPlan Council or solo binding decision required',
     },
     null,
     2,

@@ -397,6 +397,11 @@ const informationalChecks = [
     purpose: 'AI Company multi-agent completion planning source-checks DEC-162 through DEC-165, the staged completion sequence, clarified schema-v17 StaffingPlan contract, complete fielded handoff, rollback, focused verification, and every still-blocked runtime authority',
   },
   {
+    id: 'ai-company-durable-staffing-plan',
+    script: 'scripts/smoke-ai-company-durable-staffing-plan.mjs',
+    purpose: 'AI Company durable StaffingPlan runtime proves one-save schema-v16 to schema-v17 migration and immutable accepted record append from exact active Mission project fresh blueprint role-source staffingSpec preview and separate acceptance evidence, plus idempotent exact inspection, strict no-write failures, and blocked Council WorkOrder provider source Git scheduling policy bypass and connector authority',
+  },
+  {
     id: 'ai-company-runtime-blueprint-planning',
     script: 'scripts/smoke-ai-company-runtime-blueprint-planning.mjs',
     purpose: 'AI Company Phase 1 planning remains consumed provenance for DEC-079 and source-checks the implemented strict repo-backed blueprint, optional runtime injection, additive read-only snapshot, schema v7 compatibility after additive migration, rollback, and still-blocked downstream authority',

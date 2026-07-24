@@ -115,7 +115,7 @@ async function main() {
       stateBefore.deliveryPackageAcceptances[request.deliveryPackageAcceptanceId],
     );
     const sourceBefore = fs.readFileSync(sourcePath, 'utf8');
-    assert.equal(stateBefore.schemaVersion, 16);
+    assert.equal(stateBefore.schemaVersion, 17);
     assert.equal(missionBefore.status, 'executing');
     assert.equal(taskBefore.lifecycleState, 'Review');
     assert.equal(taskBefore.review.status, 'passed');
@@ -136,11 +136,13 @@ async function main() {
     const schema10 = structuredClone(stateBefore);
     schema10.schemaVersion = 10;
     delete schema10.sequences.missionCloseOut;
+    delete schema10.sequences.staffingPlan;
     delete schema10.missionCloseOuts;
+    delete schema10.staffingPlans;
     const migrationRoot = path.join(tempRoot, 'migration-v10');
     writeState(migrationRoot, schema10);
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 16);
+    assert.equal(migrated.schemaVersion, 17);
     assert.equal(migrated.sequences.missionCloseOut, 0);
     assert.deepEqual(migrated.missionCloseOuts, {});
     assert.deepEqual(migrated.missions[request.missionId], missionBefore);
@@ -365,7 +367,7 @@ async function main() {
       /missing MissionCloseOut fields/,
     );
     const futureRoot = path.join(tempRoot, 'future');
-    writeState(futureRoot, { ...stateAfter, schemaVersion: 17 });
+    writeState(futureRoot, { ...stateAfter, schemaVersion: 18 });
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadState(),
       /Unsupported runtime state/,

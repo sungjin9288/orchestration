@@ -98,18 +98,20 @@ async function main() {
     const stateBefore = runtime.getSnapshot();
     const packageBefore = structuredClone(stateBefore.deliveryPackages[deliveryPackage.id]);
     const sourceBefore = fs.readFileSync(sourcePath, 'utf8');
-    assert.equal(stateBefore.schemaVersion, 16);
+    assert.equal(stateBefore.schemaVersion, 17);
     assert.equal(stateBefore.sequences.deliveryPackageAcceptance, 0);
     assert.deepEqual(stateBefore.deliveryPackageAcceptances, {});
 
     const schema9 = structuredClone(stateBefore);
     schema9.schemaVersion = 9;
     delete schema9.sequences.deliveryPackageAcceptance;
+    delete schema9.sequences.staffingPlan;
     delete schema9.deliveryPackageAcceptances;
+    delete schema9.staffingPlans;
     const migrationRoot = path.join(tempRoot, 'migration-v9');
     writeState(migrationRoot, schema9);
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 16);
+    assert.equal(migrated.schemaVersion, 17);
     assert.equal(migrated.sequences.deliveryPackageAcceptance, 0);
     assert.deepEqual(migrated.deliveryPackageAcceptances, {});
     assert.equal(migrated.sequences.missionCloseOut, 0);
@@ -251,7 +253,7 @@ async function main() {
       /missing DeliveryPackageAcceptance fields/,
     );
     const futureRoot = path.join(tempRoot, 'future');
-    writeState(futureRoot, { ...stateAfter, schemaVersion: 17 });
+    writeState(futureRoot, { ...stateAfter, schemaVersion: 18 });
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadState(),
       /Unsupported runtime state/,

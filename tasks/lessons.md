@@ -1,5 +1,11 @@
 # lessons
 
+- Source-backed policy cached at runtime startup is identity evidence, not freshness evidence. Reload
+  and strictly validate the blueprint plus every role source for both preview and acceptance, then
+  bind their raw-byte digests so a source edit invalidates an unaccepted plan without changing state.
+- A new durable record can preserve a no-write preview and still migrate atomically: normalize the
+  last supported schema in memory, validate the complete recomputed request and separate acceptance,
+  then perform exactly one save containing both the additive schema migration and immutable append.
 - A visual redesign is safest when it converges the active shell instead of replacing product
   semantics. Bind the change to semantic tokens, preserve every route and action, then compare the
   same Mission and Advanced Ops surfaces at desktop and mobile. When a narrow detail pane overflows,

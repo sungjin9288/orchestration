@@ -32,6 +32,7 @@ const blueprint = JSON.parse(read('company/blueprint.json'));
 const councilSessions = read('src/runtime/council-sessions.js');
 const compiler = read('src/runtime/mission-workorder-compiler.js');
 const continuation = read('src/runtime/execution-continuation-preview.js');
+const staffingPlans = read('src/runtime/staffing-plans.js');
 
 assert.match(plan, /^# AI Company Multi-Agent Completion Plan$/m);
 assert.match(plan, /operator-decision-ai-company-multi-agent-completion-planning-001/);
@@ -60,6 +61,7 @@ assert.match(plan, /stop before Council or execution/);
 assert.match(plan, /planning-only `DEC-163`/);
 assert.match(plan, /handoff is recorded as `DEC-164`/);
 assert.match(plan, /clarification is recorded as `DEC-165`/);
+assert.match(plan, /implementation is recorded as `DEC-166`/);
 
 assert.match(
   handoff,
@@ -85,14 +87,14 @@ assert.match(handoff, /company\/roles\/conductor\.md/);
 assert.match(handoff, /company\/roles\/ops\.md/);
 assert.doesNotMatch(handoff, /providerMode=local-stub-only/);
 assert.match(handoff, /delegated self-approval for schema migration or durable record creation/);
-assert.match(handoff, /Runtime and schema implementation remain blocked/);
+assert.match(handoff, /implementation is accepted as `DEC-166`/);
 
-for (const decisionId of ['DEC-162', 'DEC-163', 'DEC-164', 'DEC-165']) {
+for (const decisionId of ['DEC-162', 'DEC-163', 'DEC-164', 'DEC-165', 'DEC-166']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /`DEC-163`, `DEC-164`, `DEC-165`/);
+assert.match(masterPlan, /`DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -100,13 +102,13 @@ assert.match(councilProtocol, /clarification은 `DEC-165`/);
 assert.match(deliveryRoadmap, /## VNext Multi-Agent Completion Sequence/);
 assert.match(deliveryRoadmap, /readiness clarification은 `DEC-165`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
-assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`/);
+assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
 assert.match(
   readme,
   /docs\/114_ai-company-durable-staffing-plan-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /Durable StaffingPlan\s+runtime and schema implementation remain blocked/);
+assert.match(readme, /Durable StaffingPlan.*schema-v17.*implemented/s);
 assert.match(taskLedger, /ai-company-multi-agent-completion-planning-post-m7-2006/);
 assert.match(
   taskLedger,
@@ -125,8 +127,9 @@ assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-multi-agent-completion-planning\.mjs'/,
 );
+assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 16/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 17/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -136,8 +139,10 @@ assert.match(councilSessions, /staffingSnapshot:/);
 assert.match(compiler, /const REQUIRED_WORK_ORDER_ROLES = \['builder', 'reviewer', 'qa'\]/);
 assert.match(continuation, /maxSteps must be exactly 1/);
 assert.match(continuation, /backgroundSchedulingAllowed: false/);
-assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/staffing-plans.js')), false);
-assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-696.mjs')), false);
+assert.match(staffingPlans, /function previewMissionStaffingPlan/);
+assert.match(staffingPlans, /function createStaffingPlan/);
+assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/staffing-plans.js')), true);
+assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-696.mjs')), true);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -149,12 +154,12 @@ process.stdout.write(
         planning: 'accepted-dec-163',
         handoff: 'documented-dec-164',
         clarification: 'accepted-dec-165',
-        implementation: 'complete-fielded-decision-required',
+        implementation: 'accepted-dec-166',
       },
       currentRuntime: {
-        schemaVersion: 16,
+        schemaVersion: 17,
         councilStaffingSnapshot: true,
-        durableStaffingPlan: false,
+        durableStaffingPlan: true,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
@@ -168,9 +173,9 @@ process.stdout.write(
       },
       authority: {
         documentationAllowed: true,
-        implementationAllowed: false,
-        schemaMigrationAllowed: false,
-        durableRecordAllowed: false,
+        implementationAllowed: true,
+        schemaMigrationAllowed: true,
+        durableRecordAllowed: true,
         councilBindingAllowed: false,
         schedulingAllowed: false,
         parallelExecutionAllowed: false,

@@ -80,7 +80,7 @@ async function main() {
   );
   const commandCriterion = criteria.find((criterion) => criterion.proofMode === 'command');
   const reviewCriteria = criteria.filter((criterion) => criterion.proofMode !== 'command');
-  assert.equal(sourceState.schemaVersion, 16);
+  assert.equal(sourceState.schemaVersion, 17);
   assert.equal(criteria.length, 4);
   assert.equal(Object.keys(sourceState.verificationProofs).length, 0);
 
@@ -215,7 +215,7 @@ async function main() {
     assert.equal(finalStatus.response.status, 200);
     assert.equal(finalStatus.payload.verificationStatus.ready, true);
     const finalState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(finalState.schemaVersion, 16);
+    assert.equal(finalState.schemaVersion, 17);
     assert.equal(Object.keys(finalState.verificationProofs).length, 4);
     assert.equal(finalState.missions[executionPlan.missionId].status, 'executing');
 

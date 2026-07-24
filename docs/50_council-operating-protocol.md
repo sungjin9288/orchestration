@@ -417,7 +417,7 @@ position prompt, synthesis, Mission, WorkOrder, policy를 변경하거나 memory
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
-clarification은 `DEC-165`로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한
+clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한
 blueprint의 exact four required ids를 선택하지만 accepted plan을 Council에 연결하지 않는다.
 Conductor synthesis와 three position roles의 runtime mapping은 later binding slice가 소유한다.
 The first slice previews and persists one exact immutable plan only. Current Council entry, provider

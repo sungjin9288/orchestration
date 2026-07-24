@@ -323,6 +323,12 @@ const smokeChecks = [
       'Reference-led coded project rail, active Mission masthead, grouped agent thread, command dock, bounded context tool, compact mobile current state, reduced motion, and unchanged runtime and action authority',
   },
   {
+    id: 'ai-company-durable-staffing-plan-ui-api',
+    script: 'scripts/smoke-ui-slice-696.mjs',
+    purpose:
+      'Durable StaffingPlan UI and API preserve bounded JSON-only preview, exact separate acceptance, immutable exact inspection, browser-memory invalidation, safe failures, responsive Council staffing gate rendering, and absent downstream start or execution controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

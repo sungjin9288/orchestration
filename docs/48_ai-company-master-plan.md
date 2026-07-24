@@ -61,17 +61,19 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
   runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
   envelope로 노출된다.
-- Persisted runtime은 schema v16이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
+- Persisted runtime은 schema v17이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
   WorkflowCheckpoint, DeliveryPackage, acceptance, MissionCloseOut, LearningCandidate, MemoryItem,
-  MemoryRecall, AcceptanceCriterion, VerificationProof evidence를 보존한다.
+  MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan evidence를 보존한다.
 - One exact MissionMemoryContextPreview, WorkOrderVerificationPlanPreview, and bounded one-step
   continuation preview는 response/browser memory에서만 동작한다.
 - Provider 기본값은 local stub이다. OpenAI Responses는 현재 Council 역할에만 명시적 opt-in으로
   열리며 WorkOrder provider execution으로 확장되지 않는다.
 - Mission memory는 exact item과 recall audit까지 저장할 수 있지만 Mission, WorkOrder, prompt,
   policy에 적용하거나 자동 검색·추천하지 않는다.
-- Standalone durable StaffingPlan, general scheduler, parallel specialists, Reviewer rework, Ops
-  commands, and Mission context application은 아직 구현되지 않았다.
+- Durable StaffingPlan은 one active draft Mission에서 response-only preview, separate exact
+  acceptance, immutable persistence, exact-id inspection까지만 구현됐다. Accepted-plan Council/solo
+  binding, general scheduler, parallel specialists, Reviewer rework, Ops commands, and Mission
+  context application은 아직 구현되지 않았다.
 
 ## Approved Real Council Planning Authority
 
@@ -111,7 +113,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`
+- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -119,10 +121,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   role-source digest, existing role/provider vocabulary, exact staffingSpec resubmission, separate
   acceptance evidence, one termination policy, source and blocked-action evidence, timestamp policy,
   and schema-sensitive fixture migration
-- Allowed: docs, decision log, README, task and completion evidence, planning smoke, aggregate
-  registration, verification, commit, push
-- Still blocked: schema-v17 migration, StaffingPlan runtime/API/UI or durable record, Council binding,
-  scheduling, parallel execution, retry/rework, Ops commands, memory application, provider-backed
+- Implemented: schema-v17 migration, fresh blueprint and nine role-source digest, exact staffingSpec
+  preview, separate acceptance, one immutable accepted record, exact GET inspection, bounded API and
+  Council UI, focused runtime/API/UI verification
+- Still blocked: accepted-plan Council/solo binding, scheduling, parallel execution, retry/rework,
+  Ops commands, memory application, provider-backed
   WorkOrders, source mutation expansion, runtime-agent commit/push/release, policy mutation, bypass,
   and connectors
 

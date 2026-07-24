@@ -249,8 +249,10 @@ function stripV9Fields(state) {
   clone.schemaVersion = 8;
   delete clone.sequences.deliveryPackage;
   delete clone.sequences.deliveryPackageAcceptance;
+  delete clone.sequences.staffingPlan;
   delete clone.deliveryPackages;
   delete clone.deliveryPackageAcceptances;
+  delete clone.staffingPlans;
   for (const plan of Object.values(clone.executionPlans)) {
     delete plan.deliveryPackageRefs;
     delete plan.latestDeliveryPackageId;
@@ -295,7 +297,7 @@ async function main() {
     const schema8 = stripV9Fields(currentState);
     writeState(migrationRoot, schema8);
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 16);
+    assert.equal(migrated.schemaVersion, 17);
     assert.equal(migrated.sequences.deliveryPackage, 0);
     assert.equal(migrated.sequences.deliveryPackageAcceptance, 0);
     assert.deepEqual(migrated.deliveryPackages, {});
@@ -312,7 +314,7 @@ async function main() {
     writeState(partialRoot, partial);
     assert.throws(() => createFileStore({ runtimeRoot: partialRoot }).loadState(), /missing DeliveryPackage fields/);
     const futureRoot = path.join(tempRoot, 'future');
-    writeState(futureRoot, { ...currentState, schemaVersion: 17 });
+    writeState(futureRoot, { ...currentState, schemaVersion: 18 });
     assert.throws(() => createFileStore({ runtimeRoot: futureRoot }).loadState(), /Unsupported runtime state/);
 
     const exactTuple = {
@@ -397,7 +399,7 @@ async function main() {
     });
     const durable = reloaded.getExecutionPlanDeliveryPackage(executionPlanId).deliveryPackage;
     assert.deepEqual(durable, result.deliveryPackage);
-    assert.equal(reloaded.getSnapshot().schemaVersion, 16);
+    assert.equal(reloaded.getSnapshot().schemaVersion, 17);
     assert.equal(reloaded.getDeliveryPackageAcceptance(durable.id).acceptance, null);
     assert.equal(typeof reloaded.acceptDeliveryPackage, 'function');
     assert.equal(typeof reloaded.completeMissionFromDeliveryPackage, 'undefined');

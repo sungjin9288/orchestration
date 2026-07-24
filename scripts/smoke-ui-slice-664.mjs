@@ -123,7 +123,7 @@ async function main() {
     const snapshotResult = await fetchJson('/api/snapshot');
     assert.equal(snapshotResult.response.status, 200);
     const snapshot = snapshotResult.payload.snapshot;
-    assert.equal(snapshot.schemaVersion, 16);
+    assert.equal(snapshot.schemaVersion, 17);
     assert.deepEqual(snapshot.memoryItems, {});
     const candidate = snapshot.learningCandidates[seeded.learningCandidate.id];
     const review = snapshot.learningCandidateReviews[seeded.learningCandidateReview.id];

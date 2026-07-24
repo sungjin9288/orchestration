@@ -72,8 +72,10 @@ function toSchemaV13(state) {
   previous.schemaVersion = 13;
   delete previous.sequences.memoryItem;
   delete previous.sequences.memoryRecall;
+  delete previous.sequences.staffingPlan;
   delete previous.memoryItems;
   delete previous.memoryRecalls;
+  delete previous.staffingPlans;
   return previous;
 }
 
@@ -81,8 +83,10 @@ function withoutMemoryItemState(state) {
   const copy = structuredClone(state);
   delete copy.sequences.memoryItem;
   delete copy.sequences.memoryRecall;
+  delete copy.sequences.staffingPlan;
   delete copy.memoryItems;
   delete copy.memoryRecalls;
+  delete copy.staffingPlans;
   copy.schemaVersion = 13;
   return copy;
 }
@@ -223,7 +227,7 @@ async function main() {
     );
 
     const persisted = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 16);
+    assert.equal(persisted.schemaVersion, 17);
     assert.equal(persisted.sequences.memoryItem, 1);
     assert.equal(Object.keys(persisted.memoryItems).length, 1);
     assert.deepEqual(withoutMemoryItemState(persisted), schemaV13);
@@ -255,7 +259,7 @@ async function main() {
     const migrationOnlyRoot = path.join(tempRoot, 'migration-only');
     writeState(migrationOnlyRoot, schemaV13);
     const migratedOnly = createFileStore({ runtimeRoot: migrationOnlyRoot }).loadState();
-    assert.equal(migratedOnly.schemaVersion, 16);
+    assert.equal(migratedOnly.schemaVersion, 17);
     assert.equal(migratedOnly.sequences.memoryItem, 0);
     assert.deepEqual(migratedOnly.memoryItems, {});
     assert.equal(migratedOnly.sequences.memoryRecall, 0);
@@ -272,7 +276,7 @@ async function main() {
     );
 
     const futureRoot = path.join(tempRoot, 'future-schema');
-    writeState(futureRoot, { ...persisted, schemaVersion: 17 });
+    writeState(futureRoot, { ...persisted, schemaVersion: 18 });
     assertNoWrite(
       futureRoot,
       () => createFileStore({ runtimeRoot: futureRoot }).loadStateSupportedReadonly(),

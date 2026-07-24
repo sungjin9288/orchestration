@@ -1372,6 +1372,93 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const missionStaffingPlanPreviewMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/staffing-plan-preview$/,
+  );
+  if (method === 'POST' && missionStaffingPlanPreviewMatch) {
+    try {
+      const missionId = decodeURIComponent(missionStaffingPlanPreviewMatch[1]);
+      const input = await readBoundedJsonBody(request, 32 * 1024);
+      const staffingPlanPreview = runtime.previewMissionStaffingPlan({
+        ...input,
+        missionId,
+      });
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          staffingPlanPreview,
+          persisted: false,
+          downstreamAllowed: false,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'StaffingPlan preview 계산에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const missionStaffingPlanAcceptMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/staffing-plans$/,
+  );
+  if (method === 'POST' && missionStaffingPlanAcceptMatch) {
+    try {
+      const missionId = decodeURIComponent(missionStaffingPlanAcceptMatch[1]);
+      const input = await readBoundedJsonBody(request, 32 * 1024);
+      const result = runtime.acceptMissionStaffingPlan({
+        ...input,
+        missionId,
+      });
+      json(
+        response,
+        result.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          staffingPlan: result.staffingPlan,
+          staffingPlanPreview: result.staffingPlanPreview,
+          persisted: true,
+          downstreamAllowed: false,
+          mutation: {
+            idempotent: result.idempotent,
+            kind: 'accept-mission-staffing-plan',
+            missionId,
+            staffingPlanId: result.staffingPlan.id,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'StaffingPlan acceptance 기록에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const staffingPlanInspectMatch = url.pathname.match(/^\/api\/staffing-plans\/([^/]+)$/);
+  if (staffingPlanInspectMatch) {
+    if (method !== 'GET') {
+      json(response, 405, { error: 'StaffingPlan exact inspection은 GET만 지원합니다.' });
+      return;
+    }
+
+    try {
+      const staffingPlanId = decodeURIComponent(staffingPlanInspectMatch[1]);
+      json(response, 200, runtime.getStaffingPlan(staffingPlanId));
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'StaffingPlan exact inspection에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const missionCreateLinkedTaskMatch = url.pathname.match(
     /^\/api\/missions\/([^/]+)\/create-linked-task$/,
   );

@@ -137,6 +137,7 @@ import {
   getCouncilCastEntry,
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
+  getMissionStaffingPlanSummary,
   getMissionExecutionPlanBundle,
   getMissionDeliveryPackagePersistenceSummary,
   getMissionDeliveryPackageAcceptanceSummary,
@@ -405,6 +406,19 @@ const state = {
     stopConditions: '',
   },
   missionWorkOrderPreview: null,
+  missionStaffingPlanDraft: {
+    mode: 'council',
+    selectedAgentId: '',
+    selectionRationale:
+      '현재 Mission을 source-current 역할 계약으로 검토하기 위한 운영자 staffing 선택',
+    maxTurnsPerAgent: 4,
+    deadlineMs: 120000,
+  },
+  missionStaffingPlanPreview: null,
+  missionStaffingPlanAcceptanceDraft: {
+    rationale: '',
+    acknowledgement: 'reviewed-exact-staffing-plan-for-local-record',
+  },
   missionDeliveryPackagePreview: null,
   missionDurableDeliveryPackage: null,
   missionDeliveryPackageAcceptance: null,
@@ -2980,6 +2994,7 @@ function getDerived() {
   const proposalApplicationAttempts = Object.values(
     snapshot.proposalApplicationAttempts || {},
   ).sort(sortByCreatedDesc);
+  const staffingPlans = Object.values(snapshot.staffingPlans || {}).sort(sortByCreatedDesc);
 
   const activeProject = snapshot.activeProjectId
     ? snapshot.projects[snapshot.activeProjectId] || null
@@ -3048,6 +3063,10 @@ function getDerived() {
     approvals: projectApprovals,
     proposalRecords: projectProposalRecords,
     proposalApplicationAttempts: projectProposalApplicationAttempts,
+    staffingPlans: activeProject
+      ? staffingPlans.filter((staffingPlan) => staffingPlan.projectId === activeProject.id)
+      : [],
+    companyRuntime: snapshot.companyRuntime || null,
     taskMap,
     runMap,
     artifactMap,
@@ -5065,6 +5084,11 @@ function applySnapshotPayload(payload) {
     runtimeRoot: payload.runtimeRoot,
     snapshot: payload.snapshot,
   };
+  if (Object.prototype.hasOwnProperty.call(payload, 'staffingPlanPreview')) {
+    state.missionStaffingPlanPreview = payload.staffingPlanPreview || null;
+  } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
+    state.missionStaffingPlanPreview = null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'deliveryPackagePreview')) {
     state.missionDeliveryPackagePreview = payload.deliveryPackagePreview || null;
   }
@@ -6330,6 +6354,150 @@ async function submitCreateLinkedTaskForMission(missionId) {
     state.surface = 'mission';
     render();
     elements.refreshStatus.textContent = `연결 태스크 ${payload.task.id}를 만들었습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+function readMissionStaffingPlanDraft(form, data) {
+  const blueprint = data.companyRuntime?.blueprint || null;
+  const formData = new FormData(form);
+  const mode = formData.get('staffingMode') === 'solo' ? 'solo' : 'council';
+  const selectedAgentId = String(formData.get('selectedAgentId') || '').trim();
+  const requiredCouncilAgentIds =
+    blueprint?.defaultStaffingPolicy?.requiredCouncilAgentIds || [];
+  const selectedAgentIds =
+    mode === 'solo'
+      ? [selectedAgentId]
+      : [...requiredCouncilAgentIds];
+  const draft = {
+    mode,
+    selectedAgentId,
+    selectionRationale: String(formData.get('selectionRationale') || '').trim(),
+    maxTurnsPerAgent: Number(formData.get('maxTurnsPerAgent')),
+    deadlineMs: Number(formData.get('deadlineMs')),
+  };
+
+  state.missionStaffingPlanDraft = draft;
+
+  return {
+    mode,
+    selectedAgentIds,
+    selectionRationale: draft.selectionRationale,
+    parallelGroups: [],
+    providerMode: 'local-stub',
+    terminationPolicy: {
+      maxProviderCalls: 0,
+      maxTurnsPerAgent: draft.maxTurnsPerAgent,
+      deadlineMs: draft.deadlineMs,
+      stopOnRequiredRoleFailure: true,
+    },
+  };
+}
+
+async function previewMissionStaffingPlan(actionButton) {
+  const form = actionButton?.closest?.('[data-form="mission-staffing-plan"]');
+  const missionId = String(actionButton?.dataset.id || '').trim();
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+  const staffingPlan = data.staffingPlans.find((entry) => entry.missionId === missionId) || null;
+  const summary = getMissionStaffingPlanSummary(
+    mission,
+    state.missionStaffingPlanPreview,
+    staffingPlan,
+  );
+
+  if (!form || !summary?.canPreview) {
+    throw new Error('현재 draft Mission에서는 StaffingPlan preview를 계산할 수 없습니다.');
+  }
+
+  const staffingSpec = readMissionStaffingPlanDraft(form, data);
+  const evaluatedAt = new Date().toISOString();
+  state.error = null;
+  state.mutating = true;
+  state.missionStaffingPlanPreview = null;
+  elements.refreshStatus.textContent = `${missionId} StaffingPlan source tuple을 검증하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/missions/${encodeURIComponent(missionId)}/staffing-plan-preview`,
+      {
+        staffingSpec,
+        evaluatedAt,
+      },
+    );
+    applySnapshotPayload(payload);
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.staffingPlanPreview.id}를 response-only로 계산했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function acceptMissionStaffingPlan(actionButton) {
+  const form = actionButton?.closest?.('[data-form="mission-staffing-plan"]');
+  const missionId = String(actionButton?.dataset.id || '').trim();
+  const preview = state.missionStaffingPlanPreview;
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+  const existing = data.staffingPlans.find((entry) => entry.missionId === missionId) || null;
+  const summary = getMissionStaffingPlanSummary(mission, preview, existing);
+
+  if (!form || !preview || !summary?.canAccept) {
+    throw new Error('현재 source tuple과 일치하는 StaffingPlan preview만 수락할 수 있습니다.');
+  }
+
+  const staffingSpec = readMissionStaffingPlanDraft(form, data);
+  const formData = new FormData(form);
+  const rationale = String(formData.get('acceptanceRationale') || '').trim();
+  const acknowledgement = String(formData.get('acceptanceAcknowledgement') || '').trim();
+  const reviewedAt = new Date().toISOString();
+
+  state.missionStaffingPlanAcceptanceDraft = {
+    rationale,
+    acknowledgement,
+  };
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${missionId} StaffingPlan acceptance를 기록하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/missions/${encodeURIComponent(missionId)}/staffing-plans`,
+      {
+        staffingSpec,
+        evaluatedAt: preview.evaluatedAt,
+        previewId: preview.id,
+        previewDigest: preview.previewDigest,
+        sourceDigest: preview.sourceDigest,
+        missionDigest: preview.missionDigest,
+        blueprintDigest: preview.blueprintDigest,
+        staffingSpecDigest: preview.staffingSpecDigest,
+        acceptance: {
+          decision: 'accept',
+          acknowledgement,
+          rationale,
+          reviewedAt,
+        },
+      },
+    );
+    applySnapshotPayload(payload);
+    const inspected = await fetchJson(
+      `/api/staffing-plans/${encodeURIComponent(payload.staffingPlan.id)}`,
+    );
+    if (inspected.staffingPlan?.recordDigest !== payload.staffingPlan.recordDigest) {
+      throw new Error('Durable StaffingPlan exact inspection digest가 일치하지 않습니다.');
+    }
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.staffingPlan.id} acceptance와 exact inspection을 확인했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -14352,6 +14520,7 @@ function renderCouncilConversationSurface(options) {
     missionExecutionPlanBundle,
     councilProviderReadiness,
     councilProviderReady,
+    staffingPlanPanel,
   } = options;
   const busy = state.loading || state.mutating;
   const isRealCouncil = isRealCouncilMode(councilSession?.mode);
@@ -14385,6 +14554,8 @@ function renderCouncilConversationSurface(options) {
           ${linkedTask ? createToken('태스크 연결됨', 'accent') : createToken('태스크 미연결', 'neutral')}
         </div>
       </section>
+
+      ${staffingPlanPanel || ''}
 
       ${
         !councilSession
@@ -14577,6 +14748,237 @@ function renderCouncilConversationSurface(options) {
   `;
 }
 
+function renderMissionStaffingPlan(data, mission) {
+  const blueprint = data.companyRuntime?.blueprint || null;
+  const staffingPlan =
+    data.staffingPlans.find((entry) => entry.missionId === mission.id) || null;
+  const preview =
+    state.missionStaffingPlanPreview?.missionId === mission.id
+      ? state.missionStaffingPlanPreview
+      : null;
+  const summary = getMissionStaffingPlanSummary(mission, preview, staffingPlan);
+  const draft = state.missionStaffingPlanDraft;
+  const acceptanceDraft = state.missionStaffingPlanAcceptanceDraft;
+  const availableProfiles = (blueprint?.agentProfiles || []).filter(
+    (profile) =>
+      profile.supportedPacks?.includes(data.activeProject.pack) &&
+      profile.providerPolicy?.allowedModes?.includes('local-stub'),
+  );
+  const requiredCouncilAgentIds =
+    blueprint?.defaultStaffingPolicy?.requiredCouncilAgentIds || [];
+  const selectedAgentId =
+    draft.selectedAgentId || availableProfiles[0]?.id || '';
+  const selectedCouncilProfiles = requiredCouncilAgentIds
+    .map((agentId) => availableProfiles.find((profile) => profile.id === agentId))
+    .filter(Boolean);
+  const maxTurns =
+    blueprint?.defaultTerminationPolicy?.maxTurnsPerAgent || draft.maxTurnsPerAgent;
+  const maxDeadline =
+    blueprint?.defaultTerminationPolicy?.deadlineMs || draft.deadlineMs;
+  const busy = state.loading || state.mutating;
+  const controlsDisabled = busy || !summary?.canPreview || !blueprint;
+  const statusLabel =
+    summary?.status === 'accepted'
+      ? 'Accepted'
+      : summary?.status === 'review-ready'
+        ? 'Review ready'
+        : summary?.status === 'draft-ready'
+          ? 'Draft ready'
+          : 'Blocked';
+  const statusTone =
+    summary?.status === 'accepted'
+      ? 'success'
+      : summary?.status === 'review-ready'
+        ? 'accent'
+        : summary?.status === 'draft-ready'
+          ? 'neutral'
+          : 'warning';
+  const selectedDisplay = staffingPlan?.selectedRoles || preview?.selectedRoles || [];
+  const sourceDigest = staffingPlan?.sourceDigest || preview?.sourceDigest || null;
+
+  return `
+    <section
+      class="staffing-plan-panel"
+      aria-labelledby="staffing-plan-title"
+      data-staffing-plan-status="${escapeHtml(summary?.status || 'blocked')}"
+    >
+      <div class="staffing-plan-header">
+        <div>
+          <span class="staffing-plan-kicker">Mission staffing gate</span>
+          <h3 id="staffing-plan-title">실행 전에 역할 구성을 고정합니다</h3>
+          <p>현재 Mission과 repo-backed role source를 다시 읽어 preview하고, 별도 수락으로 감사 기록만 남깁니다.</p>
+        </div>
+        <div class="token-row token-row-compact">
+          <span data-staffing-plan-status-token>${createToken(statusLabel, statusTone)}</span>
+          ${createToken('local-stub only', 'neutral')}
+          ${createToken('execution blocked', 'warning')}
+        </div>
+      </div>
+
+      ${
+        staffingPlan
+          ? `
+            <div class="staffing-plan-record" data-staffing-plan-id="${escapeHtml(staffingPlan.id)}">
+              <div class="staffing-plan-record-lead">
+                <div>
+                  <span>Accepted plan</span>
+                  <strong>${escapeHtml(staffingPlan.id)}</strong>
+                </div>
+                ${createToken(staffingPlan.mode, 'success')}
+              </div>
+              <dl class="staffing-plan-facts">
+                <div><dt>Roles</dt><dd>${escapeHtml(selectedDisplay.join(' · '))}</dd></div>
+                <div><dt>Accepted</dt><dd>${escapeHtml(formatDate(staffingPlan.acceptedAt))}</dd></div>
+                <div><dt>Source</dt><dd><code>${escapeHtml(sourceDigest?.slice(0, 16) || 'n/a')}</code></dd></div>
+                <div><dt>Boundary</dt><dd>Inspection only · Council/WorkOrder start blocked</dd></div>
+              </dl>
+              <p class="staffing-plan-rationale">${escapeHtml(staffingPlan.selectionRationale)}</p>
+            </div>
+          `
+          : `
+            <form class="staffing-plan-form" data-form="mission-staffing-plan">
+              <div class="staffing-plan-control-grid">
+                <label class="field">
+                  <span>Mode</span>
+                  <select name="staffingMode" ${controlsDisabled ? 'disabled' : ''}>
+                    <option value="council" ${draft.mode === 'council' ? 'selected' : ''}>Council · 4 roles</option>
+                    <option value="solo" ${draft.mode === 'solo' ? 'selected' : ''}>Solo · 1 role</option>
+                  </select>
+                </label>
+                <label class="field staffing-plan-solo-field">
+                  <span>Solo agent</span>
+                  <select name="selectedAgentId" ${controlsDisabled || draft.mode !== 'solo' ? 'disabled' : ''}>
+                    ${availableProfiles
+                      .map(
+                        (profile) => `
+                          <option value="${escapeHtml(profile.id)}" ${selectedAgentId === profile.id ? 'selected' : ''}>
+                            ${escapeHtml(profile.displayName)} · ${escapeHtml(profile.role)}
+                          </option>
+                        `,
+                      )
+                      .join('')}
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Turns per agent</span>
+                  <input
+                    name="maxTurnsPerAgent"
+                    type="number"
+                    min="1"
+                    max="${escapeHtml(String(maxTurns))}"
+                    value="${escapeHtml(String(draft.maxTurnsPerAgent))}"
+                    ${controlsDisabled ? 'disabled' : ''}
+                  />
+                </label>
+                <label class="field">
+                  <span>Deadline (ms)</span>
+                  <input
+                    name="deadlineMs"
+                    type="number"
+                    min="1000"
+                    max="${escapeHtml(String(maxDeadline))}"
+                    step="1000"
+                    value="${escapeHtml(String(draft.deadlineMs))}"
+                    ${controlsDisabled ? 'disabled' : ''}
+                  />
+                </label>
+              </div>
+
+              <div class="staffing-plan-role-strip" aria-label="Current Council roles">
+                ${selectedCouncilProfiles
+                  .map(
+                    (profile) => `
+                      <span>
+                        <strong>${escapeHtml(profile.displayName)}</strong>
+                        <small>${escapeHtml(profile.role)}</small>
+                      </span>
+                    `,
+                  )
+                  .join('')}
+              </div>
+
+              <label class="field">
+                <span>Selection rationale</span>
+                <textarea
+                  name="selectionRationale"
+                  rows="2"
+                  ${controlsDisabled ? 'disabled' : ''}
+                >${escapeHtml(draft.selectionRationale)}</textarea>
+              </label>
+
+              ${
+                preview
+                  ? `
+                    <div
+                      class="staffing-plan-preview"
+                      data-staffing-plan-derived
+                      data-staffing-plan-preview-id="${escapeHtml(preview.id)}"
+                    >
+                      <div>
+                        <span>Response-only preview</span>
+                        <strong>${escapeHtml(preview.id)}</strong>
+                      </div>
+                      <dl class="staffing-plan-facts">
+                        <div><dt>Roles</dt><dd>${escapeHtml(selectedDisplay.join(' · '))}</dd></div>
+                        <div><dt>Evaluated</dt><dd>${escapeHtml(formatDate(preview.evaluatedAt))}</dd></div>
+                        <div><dt>Blueprint</dt><dd><code>${escapeHtml(preview.blueprintDigest.slice(0, 16))}</code></dd></div>
+                        <div><dt>Persisted</dt><dd>No</dd></div>
+                      </dl>
+                    </div>
+                    <label class="field" data-staffing-plan-derived>
+                      <span>Acceptance rationale</span>
+                      <textarea
+                        name="acceptanceRationale"
+                        rows="2"
+                        placeholder="이 exact staffing source tuple을 기록하는 이유"
+                        ${busy ? 'disabled' : ''}
+                      >${escapeHtml(acceptanceDraft.rationale)}</textarea>
+                    </label>
+                    <input
+                      data-staffing-plan-derived
+                      name="acceptanceAcknowledgement"
+                      type="hidden"
+                      value="${escapeHtml(acceptanceDraft.acknowledgement)}"
+                    />
+                  `
+                  : ''
+              }
+
+              <div class="staffing-plan-actions">
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-action="preview-mission-staffing-plan"
+                  data-id="${escapeHtml(mission.id)}"
+                  ${controlsDisabled ? 'disabled' : ''}
+                >
+                  Staffing preview
+                </button>
+                ${
+                  preview
+                    ? `
+                      <button
+                        class="primary-button"
+                        type="button"
+                        data-staffing-plan-derived
+                        data-action="accept-mission-staffing-plan"
+                        data-id="${escapeHtml(mission.id)}"
+                        ${busy || !summary.canAccept ? 'disabled' : ''}
+                      >
+                        Accept exact plan
+                      </button>
+                    `
+                    : ''
+                }
+              </div>
+              <p class="form-help">Parallel specialists, provider calls, Council start, WorkOrder creation, scheduling과 source write는 이 기록으로 열리지 않습니다.</p>
+            </form>
+          `
+      }
+    </section>
+  `;
+}
+
 function renderCouncil(data) {
   if (!data.activeProject) {
     elements.surfaces.council.innerHTML = renderProjectGateSurface(
@@ -14640,6 +15042,7 @@ function renderCouncil(data) {
       missionExecutionPlanBundle,
       councilProviderReadiness,
       councilProviderReady,
+      staffingPlanPanel: renderMissionStaffingPlan(data, selectedMission),
     });
     return;
   }
@@ -20638,6 +21041,16 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'preview-mission-staffing-plan') {
+        await previewMissionStaffingPlan(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'accept-mission-staffing-plan') {
+        await acceptMissionStaffingPlan(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'request-builder-live-mutation-approval') {
         await requestBuilderLiveMutationApproval(actionButton.dataset.id);
         return;
@@ -20919,6 +21332,9 @@ function handleFormInput(event) {
   const learningCandidateForm = event.target.closest(
     '[data-form="preview-learning-candidate"]',
   );
+  const staffingPlanForm = event.target.closest(
+    '[data-form="mission-staffing-plan"]',
+  );
   const learningCandidateReviewForm = event.target.closest(
     '[data-form="review-learning-candidate"]',
   );
@@ -21011,6 +21427,46 @@ function handleFormInput(event) {
 
   if (learningCandidateReviewForm) {
     readLearningCandidateReviewDraft(learningCandidateReviewForm);
+    return;
+  }
+
+  if (staffingPlanForm) {
+    if (event.target.name === 'staffingMode') {
+      state.missionStaffingPlanDraft.mode =
+        event.target.value === 'solo' ? 'solo' : 'council';
+    }
+    if (event.target.name === 'selectedAgentId') {
+      state.missionStaffingPlanDraft.selectedAgentId = event.target.value;
+    }
+    if (event.target.name === 'selectionRationale') {
+      state.missionStaffingPlanDraft.selectionRationale = event.target.value;
+    }
+    if (event.target.name === 'maxTurnsPerAgent') {
+      state.missionStaffingPlanDraft.maxTurnsPerAgent = Number(event.target.value);
+    }
+    if (event.target.name === 'deadlineMs') {
+      state.missionStaffingPlanDraft.deadlineMs = Number(event.target.value);
+    }
+    if (event.target.name === 'acceptanceRationale') {
+      state.missionStaffingPlanAcceptanceDraft.rationale = event.target.value;
+      return;
+    }
+
+    state.missionStaffingPlanPreview = null;
+    const staffingPlanPanel = event.target.closest('.staffing-plan-panel');
+    staffingPlanPanel?.querySelectorAll('[data-staffing-plan-derived]').forEach((element) => {
+      element.remove();
+    });
+    if (staffingPlanPanel) {
+      staffingPlanPanel.dataset.staffingPlanStatus = 'draft-ready';
+      const statusToken = staffingPlanPanel.querySelector('[data-staffing-plan-status-token]');
+      if (statusToken) {
+        statusToken.innerHTML = createToken('Draft ready', 'neutral');
+      }
+    }
+    if (event.type === 'change' && event.target.name === 'staffingMode') {
+      render();
+    }
     return;
   }
 

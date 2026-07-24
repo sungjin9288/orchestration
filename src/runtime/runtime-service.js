@@ -42,7 +42,10 @@ const {
   WORKFLOW_CHECKPOINT_STATUS,
 } = require('./contracts');
 const { createFileStore } = require('./file-store');
-const { readCompanyBlueprintStatus } = require('./company-blueprint');
+const {
+  loadCompanyBlueprintEvidence,
+  readCompanyBlueprintStatus,
+} = require('./company-blueprint');
 const {
   PROVIDER_COUNCIL_MODE,
   REAL_COUNCIL_MODE,
@@ -115,6 +118,7 @@ const {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertRun,
+  assertStaffingPlan,
   assertWorkOrder,
   assertWorkflowCheckpoint,
   assertVerificationProof,
@@ -180,6 +184,10 @@ const {
 } = require('./memory-recall-preview');
 const { createMemoryRecall } = require('./memory-recalls');
 const {
+  createStaffingPlan,
+  previewMissionStaffingPlan: compileMissionStaffingPlanPreview,
+} = require('./staffing-plans');
+const {
   computeMissionMemoryContextTargetDigest,
   previewMissionMemoryContext: compileMissionMemoryContextPreview,
 } = require('./mission-memory-context-preview');
@@ -203,10 +211,15 @@ const {
 
 function createRuntimeService(options = {}) {
   const store = createFileStore(options);
-  const companyRuntime = options.companyBlueprintPath
-    ? readCompanyBlueprintStatus({
+  const companyBlueprintOptions = options.companyBlueprintPath
+    ? {
         blueprintPath: options.companyBlueprintPath,
         repoRoot: options.companyRepoRoot,
+      }
+    : null;
+  const companyRuntime = companyBlueprintOptions
+    ? readCompanyBlueprintStatus({
+        ...companyBlueprintOptions,
       })
     : null;
   const councilCoordinator = createCouncilCoordinator({
@@ -270,6 +283,11 @@ function createRuntimeService(options = {}) {
   function nextMemoryRecallId(state) {
     state.sequences.memoryRecall += 1;
     return `memory-recall-${String(state.sequences.memoryRecall).padStart(4, '0')}`;
+  }
+
+  function nextStaffingPlanId(state) {
+    state.sequences.staffingPlan += 1;
+    return `staffing-plan-${String(state.sequences.staffingPlan).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -2186,6 +2204,171 @@ function createRuntimeService(options = {}) {
     const error = new Error(message);
     error.statusCode = 409;
     return error;
+  }
+
+  function assertExactStaffingPlanRequest(input, expectedFields, label) {
+    const actualFields = Object.keys(input || {}).sort();
+    const expected = [...expectedFields].sort();
+    if (
+      actualFields.length !== expected.length ||
+      actualFields.some((field, index) => field !== expected[index])
+    ) {
+      throw conflict(`${label} has unexpected or missing fields`);
+    }
+  }
+
+  function loadCurrentStaffingBlueprintEvidence() {
+    if (!companyBlueprintOptions) {
+      throw conflict('StaffingPlan requires one configured CompanyBlueprint');
+    }
+
+    try {
+      return loadCompanyBlueprintEvidence(companyBlueprintOptions);
+    } catch (error) {
+      throw conflict(`StaffingPlan CompanyBlueprint evidence is invalid: ${error.message}`);
+    }
+  }
+
+  function buildMissionStaffingPlanPreviewFromState(state, input) {
+    const mission = assertMission(input.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    const blueprintEvidence = loadCurrentStaffingBlueprintEvidence();
+
+    try {
+      return compileMissionStaffingPlanPreview(
+        {
+          activeProjectId: state.activeProjectId,
+          blueprintEvidence,
+          evaluatedAt: input.evaluatedAt,
+          mission,
+          project,
+          staffingSpec: input.staffingSpec,
+        },
+        { now: new Date().toISOString() },
+      );
+    } catch (error) {
+      throw conflict(error.message);
+    }
+  }
+
+  function previewMissionStaffingPlan(input) {
+    assertExactStaffingPlanRequest(
+      input,
+      ['evaluatedAt', 'missionId', 'staffingSpec'],
+      'StaffingPlan preview request',
+    );
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`StaffingPlan preview requires supported state: ${error.message}`);
+    }
+
+    return buildMissionStaffingPlanPreviewFromState(state, input);
+  }
+
+  function findMissionStaffingPlan(state, missionId) {
+    return (
+      Object.values(state.staffingPlans || {}).find(
+        (staffingPlan) => staffingPlan.missionId === missionId,
+      ) || null
+    );
+  }
+
+  function acceptMissionStaffingPlan(input) {
+    assertExactStaffingPlanRequest(
+      input,
+      [
+        'acceptance',
+        'blueprintDigest',
+        'evaluatedAt',
+        'missionDigest',
+        'missionId',
+        'previewDigest',
+        'previewId',
+        'sourceDigest',
+        'staffingSpec',
+        'staffingSpecDigest',
+      ],
+      'StaffingPlan acceptance request',
+    );
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`StaffingPlan acceptance requires supported state: ${error.message}`);
+    }
+
+    const preview = buildMissionStaffingPlanPreviewFromState(state, input);
+    for (const [field, expected] of [
+      ['previewId', preview.id],
+      ['previewDigest', preview.previewDigest],
+      ['sourceDigest', preview.sourceDigest],
+      ['missionDigest', preview.missionDigest],
+      ['blueprintDigest', preview.blueprintDigest],
+      ['staffingSpecDigest', preview.staffingSpecDigest],
+    ]) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`StaffingPlan ${field} does not match current recomputation`);
+      }
+    }
+
+    const existing = findMissionStaffingPlan(state, input.missionId);
+    let staffingPlan;
+    try {
+      staffingPlan = createStaffingPlan(
+        {
+          id:
+            existing?.id ||
+            `staffing-plan-${String(state.sequences.staffingPlan + 1).padStart(4, '0')}`,
+          preview,
+          acceptance: input.acceptance,
+        },
+        { now: new Date().toISOString() },
+      );
+    } catch (error) {
+      throw conflict(error.message);
+    }
+
+    if (existing) {
+      if (existing.recordDigest !== staffingPlan.recordDigest) {
+        throw conflict(`Mission ${input.missionId} already has a different StaffingPlan`);
+      }
+      return {
+        staffingPlan: assertStaffingPlan(existing.id, state),
+        staffingPlanPreview: preview,
+        idempotent: true,
+      };
+    }
+
+    const id = nextStaffingPlanId(state);
+    if (id !== staffingPlan.id) {
+      throw new Error('StaffingPlan sequence is not deterministic');
+    }
+    state.staffingPlans[staffingPlan.id] = staffingPlan;
+    store.saveState(state);
+
+    return {
+      staffingPlan,
+      staffingPlanPreview: preview,
+      idempotent: false,
+    };
+  }
+
+  function getStaffingPlan(staffingPlanId) {
+    let state;
+    try {
+      state = store.loadStateReadonly();
+    } catch (error) {
+      throw conflict(`StaffingPlan inspection requires current state: ${error.message}`);
+    }
+
+    return {
+      staffingPlan: assertStaffingPlan(staffingPlanId, state),
+      persisted: true,
+    };
   }
 
   function digestCompileSpec(compileSpec) {
@@ -6745,6 +6928,7 @@ function createRuntimeService(options = {}) {
   return {
     appendLog,
     acceptDeliveryPackage,
+    acceptMissionStaffingPlan,
     approveCouncilRecommendation,
     assertTaskCanRunBuilderLiveMutation,
     assertTaskCanRunBuilderPreflight,
@@ -6803,12 +6987,14 @@ function createRuntimeService(options = {}) {
     getProject,
     getRun,
     getSnapshot,
+    getStaffingPlan,
     getTask,
     getTaskGuardSummary,
     previewRetentionConsumer,
     fetchExactResearchEvidence,
     preflightMissionWorkOrderPreview,
     previewMissionLearningCandidate,
+    previewMissionStaffingPlan,
     previewLearningCandidateMemory,
     previewMemoryItemRecall,
     previewMissionMemoryContext,

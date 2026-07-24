@@ -42,6 +42,7 @@ const {
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
+  STAFFING_PLAN_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,
   WORK_ORDER_STATUS,
   WORKFLOW_CHECKPOINT_ACTION,
@@ -96,6 +97,13 @@ const {
   RECORD_APPROVAL_DECISION,
   computeMemoryRecallRecordDigest,
 } = require('./memory-recalls');
+const {
+  STAFFING_PLAN_ACCEPTANCE_ACKNOWLEDGEMENT,
+  STAFFING_PLAN_ACCEPTANCE_DECISION,
+  STAFFING_PLAN_BLOCKED_ACTIONS,
+  STAFFING_PLAN_STATUS,
+  computeStaffingPlanRecordDigest,
+} = require('./staffing-plans');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 const {
   BLOCKED_ACTIONS: VERIFICATION_PROOF_BLOCKED_ACTIONS,
@@ -1529,6 +1537,229 @@ function validateMemoryRecallRecords(state) {
   }
 }
 
+function validateStaffingPlanRecords(state) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const missionIds = new Set();
+
+  for (const [key, staffingPlan] of Object.entries(state.staffingPlans)) {
+    const label = `StaffingPlan ${key}`;
+    if (
+      !staffingPlan ||
+      typeof staffingPlan !== 'object' ||
+      Array.isArray(staffingPlan) ||
+      staffingPlan.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertExactObjectKeys(
+      staffingPlan,
+      [
+        'id',
+        'persisted',
+        'status',
+        'missionId',
+        'projectId',
+        'projectPack',
+        'workspaceScope',
+        'mode',
+        'selectedAgentIds',
+        'selectedRoles',
+        'selectionRationale',
+        'parallelGroups',
+        'providerMode',
+        'terminationPolicy',
+        'sourceRefs',
+        'blueprintSourceRefs',
+        'sourceDigest',
+        'missionDigest',
+        'blueprintDigest',
+        'staffingSpecDigest',
+        'sourcePreviewId',
+        'sourcePreviewDigest',
+        'acceptance',
+        'blockedActions',
+        'evaluatedAt',
+        'acceptedAt',
+        'createdAt',
+        'updatedAt',
+        'recordDigest',
+      ],
+      label,
+    );
+    for (const field of [
+      'id',
+      'status',
+      'missionId',
+      'projectId',
+      'projectPack',
+      'mode',
+      'selectionRationale',
+      'providerMode',
+      'sourceDigest',
+      'missionDigest',
+      'blueprintDigest',
+      'staffingSpecDigest',
+      'sourcePreviewId',
+      'sourcePreviewDigest',
+      'evaluatedAt',
+      'acceptedAt',
+      'createdAt',
+      'updatedAt',
+      'recordDigest',
+    ]) {
+      assertStringField(staffingPlan, field, label);
+    }
+    for (const field of [
+      'selectedAgentIds',
+      'selectedRoles',
+      'sourceRefs',
+      'blueprintSourceRefs',
+      'blockedActions',
+    ]) {
+      assertStringArrayField(staffingPlan, field, label);
+      if (
+        new Set(staffingPlan[field]).size !== staffingPlan[field].length ||
+        !sameStringArrays(staffingPlan[field], [...staffingPlan[field]].sort())
+      ) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      staffingPlan.persisted !== true ||
+      staffingPlan.status !== STAFFING_PLAN_STATUS ||
+      staffingPlan.providerMode !== 'local-stub' ||
+      !['solo', 'council'].includes(staffingPlan.mode)
+    ) {
+      throw new Error(`${label} has invalid immutable status or mode`);
+    }
+    if (
+      !/^staffing-plan-\d{4}$/.test(staffingPlan.id) ||
+      !/^staffing-plan-preview-[a-f0-9]{16}$/.test(staffingPlan.sourcePreviewId) ||
+      staffingPlan.sourcePreviewId !==
+        `staffing-plan-preview-${staffingPlan.sourcePreviewDigest.slice(0, 16)}`
+    ) {
+      throw new Error(`${label} has invalid durable or preview identity`);
+    }
+    for (const field of [
+      'sourceDigest',
+      'missionDigest',
+      'blueprintDigest',
+      'staffingSpecDigest',
+      'sourcePreviewDigest',
+      'recordDigest',
+    ]) {
+      if (!digestPattern.test(staffingPlan[field])) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      !staffingPlan.workspaceScope ||
+      typeof staffingPlan.workspaceScope !== 'object' ||
+      Array.isArray(staffingPlan.workspaceScope)
+    ) {
+      throw new Error(`${label} has invalid workspaceScope`);
+    }
+    assertExactObjectKeys(staffingPlan.workspaceScope, ['projectId'], `${label} workspaceScope`);
+    if (staffingPlan.workspaceScope.projectId !== staffingPlan.projectId) {
+      throw new Error(`${label} has invalid project-only workspace scope`);
+    }
+    if (
+      !staffingPlan.terminationPolicy ||
+      typeof staffingPlan.terminationPolicy !== 'object' ||
+      Array.isArray(staffingPlan.terminationPolicy)
+    ) {
+      throw new Error(`${label} has invalid terminationPolicy`);
+    }
+    assertExactObjectKeys(
+      staffingPlan.terminationPolicy,
+      ['deadlineMs', 'maxProviderCalls', 'maxTurnsPerAgent', 'stopOnRequiredRoleFailure'],
+      `${label} terminationPolicy`,
+    );
+    if (
+      staffingPlan.terminationPolicy.maxProviderCalls !== 0 ||
+      !Number.isInteger(staffingPlan.terminationPolicy.maxTurnsPerAgent) ||
+      staffingPlan.terminationPolicy.maxTurnsPerAgent < 1 ||
+      !Number.isInteger(staffingPlan.terminationPolicy.deadlineMs) ||
+      staffingPlan.terminationPolicy.deadlineMs < 1 ||
+      staffingPlan.terminationPolicy.stopOnRequiredRoleFailure !== true
+    ) {
+      throw new Error(`${label} has invalid terminationPolicy values`);
+    }
+    if (
+      !Array.isArray(staffingPlan.parallelGroups) ||
+      staffingPlan.parallelGroups.length !== 0
+    ) {
+      throw new Error(`${label} has invalid parallelGroups`);
+    }
+    if (
+      staffingPlan.selectedAgentIds.length === 0 ||
+      staffingPlan.selectedAgentIds.length !== staffingPlan.selectedRoles.length ||
+      (staffingPlan.mode === 'solo' && staffingPlan.selectedAgentIds.length !== 1) ||
+      (staffingPlan.mode === 'council' && staffingPlan.selectedAgentIds.length !== 4)
+    ) {
+      throw new Error(`${label} has invalid selected agents`);
+    }
+    if (
+      !staffingPlan.acceptance ||
+      typeof staffingPlan.acceptance !== 'object' ||
+      Array.isArray(staffingPlan.acceptance)
+    ) {
+      throw new Error(`${label} has invalid acceptance`);
+    }
+    assertExactObjectKeys(
+      staffingPlan.acceptance,
+      ['acknowledgement', 'decision', 'rationale', 'reviewedAt'],
+      `${label} acceptance`,
+    );
+    assertStringField(staffingPlan.acceptance, 'rationale', `${label} acceptance`);
+    if (
+      staffingPlan.acceptance.decision !== STAFFING_PLAN_ACCEPTANCE_DECISION ||
+      staffingPlan.acceptance.acknowledgement !==
+        STAFFING_PLAN_ACCEPTANCE_ACKNOWLEDGEMENT
+    ) {
+      throw new Error(`${label} has invalid acceptance decision`);
+    }
+    for (const field of ['evaluatedAt', 'acceptedAt', 'createdAt', 'updatedAt']) {
+      if (
+        Number.isNaN(Date.parse(staffingPlan[field])) ||
+        new Date(staffingPlan[field]).toISOString() !== staffingPlan[field]
+      ) {
+        throw new Error(`${label} has invalid ${field}`);
+      }
+    }
+    if (
+      staffingPlan.acceptance.reviewedAt !== staffingPlan.acceptedAt ||
+      staffingPlan.createdAt !== staffingPlan.acceptedAt ||
+      staffingPlan.updatedAt !== staffingPlan.acceptedAt ||
+      Date.parse(staffingPlan.acceptedAt) < Date.parse(staffingPlan.evaluatedAt)
+    ) {
+      throw new Error(`${label} has invalid acceptance timing`);
+    }
+    if (
+      !sameStringArrays(staffingPlan.blockedActions, STAFFING_PLAN_BLOCKED_ACTIONS) ||
+      !staffingPlan.blueprintSourceRefs.includes('company/blueprint.json') ||
+      staffingPlan.blueprintSourceRefs.length !== 10
+    ) {
+      throw new Error(`${label} has invalid source or blocked-action evidence`);
+    }
+    const mission = state.missions[staffingPlan.missionId];
+    if (
+      !mission ||
+      mission.projectId !== staffingPlan.projectId ||
+      !state.projects[staffingPlan.projectId]
+    ) {
+      throw new Error(`${label} has invalid Mission or project binding`);
+    }
+    if (missionIds.has(staffingPlan.missionId)) {
+      throw new Error(`${label} duplicates Mission staffing evidence`);
+    }
+    missionIds.add(staffingPlan.missionId);
+    if (computeStaffingPlanRecordDigest(staffingPlan) !== staffingPlan.recordDigest) {
+      throw new Error(`${label} recordDigest does not match its immutable payload`);
+    }
+  }
+}
+
 function validateDurableWorkOrderRecords(state) {
   const planStatuses = new Set(Object.values(EXECUTION_PLAN_STATUS));
   const workOrderStatuses = new Set(Object.values(WORK_ORDER_STATUS));
@@ -2238,6 +2469,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== LEARNING_CANDIDATE_REVIEW_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MEMORY_ITEM_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MEMORY_RECALL_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -2393,6 +2625,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= STAFFING_PLAN_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.staffingPlan) ||
+        !state.staffingPlans ||
+        typeof state.staffingPlans !== 'object' ||
+        Array.isArray(state.staffingPlans)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing StaffingPlan fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -2425,6 +2670,7 @@ function createFileStore(options = {}) {
       memoryRecalls: state.memoryRecalls || {},
       acceptanceCriteria: state.acceptanceCriteria || {},
       verificationProofs: state.verificationProofs || {},
+      staffingPlans: state.staffingPlans || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -2703,6 +2949,7 @@ function createFileStore(options = {}) {
     validateLearningCandidateReviewRecords(normalizedState);
     validateMemoryItemRecords(normalizedState);
     validateMemoryRecallRecords(normalizedState);
+    validateStaffingPlanRecords(normalizedState);
     return normalizedState;
   }
 

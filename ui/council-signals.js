@@ -73,6 +73,46 @@ export function getMissionWorkOrderPreviewSummary(preview, councilSessionId) {
   };
 }
 
+export function getMissionStaffingPlanSummary(mission, preview, staffingPlan) {
+  if (!mission) return null;
+
+  const sourceReady = Boolean(
+    mission.status === 'draft' &&
+      !mission.linkedTaskId &&
+      !mission.councilSessionId,
+  );
+  const previewCurrent = Boolean(
+    preview &&
+      preview.persisted === false &&
+      preview.status === 'review-ready' &&
+      preview.missionId === mission.id &&
+      preview.projectId === mission.projectId,
+  );
+  const durableCurrent = Boolean(
+    staffingPlan &&
+      staffingPlan.persisted === true &&
+      staffingPlan.status === 'accepted' &&
+      staffingPlan.missionId === mission.id &&
+      staffingPlan.projectId === mission.projectId,
+  );
+
+  return {
+    canAccept: sourceReady && previewCurrent && !durableCurrent,
+    canPreview: sourceReady && !durableCurrent,
+    downstreamAllowed: false,
+    durableCurrent,
+    previewCurrent,
+    sourceReady,
+    status: durableCurrent
+      ? 'accepted'
+      : previewCurrent
+        ? 'review-ready'
+        : sourceReady
+          ? 'draft-ready'
+          : 'blocked',
+  };
+}
+
 export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
   const executionPlan = Object.values(snapshot?.executionPlans || {}).find(
     (entry) => entry.councilSessionId === councilSessionId,

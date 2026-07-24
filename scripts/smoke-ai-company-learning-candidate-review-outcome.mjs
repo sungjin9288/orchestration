@@ -87,7 +87,9 @@ function toSchemaV12(state) {
   const previous = structuredClone(state);
   previous.schemaVersion = 12;
   delete previous.sequences.learningCandidateReview;
+  delete previous.sequences.staffingPlan;
   delete previous.learningCandidateReviews;
+  delete previous.staffingPlans;
   return previous;
 }
 
@@ -197,7 +199,7 @@ async function main() {
     assert.equal(created.learningCandidate.promotionStatus, 'proposed');
 
     const persisted = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 16);
+    assert.equal(persisted.schemaVersion, 17);
     assert.equal(persisted.sequences.learningCandidateReview, 1);
     assert.equal(Object.keys(persisted.learningCandidateReviews).length, 1);
     assert.deepEqual(
@@ -257,7 +259,7 @@ async function main() {
     const migrationOnlyRoot = path.join(tempRoot, 'migration-only');
     writeState(migrationOnlyRoot, schemaV12Baseline);
     const migratedOnly = createFileStore({ runtimeRoot: migrationOnlyRoot }).loadState();
-    assert.equal(migratedOnly.schemaVersion, 16);
+    assert.equal(migratedOnly.schemaVersion, 17);
     assert.equal(migratedOnly.sequences.learningCandidateReview, 0);
     assert.deepEqual(migratedOnly.learningCandidateReviews, {});
     const migratedOnlyBytes = fs.readFileSync(
@@ -289,7 +291,7 @@ async function main() {
       /missing LearningCandidateReview fields/,
     );
     const futureRoot = path.join(tempRoot, 'future');
-    writeState(futureRoot, { ...persisted, schemaVersion: 17 });
+    writeState(futureRoot, { ...persisted, schemaVersion: 18 });
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadState(),
       /Unsupported runtime state/,

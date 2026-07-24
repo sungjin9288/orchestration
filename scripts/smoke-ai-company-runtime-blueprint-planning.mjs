@@ -174,7 +174,7 @@ assert.match(verification, /script: 'scripts\/smoke-ai-company-runtime-blueprint
 // Consumed planning evidence must point at the implemented, read-only foundation.
 assert.equal(fs.existsSync(path.join(repoRoot, 'company', 'blueprint.json')), true);
 assert.equal(fs.existsSync(path.join(repoRoot, 'src', 'runtime', 'company-blueprint.js')), true);
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 16/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 17/);
 assert.doesNotMatch(runtimeContracts, /companyRuntime/);
 assert.doesNotMatch(fileStore, /companyBlueprint|companyRuntime/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);

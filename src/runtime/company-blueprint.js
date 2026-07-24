@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -208,6 +209,29 @@ function deepFreeze(value) {
   return Object.freeze(value);
 }
 
+function canonicalize(value) {
+  if (Array.isArray(value)) {
+    return value.map(canonicalize);
+  }
+
+  if (!isPlainRecord(value)) {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, canonicalize(value[key])]),
+  );
+}
+
+function digestCanonical(value) {
+  return crypto
+    .createHash('sha256')
+    .update(JSON.stringify(canonicalize(value)))
+    .digest('hex');
+}
+
 function readRoleSource({ repoRoot, realRepoRoot, profile }) {
   const expectedRef = `company/roles/${profile.role}.md`;
 
@@ -244,7 +268,8 @@ function readRoleSource({ repoRoot, realRepoRoot, profile }) {
     fail('BLUEPRINT_UNSAFE_INSTRUCTIONS_REF', profile.instructionsRef);
   }
 
-  const source = fs.readFileSync(realRolePath, 'utf8');
+  const sourceBytes = fs.readFileSync(realRolePath);
+  const source = sourceBytes.toString('utf8');
   const requiredHeadings = [`# Role: ${profile.displayName}`, ...ROLE_HEADINGS];
 
   for (const heading of requiredHeadings) {
@@ -252,6 +277,8 @@ function readRoleSource({ repoRoot, realRepoRoot, profile }) {
       fail('BLUEPRINT_ROLE_SOURCE_INVALID', profile.instructionsRef);
     }
   }
+
+  return sourceBytes;
 }
 
 function normalizeProfile(profile, index, context) {
@@ -675,6 +702,35 @@ function loadCompanyBlueprint(options = {}) {
   return normalizeCompanyBlueprint(rawBlueprint, { repoRoot, realRepoRoot });
 }
 
+function loadCompanyBlueprintEvidence(options = {}) {
+  const blueprint = loadCompanyBlueprint(options);
+  const blueprintPath = path.resolve(options.blueprintPath);
+  const repoRoot = path.resolve(options.repoRoot || path.dirname(path.dirname(blueprintPath)));
+  const realRepoRoot = fs.realpathSync(repoRoot);
+
+  const roleSourceDigests = blueprint.agentProfiles
+    .map((profile) => ({
+      ref: profile.instructionsRef,
+      sha256: crypto
+        .createHash('sha256')
+        .update(readRoleSource({ repoRoot, realRepoRoot, profile }))
+        .digest('hex'),
+    }))
+    .sort((left, right) => left.ref.localeCompare(right.ref));
+  const sourceRefs = ['company/blueprint.json', ...roleSourceDigests.map((entry) => entry.ref)].sort();
+  const blueprintDigest = digestCanonical({
+    normalizedBlueprint: blueprint,
+    roleSources: roleSourceDigests,
+  });
+
+  return deepFreeze({
+    blueprint,
+    sourceRefs,
+    roleSourceDigests,
+    blueprintDigest,
+  });
+}
+
 function readCompanyBlueprintStatus(options = {}) {
   if (!options.blueprintPath) {
     return deepFreeze({
@@ -718,5 +774,6 @@ function readCompanyBlueprintStatus(options = {}) {
 module.exports = {
   CompanyBlueprintError,
   loadCompanyBlueprint,
+  loadCompanyBlueprintEvidence,
   readCompanyBlueprintStatus,
 };

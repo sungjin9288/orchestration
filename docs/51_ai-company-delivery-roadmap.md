@@ -507,10 +507,11 @@ implementation handoff는 `DEC-164`, readiness clarification은 `DEC-165`로 기
 clarified handoff fixes active-project binding, fresh blueprint and role-source digests, existing
 role/provider vocabulary, full staffingSpec resubmission, separate acceptance evidence, one canonical
 termination policy, exact timestamps, blockedActions, and schema-sensitive compatibility fixtures.
-The handoff is not implementation authority.
-Schema-v17 migration, StaffingPlan runtime/API/UI, persistence, inspection, Council binding, scheduling,
-parallel execution, rework, memory application, provider expansion, source/Git/release, policy,
-bypass, and connectors remain blocked until their complete fielded decisions.
+The handoff is consumed by exact implementation acceptance `DEC-166`. Schema-v17 migration,
+StaffingPlan runtime/API/UI, immutable persistence, and exact inspection are implemented. Council/solo
+binding, scheduling, parallel execution, rework, memory application, provider expansion,
+source/Git/release, policy, bypass, and connectors remain blocked until their complete fielded
+decisions.
 
 ## Cross-Phase Verification Matrix
 
@@ -548,15 +549,15 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Current runtime is schema v16. The accepted implementation chain through `DEC-130` provides exact
+Current runtime is schema v17. The accepted implementation chain through `DEC-130` provides exact
 Mission memory context review without injection. `DEC-131` through `DEC-136` add WorkOrder
 verification planning, optimistic state transactions, AcceptanceCriterion and VerificationProof
 records, one-step continuation preview, optional exact fetch, and measurement-only context telemetry.
 
-The immediate next runtime gate is the durable StaffingPlan slice planned by `DEC-163`, handed off
-by `DEC-164`, and clarified by `DEC-165`. It requires one complete fielded operator decision before
-schema-v17 migration or any runtime/API/UI edit. Council binding, automatic staffing, general
-scheduling, parallel execution, retry/rework, Ops commands, context application, provider-backed
+The durable StaffingPlan slice planned by `DEC-163`, handed off by `DEC-164`, clarified by `DEC-165`,
+and implemented by `DEC-166` now stops after exact inspection. The immediate next runtime gate is
+accepted StaffingPlan binding to one Council or solo entry. Automatic staffing, general scheduling,
+parallel execution, retry/rework, Ops commands, context application, provider-backed
 WorkOrders, source/Git/release, policy, bypass, and connectors remain separate later decisions.
 
 Implemented acceptance target:

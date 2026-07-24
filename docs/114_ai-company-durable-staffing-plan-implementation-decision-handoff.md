@@ -16,8 +16,9 @@ commit, push, release authority가 아니다.
 - This complete fielded implementation handoff is recorded as `DEC-164`.
 - Readiness clarification for the exact digest, spec, acceptance, migration, and compatibility
   contracts is recorded as `DEC-165`.
-- Runtime and schema implementation remain blocked until one complete valid operator outcome is
-  supplied.
+- The complete valid operator approval was supplied and implementation is accepted as `DEC-166`.
+- This handoff is consumed for preview, acceptance, schema-v17 persistence, and exact inspection
+  only. Council/solo binding and every downstream authority remain blocked.
 
 ## Required Decision Fields
 
@@ -127,6 +128,6 @@ approvalStatement=I defer durable StaffingPlan implementation. No schema, plan r
 
 ## Stop Condition
 
-Stop before runtime or schema edits while a complete valid decision is absent. After a future approval,
-stop before Council start, WorkOrder creation, scheduler, parallel execution, retry, rework, provider,
-memory application, source mutation, Git, release, policy mutation, approval bypass, or connectors.
+The complete valid decision is consumed by `DEC-166`. The implemented slice stops before Council
+start, WorkOrder creation, scheduler, parallel execution, retry, rework, provider, memory
+application, source mutation, Git, release, policy mutation, approval bypass, or connectors.
