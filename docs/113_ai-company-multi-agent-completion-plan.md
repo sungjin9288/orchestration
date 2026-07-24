@@ -149,61 +149,150 @@ delivery, close-out, and restart/resume. README claims must match those exact re
 
 ```text
 one exact source-current draft Mission
-+ current CompanyBlueprint and AgentProfile source digest
-+ one bounded operator-owned staffingSpec
++ active project and project pack
++ freshly reloaded strict CompanyBlueprint and nine AgentProfile role sources
++ one bounded operator-owned staffingSpec and evaluatedAt
 -> deterministic response-only preview
-+ separate exact decision=accept and operator-owned evaluatedAt
++ the same staffingSpec and preview tuple
++ separate exact acceptance decision
 -> atomic schema-v16 to schema-v17 migration
 -> one immutable StaffingPlan(status=accepted)
 -> exact-id inspection
 -> stop before Council or execution
 ```
 
-### Planned StaffingPlan Contract
+### Exact Staffing Spec
+
+The first slice uses only vocabulary that already exists in CompanyBlueprint. It does not add a
+capability field to AgentProfile.
 
 ```text
-id
-missionId
-projectId
 mode: solo | council | parallel-specialists
 selectedAgentIds[]
 selectionRationale
-requiredCapabilities[]
 parallelGroups[][]
-providerMode: local-stub-only
-budget
+providerMode: local-stub
+terminationPolicy
   maxProviderCalls: 0
   maxTurnsPerAgent
   deadlineMs
+  stopOnRequiredRoleFailure: true
+```
+
+`selectedRoles[]` is a derived preview and record field resolved from the selected profiles. It is not
+operator input. The first council plan selects exactly the four ids in
+`defaultStaffingPolicy.requiredCouncilAgentIds`, including Conductor. A later Council binding slice
+may route Conductor to synthesis and the other three roles to positions without changing the accepted
+plan.
+
+### Canonical Source And Digest Contract
+
+Every preview and acceptance reloads CompanyBlueprint from repo sources. Runtime-startup cache is not
+current evidence for this path.
+
+```text
+blueprintSourceRefs
+  company/blueprint.json
+  nine sorted company/roles/*.md refs from AgentProfile.instructionsRef
+
+blueprintDigest =
+  sha256(canonical JSON {
+    normalizedBlueprint,
+    roleSources: [{ ref, sha256(raw UTF-8 bytes) }]
+  })
+
+missionDigest =
+  sha256(canonical stable draft Mission projection)
+
+staffingSpecDigest =
+  sha256(canonical normalized staffingSpec)
+
+sourceDigest =
+  sha256(canonical JSON {
+    missionDigest,
+    projectId,
+    projectPack,
+    blueprintDigest,
+    staffingSpecDigest
+  })
+```
+
+The Mission projection includes id, projectId, title, goal, constraints, deliverableType, status,
+linkedTaskId, councilSessionId, createdAt, and updatedAt. `previewDigest` hashes the complete preview
+except its own digest. `recordDigest` hashes the complete durable record except its own digest.
+
+### Planned StaffingPlan Record
+
+```text
+id
+persisted: true
+status: accepted
+missionId
+projectId
+projectPack
+workspaceScope
+  projectId
+mode
+selectedAgentIds[]
+selectedRoles[]
+selectionRationale
+parallelGroups[][]
+providerMode: local-stub
 terminationPolicy
+  maxProviderCalls: 0
+  maxTurnsPerAgent
+  deadlineMs
+  stopOnRequiredRoleFailure: true
+sourceRefs[]
+blueprintSourceRefs[]
 sourceDigest
 missionDigest
 blueprintDigest
-previewDigest
-recordDigest
-status: accepted
+staffingSpecDigest
+sourcePreviewId
+sourcePreviewDigest
+acceptance
+  decision: accept
+  acknowledgement: reviewed-exact-staffing-plan-for-local-record
+  rationale
+  reviewedAt
+blockedActions[]
 evaluatedAt
 acceptedAt
 createdAt
+updatedAt
+recordDigest
 ```
 
 The record stores execution evidence, not company policy. CompanyBlueprint remains the source of truth.
+`previewDigest` belongs to the response-only preview; the durable record retains it as
+`sourcePreviewDigest` rather than recomputing it as record state.
 
 ### Validation Rules
 
-- Mission must be source-current, project-local, and `draft`.
-- Every selected agent must exist in the current blueprint, support the project pack, and satisfy the
-  requested capability and provider constraints.
+- Mission must be source-current, `draft`, unlinked, and belong to the active project:
+  `state.activeProjectId === mission.projectId`.
+- Every selected agent must exist in the freshly loaded blueprint, support the project pack, allow
+  `local-stub`, retain `concurrencyLimit=1`, and carry no source-write, commit, or push authority.
 - `solo` selects exactly one agent and has no parallel group.
-- `council` includes the current required Council agents and has no parallel group.
+- `council` selects exactly the four current required Council agents, including Conductor, and has no
+  parallel group.
 - `parallel-specialists` is rejected while
   `defaultStaffingPolicy.parallelSpecialistsAllowed=false`.
-- The first slice requires `providerMode=local-stub-only` and `maxProviderCalls=0`.
-- Budget cannot exceed the current blueprint termination policy.
-- `acceptedAt` and `createdAt` are derived from the exact operator-owned `evaluatedAt`; runtime wall
-  clock reads are not part of the canonical record.
-- Duplicate agents, duplicate groups, empty rationale, unknown capabilities, widened workspace,
-  write authority, commit, push, release, and provider fallback fail closed.
+- The first slice requires the existing provider value `providerMode=local-stub` and
+  `terminationPolicy.maxProviderCalls=0`. The other limits cannot exceed the current blueprint
+  termination policy.
+- Preview `evaluatedAt` must be an exact ISO timestamp, must not precede Mission `updatedAt`, and must
+  not exceed the runtime clock by more than five minutes.
+- Acceptance `reviewedAt` must be exact ISO, must not precede preview `evaluatedAt`, and must not
+  exceed the runtime clock by more than five minutes. `acceptedAt`, `createdAt`, and `updatedAt` all
+  equal `reviewedAt`.
+- Duplicate agents, duplicate groups, empty rationale, widened workspace, write authority, commit,
+  push, release, and provider fallback fail closed.
+- Acceptance resubmits the exact staffingSpec and evaluatedAt so runtime can recompute the
+  response-only preview from current source evidence before any write.
+- The record carries source refs, digest lineage, acceptance evidence, and blockedActions. Inspection
+  does not need the browser preview to explain why the record exists or what it cannot do.
 - Preview generation, boot, GET, snapshot, and migration do not create a record.
 - Exact replay returns the existing record; stale or divergent input writes nothing.
 
@@ -220,7 +309,21 @@ Planned routes:
 
 ```text
 POST /api/missions/:missionId/staffing-plan-preview
+  body: { staffingSpec, evaluatedAt }
+
 POST /api/missions/:missionId/staffing-plans
+  body: {
+    staffingSpec,
+    evaluatedAt,
+    previewId,
+    previewDigest,
+    sourceDigest,
+    missionDigest,
+    blueprintDigest,
+    staffingSpecDigest,
+    acceptance
+  }
+
 GET  /api/staffing-plans/:staffingPlanId
 ```
 
@@ -229,11 +332,12 @@ provider, mutation, retry, rework, commit, push, release, or apply action.
 
 ## Migration And Rollback
 
-- Add only `staffingPlanSeq`, `staffingPlans`, and the minimum immutable record validation required by
-  schema v17.
+- Add only `sequences.staffingPlan`, `staffingPlans`, and the minimum immutable record validation
+  required by schema v17.
 - Preserve every valid schema-v16 value exactly.
 - Create no StaffingPlan during boot, read, preview, render, or migration alone.
-- Reject unknown future schema and partial or semantically invalid v17 state.
+- Reject schema v18+, partial v17, non-matching map keys, invalid records, and digest mismatch without
+  changing source bytes.
 - Validate the complete preview and acceptance tuple before one atomic migration-plus-append save.
 - Rollback disables preview, accept, and exact inspection entrypoints. Valid v17 records remain inert
   audit evidence and are never deleted or downgraded.
@@ -243,11 +347,13 @@ provider, mutation, retry, rework, commit, push, release, or apply action.
 The future focused runtime smoke must prove:
 
 - atomic v16-to-v17 migration, reload, and future/partial-state rejection;
-- exact Mission, project, blueprint, preview, decision, and evaluatedAt binding;
+- exact active project, Mission, project pack, blueprint and role source, staffingSpec, preview,
+  acceptance, and timestamp binding;
 - idempotent replay and stale or divergent no-write refusal;
-- role, pack, capability, local-stub-only provider, zero-provider-call budget, and authority
+- role, pack, existing `local-stub` provider, zero-provider-call termination policy, and authority
   allowlists;
 - exact mode invariants and parallel mode fail-closed behavior;
+- immutable source/acceptance/blocked-action evidence and canonical record digest;
 - no Council start, WorkOrder creation, scheduler, provider call, source mutation, approval bypass,
   commit, push, or release;
 - existing Council, fixed WorkOrder, checkpoint, proof, delivery, learning, and memory compatibility.
@@ -261,6 +367,7 @@ fit.
 - Source-of-truth reconciliation is recorded as `DEC-162`.
 - This completion plan is accepted as planning-only `DEC-163`.
 - The complete StaffingPlan implementation decision handoff is recorded as `DEC-164`.
+- The implementation-readiness contract clarification is recorded as `DEC-165`.
 - Runtime, schema, API, UI, migration, persistence, inspection, and Council binding remain blocked
   until the operator supplies the complete fielded decision from
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`.

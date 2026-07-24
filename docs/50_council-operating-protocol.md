@@ -416,10 +416,12 @@ position prompt, synthesis, Mission, WorkOrder, policy를 변경하거나 memory
 만들지 않는다. Council context injection이나 application은 별도 complete fielded decision 전까지 blocked다.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
-complete durable StaffingPlan implementation handoff는 `DEC-164`로 기록됐다. 첫 runtime target은
-accepted StaffingPlan을 Council에 연결하지 않는다. It previews and persists one exact immutable
-plan only. Current Council entry, required four-role roster, provider behavior, staffingSnapshot,
-alignment, and downstream gates remain unchanged until a later accepted-plan binding decision.
+complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
+clarification은 `DEC-165`로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한
+blueprint의 exact four required ids를 선택하지만 accepted plan을 Council에 연결하지 않는다.
+Conductor synthesis와 three position roles의 runtime mapping은 later binding slice가 소유한다.
+The first slice previews and persists one exact immutable plan only. Current Council entry, provider
+behavior, staffingSnapshot, alignment, and downstream gates remain unchanged.
 
 ## Verification
 

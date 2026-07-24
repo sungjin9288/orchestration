@@ -115,20 +115,32 @@ Initial authority defaults:
 ```text
 StaffingPlan
 - id
+- persisted: true
+- status: accepted
 - missionId
+- projectId / projectPack / workspaceScope
 - mode: solo | council | parallel-specialists
 - selectedAgentIds[]
+- selectedRoles[] derived from current profiles
 - selectionRationale
-- requiredCapabilities[]
 - parallelGroups[][]
-- budget
-  - maxProviderCalls
+- providerMode: local-stub
+- terminationPolicy
+  - maxProviderCalls: 0
   - maxTurnsPerAgent
   - deadlineMs
-- terminationPolicy
-- status: proposed | accepted | rejected | expired
-- createdAt
-- decidedAt
+  - stopOnRequiredRoleFailure: true
+- sourceRefs[] / blueprintSourceRefs[]
+- missionDigest / blueprintDigest / staffingSpecDigest / sourceDigest
+- sourcePreviewId / sourcePreviewDigest
+- acceptance
+  - decision: accept
+  - acknowledgement
+  - rationale
+  - reviewedAt
+- blockedActions[]
+- evaluatedAt / acceptedAt / createdAt / updatedAt
+- recordDigest
 ```
 
 Staffing selection rules:
@@ -136,8 +148,17 @@ Staffing selection rules:
 - 단순 분류, 조회, deterministic status는 `solo`를 우선한다.
 - 의미 있는 trade-off, architecture impact, 모호한 목표는 `council` 후보가 된다.
 - 서로 독립적인 조사나 검토만 `parallel-specialists` 후보가 된다.
+- First durable slice는 existing AgentProfile role, pack, provider, tool, authority fields만
+  검증하며 새 capability vocabulary를 만들지 않는다.
+- Council selectedAgentIds는 Conductor를 포함한
+  `defaultStaffingPolicy.requiredCouncilAgentIds` 네 개와 정확히 일치한다.
+- Preview와 acceptance마다 strict CompanyBlueprint와 nine role source를 다시 읽고 digest를
+  계산한다. Runtime-startup snapshot은 current source evidence를 대신하지 않는다.
+- `state.activeProjectId`와 Mission projectId가 다르면 preview와 acceptance를 거부한다.
 - StaffingPlan acceptance는 source mutation authority가 아니다.
-- Budget 또는 required capability가 없으면 실행하지 않는다.
+- Acceptance는 같은 staffingSpec과 evaluatedAt을 다시 제출하고 exact preview tuple 및 별도
+  acceptance evidence를 검증한다.
+- Schema v17은 `sequences.staffingPlan`과 `staffingPlans`만 additive로 더한다.
 
 ## CouncilSession And CouncilPosition
 
@@ -538,10 +559,12 @@ prompt/policy injection, memory application, automatic selection,
 provider, schema, source/Git/release, scheduling, policy, bypass, and connectors는 blocked다.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
-complete durable StaffingPlan implementation handoff는 `DEC-164`로 기록됐다.
+complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
+clarification은 `DEC-165`로 기록됐다.
 `docs/113_ai-company-multi-agent-completion-plan.md`는 첫 runtime target을 one source-current draft
-Mission과 current CompanyBlueprint plus operator-owned staffingSpec에서 preview하고 separate exact
-accept decision으로 schema-v17 immutable StaffingPlan 하나를 append하는 경로로 제한한다.
+Mission, active project, freshly reloaded CompanyBlueprint and role sources, operator-owned
+staffingSpec/evaluatedAt에서 preview하고 same spec recomputation plus separate exact acceptance로
+schema-v17 immutable StaffingPlan 하나를 append하는 경로로 제한한다.
 StaffingPlan acceptance는 Council start, WorkOrder creation, scheduler, parallel execution, retry,
 rework, provider, memory application, source mutation, Git/release, policy, bypass, or connector
 authority를 열지 않는다.

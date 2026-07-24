@@ -394,7 +394,7 @@ const informationalChecks = [
   {
     id: 'ai-company-multi-agent-completion-planning',
     script: 'scripts/smoke-ai-company-multi-agent-completion-planning.mjs',
-    purpose: 'AI Company multi-agent completion planning source-checks DEC-162 through DEC-164, the staged completion sequence, one schema-v17 durable StaffingPlan target, complete fielded handoff, rollback, focused verification, and every still-blocked runtime authority',
+    purpose: 'AI Company multi-agent completion planning source-checks DEC-162 through DEC-165, the staged completion sequence, clarified schema-v17 StaffingPlan contract, complete fielded handoff, rollback, focused verification, and every still-blocked runtime authority',
   },
   {
     id: 'ai-company-runtime-blueprint-planning',

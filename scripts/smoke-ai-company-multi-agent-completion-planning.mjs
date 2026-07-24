@@ -46,11 +46,20 @@ assert.match(plan, /### Stage 7: Reviewed Mission Context Attachment/);
 assert.match(plan, /### Stage 8: Provider Expansion And Dogfood/);
 assert.match(plan, /atomic schema-v16 to schema-v17 migration/);
 assert.match(plan, /parallel-specialists.*rejected while/s);
-assert.match(plan, /providerMode: local-stub-only/);
-assert.match(plan, /operator-owned `evaluatedAt`/);
+assert.match(plan, /providerMode: local-stub/);
+assert.doesNotMatch(plan, /requiredCapabilities/);
+assert.match(plan, /blueprintDigest/);
+assert.match(plan, /nine AgentProfile role sources/);
+assert.match(plan, /including Conductor/);
+assert.match(plan, /the same staffingSpec and preview tuple/);
+assert.match(plan, /acknowledgement: reviewed-exact-staffing-plan-for-local-record/);
+assert.match(plan, /blockedActions\[\]/);
+assert.match(plan, /sequences\.staffingPlan/);
+assert.match(plan, /Reject schema v18\+/);
 assert.match(plan, /stop before Council or execution/);
 assert.match(plan, /planning-only `DEC-163`/);
 assert.match(plan, /handoff is recorded as `DEC-164`/);
+assert.match(plan, /clarification is recorded as `DEC-165`/);
 
 assert.match(
   handoff,
@@ -62,22 +71,36 @@ assert.match(
 );
 assert.match(handoff, /approve-ai-company-durable-staffing-plan-implementation-slice/);
 assert.match(handoff, /schema-v17 immutable accepted StaffingPlan/);
-assert.match(handoff, /providerMode=local-stub-only and maxProviderCalls=0/);
-assert.match(handoff, /explicit evaluatedAt/);
+assert.match(handoff, /providerMode=local-stub/);
+assert.match(handoff, /maxProviderCalls=0/);
+assert.match(handoff, /src\/runtime\/company-blueprint\.js/);
 assert.match(handoff, /src\/runtime\/staffing-plans\.js/);
 assert.match(handoff, /scripts\/smoke-ui-slice-696\.mjs/);
+assert.match(handoff, /sequences\.staffingPlan/);
+assert.match(handoff, /future schema 17 becomes 18/);
+assert.match(handoff, /reviewed-exact-staffing-plan-for-local-record/);
+assert.match(handoff, /same staffingSpec and evaluatedAt/);
+assert.match(handoff, /with source refs acceptance blockedActions and recordDigest/);
+assert.match(handoff, /company\/roles\/conductor\.md/);
+assert.match(handoff, /company\/roles\/ops\.md/);
+assert.doesNotMatch(handoff, /providerMode=local-stub-only/);
 assert.match(handoff, /delegated self-approval for schema migration or durable record creation/);
 assert.match(handoff, /Runtime and schema implementation remain blocked/);
 
-for (const decisionId of ['DEC-162', 'DEC-163', 'DEC-164']) {
+for (const decisionId of ['DEC-162', 'DEC-163', 'DEC-164', 'DEC-165']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
+assert.match(masterPlan, /`DEC-163`, `DEC-164`, `DEC-165`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
+assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
+assert.match(councilProtocol, /clarification은 `DEC-165`/);
 assert.match(deliveryRoadmap, /## VNext Multi-Agent Completion Sequence/);
+assert.match(deliveryRoadmap, /readiness clarification은 `DEC-165`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
+assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
 assert.match(
   readme,
@@ -86,8 +109,16 @@ assert.match(
 assert.match(readme, /Durable StaffingPlan\s+runtime and schema implementation remain blocked/);
 assert.match(taskLedger, /ai-company-multi-agent-completion-planning-post-m7-2006/);
 assert.match(
+  taskLedger,
+  /ai-company-durable-staffing-plan-readiness-clarification-post-m7-2007/,
+);
+assert.match(
   lessons,
   /A Council `staffingSnapshot` is execution context, not an operator-accepted durable StaffingPlan/,
+);
+assert.match(
+  lessons,
+  /An implementation handoff is not decision-complete when its nouns do not exist/,
 );
 assert.match(verification, /id: 'ai-company-multi-agent-completion-planning'/);
 assert.match(
@@ -117,6 +148,7 @@ process.stdout.write(
         reconciliation: 'accepted-dec-162',
         planning: 'accepted-dec-163',
         handoff: 'documented-dec-164',
+        clarification: 'accepted-dec-165',
         implementation: 'complete-fielded-decision-required',
       },
       currentRuntime: {

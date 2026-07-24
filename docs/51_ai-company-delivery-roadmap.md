@@ -503,7 +503,11 @@ gap을 다음 순서로 닫는다.
 8. Phase 9 isolated dogfood scenarios와 honest README evidence를 닫는다.
 
 Source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`, first durable StaffingPlan
-implementation handoff는 `DEC-164`로 기록됐다. The handoff is not implementation authority.
+implementation handoff는 `DEC-164`, readiness clarification은 `DEC-165`로 기록됐다. The
+clarified handoff fixes active-project binding, fresh blueprint and role-source digests, existing
+role/provider vocabulary, full staffingSpec resubmission, separate acceptance evidence, one canonical
+termination policy, exact timestamps, blockedActions, and schema-sensitive compatibility fixtures.
+The handoff is not implementation authority.
 Schema-v17 migration, StaffingPlan runtime/API/UI, persistence, inspection, Council binding, scheduling,
 parallel execution, rework, memory application, provider expansion, source/Git/release, policy,
 bypass, and connectors remain blocked until their complete fielded decisions.
@@ -549,11 +553,11 @@ Mission memory context review without injection. `DEC-131` through `DEC-136` add
 verification planning, optimistic state transactions, AcceptanceCriterion and VerificationProof
 records, one-step continuation preview, optional exact fetch, and measurement-only context telemetry.
 
-The immediate next runtime gate is the durable StaffingPlan slice planned by `DEC-163` and handed off
-by `DEC-164`. It requires one complete fielded operator decision before schema-v17 migration or any
-runtime/API/UI edit. Council binding, automatic staffing, general scheduling, parallel execution,
-retry/rework, Ops commands, context application, provider-backed WorkOrders, source/Git/release,
-policy, bypass, and connectors remain separate later decisions.
+The immediate next runtime gate is the durable StaffingPlan slice planned by `DEC-163`, handed off
+by `DEC-164`, and clarified by `DEC-165`. It requires one complete fielded operator decision before
+schema-v17 migration or any runtime/API/UI edit. Council binding, automatic staffing, general
+scheduling, parallel execution, retry/rework, Ops commands, context application, provider-backed
+WorkOrders, source/Git/release, policy, bypass, and connectors remain separate later decisions.
 
 Implemented acceptance target:
 

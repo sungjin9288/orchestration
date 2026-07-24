@@ -134,11 +134,14 @@ browser presentation only.
 AI Company multi-agent completion planning is accepted by `DEC-163` in
 `docs/113_ai-company-multi-agent-completion-plan.md`, and `DEC-164` records the complete fielded first
 implementation handoff in
-`docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`. The sequence starts
-with one schema-v17 immutable accepted StaffingPlan, then keeps Council binding, operator-stepped
-scheduling, bounded read-only parallel specialists, Reviewer rework, Ops recovery, reviewed Mission
-context attachment, provider expansion, and dogfood as separate verified stages. Durable StaffingPlan
-runtime and schema implementation remain blocked until the complete fielded decision is supplied.
+`docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`. `DEC-165` clarifies
+the exact active-project, fresh blueprint and role-source digest, existing role/provider vocabulary,
+same-spec recomputation, separate acceptance, timestamp, blocked-authority, and migration contracts.
+The sequence starts with one schema-v17 immutable accepted StaffingPlan, then keeps Council binding,
+operator-stepped scheduling, bounded read-only parallel specialists, Reviewer rework, Ops recovery,
+reviewed Mission context attachment, provider expansion, and dogfood as separate verified stages.
+Durable StaffingPlan runtime and schema implementation remain blocked until the complete fielded
+decision is supplied.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -625,7 +628,7 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The DEC-161 browser baseline plus DEC-162 through
-DEC-164 planning evidence passes aggregate required `1/1`, informational `270/270`, total `271/271`,
+DEC-165 planning evidence passes aggregate required `1/1`, informational `270/270`, total `271/271`,
 and UI QA required `73/73`. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
@@ -2858,9 +2861,9 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161, and
-  the next multi-agent completion plan and handoff are evidence-closed through DEC-164. This is not a
-  claim of hosted production readiness. Focused source and compatibility checks, the local
-  four-viewport browser matrix, UI QA `73/73`, and aggregate `271/271` pass. This remains local
+  the next multi-agent completion plan and clarified handoff are evidence-closed through DEC-165.
+  This is not a claim of hosted production readiness. Focused source and compatibility checks, the
+  local four-viewport browser matrix, UI QA `73/73`, and aggregate `271/271` pass. This remains local
   synthetic/browser evidence rather than hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
@@ -3072,11 +3075,12 @@ Playwright CLI:
 - `DEC-136` adds measurement-only context telemetry. It reports no raw values and performs no payload
   rewrite, truncation, compression, tokenizer estimate, provider call, persistence, Mission injection,
   or token/cost claim.
-- `DEC-162` reconciles current schema-v16 AI Company evidence, `DEC-163` approves completion planning
-  only, and `DEC-164` records the complete durable StaffingPlan implementation handoff. No schema-v17
-  migration, StaffingPlan record, Council binding, scheduler, parallel execution, retry/rework,
-  memory application, provider-backed WorkOrder, source/Git/release, policy, bypass, or connector
-  authority is implemented by those decisions.
+- `DEC-162` reconciles current schema-v16 AI Company evidence, `DEC-163` approves completion planning,
+  `DEC-164` records the durable StaffingPlan implementation handoff, and `DEC-165` clarifies its
+  digest, current vocabulary, acceptance, immutable evidence, timestamp, and migration contracts. No
+  schema-v17 migration, StaffingPlan record, Council binding, scheduler, parallel execution,
+  retry/rework, memory application, provider-backed WorkOrder, source/Git/release, policy, bypass, or
+  connector authority is implemented by those decisions.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

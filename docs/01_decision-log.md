@@ -1068,6 +1068,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one immutable accepted StaffingPlan preview/persistence/inspection slice. It records no implementation outcome and opens no schema migration, durable record, Council start, WorkOrder creation, scheduler, provider, source mutation, Git/release, policy, bypass, or connector authority.
 - Needed Before: The operator must supply every required field in one valid implementation decision. Generic approval, `approve all`, delegated self-approval, DEC-163, or this handoff document does not authorize runtime or schema implementation.
 
+### DEC-165
+- Status: `Accepted`
+- Decision: Clarify the durable StaffingPlan implementation handoff before implementation by binding it to current repository vocabulary and complete immutable evidence.
+- Why: Read-only readiness audit found that the initial handoff did not define the CompanyBlueprint and role-source digest, referred to a capability vocabulary and provider mode that do not exist, omitted full staffingSpec resubmission and acceptance evidence, used a nonstandard sequence name, and left source, blocked-authority, active-project, timestamp, and schema-sensitive fixture rules incomplete.
+- Impact: `docs/113_ai-company-multi-agent-completion-plan.md` and `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md` now fix `sequences.staffingPlan`, fresh blueprint and nine role-source digest calculation, existing AgentProfile role/pack/provider/tool/authority validation, exact four-id Council selection including Conductor, `providerMode=local-stub`, one zero-provider-call termination policy, same-spec preview recomputation, separate acceptance evidence, immutable source and blocked-action fields, exact timestamp policy, and current=17/future=18 compatibility fixture updates. This decision changes no runtime, schema, API, UI, provider, source, Git, scheduler, policy, or connector behavior.
+- Needed Before: Runtime and schema implementation still require the complete fielded decision in `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`. DEC-165 is planning clarification only and cannot authorize migration, persistence, Council binding, WorkOrder creation, scheduling, provider calls, source mutation, commit, push, release, policy mutation, approval bypass, or connectors.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

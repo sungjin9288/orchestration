@@ -111,10 +111,14 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163`, `DEC-164`
+- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
+- Readiness clarification: exact active-project binding, fresh normalized-blueprint plus nine
+  role-source digest, existing role/provider vocabulary, exact staffingSpec resubmission, separate
+  acceptance evidence, one termination policy, source and blocked-action evidence, timestamp policy,
+  and schema-sensitive fixture migration
 - Allowed: docs, decision log, README, task and completion evidence, planning smoke, aggregate
   registration, verification, commit, push
 - Still blocked: schema-v17 migration, StaffingPlan runtime/API/UI or durable record, Council binding,
