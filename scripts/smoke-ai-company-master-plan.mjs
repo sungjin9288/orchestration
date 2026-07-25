@@ -387,6 +387,7 @@ process.stdout.write(
         'DEC-172',
         'DEC-173',
         'DEC-174',
+        'DEC-175',
       ],
       currentRuntime: {
         schemaVersion: 19,
@@ -477,7 +478,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Stage 4A SpecialistBatchPreview implementation decision required',
+      nextGate: 'DEC-176 Stage 4A SpecialistBatchPreview implementation decision required',
     },
     null,
     2,

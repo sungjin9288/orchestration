@@ -68,7 +68,9 @@ assert.match(plan, /scheduler planning is recorded as `DEC-170`/);
 assert.match(plan, /implementation handoff is recorded as `DEC-171`/);
 assert.match(plan, /implemented as `DEC-172`/);
 assert.match(plan, /`DEC-173` accepts planning only/);
-assert.match(plan, /`DEC-174` records the complete fielded implementation handoff/);
+assert.match(plan, /`DEC-174` records the fielded implementation handoff/);
+assert.match(plan, /`DEC-175`[\s\S]*readiness gaps/);
+assert.match(plan, /`DEC-176` implementation decision/);
 
 assert.match(
   handoff,
@@ -110,6 +112,7 @@ for (const decisionId of [
   'DEC-172',
   'DEC-173',
   'DEC-174',
+  'DEC-175',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
@@ -185,6 +188,7 @@ process.stdout.write(
         operatorSteppedSchedulerImplementation: 'accepted-dec-172',
         specialistBatchPreviewPlanning: 'accepted-dec-173',
         specialistBatchPreviewHandoff: 'documented-dec-174',
+        specialistBatchPreviewClarification: 'accepted-dec-175',
       },
       currentRuntime: {
         schemaVersion: 19,
@@ -200,6 +204,7 @@ process.stdout.write(
         stage: 4,
         object: 'specialist-batch-preview',
         implementationAllowed: false,
+        nextDecisionLogEntry: 'DEC-176',
       },
       authority: {
         documentationAllowed: true,
