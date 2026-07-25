@@ -120,6 +120,8 @@ Planning source files:
 - `docs/116_ai-company-staffing-entry-binding-implementation-decision-handoff.md`
 - `docs/117_ai-company-operator-stepped-workorder-scheduler-plan.md`
 - `docs/118_ai-company-operator-stepped-workorder-scheduler-implementation-decision-handoff.md`
+- `docs/119_ai-company-bounded-parallel-read-only-specialists-plan.md`
+- `docs/120_ai-company-specialist-batch-preview-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -163,6 +165,12 @@ Builder/Reviewer/QA plan, one active-before-coordinator WorkOrderAttempt per exp
 one local role boundary per command, and exact attempt inspection. Solo, parallel specialists,
 retry/rework, interrupted-attempt recovery, provider/background WorkOrders, memory application,
 source/Git/release, policy bypass, and connectors remain blocked.
+
+`DEC-173` records the Stage 4A bounded parallel read-only specialists plan and `DEC-174` records its
+complete fielded implementation handoff. The next gate is one response-only schema-v19
+SpecialistBatchPreview for exact source-current Researcher and QA contracts; it does not change the
+closed CompanyBlueprint policy or execute specialists. Schema-v20 durable batches/cells, actual
+concurrency, cancellation, retry/recovery, provider calls, and all downstream authority remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -654,8 +662,9 @@ evidence plus AI Company durable DeliveryPackage, acceptance implementation, and
 close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The DEC-161 browser baseline plus DEC-162 through
-DEC-169 StaffingPlan and StaffingEntry implementation evidence and DEC-170 through DEC-172 Stage 3
-scheduler evidence pass aggregate required `1/1`, informational `275/275`, total `276/276`, and UI QA
+DEC-169 StaffingPlan and StaffingEntry implementation evidence, DEC-170 through DEC-172 Stage 3
+scheduler evidence, and DEC-173/174 Stage 4A planning evidence pass aggregate required `1/1`,
+informational `276/276`, total `277/277`, and UI QA
 required `76/76`. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
@@ -2316,7 +2325,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 957 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 958 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 698 UI smoke files
 ```
@@ -2890,13 +2899,14 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161, and
-  the first multi-agent completion runtime slices are evidence-closed through DEC-172.
-  DEC-169 implements Council-first StaffingEntry binding; DEC-172 implements only the exact
-  schema-v19 operator-stepped local Builder/Reviewer/QA path. Solo execution, parallel specialists,
-  retry/rework, interrupted-attempt recovery, provider/background WorkOrders, memory application,
-  source/Git/release, policy bypass, and connectors remain blocked. This is not a claim of hosted
-  production readiness. Focused source and compatibility checks, the local browser matrix, UI QA
-  `76/76`, and aggregate `276/276` pass. This remains local
+  the first multi-agent completion runtime slices are evidence-closed through DEC-172. DEC-173/174
+  add planning-only Stage 4A evidence, not a parallel implementation. DEC-169 implements
+  Council-first StaffingEntry binding; DEC-172 implements only the exact schema-v19 operator-stepped
+  local Builder/Reviewer/QA path. The next required decision is the response-only
+  SpecialistBatchPreview gate. Actual concurrency, schema-v20 records, retry/recovery, provider/
+  background WorkOrders, memory application, source/Git/release, policy bypass, and connectors remain
+  blocked. This is not a claim of hosted production readiness. Focused source and compatibility
+  checks, the local browser matrix, UI QA `76/76`, and aggregate `277/277` pass. This remains local
   synthetic/browser evidence rather than hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
@@ -3116,9 +3126,11 @@ Playwright CLI:
   handoff, and `DEC-169` implements the exact accepted-plan binding plus one local-stub first attempt.
   `DEC-170` plans one schema-v19 WorkOrderAttempt and explicit dependency-ready role step,
   `DEC-171` records its complete fielded implementation gate, and `DEC-172` implements that bounded
-  path. Solo execution, bound Council revision/resume/auto-chain, retry/rework, parallel execution,
-  interrupted-attempt recovery, memory application, provider/background WorkOrders,
-  source/Git/release, policy, bypass, and connector authority remain blocked.
+  path. `DEC-173` plans the Stage 4A response-only SpecialistBatchPreview and `DEC-174` records its
+  complete fielded implementation decision. Actual parallel execution, schema-v20 records, bound
+  Council revision/resume/auto-chain, retry/rework, interrupted-attempt recovery, memory application,
+  provider/background WorkOrders, source/Git/release, policy, bypass, and connector authority remain
+  blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

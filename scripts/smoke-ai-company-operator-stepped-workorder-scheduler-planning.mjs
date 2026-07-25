@@ -85,7 +85,7 @@ assert.match(
   /scripts\/smoke-ai-company-operator-stepped-workorder-scheduler-planning\.mjs/,
 );
 
-for (const decisionId of ['DEC-169', 'DEC-170', 'DEC-171', 'DEC-172']) {
+for (const decisionId of ['DEC-169', 'DEC-170', 'DEC-171', 'DEC-172', 'DEC-173', 'DEC-174']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -106,6 +106,7 @@ assert.match(runtimeContract, /bounded implementation은 `DEC-172`/);
 assert.match(councilProtocol, /implementation은 `DEC-172`/);
 assert.match(deliveryRoadmap, /`DEC-172` implements the bounded schema-v19 path/);
 assert.match(inventory, /AI Company operator-stepped WorkOrder scheduler implementation \| pass/);
+assert.match(inventory, /AI Company bounded parallel read-only specialists planning \| pass/);
 assert.match(readme, /docs\/117_ai-company-operator-stepped-workorder-scheduler-plan\.md/);
 assert.match(
   readme,
@@ -117,12 +118,14 @@ assert.match(
   /A durable operator-stepped scheduler must record an active attempt before coordinator execution/,
 );
 assert.match(verification, /id: 'ai-company-operator-stepped-workorder-scheduler-planning'/);
+assert.match(verification, /id: 'ai-company-bounded-parallel-read-only-specialists-planning'/);
 assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-operator-stepped-workorder-scheduler-planning\.mjs'/,
 );
 
 assert.match(completionPlan, /### Stage 3: Operator-Stepped WorkOrder Scheduler/);
+assert.match(completionPlan, /### Stage 4A: SpecialistBatchPreview/);
 assert.match(contracts, /const STATE_SCHEMA_VERSION = 19/);
 assert.match(contracts, /workOrderAttempt: 0/);
 assert.match(contracts, /workOrderAttempts: \{\}/);
@@ -185,7 +188,7 @@ process.stdout.write(
         runtimeAgentPushAllowed: false,
       },
       nextRequiredDecision:
-        'operator-decision-ai-company-bounded-parallel-read-only-specialists-planning-001',
+        'operator-decision-ai-company-specialist-batch-preview-implementation-001',
     },
     null,
     2,

@@ -415,6 +415,10 @@ same-project draft Mission을 response/browser-memory에서 함께 검토할 뿐
 position prompt, synthesis, Mission, WorkOrder, policy를 변경하거나 memory application authority를
 만들지 않는다. Council context injection이나 application은 별도 complete fielded decision 전까지 blocked다.
 
+Stage 4A planning is accepted by `DEC-173`, and `DEC-174` records the Stage 4A SpecialistBatchPreview implementation decision handoff. A future preview can inspect the exact approved StaffingEntry-bound local
+Council synthesis and expose two source-backed read-only contracts, but it cannot execute specialists,
+call a provider, persist results, change Council policy, or alter Council alignment behavior.
+
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한

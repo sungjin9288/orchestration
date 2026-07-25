@@ -465,6 +465,12 @@ Current runtime은 이 response/browser-memory preview만 제공하며 Mission/C
 injection, memory application, automatic selection, provider, schema, source/Git/release, scheduling,
 policy, bypass, and connectors remain blocked.
 
+Stage 4A bounded parallel specialists planning is accepted as `DEC-173`, and its complete fielded
+`SpecialistBatchPreview` implementation handoff is `DEC-174`. The next gate is the Stage 4A SpecialistBatchPreview implementation decision: one schema-v19 response/browser-memory-only preview
+of two independent Researcher and QA contracts. Actual parallel workers, durable schema-v20 batch or
+cell records, cancellation, retry/recovery, provider calls, and CompanyBlueprint policy change remain
+blocked.
+
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현

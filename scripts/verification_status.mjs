@@ -407,6 +407,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 3 planning source-checks DEC-170 and DEC-171, the future schema-v19 WorkOrderAttempt lifecycle, exact bound source gate, deterministic dependency-ready selection, one-role start or step boundary, rollback, focused verification, and still-blocked implementation authority',
   },
   {
+    id: 'ai-company-bounded-parallel-read-only-specialists-planning',
+    script: 'scripts/smoke-ai-company-bounded-parallel-read-only-specialists-planning.mjs',
+    purpose: 'AI Company Stage 4A planning source-checks DEC-173 and DEC-174, the schema-v19 response-only SpecialistBatchPreview contract, closed parallel policy, exact Researcher and QA role constraints, future implementation handoff, and still-blocked concurrent execution authority',
+  },
+  {
     id: 'ai-company-operator-stepped-workorder-scheduler',
     script: 'scripts/smoke-ai-company-operator-stepped-workorder-scheduler.mjs',
     purpose: 'AI Company Stage 3 runtime proves schema-v18 to v19 migration, exact bound source and approval gates, active-before-coordinator WorkOrderAttempt evidence, deterministic one-role start and step commands, exact replay and inspection, failure blocking, and absent retry rework parallel provider background Git release memory policy bypass or connector authority',

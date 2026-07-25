@@ -40,7 +40,9 @@ assert.match(plan, /approve-ai-company-multi-agent-completion-planning-only/);
 assert.match(plan, /## Completion Sequence/);
 assert.match(plan, /### Stage 1: Durable StaffingPlan/);
 assert.match(plan, /### Stage 3: Operator-Stepped WorkOrder Scheduler/);
-assert.match(plan, /### Stage 4: Bounded Parallel Read-Only Specialists/);
+assert.match(plan, /### Stage 4A: SpecialistBatchPreview/);
+assert.match(plan, /### Stage 4B: Durable Concurrent First Attempt/);
+assert.match(plan, /### Stage 4C: Failed-Cell Retry And Recovery/);
 assert.match(plan, /### Stage 5: Reviewer Rework/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
 assert.match(plan, /### Stage 7: Reviewed Mission Context Attachment/);
@@ -65,6 +67,8 @@ assert.match(plan, /implementation is recorded as `DEC-166`/);
 assert.match(plan, /scheduler planning is recorded as `DEC-170`/);
 assert.match(plan, /implementation handoff is recorded as `DEC-171`/);
 assert.match(plan, /implemented as `DEC-172`/);
+assert.match(plan, /`DEC-173` accepts planning only/);
+assert.match(plan, /`DEC-174` records the complete fielded implementation handoff/);
 
 assert.match(
   handoff,
@@ -104,6 +108,8 @@ for (const decisionId of [
   'DEC-170',
   'DEC-171',
   'DEC-172',
+  'DEC-173',
+  'DEC-174',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
@@ -126,6 +132,7 @@ assert.match(
 assert.match(readme, /`DEC-166` consumes that handoff and implements[\s\S]*schema-v16-to-v17/);
 assert.match(readme, /`DEC-169` consumes[\s\S]*immutable schema-v18 StaffingEntry/);
 assert.match(readme, /`DEC-170` records Stage 3 operator-stepped WorkOrder scheduler planning/);
+assert.match(readme, /`DEC-173` records the Stage 4A bounded parallel read-only specialists plan/);
 assert.match(taskLedger, /ai-company-multi-agent-completion-planning-post-m7-2006/);
 assert.match(
   taskLedger,
@@ -176,6 +183,8 @@ process.stdout.write(
         operatorSteppedSchedulerPlanning: 'accepted-dec-170',
         operatorSteppedSchedulerHandoff: 'documented-dec-171',
         operatorSteppedSchedulerImplementation: 'accepted-dec-172',
+        specialistBatchPreviewPlanning: 'accepted-dec-173',
+        specialistBatchPreviewHandoff: 'documented-dec-174',
       },
       currentRuntime: {
         schemaVersion: 19,
@@ -189,7 +198,7 @@ process.stdout.write(
       },
       nextPlanningTarget: {
         stage: 4,
-        object: 'bounded-read-only-parallel-specialists',
+        object: 'specialist-batch-preview',
         implementationAllowed: false,
       },
       authority: {
@@ -201,6 +210,8 @@ process.stdout.write(
         operatorSteppedSchedulerPlanningAllowed: true,
         workOrderAttemptImplementationAllowed: true,
         operatorSteppedSchedulingAllowed: true,
+        specialistBatchPreviewPlanningAllowed: true,
+        specialistBatchPreviewImplementationAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,
         providerExpansionAllowed: false,

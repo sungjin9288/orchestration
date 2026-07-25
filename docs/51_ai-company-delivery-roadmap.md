@@ -496,7 +496,7 @@ gap을 다음 순서로 닫는다.
    저장하고 exact-id로 검사한다;
 2. accepted StaffingPlan을 Council 또는 solo entry에 source-current하게 bind한다;
 3. dependency-ready WorkOrder를 explicit step으로 실행하는 general scheduler를 만든다;
-4. read-only independent specialist cells만 bounded parallel로 실행한다;
+4. Stage 4A response-only SpecialistBatchPreview를 먼저 검토한 뒤, 별도 schema-v20 decision에서만 read-only independent specialist cells의 bounded execution을 연다;
 5. Reviewer changes-requested를 새 operator-approved Builder attempt로 연결한다;
 6. Ops가 attempt, checkpoint, budget, cancellation, quarantine, safe resume를 감독한다;
 7. reviewed Mission context attachment와 role별 provider expansion을 별도 권한으로 연다;
@@ -567,9 +567,12 @@ complete fielded implementation handoff, and `DEC-172` implements the bounded sc
 One exact bound plan now persists an active WorkOrderAttempt before coordinator execution and runs
 one local dependency-ready Builder, Reviewer, or QA role per explicit start or step. Automatic
 retry/rework, interrupted-attempt recovery, parallel/provider/background scheduling, source/Git/
-release, memory application, policy mutation, bypass, and connectors remain blocked. The immediate
-next completion gate is Stage 4 bounded read-only parallel specialists, which still requires a
-separate complete fielded decision.
+release, memory application, policy mutation, bypass, and connectors remain blocked. `DEC-173`
+accepts Stage 4A planning and `DEC-174` records the complete fielded Stage 4A SpecialistBatchPreview
+implementation decision handoff. The immediate next gate is the complete fielded implementation
+decision described by that handoff; schema-v20 durable concurrent
+records, actual parallel execution, cancellation, retry/recovery, provider calls, and policy changes
+remain blocked.
 
 Implemented acceptance target:
 

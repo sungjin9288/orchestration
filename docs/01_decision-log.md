@@ -1124,6 +1124,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Runtime now validates the complete StaffingPlan, StaffingEntry, CouncilSession, Mission, CompanyBlueprint, role-source, compileSpec, plan-approval, checkpoint, and Builder-gate evidence chain before each command. It migrates schema v18 to v19 additively, saves one durable active WorkOrderAttempt before coordinator execution, selects one dependency-ready WorkOrder by position then id, executes exactly one local role boundary per explicit start or step, and records one terminal attempt transition plus exact inspection evidence. Existing unbound Council and WorkOrder flows remain compatible. Solo, parallel specialists, retry/rework, active-attempt recovery, provider or background WorkOrders, memory application, source mutation expansion, runtime-agent Git/release, policy mutation, approval bypass, lifecycle search/delete, and connectors remain blocked.
 - Needed Before: Stage 4 bounded read-only parallel specialists or any blocked authority requires its own complete fielded decision and focused verification. An interrupted active attempt remains inspectable and scheduling-blocking until a separate Ops recovery decision is accepted.
 
+### DEC-173
+- Status: `Accepted`
+- Decision: Accept `docs/119_ai-company-bounded-parallel-read-only-specialists-plan.md` as planning-only authority for the first Stage 4A SpecialistBatchPreview slice.
+- Why: Schema-v19 has one-active sequential WorkOrderAttempt evidence, while CompanyBlueprint policy explicitly disables parallel specialists and the loader rejects a true policy. No SpecialistBatch, SpecialistCellAttempt, response-only preview, or safe independent-cell contract exists yet.
+- Impact: The plan splits Stage 4 into response-only preview, future durable concurrency, and later retry/recovery. It fixes exactly two Researcher/QA read-only cell contracts, source and path digest gates, local-stub-only zero-provider-call posture, browser-memory-only result, rollback, and focused planning verification without changing runtime, schema, API, UI, provider, policy, source, Git, scheduler, bypass, or connector behavior.
+- Needed Before: The exact implementation decision in `docs/120_ai-company-specialist-batch-preview-implementation-decision-handoff.md` is required before any Stage 4A implementation. Schema-v20, durable records, actual parallel execution, cancellation, retry/recovery, provider calls, and all downstream authorities remain blocked.
+
+### DEC-174
+- Status: `Accepted`
+- Decision: Record `docs/120_ai-company-specialist-batch-preview-implementation-decision-handoff.md` as the complete fielded input shape for one response-only schema-v19 SpecialistBatchPreview implementation gate.
+- Why: Generic approval cannot decide the exact approved source tuple, two source-backed profiles, digest and deadline contract, browser-memory lifecycle, API/UI compatibility, rollback, focused smokes, or every concurrent-execution authority that must remain closed.
+- Impact: The handoff defines the only valid Stage 4A approval shape. No implementation authority is recorded. It keeps `parallelSpecialistsAllowed=false`, schema v19, and one-active WorkOrderAttempt behavior intact; it opens no migration, policy change, provider call, worker execution, persistence, start/cancel/retry route, source mutation, Git/release, memory, scheduling, bypass, or connector authority.
+- Needed Before: A complete valid operator decision must be accepted as `DEC-175`. `DEC-173`, this handoff, generic approval, delegated self-approval, or continuation does not authorize implementation.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

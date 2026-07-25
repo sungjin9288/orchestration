@@ -448,6 +448,12 @@ attempt before the coordinator, runs one dependency-ready local role, and transi
 once with exact evidence. Retry/rework, interrupted-active recovery, parallel/provider/background
 scheduling, source/Git/release, memory application, policy bypass, and connectors remain blocked.
 
+The next gate is the Stage 4A SpecialistBatchPreview implementation decision recorded by `DEC-174`.
+It may only return a schema-v19 response/browser-memory preview for the source-backed Researcher and
+QA read-only contracts. `parallelSpecialistsAllowed=false`, one-active WorkOrderAttempt, schema-v20
+records, actual parallel execution, provider calls, cancellation, retry/recovery, and policy changes
+remain outside the runtime contract until separate complete fielded decisions are accepted.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

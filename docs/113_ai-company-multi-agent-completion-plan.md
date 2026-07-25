@@ -114,14 +114,28 @@ remain outside this stage.
 
 Mutable targets are serialized. Builder retains the current targeted live-mutation approval.
 
-### Stage 4: Bounded Parallel Read-Only Specialists
+### Stage 4A: SpecialistBatchPreview
 
-Enable Researcher and independent verification cells only when their inputs are immutable, their
-workspace is read-only, and their dependency and target sets do not overlap.
+`DEC-173` accepts planning only and `DEC-174` records the complete fielded implementation handoff
+in `docs/119_ai-company-bounded-parallel-read-only-specialists-plan.md` and
+`docs/120_ai-company-specialist-batch-preview-implementation-decision-handoff.md`. The first slice
+is one response-only schema-v19 preview for exactly two independent Researcher and QA contracts after
+an approved StaffingEntry-bound local Council synthesis and before WorkOrder plan persistence.
 
-Use a small source-backed concurrency limit, per-cell cancellation and deadline, bounded provider
-budget, and partial-result checkpoints. Successful cells are retained; failed cells require one
-explicit retry command.
+It preserves `parallelSpecialistsAllowed=false`, exposes no worker execution or durable record, and
+requires a separate `DEC-175` implementation decision. Current schema-v19 one-active WorkOrderAttempt
+behavior remains authoritative.
+
+### Stage 4B: Durable Concurrent First Attempt
+
+Only a future schema-v20 decision may add durable SpecialistBatch and SpecialistCellAttempt records
+and one request-scoped bounded concurrent first attempt. It must not add background scheduling or
+infer a successful result after interruption.
+
+### Stage 4C: Failed-Cell Retry And Recovery
+
+Only a later decision may retain successful cell evidence and permit an explicit bounded retry for a
+failed cell. Active-attempt recovery remains part of Ops supervision, not a retry shortcut.
 
 ### Stage 5: Reviewer Rework
 
