@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Stage 4 begins with a planning contract, not concurrent execution. `DEC-173` accepts planning only for one response-only `SpecialistBatchPreview` that describes two independent, read-only specialist cells after an exact approved StaffingEntry-bound local Council synthesis and before WorkOrder plan persistence. `DEC-175` closes the implementation-readiness gaps in the request, digest, path, deadline, transport, and browser-lifecycle contracts. It keeps schema v19, repository state, CompanyBlueprint policy, and every existing runtime/API/UI behavior unchanged.
+Stage 4 begins with a response-only contract, not concurrent execution. `DEC-173` accepts planning only for one `SpecialistBatchPreview`, `DEC-175` closes the implementation-readiness gaps, and `DEC-176` accepts and implements the exact bounded slice. The runtime now describes two independent, read-only specialist cells after an exact approved StaffingEntry-bound local Council synthesis and before WorkOrder plan persistence while keeping schema v19, repository state, and CompanyBlueprint policy unchanged.
 
 The plan deliberately separates a useful reviewable contract from the riskier lifecycle that would execute several workers at once. `WorkOrderAttempt` remains the single-active sequential Builder/Reviewer/QA evidence type; it is not reused for specialist cells.
 
@@ -23,6 +23,11 @@ The plan deliberately separates a useful reviewable contract from the riskier li
 | `stillBlockedAuthorities` | SpecialistBatchPreview implementation, schema-v20 migration, SpecialistBatch or SpecialistCellAttempt persistence, actual concurrency, worker execution, provider calls, cancellation, deadline enforcement, retry/recovery, source mutation, Git/release, memory application, scheduling, policy mutation, approval bypass, and connectors |
 | `approvalStatement` | This decision authorizes planning, documentation, source-only verification, README/inventory/task synchronization, commit, and push only. Generic approval and delegated self-approval do not authorize the architecture-sensitive implementation handoff in `docs/120_ai-company-specialist-batch-preview-implementation-decision-handoff.md`. |
 
+The table above preserves the exact planning-time evidence boundary. `DEC-176` later consumes the
+fielded handoff and removes only the `SpecialistBatchPreview implementation` blocker. Schema-v20
+records, execution, concurrency, providers, retry/recovery, policy mutation, and every downstream
+authority remain blocked.
+
 ## Current Gap And Stage Split
 
 The current CompanyBlueprint is intentionally closed: `parallelSpecialistsAllowed=false`, and the strict loader rejects any true value. The existing StaffingPlan accepts the fixed Council roster with no parallel groups. The schema-v19 scheduler then records one active `WorkOrderAttempt` for a single Builder, Reviewer, or QA boundary. That is the correct contract for mutation-aware delivery, but it cannot represent independent, read-only specialist work without weakening the one-active attempt invariant.
@@ -39,18 +44,18 @@ Stage 4A models cancellation, deadlines, and partial outcomes only as fields tha
 
 ## Stage 4A Source Gate
 
-A future preview must load one state and prove all of the following before returning its response:
+The `DEC-176` preview loads one state and proves all of the following before returning its response:
 
 1. The active project, Mission with `status=aligned` and `linkedTaskId=null`, accepted council-mode StaffingPlan, immutable StaffingEntry, and CouncilSession form the exact current same-project chain.
 2. The StaffingEntry-bound CouncilSession is `real-local-stub`, terminal `approved`, source-current, carries a normalized synthesis, and has no persisted ExecutionPlan.
 3. The CompanyBlueprint and both selected role files are current. `agent-researcher` and `agent-qa` must remain source-backed `development` profiles with `workspacePolicy.mode=shared-readonly`, `providerPolicy.allowedModes=[local-stub]`, `concurrencyLimit=1`, empty write policy, and false source/commit/push authority.
 4. The operator supplies one bounded `specialistSpec`, one exact bounded `compileSpec`, selected project-relative input paths, and an evaluated time. Every path is normalized, contained in the project, and represented by a digest rather than its raw body.
 
-The future preview response exposes source references and digest proofs, never raw file bodies, Council transcripts, environment values, credentials, provider payloads, or external content.
+The preview response exposes source references and digest proofs, never raw file bodies, Council transcripts, environment values, credentials, provider payloads, or external content.
 
 ## Exact Request Contract
 
-The future route accepts `Content-Type: application/json` and at most `65536` request bytes. The
+The implemented route accepts `Content-Type: application/json` and at most `65536` request bytes. The
 body has exactly four top-level fields:
 
 ```json
@@ -122,10 +127,12 @@ with `realpath`, proves the resolved regular file remains inside the project, an
 raw bytes. An in-project symlink may resolve to a contained regular file; a missing path, directory,
 or escaping symlink fails closed.
 
-Each file is capped at 1 MiB and all distinct input files together are capped at 8 MiB. The response
-contains only stable `{ path, byteLength, sha256 }` entries sorted by path. A path shared by both
-cells is read and counted once for the aggregate cap, while each cell keeps its own sorted digest
-references.
+Each file is capped at 1 MiB and all distinct real targets together are capped at 8 MiB. The runtime
+checks the regular-file size before reading bytes, then checks the read length again before hashing.
+The response contains only stable `{ path, byteLength, sha256 }` entries sorted by lexical request
+path. Repeated paths are invalid, while different in-project symlink aliases may resolve to one
+contained regular file and count once toward the aggregate cap. Each cell still keeps its own sorted
+lexical digest references.
 
 The source-current gate runs in this order:
 
@@ -151,7 +158,7 @@ which hash raw file bytes.
 - `specialistSpecDigest` and `compileSpecDigest` cover their complete normalized request objects.
 - `sourceDigest` covers the exact project, Mission, StaffingPlan, StaffingEntry, CouncilSession,
   current attempt, normalized synthesis, current blueprint and selected role-source tuple, plus the
-  unique sorted input-path digest list.
+  unique sorted lexical input-path digest list and the aggregate byte length of unique real targets.
 - Each `cellSpecDigest` covers the normalized cell, its source-backed profile projection, its sorted
   input-path digests, and `compileSpecDigest`.
 - `previewDigest` covers the complete preview payload before `id` and `previewDigest` are attached.
@@ -201,9 +208,9 @@ Nested evidence is also exact:
 exists only in the HTTP response and browser memory. A later durable stage may add authority, result,
 and immutable record digests, but Stage 4A does not pre-create those records.
 
-## Future API And UI
+## Stage 4A API And UI
 
-The only Stage 4A entrypoint proposed for a separately accepted implementation is:
+The only Stage 4A entrypoint is:
 
 ```text
 POST /api/council-sessions/:councilSessionId/specialist-batch-preview
@@ -219,7 +226,9 @@ Errors use the existing `{ error }` envelope: `400` for malformed, unknown, wide
 spec/path/command/timestamp input; `404` for a missing route source or selected file; `409` for stale
 or lifecycle-conflicting evidence; `413` for request or file-byte limits; and `415` for a non-JSON
 content type. There is no GET snapshot, list, start, cancel, retry, execution, or persistence
-endpoint.
+endpoint for the preview. The existing read-only runtime snapshot exposes only an additive
+`companyRuntime.councilSynthesisDigests` tuple so browser memory can reject a preview when its current
+attempt synthesis changes; it never exposes the preview or raw synthesis.
 
 The Council surface uses `state.councilSpecialistBatchDraft` and
 `state.councilSpecialistBatchPreview`. A hard refresh initializes the preview to null. The UI clears
@@ -228,7 +237,12 @@ tuple drift observed during snapshot refresh. It may retain the preview across a
 periodic render. The form shows the two read-only contracts and no execution, result transcript,
 start, cancel, retry, persistence, or downstream WorkOrder mutation control.
 
-Planned implementation targets are `src/runtime/specialist-batch-preview.js`, `src/runtime/runtime-service.js`, `scripts/serve-ui-slice-01.mjs`, `ui/council-signals.js`, `ui/app.js`, `ui/styles.css`, `scripts/smoke-ai-company-specialist-batch-preview.mjs`, `scripts/smoke-ui-slice-699.mjs`, and the verification/UI-QA registries. None exists in this planning slice.
+`DEC-176` implements `src/runtime/specialist-batch-preview.js`,
+`src/runtime/runtime-service.js`, `scripts/serve-ui-slice-01.mjs`,
+`ui/council-signals.js`, `ui/app.js`, `ui/styles.css`,
+`scripts/smoke-ai-company-specialist-batch-preview.mjs`,
+`scripts/smoke-ui-slice-699.mjs`, and the verification/UI-QA registrations. The resulting object
+remains response/browser-memory-only and adds no durable schema member.
 
 ## Future Stage 4B And 4C Boundaries
 
@@ -237,16 +251,20 @@ Stage 4B may only begin after a separate schema-v20 decision. It must persist on
 ## Rollback, Verification, And Stop Condition
 
 Planning rollback is documentation-only: revert this clarification while retaining the original
-planning evidence and leave schema v19 untouched. Future implementation rollback requires removing
+planning evidence and leave schema v19 untouched. Implementation rollback requires removing
 the preview runtime method, POST route, UI form, and browser-memory state together; no feature flag
 is assumed. It discards only ephemeral previews and preserves all source records.
 
-The focused planning smoke must prove `DEC-173` through `DEC-175`, the exact request/spec/path/digest/
-deadline/transport/browser contracts, current false policy and loader rejection, Researcher/QA role
-constraints, documentation and ledger synchronization, absence of future implementation files, and
-all closed authority. Future runtime/API/UI smokes must use one source-current bound fixture; compare
-state bytes before and after success, replay, and every failure; assert exact request/response keys,
-deep freeze, digest parity, stable same-input preview identity, redaction, status/error mapping, and
-browser invalidation. `node scripts/verification_status.mjs` remains the aggregate gate.
+The focused planning smoke proves `DEC-173` through `DEC-175` and the closed policy contract.
+`scripts/smoke-ai-company-specialist-batch-preview.mjs` uses one source-current bound fixture,
+compares state bytes across success and failure, and covers exact request/response keys, deep freeze,
+digest parity, same-input identity, stale synthesis and role evidence, missing/directory/escaping
+paths, duplicate inputs, size-before-read enforcement, real-target alias aggregation, exact 64 KiB
+transport, malformed JSON, redaction, and status mapping. `scripts/smoke-ui-slice-699.mjs` proves
+browser invalidation, duplicate preservation, source-identical retention, digest drift rejection,
+authority absence, and desktop/mobile layout contracts. `node scripts/verification_status.mjs`
+remains the aggregate gate.
 
-This slice stops after those source checks pass. It does not permit schema-v20, policy changes, parallel workers, provider calls, durable records, execution results, source changes, or a new runtime/API/UI behavior.
+This slice stops after returning the response/browser-memory preview. It does not permit schema-v20,
+policy changes, parallel workers, provider calls, durable records, execution results, source changes,
+or any downstream runtime authority.

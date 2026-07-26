@@ -412,6 +412,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 4A planning source-checks DEC-173 and DEC-174, the schema-v19 response-only SpecialistBatchPreview contract, closed parallel policy, exact Researcher and QA role constraints, future implementation handoff, and still-blocked concurrent execution authority',
   },
   {
+    id: 'ai-company-specialist-batch-preview',
+    script: 'scripts/smoke-ai-company-specialist-batch-preview.mjs',
+    purpose: 'AI Company Stage 4A runtime and API prove one exact source-current schema-v19 response-only SpecialistBatchPreview with two fixed read-only cells, raw-byte path digests, exact transport errors, unchanged state bytes, and no worker provider persistence scheduling mutation Git release or policy authority',
+  },
+  {
     id: 'ai-company-operator-stepped-workorder-scheduler',
     script: 'scripts/smoke-ai-company-operator-stepped-workorder-scheduler.mjs',
     purpose: 'AI Company Stage 3 runtime proves schema-v18 to v19 migration, exact bound source and approval gates, active-before-coordinator WorkOrderAttempt evidence, deterministic one-role start and step commands, exact replay and inspection, failure blocking, and absent retry rework parallel provider background Git release memory policy bypass or connector authority',

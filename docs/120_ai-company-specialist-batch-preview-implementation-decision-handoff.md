@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the complete fielded approval shape for the smallest Stage 4A implementation: one deterministic response-only `SpecialistBatchPreview` from one exact source-current approved StaffingEntry-bound local Council synthesis. It describes a reviewable contract only. `DEC-174` records the handoff, and planning-only `DEC-175` binds its exact request, digest, path, deadline, transport, rollback, and browser-lifecycle contracts. `DEC-176` is reserved for a future accepted implementation decision.
+This document is the complete fielded approval shape for the smallest Stage 4A implementation: one deterministic response-only `SpecialistBatchPreview` from one exact source-current approved StaffingEntry-bound local Council synthesis. `DEC-174` records the handoff, planning-only `DEC-175` binds its exact contracts, and `DEC-176` consumes the valid operator decision and implements the bounded slice. This document remains immutable decision provenance rather than reusable authority.
 
 Planning-only `DEC-173`, generic approval, broad continuation, and delegated self-approval do not open implementation. A valid operator decision must provide every field below in one request.
 
@@ -48,7 +48,7 @@ approvalStatement=I approve implementation only for one deterministic response-o
 
 ## Decision Handling
 
-Only an exact valid approval may be accepted as `DEC-176`. Any missing, widened, stale, or contradictory field leaves implementation blocked. An evidence request, rejection, or deferral records no runtime outcome. The future implementation must keep the preview separate from the schema-v20 durable concurrency and retry/recovery stages described in the plan.
+The exact valid approval was accepted as `DEC-176`. Any future widened, stale, or contradictory request remains blocked. The implementation keeps the preview separate from the schema-v20 durable concurrency and retry/recovery stages described in the plan.
 
 ## Acceptance Criteria
 

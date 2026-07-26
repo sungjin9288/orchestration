@@ -139,9 +139,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   council-mode plan binding, one deterministic local-stub first attempt, atomic persistence, exact
   replay/inspection, and alignment-only approve or stop; schema-v19 WorkOrderAttempt migration,
   exact bound WorkOrder preview/persistence, deterministic dependency-ready selection,
-  active-before-coordinator persistence, one role per start/step, and exact attempt inspection
-- Next gate: Stage 4 bounded read-only parallel specialists requires a separate complete fielded
-  decision; solo remains deferred because no executable solo contract exists
+  active-before-coordinator persistence, one role per start/step, and exact attempt inspection;
+  schema-v19 response/browser-memory-only SpecialistBatchPreview for two fixed read-only cells
+- Next gate: Stage 4B durable specialist records and bounded execution require a separate complete
+  fielded decision; solo remains deferred because no executable solo contract exists
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -467,11 +468,10 @@ policy, bypass, and connectors remain blocked.
 
 Stage 4A bounded parallel specialists planning is accepted as `DEC-173`, its fielded
 `SpecialistBatchPreview` implementation handoff is `DEC-174`, and `DEC-175` fixes the exact
-request, digest, path, deadline, redaction, error, and browser-memory contract. The next gate is the
-complete fielded Stage 4A implementation decision reserved for `DEC-176`: one schema-v19
-response/browser-memory-only preview of two independent Researcher and QA contracts. Actual parallel
-workers, durable schema-v20 batch or cell records, cancellation, retry/recovery, provider calls, and
-CompanyBlueprint policy change remain blocked.
+request, digest, path, deadline, redaction, error, and browser-memory contract. `DEC-176` implements
+one schema-v19 response/browser-memory-only preview of two independent Researcher and QA contracts.
+Actual parallel workers, durable schema-v20 batch or cell records, cancellation, retry/recovery,
+provider calls, and CompanyBlueprint policy change remain blocked behind separate decisions.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와

@@ -33,6 +33,7 @@ const blueprintLoader = read('src/runtime/company-blueprint.js');
 const staffingPlans = read('src/runtime/staffing-plans.js');
 const contracts = read('src/runtime/contracts.js');
 const scheduler = read('src/runtime/work-order-attempts.js');
+const specialistBatchPreview = read('src/runtime/specialist-batch-preview.js');
 
 assert.match(plan, /^# AI Company Bounded Parallel Read-Only Specialists Plan$/m);
 assert.match(
@@ -68,7 +69,16 @@ assert.match(plan, /`sourceRefs` has exactly these fields/);
 assert.match(plan, /`specialistSpec` has exactly `batchDeadlineMs`, `cells`, `maxConcurrentCells`, and/);
 assert.match(plan, /Each cell has exactly `agentProfileId`, `cellDeadlineMs`, `cellId`, `evidenceMode`, `inputPaths`/);
 assert.match(plan, /at most ten exact `node --check <relative-path>` commands/);
-assert.match(plan, /Each file is capped at 1 MiB and all distinct input files together are capped at 8 MiB/);
+assert.match(
+  plan,
+  /Each file is capped at 1 MiB and all distinct real targets together are capped at 8 MiB/,
+);
+assert.match(plan, /checks the regular-file size before reading bytes/);
+assert.match(plan, /symlink aliases[\s\S]*count once toward the aggregate cap/);
+assert.match(
+  plan,
+  /companyRuntime\.councilSynthesisDigests[\s\S]*never exposes the preview or raw synthesis/,
+);
 assert.match(plan, /loadStateSupportedReadonly\(\)/);
 assert.match(plan, /zero ExecutionPlans/);
 assert.match(plan, /Canonical JSON recursively sorts object keys/);
@@ -86,7 +96,8 @@ assert.match(plan, /`413` for request or file-byte limits/);
 assert.match(plan, /`415` for a non-JSON/);
 assert.match(plan, /state\.councilSpecialistBatchDraft/);
 assert.match(plan, /state\.councilSpecialistBatchPreview/);
-assert.match(plan, /compare\s+state bytes before and after success, replay, and every failure/);
+assert.match(plan, /compares state bytes across success and failure/);
+assert.match(plan, /same-input identity/);
 
 assert.match(
   handoff,
@@ -97,8 +108,8 @@ assert.match(
   /operator-decision-ai-company-specialist-batch-preview-implementation-001/,
 );
 assert.match(handoff, /approve-ai-company-specialist-batch-preview-implementation-slice/);
-assert.match(handoff, /`DEC-175` binds its exact request/);
-assert.match(handoff, /`DEC-176` is reserved for a future accepted implementation decision/);
+assert.match(handoff, /planning-only `DEC-175` binds its exact contracts/);
+assert.match(handoff, /`DEC-176` consumes the valid operator decision/);
 for (const field of [
   'targetAuthority',
   'targetSurface',
@@ -121,13 +132,13 @@ assert.match(handoff, /generic approval, broad continuation, and delegated self-
 assert.match(handoff, /schemaVersion 19/);
 assert.match(handoff, /schema-v20 migration/);
 assert.match(handoff, /Promise\.all/);
-assert.match(handoff, /Only an exact valid approval may be accepted as `DEC-176`/);
+assert.match(handoff, /The exact valid approval was accepted as `DEC-176`/);
 assert.match(handoff, /loadStateSupportedReadonly/);
 assert.match(handoff, /65536 bytes/);
 assert.match(handoff, /councilSpecialistBatchDraft/);
 assert.match(handoff, /state-byte equality across success replay and failures/);
 
-for (const decisionId of ['DEC-172', 'DEC-173', 'DEC-174', 'DEC-175']) {
+for (const decisionId of ['DEC-172', 'DEC-173', 'DEC-174', 'DEC-175', 'DEC-176']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -141,6 +152,10 @@ assert.match(
 assert.match(
   decisionLog,
   /### DEC-175[\s\S]*Status: `Accepted`[\s\S]*planning clarification only[\s\S]*cannot authorize a preview route/i,
+);
+assert.match(
+  decisionLog,
+  /### DEC-176[\s\S]*Status: `Accepted`[\s\S]*response-only schema-v19 SpecialistBatchPreview/i,
 );
 
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
@@ -162,7 +177,7 @@ assert.match(scheduler, /WORK_ORDER_ATTEMPT_STATUS\.ACTIVE/);
 
 assert.match(completionPlan, /### Stage 4A: SpecialistBatchPreview/);
 assert.match(completionPlan, /`DEC-175`[\s\S]*readiness gaps/);
-assert.match(completionPlan, /`DEC-176` implementation decision/);
+assert.match(completionPlan, /`DEC-176` implements the exact response-only slice/);
 assert.match(completionPlan, /### Stage 4B: Durable Concurrent First Attempt/);
 assert.match(completionPlan, /### Stage 4C: Failed-Cell Retry And Recovery/);
 assert.match(masterPlan, /`DEC-175` fixes the exact/);
@@ -170,19 +185,20 @@ assert.match(runtimeContract, /planning-only `DEC-175` fixes/);
 assert.match(councilProtocol, /`DEC-175` fixes its exact/);
 assert.match(deliveryRoadmap, /`DEC-175` fixes its exact implementation-readiness contracts/);
 assert.match(inventory, /AI Company bounded parallel read-only specialists planning \| pass/);
-assert.match(inventory, /DEC-173 through DEC-175 Stage 4A planning\/handoff clarification/);
+assert.match(inventory, /AI Company SpecialistBatchPreview implementation \| pass/);
 assert.match(readme, /docs\/119_ai-company-bounded-parallel-read-only-specialists-plan\.md/);
 assert.match(
   readme,
   /docs\/120_ai-company-specialist-batch-preview-implementation-decision-handoff\.md/,
 );
 assert.match(readme, /planning-only `DEC-175` fixes the exact request/);
-assert.match(readme, /reserved for `DEC-176`/);
-assert.match(readme, /958 smoke files/);
-assert.match(readme, /698 UI smoke files/);
-assert.match(readme, /informational `276\/276`, total `277\/277`/);
+assert.match(readme, /`DEC-176` implements only/);
+assert.match(readme, /960 smoke files/);
+assert.match(readme, /699 UI smoke files/);
+assert.match(readme, /informational `277\/277`, total `278\/278`/);
 assert.match(taskLedger, /ai-company-bounded-parallel-read-only-specialists-planning-post-m7-2013/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-readiness-clarification-post-m7-2014/);
+assert.match(taskLedger, /ai-company-specialist-batch-preview-implementation-post-m7-2015/);
 assert.match(lessons, /preview contract.*actual concurrency.*WorkOrderAttempt/i);
 assert.match(lessons, /fielded preview handoff.*nested request keys.*no-write replay evidence/i);
 assert.match(
@@ -190,13 +206,19 @@ assert.match(
   /id: 'ai-company-bounded-parallel-read-only-specialists-planning'/,
 );
 
-for (const futurePath of [
+for (const implementationPath of [
   'src/runtime/specialist-batch-preview.js',
   'scripts/smoke-ai-company-specialist-batch-preview.mjs',
   'scripts/smoke-ui-slice-699.mjs',
 ]) {
-  assert.equal(fs.existsSync(path.join(repoRoot, futurePath)), false, `${futurePath} must not exist`);
+  assert.equal(
+    fs.existsSync(path.join(repoRoot, implementationPath)),
+    true,
+    `${implementationPath} must exist`,
+  );
 }
+assert.match(specialistBatchPreview, /function buildSpecialistBatchPreview/);
+assert.doesNotMatch(specialistBatchPreview, /saveState|Promise\.all|fetch\(/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -204,12 +226,11 @@ process.stdout.write(
       ok: true,
       mode,
       planningAllowed: true,
-      implementationAllowed: false,
+      implementationAllowed: true,
       schemaMigrationAllowed: false,
       actualParallelExecutionAllowed: false,
-      nextRequiredDecision:
-        'operator-decision-ai-company-specialist-batch-preview-implementation-001',
-      nextDecisionLogEntry: 'DEC-176',
+      nextRequiredDecision: 'separate Stage 4B schema-v20 durable specialist decision',
+      nextDecisionLogEntry: null,
     },
     null,
     2,

@@ -52,6 +52,13 @@ export function parseMissionWorkOrderCompileList(value) {
   ];
 }
 
+export function parseSpecialistBatchList(value) {
+  return String(value || '')
+    .split(/\r?\n/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
 export function getMissionWorkOrderPreviewSummary(preview, councilSessionId) {
   if (
     !preview ||
@@ -71,6 +78,106 @@ export function getMissionWorkOrderPreviewSummary(preview, councilSessionId) {
       preview.executionAllowed === false &&
       preview.persistenceAllowed === false,
   };
+}
+
+export function getSpecialistBatchPreviewSummary(
+  preview,
+  councilSession,
+  staffingPlan,
+  staffingEntry,
+) {
+  if (
+    !preview ||
+    preview.schemaVersion !== 1 ||
+    preview.persisted !== false ||
+    preview.status !== 'preview-ready' ||
+    preview.councilSessionId !== councilSession?.id ||
+    preview.councilSessionSourceDigest !== councilSession?.sourceDigest ||
+    preview.currentAttemptId !== councilSession?.currentAttemptId ||
+    preview.missionId !== councilSession?.missionId ||
+    preview.projectId !== staffingPlan?.projectId ||
+    preview.staffingPlanId !== staffingPlan?.id ||
+    preview.staffingPlanRecordDigest !== staffingPlan?.recordDigest ||
+    preview.staffingEntryId !== staffingEntry?.id ||
+    preview.staffingEntryRecordDigest !== staffingEntry?.recordDigest
+  ) {
+    return null;
+  }
+
+  return {
+    authorityClosed:
+      preview.executionAllowed === false &&
+      preview.persistenceAllowed === false &&
+      preview.maxProviderCalls === 0,
+    cells: Array.isArray(preview.cells) ? preview.cells : [],
+    deadlineAt: preview.deadline?.deadlineAt || null,
+    previewDigest: preview.previewDigest,
+    previewId: preview.id,
+    sourceDigest: preview.sourceDigest,
+  };
+}
+
+export function isSpecialistBatchPreviewSourceCurrent(
+  snapshot,
+  preview,
+  companyRuntime,
+) {
+  if (!snapshot || !preview) return false;
+  const councilSession = snapshot.councilSessions?.[preview.councilSessionId] || null;
+  const staffingPlan = snapshot.staffingPlans?.[preview.staffingPlanId] || null;
+  const staffingEntry = snapshot.staffingEntries?.[preview.staffingEntryId] || null;
+  const mission = snapshot.missions?.[preview.missionId] || null;
+  const currentAttempt = getCurrentRealCouncilAttempt(councilSession);
+  const matchingPlan = Object.values(snapshot.executionPlans || {}).some(
+    (executionPlan) =>
+      executionPlan.councilSessionId === preview.councilSessionId ||
+      executionPlan.missionId === preview.missionId,
+  );
+  const roleDigests = new Map(
+    (companyRuntime?.roleSourceDigests || []).map((entry) => [
+      entry.ref,
+      entry.sha256,
+    ]),
+  );
+  const previewRoleDigests = new Map(
+    (preview.roleSourceDigests || []).map((entry) => [entry.ref, entry.sha256]),
+  );
+  const currentSynthesisDigest = (
+    companyRuntime?.councilSynthesisDigests || []
+  ).find(
+    (entry) =>
+      entry.councilSessionId === preview.councilSessionId &&
+      entry.currentAttemptId === preview.currentAttemptId,
+  )?.sha256;
+
+  return Boolean(
+    getSpecialistBatchPreviewSummary(
+      preview,
+      councilSession,
+      staffingPlan,
+      staffingEntry,
+    ) &&
+      !matchingPlan &&
+      snapshot.activeProjectId === preview.projectId &&
+      mission?.status === 'aligned' &&
+      mission.linkedTaskId === null &&
+      mission.staffingEntryId === staffingEntry?.id &&
+      mission.councilSessionId === councilSession?.id &&
+      currentAttempt?.id === preview.currentAttemptId &&
+      currentSynthesisDigest === preview.councilSynthesisDigest &&
+      councilSession?.mode === 'real-local-stub' &&
+      councilSession.phase === 'terminal' &&
+      councilSession.status === 'approved' &&
+      councilSession.alignment?.status === 'approved' &&
+      staffingPlan?.status === 'accepted' &&
+      staffingEntry?.status === 'bound' &&
+      companyRuntime?.status === 'ready' &&
+      companyRuntime.blueprintDigest === preview.blueprintDigest &&
+      roleDigests.get('company/roles/researcher.md') ===
+        previewRoleDigests.get('company/roles/researcher.md') &&
+      roleDigests.get('company/roles/qa.md') ===
+        previewRoleDigests.get('company/roles/qa.md'),
+  );
 }
 
 export function getMissionStaffingPlanSummary(
@@ -623,6 +730,23 @@ function canonicalizeDigestValue(value) {
   );
 }
 
+export async function computeCanonicalDigest(value, label = 'Source') {
+  if (!value || typeof value !== 'object') {
+    throw new Error(`${label} digest source가 필요합니다.`);
+  }
+  const subtle = globalThis.crypto?.subtle;
+  if (!subtle) {
+    throw new Error(`${label} digest를 계산할 Web Crypto를 사용할 수 없습니다.`);
+  }
+  const bytes = new TextEncoder().encode(
+    JSON.stringify(canonicalizeDigestValue(value)),
+  );
+  const digest = await subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 export async function computeMissionMemoryContextTargetDigest(mission) {
   if (
     !mission ||
@@ -645,34 +769,14 @@ export async function computeMissionMemoryContextTargetDigest(mission) {
     createdAt: mission.createdAt,
     updatedAt: mission.updatedAt,
   };
-  const subtle = globalThis.crypto?.subtle;
-  if (!subtle) {
-    throw new Error('Mission digest를 계산할 Web Crypto를 사용할 수 없습니다.');
-  }
-  const bytes = new TextEncoder().encode(
-    JSON.stringify(canonicalizeDigestValue(payload)),
-  );
-  const digest = await subtle.digest('SHA-256', bytes);
-  return [...new Uint8Array(digest)]
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
+  return computeCanonicalDigest(payload, 'Mission');
 }
 
 async function computeCanonicalRecordDigest(record, label) {
   if (!record || typeof record !== 'object' || Array.isArray(record)) {
     throw new Error(`${label} digest source가 필요합니다.`);
   }
-  const subtle = globalThis.crypto?.subtle;
-  if (!subtle) {
-    throw new Error(`${label} digest를 계산할 Web Crypto를 사용할 수 없습니다.`);
-  }
-  const bytes = new TextEncoder().encode(
-    JSON.stringify(canonicalizeDigestValue(record)),
-  );
-  const digest = await subtle.digest('SHA-256', bytes);
-  return [...new Uint8Array(digest)]
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
+  return computeCanonicalDigest(record, label);
 }
 
 export function computeExecutionPlanRecordDigest(executionPlan) {

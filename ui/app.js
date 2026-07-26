@@ -138,6 +138,7 @@ import {
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
   getMissionStaffingPlanSummary,
+  getSpecialistBatchPreviewSummary,
   getMissionExecutionPlanBundle,
   getMissionDeliveryPackagePersistenceSummary,
   getMissionDeliveryPackageAcceptanceSummary,
@@ -148,6 +149,7 @@ import {
   getMemoryCandidatePreviewSummary,
   getMemoryItemPersistenceSummary,
   getMemoryRecallPersistenceSummary,
+  computeCanonicalDigest,
   computeExecutionPlanRecordDigest,
   computeMissionMemoryContextTargetDigest,
   computeWorkOrderRecordDigest,
@@ -156,8 +158,10 @@ import {
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
   getMissionWorkOrderPreviewSummary,
+  isSpecialistBatchPreviewSourceCurrent,
   isRealCouncilMode,
   parseMissionWorkOrderCompileList,
+  parseSpecialistBatchList,
 } from './council-signals.js';
 import {
   getDeliverablesDeskNext,
@@ -407,6 +411,18 @@ const state = {
     stopConditions: '',
   },
   missionWorkOrderPreview: null,
+  councilSpecialistBatchDraft: {
+    batchDeadlineMs: 120000,
+    researcherCellDeadlineMs: 60000,
+    researcherInputPaths: 'README.md',
+    qaCellDeadlineMs: 60000,
+    qaInputPaths: 'src/runtime/runtime-service.js',
+    targetPathAllowlist: 'src/runtime/runtime-service.js',
+    expectedArtifacts: 'Specialist evidence contract preview',
+    verificationCommands: 'node --check src/runtime/runtime-service.js',
+    stopConditions: 'Stop before persistence or execution',
+  },
+  councilSpecialistBatchPreview: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5082,6 +5098,15 @@ function applySnapshotPayload(payload) {
     Object.prototype.hasOwnProperty.call(payload, 'snapshot') &&
     state.executionProvenanceOpen &&
     Boolean(state.selectedTaskId);
+  const retainedSpecialistBatchPreview =
+    Object.prototype.hasOwnProperty.call(payload, 'snapshot') &&
+    isSpecialistBatchPreviewSourceCurrent(
+      payload.snapshot,
+      state.councilSpecialistBatchPreview,
+      payload.snapshot?.companyRuntime,
+    )
+      ? state.councilSpecialistBatchPreview
+      : null;
 
   if (refreshExecutionProvenance) {
     invalidateExecutionProvenance();
@@ -5097,6 +5122,11 @@ function applySnapshotPayload(payload) {
     state.missionStaffingPlanPreview = payload.staffingPlanPreview || null;
   } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.missionStaffingPlanPreview = null;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'specialistBatchPreview')) {
+    state.councilSpecialistBatchPreview = payload.specialistBatchPreview || null;
+  } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
+    state.councilSpecialistBatchPreview = retainedSpecialistBatchPreview;
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'deliveryPackagePreview')) {
     state.missionDeliveryPackagePreview = payload.deliveryPackagePreview || null;
@@ -5632,6 +5662,7 @@ function syncSelectionsFromMission(missionId) {
   state.selectionSeeded = true;
 
   if (missionChanged) {
+    state.councilSpecialistBatchPreview = null;
     state.missionEvidenceGraph = null;
     state.missionEvidenceGraphError = null;
     state.missionEvidenceGraphLoading = false;
@@ -6750,6 +6781,165 @@ async function submitMissionWorkOrderPreview(councilSessionId) {
     state.surface = 'council';
     render();
     elements.refreshStatus.textContent = `${payload.missionWorkOrderPreview.previewId}를 응답 메모리에 다시 계산했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+function readSpecialistBatchDraft(form) {
+  const formData = new FormData(form);
+  const readText = (name) => String(formData.get(name) || '').trim();
+  const draft = {
+    batchDeadlineMs: Number(formData.get('batchDeadlineMs')),
+    researcherCellDeadlineMs: Number(formData.get('researcherCellDeadlineMs')),
+    researcherInputPaths: readText('researcherInputPaths'),
+    qaCellDeadlineMs: Number(formData.get('qaCellDeadlineMs')),
+    qaInputPaths: readText('qaInputPaths'),
+    targetPathAllowlist: readText('targetPathAllowlist'),
+    expectedArtifacts: readText('expectedArtifacts'),
+    verificationCommands: readText('verificationCommands'),
+    stopConditions: readText('stopConditions'),
+  };
+  state.councilSpecialistBatchDraft = draft;
+
+  const compileSpec = {
+    expectedArtifacts: parseSpecialistBatchList(draft.expectedArtifacts),
+    stopConditions: parseSpecialistBatchList(draft.stopConditions),
+    targetPathAllowlist: parseSpecialistBatchList(draft.targetPathAllowlist),
+    verificationCommands: parseSpecialistBatchList(draft.verificationCommands),
+  };
+  const researcherInputPaths = parseSpecialistBatchList(
+    draft.researcherInputPaths,
+  );
+  const qaInputPaths = parseSpecialistBatchList(draft.qaInputPaths);
+  if (
+    Object.values(compileSpec).some((entries) => entries.length === 0) ||
+    researcherInputPaths.length === 0 ||
+    qaInputPaths.length === 0
+  ) {
+    throw new Error('Specialist preview의 path와 compile evidence가 모두 필요합니다.');
+  }
+
+  return {
+    compileSpec,
+    specialistSpec: {
+      batchDeadlineMs: draft.batchDeadlineMs,
+      cells: [
+        {
+          agentProfileId: 'agent-researcher',
+          cellDeadlineMs: draft.researcherCellDeadlineMs,
+          cellId: 'research-source-evidence',
+          evidenceMode: 'source-evidence-summary',
+          inputPaths: researcherInputPaths,
+          maxAttempts: 1,
+          retryAllowed: false,
+        },
+        {
+          agentProfileId: 'agent-qa',
+          cellDeadlineMs: draft.qaCellDeadlineMs,
+          cellId: 'verify-plan-evidence',
+          evidenceMode: 'node-check-plan',
+          inputPaths: qaInputPaths,
+          maxAttempts: 1,
+          retryAllowed: false,
+        },
+      ],
+      maxConcurrentCells: 2,
+      maxProviderCalls: 0,
+    },
+  };
+}
+
+function findRoleSourceDigest(companyRuntime, ref) {
+  const digest = companyRuntime?.roleSourceDigests?.find(
+    (entry) => entry.ref === ref,
+  )?.sha256;
+  if (!/^[a-f0-9]{64}$/.test(digest || '')) {
+    throw new Error(`${ref} source digest가 현재 CompanyBlueprint에 없습니다.`);
+  }
+  return digest;
+}
+
+async function submitSpecialistBatchPreview(actionButton) {
+  const form = actionButton?.closest?.('[data-form="specialist-batch-preview"]');
+  const councilSessionId = String(actionButton?.dataset.id || '').trim();
+  const data = getDerived();
+  const councilSession = data.councilSessionMap.get(councilSessionId) || null;
+  const mission = councilSession
+    ? data.missionMap.get(councilSession.missionId) || null
+    : null;
+  const staffingPlan = mission
+    ? data.staffingPlans.find((entry) => entry.missionId === mission.id) || null
+    : null;
+  const staffingEntry = staffingPlan
+    ? data.staffingEntries.find(
+        (entry) => entry.staffingPlanId === staffingPlan.id,
+      ) || null
+    : null;
+  const currentAttempt = getCurrentRealCouncilAttempt(councilSession);
+
+  if (
+    !form ||
+    !mission ||
+    !staffingPlan ||
+    !staffingEntry ||
+    !currentAttempt?.synthesis ||
+    data.companyRuntime?.status !== 'ready'
+  ) {
+    throw new Error('source-current bound Council specialist evidence가 필요합니다.');
+  }
+
+  const { compileSpec, specialistSpec } = readSpecialistBatchDraft(form);
+  const sourceRefs = {
+    blueprintDigest: data.companyRuntime.blueprintDigest,
+    councilSessionSourceDigest: councilSession.sourceDigest,
+    councilSynthesisDigest: await computeCanonicalDigest(
+      currentAttempt.synthesis,
+      'Council synthesis',
+    ),
+    currentAttemptId: currentAttempt.id,
+    missionId: mission.id,
+    projectId: mission.projectId,
+    qaRoleSourceDigest: findRoleSourceDigest(
+      data.companyRuntime,
+      'company/roles/qa.md',
+    ),
+    researcherRoleSourceDigest: findRoleSourceDigest(
+      data.companyRuntime,
+      'company/roles/researcher.md',
+    ),
+    staffingEntryId: staffingEntry.id,
+    staffingEntryRecordDigest: staffingEntry.recordDigest,
+    staffingPlanId: staffingPlan.id,
+    staffingPlanRecordDigest: staffingPlan.recordDigest,
+  };
+
+  state.error = null;
+  state.mutating = true;
+  state.councilSpecialistBatchPreview = null;
+  elements.refreshStatus.textContent =
+    `${councilSessionId} specialist contract를 계산하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/council-sessions/${encodeURIComponent(councilSessionId)}/specialist-batch-preview`,
+      {
+        compileSpec,
+        evaluatedAt: new Date().toISOString(),
+        sourceRefs,
+        specialistSpec,
+      },
+    );
+    state.councilSpecialistBatchPreview =
+      payload.specialistBatchPreview || null;
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.specialistBatchPreview.id} response-only preview를 계산했습니다`;
+  } catch (error) {
+    state.councilSpecialistBatchPreview = null;
+    throw error;
   } finally {
     state.mutating = false;
     render();
@@ -12642,6 +12832,151 @@ function renderRealCouncilEvidence(councilSession) {
   `;
 }
 
+function renderSpecialistBatchPreview(councilSession) {
+  const data = getDerived();
+  const mission = data.missionMap.get(councilSession?.missionId) || null;
+  const staffingPlan = mission
+    ? data.staffingPlans.find((entry) => entry.missionId === mission.id) || null
+    : null;
+  const staffingEntry = staffingPlan
+    ? data.staffingEntries.find(
+        (entry) => entry.staffingPlanId === staffingPlan.id,
+      ) || null
+    : null;
+  const matchingExecutionPlan = Object.values(data.snapshot.executionPlans || {}).some(
+    (executionPlan) =>
+      executionPlan.councilSessionId === councilSession?.id ||
+      executionPlan.missionId === mission?.id,
+  );
+  const sourceReady = Boolean(
+    mission?.status === 'aligned' &&
+      mission.linkedTaskId === null &&
+      councilSession?.mode === 'real-local-stub' &&
+      councilSession.phase === 'terminal' &&
+      councilSession.status === 'approved' &&
+      councilSession.alignment?.status === 'approved' &&
+      staffingPlan?.status === 'accepted' &&
+      staffingEntry?.status === 'bound' &&
+      data.companyRuntime?.status === 'ready' &&
+      data.companyRuntime.blueprintDigest === staffingPlan.blueprintDigest &&
+      !matchingExecutionPlan,
+  );
+  if (!sourceReady) return '';
+
+  const draft = state.councilSpecialistBatchDraft;
+  const summary = getSpecialistBatchPreviewSummary(
+    state.councilSpecialistBatchPreview,
+    councilSession,
+    staffingPlan,
+    staffingEntry,
+  );
+  const cellRows = summary
+    ? summary.cells
+        .map(
+          (cell) => `
+            <div class="specialist-contract-row">
+              <div>
+                <strong>${escapeHtml(cell.role)}</strong>
+                <span>${escapeHtml(cell.cellId)}</span>
+              </div>
+              <div class="token-row token-row-compact">
+                ${createToken(cell.status, 'success')}
+                ${createToken(`inputs:${cell.inputPathDigests.length}`, 'neutral')}
+                ${createToken(`deadline:${cell.cellDeadlineMs}ms`, 'neutral')}
+              </div>
+            </div>
+          `,
+        )
+        .join('')
+    : '';
+
+  return `
+    <section class="specialist-batch-panel" aria-label="Specialist batch preview">
+      <div class="llm-section-heading">
+        <h3>Read-only specialist batch</h3>
+        <div class="token-row token-row-compact">
+          ${createToken('response-only', 'accent')}
+          ${createToken('provider:0', 'neutral')}
+          ${createToken('persist:false', 'neutral')}
+        </div>
+      </div>
+      <form class="specialist-batch-form" data-form="specialist-batch-preview">
+        <div class="specialist-contract-grid">
+          <fieldset class="specialist-contract-cell">
+            <legend>Researcher · source evidence</legend>
+            <label class="field">
+              <span class="field-label">Input paths</span>
+              <textarea class="text-input" name="researcherInputPaths" rows="3">${escapeHtml(draft.researcherInputPaths)}</textarea>
+            </label>
+            <label class="field field-compact">
+              <span class="field-label">Cell deadline (ms)</span>
+              <input class="text-input" name="researcherCellDeadlineMs" type="number" min="1" max="300000" value="${draft.researcherCellDeadlineMs}" />
+            </label>
+          </fieldset>
+          <fieldset class="specialist-contract-cell">
+            <legend>QA · node check plan</legend>
+            <label class="field">
+              <span class="field-label">Input paths</span>
+              <textarea class="text-input" name="qaInputPaths" rows="3">${escapeHtml(draft.qaInputPaths)}</textarea>
+            </label>
+            <label class="field field-compact">
+              <span class="field-label">Cell deadline (ms)</span>
+              <input class="text-input" name="qaCellDeadlineMs" type="number" min="1" max="300000" value="${draft.qaCellDeadlineMs}" />
+            </label>
+          </fieldset>
+        </div>
+        <div class="specialist-compile-grid">
+          <label class="field">
+            <span class="field-label">Target path allowlist</span>
+            <textarea class="text-input" name="targetPathAllowlist" rows="2">${escapeHtml(draft.targetPathAllowlist)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Expected artifacts</span>
+            <textarea class="text-input" name="expectedArtifacts" rows="2">${escapeHtml(draft.expectedArtifacts)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Verification commands</span>
+            <textarea class="text-input" name="verificationCommands" rows="2">${escapeHtml(draft.verificationCommands)}</textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Stop conditions</span>
+            <textarea class="text-input" name="stopConditions" rows="2">${escapeHtml(draft.stopConditions)}</textarea>
+          </label>
+        </div>
+        <div class="specialist-batch-actions">
+          <label class="field field-compact">
+            <span class="field-label">Batch deadline (ms)</span>
+            <input class="text-input" name="batchDeadlineMs" type="number" min="1" max="300000" value="${draft.batchDeadlineMs}" />
+          </label>
+          <button
+            class="secondary-button"
+            type="button"
+            data-action="preview-specialist-batch"
+            data-id="${escapeHtml(councilSession.id)}"
+            ${state.loading || state.mutating ? 'disabled' : ''}
+          >
+            Contract preview
+          </button>
+        </div>
+      </form>
+      ${
+        summary
+          ? `
+            <div class="specialist-batch-result">
+              <div class="card-title-row card-title-row-tight">
+                <strong>${escapeHtml(summary.previewId)}</strong>
+                ${createToken(summary.authorityClosed ? 'authority closed' : 'authority error', summary.authorityClosed ? 'success' : 'danger')}
+                ${createToken(`digest:${summary.previewDigest.slice(0, 12)}`, 'neutral')}
+              </div>
+              <div class="specialist-contract-list">${cellRows}</div>
+            </div>
+          `
+          : ''
+      }
+    </section>
+  `;
+}
+
 function renderMissionWorkOrderCompileForm(councilSession, options = {}) {
   const blockedReason = String(options.blockedReason || '').trim();
   const busy = state.loading || state.mutating || Boolean(blockedReason);
@@ -14998,6 +15333,7 @@ function renderCouncilConversationSurface(options) {
                 </dl>
                 ${isRealCouncil ? renderRealCouncilEvidence(councilSession) : ''}
                 ${councilEvidenceRail}
+                ${renderSpecialistBatchPreview(councilSession)}
                 ${renderMissionWorkOrderPreview(state.missionWorkOrderPreview, councilSession, missionExecutionPlanBundle)}
                 ${renderMissionExecutionPlan(missionExecutionPlanBundle, state.missionExecutionPlanRecovery)}
               </div>
@@ -15712,6 +16048,7 @@ function renderCouncil(data) {
                       ? `
                         <div class="field">
                           ${renderRealCouncilAlignmentControls(selectedCouncilSession)}
+                          ${renderSpecialistBatchPreview(selectedCouncilSession)}
                           ${renderMissionWorkOrderPreview(state.missionWorkOrderPreview, selectedCouncilSession, missionExecutionPlanBundle)}
                           ${renderMissionExecutionPlan(missionExecutionPlanBundle, state.missionExecutionPlanRecovery)}
                           <div class="relation-button-row">
@@ -21391,6 +21728,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'preview-specialist-batch') {
+        await submitSpecialistBatchPreview(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'request-builder-live-mutation-approval') {
         await requestBuilderLiveMutationApproval(actionButton.dataset.id);
         return;
@@ -21678,6 +22020,9 @@ function handleFormInput(event) {
   const staffingEntryForm = event.target.closest(
     '[data-form="staffing-plan-entry"]',
   );
+  const specialistBatchForm = event.target.closest(
+    '[data-form="specialist-batch-preview"]',
+  );
   const learningCandidateReviewForm = event.target.closest(
     '[data-form="review-learning-candidate"]',
   );
@@ -21816,6 +22161,22 @@ function handleFormInput(event) {
   if (staffingEntryForm) {
     if (event.target.name === 'entryRationale') {
       state.missionStaffingEntryDraft.rationale = event.target.value;
+    }
+    return;
+  }
+
+  if (specialistBatchForm) {
+    const field = event.target.name;
+    if (Object.prototype.hasOwnProperty.call(state.councilSpecialistBatchDraft, field)) {
+      state.councilSpecialistBatchDraft[field] =
+        event.target.type === 'number'
+          ? Number(event.target.value)
+          : event.target.value;
+      state.councilSpecialistBatchPreview = null;
+      event.target
+        .closest('.specialist-batch-panel')
+        ?.querySelector('.specialist-batch-result')
+        ?.remove();
     }
     return;
   }

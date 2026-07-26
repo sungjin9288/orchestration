@@ -1694,6 +1694,52 @@ const server = createServer(async (request, response) => {
     /^\/api\/council-sessions\/([^/]+)\/decision$/,
   );
 
+  const specialistBatchPreviewMatch = url.pathname.match(
+    /^\/api\/council-sessions\/([^/]+)\/specialist-batch-preview$/,
+  );
+
+  if (method === 'POST' && specialistBatchPreviewMatch) {
+    try {
+      const councilSessionId = decodeURIComponent(
+        specialistBatchPreviewMatch[1],
+      );
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'compileSpec',
+        'evaluatedAt',
+        'sourceRefs',
+        'specialistSpec',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'SpecialistBatchPreview body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const specialistBatchPreview = runtime.previewCouncilSpecialistBatch({
+        councilSessionId,
+        ...input,
+      });
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        specialistBatchPreview,
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'SpecialistBatchPreview 생성에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   if (method === 'POST' && realCouncilDecisionMatch) {
     try {
       const councilSessionId = decodeURIComponent(realCouncilDecisionMatch[1]);

@@ -70,7 +70,7 @@ assert.match(plan, /implemented as `DEC-172`/);
 assert.match(plan, /`DEC-173` accepts planning only/);
 assert.match(plan, /`DEC-174` records the fielded implementation handoff/);
 assert.match(plan, /`DEC-175`[\s\S]*readiness gaps/);
-assert.match(plan, /`DEC-176` implementation decision/);
+assert.match(plan, /`DEC-176` implements the exact response-only slice/);
 
 assert.match(
   handoff,
@@ -113,6 +113,7 @@ for (const decisionId of [
   'DEC-173',
   'DEC-174',
   'DEC-175',
+  'DEC-176',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
@@ -189,6 +190,7 @@ process.stdout.write(
         specialistBatchPreviewPlanning: 'accepted-dec-173',
         specialistBatchPreviewHandoff: 'documented-dec-174',
         specialistBatchPreviewClarification: 'accepted-dec-175',
+        specialistBatchPreviewImplementation: 'accepted-dec-176',
       },
       currentRuntime: {
         schemaVersion: 19,
@@ -196,15 +198,16 @@ process.stdout.write(
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,
         operatorSteppedScheduler: true,
+        specialistBatchPreview: true,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextPlanningTarget: {
-        stage: 4,
-        object: 'specialist-batch-preview',
+        stage: '4B',
+        object: 'durable-specialist-batch',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-176',
+        nextDecisionLogEntry: null,
       },
       authority: {
         documentationAllowed: true,
@@ -216,7 +219,7 @@ process.stdout.write(
         workOrderAttemptImplementationAllowed: true,
         operatorSteppedSchedulingAllowed: true,
         specialistBatchPreviewPlanningAllowed: true,
-        specialistBatchPreviewImplementationAllowed: false,
+        specialistBatchPreviewImplementationAllowed: true,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,
         providerExpansionAllowed: false,

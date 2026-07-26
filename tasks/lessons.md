@@ -1,5 +1,13 @@
 # lessons
 
+- A response-only preview still needs a current read model for browser invalidation. Expose only the
+  additive digests the client must compare, reload source-backed policy before every decision, and
+  clear browser-memory output on selection, input, request, or source drift so a no-write surface
+  cannot present stale evidence as current.
+- Path evidence needs separate lexical and physical identities. Reject duplicate request paths,
+  preserve each accepted lexical ref in the response, but enforce byte limits before reads and
+  aggregate aliases by contained real target so path spelling cannot multiply or bypass resource
+  bounds.
 - A durable entry boundary should bind intent, source evidence, and the first real attempt in one
   atomic transition. Run deterministic pre-save work in memory, persist only after the stop condition
   is reached, and make the bound session reject every downstream action that the entry decision did

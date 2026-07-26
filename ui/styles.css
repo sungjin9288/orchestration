@@ -8863,6 +8863,82 @@ h3 {
   resize: vertical;
 }
 
+.specialist-batch-panel {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 12px;
+  padding-block: 16px;
+  border-block: 1px solid var(--surface-control-border);
+}
+
+.specialist-batch-form,
+.specialist-batch-result {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.specialist-contract-grid,
+.specialist-compile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.specialist-contract-cell {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--surface-control-border);
+  border-radius: 7px;
+}
+
+.specialist-contract-cell legend {
+  padding-inline: 5px;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.specialist-batch-actions {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) auto;
+  gap: 10px;
+  align-items: end;
+  justify-content: start;
+}
+
+.specialist-contract-list {
+  display: grid;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.specialist-contract-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 10px;
+  border-bottom: 1px solid var(--surface-control-border);
+}
+
+.specialist-contract-row > div:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.specialist-contract-row span {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
 .mission-workorder-list {
   display: grid;
   gap: 0;
@@ -10342,12 +10418,25 @@ body[data-evidence-density='compact'] .control-overview-stack {
 }
 
 @media (max-width: 720px) {
-  .mission-workorder-compile-grid {
+  .mission-workorder-compile-grid,
+  .specialist-contract-grid,
+  .specialist-compile-grid,
+  .specialist-batch-actions {
     grid-template-columns: 1fr;
   }
 
-  .mission-workorder-compile-grid .text-input {
+  .mission-workorder-compile-grid .text-input,
+  .specialist-batch-panel .text-input {
     min-height: 76px;
+  }
+
+  .specialist-batch-actions .secondary-button {
+    width: 100%;
+  }
+
+  .specialist-contract-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .app-shell {

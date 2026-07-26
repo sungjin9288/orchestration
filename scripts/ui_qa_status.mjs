@@ -341,6 +341,12 @@ const smokeChecks = [
       'Operator-stepped WorkOrder UI and API preserve one dependency-ready role command, durable attempt evidence, exact start and inspection, safe stale failures, blocked multi-role continuation, hidden retry rework parallel provider controls, and bounded desktop/mobile text',
   },
   {
+    id: 'ai-company-specialist-batch-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-699.mjs',
+    purpose:
+      'SpecialistBatchPreview UI preserves two fixed Researcher and QA contract cells, exact source-digest browser memory, hard-refresh edit failure selection and source-drift invalidation, source-identical retention, bounded desktop/mobile layout, and absent worker execution persistence provider retry or scheduling controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

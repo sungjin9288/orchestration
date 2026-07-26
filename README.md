@@ -168,12 +168,11 @@ source/Git/release, policy bypass, and connectors remain blocked.
 
 `DEC-173` records the Stage 4A bounded parallel read-only specialists plan, `DEC-174` records its
 fielded implementation handoff, and planning-only `DEC-175` fixes the exact request, source, digest,
-contained-path, deadline, redaction, error, and browser-memory contract. The next gate is the complete
-fielded implementation decision reserved for `DEC-176`, which may add only one response-only
-schema-v19 SpecialistBatchPreview for exact source-current Researcher and QA contracts. It does not
-change the closed CompanyBlueprint policy or execute specialists. Schema-v20 durable batches/cells,
-actual concurrency, cancellation, retry/recovery, provider calls, and all downstream authority remain
-blocked.
+contained-path, deadline, redaction, error, and browser-memory contract. `DEC-176` implements only
+that response/browser-memory schema-v19 SpecialistBatchPreview for exact source-current Researcher
+and QA contracts. It does not change the closed CompanyBlueprint policy, persist specialist
+records, or execute specialists. Schema-v20 durable batches/cells, actual concurrency, cancellation,
+retry/recovery, provider calls, and all downstream authority remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -666,9 +665,9 @@ close-out implementation together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The DEC-161 browser baseline plus DEC-162 through
 DEC-169 StaffingPlan and StaffingEntry implementation evidence, DEC-170 through DEC-172 Stage 3
-scheduler evidence, and DEC-173 through DEC-175 Stage 4A planning evidence pass aggregate required `1/1`,
-informational `276/276`, total `277/277`, and UI QA
-required `76/76`. Focused browser checks at 1280x720 and
+scheduler evidence, and DEC-173 through DEC-176 Stage 4A planning and response-only implementation
+evidence pass aggregate required `1/1`, informational `277/277`, total `278/278`, and UI QA
+required `77/77`. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
 The earlier DEC-158 matrix remains the evidence for the default-closed Task
@@ -2328,9 +2327,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 958 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 960 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 698 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 699 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2902,16 +2901,15 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161, and
-  the first multi-agent completion runtime slices are evidence-closed through DEC-172. DEC-173 through
-  DEC-175 add planning-only Stage 4A evidence and readiness clarification, not a parallel
-  implementation. DEC-169 implements
+  the first multi-agent completion runtime slices are evidence-closed through DEC-176. DEC-173
+  through DEC-175 establish the Stage 4A contract, and DEC-176 implements only its response/browser-
+  memory preview, not parallel execution. DEC-169 implements
   Council-first StaffingEntry binding; DEC-172 implements only the exact schema-v19 operator-stepped
-  local Builder/Reviewer/QA path. The next required decision is the complete fielded response-only
-  SpecialistBatchPreview gate reserved for DEC-176. Actual concurrency, schema-v20 records,
+  local Builder/Reviewer/QA path. Actual concurrency, schema-v20 records,
   retry/recovery, provider/
   background WorkOrders, memory application, source/Git/release, policy bypass, and connectors remain
   blocked. This is not a claim of hosted production readiness. Focused source and compatibility
-  checks, the local browser matrix, UI QA `76/76`, and aggregate `277/277` pass. This remains local
+  checks, the local browser matrix, UI QA `77/77`, and aggregate `278/278` pass. This remains local
   synthetic/browser evidence rather than hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
@@ -3133,7 +3131,9 @@ Playwright CLI:
   `DEC-171` records its complete fielded implementation gate, and `DEC-172` implements that bounded
   path. `DEC-173` plans the Stage 4A response-only SpecialistBatchPreview, `DEC-174` records its
   fielded implementation decision, and `DEC-175` fixes the implementation-readiness contract without
-  opening runtime authority. Actual parallel execution, schema-v20 records, bound
+  opening runtime authority. `DEC-176` implements the exact response/browser-memory preview while
+  preserving schema v19 and the closed parallel-specialists policy. Actual parallel execution,
+  schema-v20 records, bound
   Council revision/resume/auto-chain, retry/rework, interrupted-attempt recovery, memory application,
   provider/background WorkOrders, source/Git/release, policy, bypass, and connector authority remain
   blocked.

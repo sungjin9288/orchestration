@@ -215,6 +215,11 @@ const {
   computeWorkOrderRecordDigest,
   previewWorkOrderVerificationPlan: compileWorkOrderVerificationPlanPreview,
 } = require('./workorder-verification-plan-preview');
+const {
+  buildSpecialistBatchPreview,
+  digestCanonical: digestSpecialistCanonical,
+  normalizeSpecialistBatchPreviewRequest,
+} = require('./specialist-batch-preview');
 const { buildMissionEvidenceGraph } = require('./mission-evidence-graph');
 const { buildTaskExecutionProvenanceGraph } = require('./execution-provenance-graph');
 const {
@@ -2354,6 +2359,266 @@ function createRuntimeService(options = {}) {
       companyBlueprint: companyRuntime.blueprint,
       compileSpec: input.compileSpec,
     };
+  }
+
+  function assertReadOnlySpecialistProfile(profile, expected) {
+    if (
+      !profile ||
+      profile.id !== expected.agentProfileId ||
+      profile.role !== expected.role ||
+      profile.instructionsRef !== expected.instructionsRef ||
+      !Array.isArray(profile.supportedPacks) ||
+      profile.supportedPacks.length !== 1 ||
+      profile.supportedPacks[0] !== 'development' ||
+      profile.workspacePolicy?.mode !== 'shared-readonly' ||
+      profile.workspacePolicy?.projectPathRequired !== true ||
+      !Array.isArray(profile.providerPolicy?.allowedModes) ||
+      profile.providerPolicy.allowedModes.length !== 1 ||
+      profile.providerPolicy.allowedModes[0] !== 'local-stub' ||
+      profile.concurrencyLimit !== 1 ||
+      !Array.isArray(profile.toolPolicy?.write) ||
+      profile.toolPolicy.write.length !== 0 ||
+      profile.authority?.canMutateSource !== false ||
+      profile.authority?.canCommit !== false ||
+      profile.authority?.canPush !== false
+    ) {
+      throw conflict(
+        `SpecialistBatchPreview profile ${expected.agentProfileId} has widened authority`,
+      );
+    }
+  }
+
+  function captureSpecialistInputPathDigests(projectPath, normalizedRequest) {
+    let realProjectRoot;
+    try {
+      realProjectRoot = fs.realpathSync(path.resolve(projectPath));
+    } catch (error) {
+      throw conflict(
+        `SpecialistBatchPreview project path is unavailable: ${error.message}`,
+      );
+    }
+
+    const selectedPaths = [
+      ...new Set(
+        normalizedRequest.specialistSpec.cells.flatMap((cell) => cell.inputPaths),
+      ),
+    ].sort();
+    const inputPathDigests = [];
+    const evidenceByRealTarget = new Map();
+    let totalBytes = 0;
+
+    for (const relativePath of selectedPaths) {
+      let realTarget;
+      try {
+        realTarget = fs.realpathSync(path.resolve(realProjectRoot, relativePath));
+      } catch (error) {
+        const missing = new Error(
+          `SpecialistBatchPreview input file not found: ${relativePath}`,
+        );
+        missing.statusCode = 404;
+        throw missing;
+      }
+      if (
+        realTarget !== realProjectRoot &&
+        !realTarget.startsWith(`${realProjectRoot}${path.sep}`)
+      ) {
+        const error = new Error(
+          `SpecialistBatchPreview input path escapes project root: ${relativePath}`,
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+
+      let fileEvidence = evidenceByRealTarget.get(realTarget) || null;
+      try {
+        const fileStat = fs.statSync(realTarget);
+        if (!fileStat.isFile()) {
+          const error = new Error(
+            `SpecialistBatchPreview input path must resolve to a file: ${relativePath}`,
+          );
+          error.statusCode = 404;
+          throw error;
+        }
+        if (!fileEvidence) {
+          if (fileStat.size > 1024 * 1024) {
+            const error = new Error(
+              `SpecialistBatchPreview input file exceeds 1048576 bytes: ${relativePath}`,
+            );
+            error.statusCode = 413;
+            throw error;
+          }
+          const fileBytes = fs.readFileSync(realTarget);
+          if (fileBytes.byteLength > 1024 * 1024) {
+            const error = new Error(
+              `SpecialistBatchPreview input file exceeds 1048576 bytes: ${relativePath}`,
+            );
+            error.statusCode = 413;
+            throw error;
+          }
+          totalBytes += fileBytes.byteLength;
+          if (totalBytes > 8 * 1024 * 1024) {
+            const error = new Error(
+              'SpecialistBatchPreview input files exceed 8388608 aggregate bytes',
+            );
+            error.statusCode = 413;
+            throw error;
+          }
+          fileEvidence = {
+            byteLength: fileBytes.byteLength,
+            sha256: crypto.createHash('sha256').update(fileBytes).digest('hex'),
+          };
+          evidenceByRealTarget.set(realTarget, fileEvidence);
+        }
+      } catch (error) {
+        if (error.statusCode) throw error;
+        const missing = new Error(
+          `SpecialistBatchPreview input file not found: ${relativePath}`,
+        );
+        missing.statusCode = 404;
+        throw missing;
+      }
+      inputPathDigests.push({
+        byteLength: fileEvidence.byteLength,
+        path: relativePath,
+        sha256: fileEvidence.sha256,
+      });
+    }
+
+    return {
+      inputPathDigests,
+      inputTotalByteLength: totalBytes,
+    };
+  }
+
+  function previewCouncilSpecialistBatch(input) {
+    const inputPrototype =
+      input && typeof input === 'object' && !Array.isArray(input)
+        ? Object.getPrototypeOf(input)
+        : null;
+    if (
+      !input ||
+      (inputPrototype !== Object.prototype && inputPrototype !== null) ||
+      Object.keys(input).sort().join('\u0000') !==
+        [
+          'compileSpec',
+          'councilSessionId',
+          'evaluatedAt',
+          'sourceRefs',
+          'specialistSpec',
+        ].sort().join('\u0000')
+    ) {
+      const error = new Error(
+        'SpecialistBatchPreview request has unexpected or missing fields',
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+    let normalizedRequest;
+    try {
+      normalizedRequest = normalizeSpecialistBatchPreviewRequest({
+        compileSpec: input.compileSpec,
+        evaluatedAt: input.evaluatedAt,
+        sourceRefs: input.sourceRefs,
+        specialistSpec: input.specialistSpec,
+      });
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `SpecialistBatchPreview requires supported state: ${error.message}`,
+      );
+    }
+    const councilSession = assertCouncilSession(input.councilSessionId, state);
+    const bound = assertBoundStaffingSchedulerSourceCurrent(
+      state,
+      councilSession,
+      { requireUnlinkedMission: true },
+    );
+    if (!bound) {
+      throw conflict(
+        'SpecialistBatchPreview requires one StaffingEntry-bound Council session',
+      );
+    }
+    const matchingExecutionPlan = Object.values(state.executionPlans || {}).find(
+      (executionPlan) =>
+        executionPlan.councilSessionId === councilSession.id ||
+        executionPlan.missionId === bound.mission.id,
+    );
+    if (matchingExecutionPlan) {
+      throw conflict(
+        `SpecialistBatchPreview source already has ExecutionPlan ${matchingExecutionPlan.id}`,
+      );
+    }
+
+    const specialistProfiles = [
+      {
+        agentProfileId: 'agent-researcher',
+        instructionsRef: 'company/roles/researcher.md',
+        role: 'researcher',
+      },
+      {
+        agentProfileId: 'agent-qa',
+        instructionsRef: 'company/roles/qa.md',
+        role: 'qa',
+      },
+    ].map((expected) => {
+      const profile = bound.blueprintEvidence.blueprint.agentProfiles.find(
+        (entry) => entry.id === expected.agentProfileId,
+      );
+      assertReadOnlySpecialistProfile(profile, expected);
+      const sourceDigest = bound.blueprintEvidence.roleSourceDigests.find(
+        (entry) => entry.ref === expected.instructionsRef,
+      );
+      if (!sourceDigest) {
+        throw conflict(
+          `SpecialistBatchPreview role source is missing: ${expected.instructionsRef}`,
+        );
+      }
+      return {
+        agentProfileId: expected.agentProfileId,
+        ref: sourceDigest.ref,
+        sha256: sourceDigest.sha256,
+      };
+    });
+    const inputEvidence = captureSpecialistInputPathDigests(
+      bound.project.projectPath,
+      normalizedRequest,
+    );
+
+    try {
+      return buildSpecialistBatchPreview(
+        normalizedRequest,
+        {
+          alignmentDecidedAt: councilSession.alignment.decidedAt,
+          blueprintDigest: bound.blueprintEvidence.blueprintDigest,
+          councilSessionId: councilSession.id,
+          councilSessionSourceDigest: councilSession.sourceDigest,
+          councilSynthesis: bound.currentAttempt.synthesis,
+          currentAttemptId: bound.currentAttempt.id,
+          inputPathDigests: inputEvidence.inputPathDigests,
+          inputTotalByteLength: inputEvidence.inputTotalByteLength,
+          missionId: bound.mission.id,
+          projectId: bound.project.id,
+          roleSourceDigests: specialistProfiles,
+          staffingEntryId: bound.staffingEntry.id,
+          staffingEntryRecordDigest: bound.staffingEntry.recordDigest,
+          staffingPlanId: bound.staffingPlan.id,
+          staffingPlanRecordDigest: bound.staffingPlan.recordDigest,
+        },
+        { now: new Date().toISOString() },
+      );
+    } catch (error) {
+      if (/^sourceRefs\..* is stale$/.test(error.message)) {
+        throw conflict(error.message);
+      }
+      throw error;
+    }
   }
 
   function preflightMissionWorkOrderPreview(input) {
@@ -7979,11 +8244,47 @@ function createRuntimeService(options = {}) {
     const state = store.loadState();
     normalizeProjectsInState(state);
     const snapshot = normalizeMissionsInState(state);
+    let currentCompanyRuntime = null;
 
-    return companyRuntime
+    if (companyBlueprintOptions) {
+      try {
+        const evidence = loadCompanyBlueprintEvidence(companyBlueprintOptions);
+        const councilSynthesisDigests = Object.values(
+          snapshot.councilSessions || {},
+        )
+          .flatMap((councilSession) => {
+            const currentAttempt = (councilSession.attempts || []).find(
+              (attempt) => attempt.id === councilSession.currentAttemptId,
+            );
+            if (!currentAttempt?.synthesis) return [];
+            return [
+              Object.freeze({
+                councilSessionId: councilSession.id,
+                currentAttemptId: currentAttempt.id,
+                sha256: digestSpecialistCanonical(currentAttempt.synthesis),
+              }),
+            ];
+          })
+          .sort((left, right) =>
+            left.councilSessionId.localeCompare(right.councilSessionId));
+        currentCompanyRuntime = Object.freeze({
+          status: 'ready',
+          blueprint: evidence.blueprint,
+          sourceRefs: evidence.sourceRefs,
+          errors: [],
+          blueprintDigest: evidence.blueprintDigest,
+          roleSourceDigests: evidence.roleSourceDigests,
+          councilSynthesisDigests: Object.freeze(councilSynthesisDigests),
+        });
+      } catch {
+        currentCompanyRuntime = readCompanyBlueprintStatus(companyBlueprintOptions);
+      }
+    }
+
+    return currentCompanyRuntime
       ? {
           ...snapshot,
-          companyRuntime,
+          companyRuntime: currentCompanyRuntime,
         }
       : snapshot;
   }
@@ -8068,6 +8369,7 @@ function createRuntimeService(options = {}) {
     previewLearningCandidateMemory,
     previewMemoryItemRecall,
     previewMissionMemoryContext,
+    previewCouncilSpecialistBatch,
     previewWorkOrderVerificationPlan,
     persistWorkOrderAcceptanceCriteria,
     recordWorkOrderVerificationProof,

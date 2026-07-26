@@ -37,9 +37,9 @@ function assertReadmeHas(pattern) {
 
 const inventoryGateRows = [
   /Planning baseline head checked before this document update: `47be8f0`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `276\/276`, total `277\/277` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `76\/76` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `277\/277`, UI QA `76\/76`,[\s\S]*DEC-161 Agent Operations Desk visual redesign, DEC-162 through DEC-166 StaffingPlan planning\/implementation, DEC-167 through DEC-169 StaffingEntry planning\/implementation, DEC-170 through DEC-172 operator-stepped scheduler planning\/implementation, and DEC-173 through DEC-175 Stage 4A planning\/handoff clarification\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `277\/277`, total `278\/278` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `77\/77` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `278\/278`, UI QA `77\/77`,[\s\S]*DEC-161 Agent Operations Desk visual redesign, DEC-162 through DEC-166 StaffingPlan planning\/implementation, DEC-167 through DEC-169 StaffingEntry planning\/implementation, DEC-170 through DEC-172 operator-stepped scheduler planning\/implementation, and DEC-173 through DEC-176 Stage 4A planning\/implementation\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -117,6 +117,7 @@ const inventoryGateRows = [
   /\| AI Company StaffingEntry Council binding implementation \| pass \| `DEC-167`, `DEC-168`, `DEC-169`, `docs\/115_ai-company-staffing-entry-binding-plan\.md`, `docs\/116_ai-company-staffing-entry-binding-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-staffing-entry-binding-planning\.mjs`, `node scripts\/smoke-ai-company-staffing-entry-binding\.mjs`, `node scripts\/smoke-ui-slice-697\.mjs` \|/,
   /\| AI Company operator-stepped WorkOrder scheduler implementation \| pass \| `DEC-170`, `DEC-171`, `DEC-172`, `docs\/117_ai-company-operator-stepped-workorder-scheduler-plan\.md`, `docs\/118_ai-company-operator-stepped-workorder-scheduler-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-operator-stepped-workorder-scheduler-planning\.mjs`, `node scripts\/smoke-ai-company-operator-stepped-workorder-scheduler\.mjs`, `node scripts\/smoke-ui-slice-698\.mjs` \|/,
   /\| AI Company bounded parallel read-only specialists planning \| pass \| `DEC-173`, `DEC-174`, `DEC-175`, `docs\/119_ai-company-bounded-parallel-read-only-specialists-plan\.md`, `docs\/120_ai-company-specialist-batch-preview-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-bounded-parallel-read-only-specialists-planning\.mjs` \|/,
+  /\| AI Company SpecialistBatchPreview implementation \| pass \| `DEC-176`, `src\/runtime\/specialist-batch-preview\.js`, `node scripts\/smoke-ai-company-specialist-batch-preview\.mjs`, `node scripts\/smoke-ui-slice-699\.mjs` \|/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -272,10 +273,15 @@ assert.match(
   verificationStatus,
   /smoke-ai-company-bounded-parallel-read-only-specialists-planning\.mjs/,
 );
+assert.match(
+  verificationStatus,
+  /smoke-ai-company-specialist-batch-preview\.mjs/,
+);
 assert.match(uiQaStatus, /smoke-ui-slice-696\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-697\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-698\.mjs/);
-assertReadmeHas(/total `277\/277`/);
+assert.match(uiQaStatus, /smoke-ui-slice-699\.mjs/);
+assertReadmeHas(/total `278\/278`/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -286,8 +292,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '276/276',
-        total: '277/277',
+        informational: '277/277',
+        total: '278/278',
       },
     },
     null,

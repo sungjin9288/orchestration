@@ -417,11 +417,10 @@ position prompt, synthesis, Mission, WorkOrder, policy를 변경하거나 memory
 
 Stage 4A planning is accepted by `DEC-173`, `DEC-174` records the Stage 4A
 SpecialistBatchPreview implementation decision handoff, and `DEC-175` fixes its exact source-current,
-request, digest, path, deadline, redaction, and browser-lifecycle contract. A future preview can
-inspect the exact approved StaffingEntry-bound local Council synthesis and expose two source-backed
-read-only contracts only after the complete fielded decision reserved for `DEC-176`; it cannot
-execute specialists, call a provider, persist results, change Council policy, or alter Council
-alignment behavior.
+request, digest, path, deadline, redaction, and browser-lifecycle contract. `DEC-176` implements the
+response-only inspection of the exact approved StaffingEntry-bound local Council synthesis and its
+two source-backed read-only contracts. It cannot execute specialists, call a provider, persist
+results, change Council policy, or alter Council alignment behavior.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

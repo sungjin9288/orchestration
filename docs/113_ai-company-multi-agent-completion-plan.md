@@ -116,17 +116,16 @@ Mutable targets are serialized. Builder retains the current targeted live-mutati
 
 ### Stage 4A: SpecialistBatchPreview
 
-`DEC-173` accepts planning only, `DEC-174` records the fielded implementation handoff, and `DEC-175`
-closes its request, source, digest, path, deadline, transport, response, browser-lifecycle, rollback,
-and focused-smoke readiness gaps in
+`DEC-173` accepts planning only, `DEC-174` records the fielded implementation handoff, `DEC-175`
+closes its readiness gaps, and `DEC-176` implements the exact response-only slice described in
 `docs/119_ai-company-bounded-parallel-read-only-specialists-plan.md` and
 `docs/120_ai-company-specialist-batch-preview-implementation-decision-handoff.md`. The first slice
 is one response-only schema-v19 preview for exactly two independent Researcher and QA contracts after
 an approved StaffingEntry-bound local Council synthesis and before WorkOrder plan persistence.
 
 It preserves `parallelSpecialistsAllowed=false`, exposes no worker execution or durable record, and
-requires a separate `DEC-176` implementation decision. Current schema-v19 one-active WorkOrderAttempt
-behavior remains authoritative.
+keeps current schema-v19 one-active WorkOrderAttempt behavior authoritative. The next authority
+boundary is Stage 4B, which requires a separate schema-v20 decision.
 
 ### Stage 4B: Durable Concurrent First Attempt
 

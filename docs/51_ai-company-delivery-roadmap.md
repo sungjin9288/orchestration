@@ -569,11 +569,10 @@ one local dependency-ready Builder, Reviewer, or QA role per explicit start or s
 retry/rework, interrupted-attempt recovery, parallel/provider/background scheduling, source/Git/
 release, memory application, policy mutation, bypass, and connectors remain blocked. `DEC-173`
 accepts Stage 4A planning, `DEC-174` records the fielded Stage 4A SpecialistBatchPreview
-implementation decision handoff, and `DEC-175` fixes its exact implementation-readiness contracts.
-The immediate next gate is the complete fielded implementation decision reserved for `DEC-176`;
-schema-v20 durable concurrent
-records, actual parallel execution, cancellation, retry/recovery, provider calls, and policy changes
-remain blocked.
+implementation decision handoff, `DEC-175` fixes its exact implementation-readiness contracts, and
+`DEC-176` implements the response/browser-memory-only schema-v19 preview. The immediate next gate is
+a separately approved Stage 4B schema-v20 durable concurrent-record slice. Actual parallel
+execution, cancellation, retry/recovery, provider calls, and policy changes remain blocked.
 
 Implemented acceptance target:
 
