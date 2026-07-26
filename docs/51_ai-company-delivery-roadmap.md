@@ -570,9 +570,13 @@ retry/rework, interrupted-attempt recovery, parallel/provider/background schedul
 release, memory application, policy mutation, bypass, and connectors remain blocked. `DEC-173`
 accepts Stage 4A planning, `DEC-174` records the fielded Stage 4A SpecialistBatchPreview
 implementation decision handoff, `DEC-175` fixes its exact implementation-readiness contracts, and
-`DEC-176` implements the response/browser-memory-only schema-v19 preview. The immediate next gate is
-a separately approved Stage 4B schema-v20 durable concurrent-record slice. Actual parallel
-execution, cancellation, retry/recovery, provider calls, and policy changes remain blocked.
+`DEC-176` implements the response/browser-memory-only schema-v19 preview. Planning-only `DEC-177`
+fixes the Stage 4B durable record, request-scoped settlement, reload-validatable deadline,
+terminal/failure, exact source-bound inspection, and generic-snapshot exclusion contract, and
+`DEC-178` records its complete fielded implementation handoff. The immediate next gate is the
+complete valid `DEC-179` implementation decision. Schema-v20 records, actual workers, settlement
+writes, collection exposure, cancellation, retry/recovery, provider calls, and policy changes remain
+blocked.
 
 Implemented acceptance target:
 

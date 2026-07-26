@@ -129,9 +129,17 @@ boundary is Stage 4B, which requires a separate schema-v20 decision.
 
 ### Stage 4B: Durable Concurrent First Attempt
 
-Only a future schema-v20 decision may add durable SpecialistBatch and SpecialistCellAttempt records
-and one request-scoped bounded concurrent first attempt. It must not add background scheduling or
-infer a successful result after interruption.
+Planning-only `DEC-177` fixes the schema-v20 SpecialistBatch and SpecialistCellAttempt record
+contracts, active-before-execution transaction, fixed Researcher/QA local workers, maximum
+in-flight count of two, serial fresh-state CAS settlements, durable batch/per-cell deadline budgets,
+exact terminal and allowlisted failure semantics, partial evidence, exact-id and bounded
+current-chain inspection, generic-snapshot exclusion, redaction, replay, interruption, and rollback
+behavior.
+`DEC-178` records the complete fielded implementation handoff. Neither decision opens runtime
+authority. One complete valid implementation decision reserved for `DEC-179` may add the
+request-scoped first attempt only; it must not enable broad parallel StaffingPlan mode, background
+scheduling, retry, recovery, cancellation, provider calls, result application, or inferred success
+after interruption.
 
 ### Stage 4C: Failed-Cell Retry And Recovery
 

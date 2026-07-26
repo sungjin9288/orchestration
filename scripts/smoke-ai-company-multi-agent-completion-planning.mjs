@@ -17,6 +17,10 @@ const plan = read('docs/113_ai-company-multi-agent-completion-plan.md');
 const handoff = read(
   'docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md',
 );
+const durableSpecialistPlan = read('docs/121_ai-company-durable-specialist-batch-plan.md');
+const durableSpecialistHandoff = read(
+  'docs/122_ai-company-durable-specialist-batch-implementation-decision-handoff.md',
+);
 const decisionLog = read('docs/01_decision-log.md');
 const masterPlan = read('docs/48_ai-company-master-plan.md');
 const runtimeContract = read('docs/49_agent-runtime-contract.md');
@@ -71,6 +75,14 @@ assert.match(plan, /`DEC-173` accepts planning only/);
 assert.match(plan, /`DEC-174` records the fielded implementation handoff/);
 assert.match(plan, /`DEC-175`[\s\S]*readiness gaps/);
 assert.match(plan, /`DEC-176` implements the exact response-only slice/);
+assert.match(plan, /Planning-only `DEC-177` fixes the schema-v20 SpecialistBatch/);
+assert.match(plan, /`DEC-178` records the complete fielded implementation handoff/);
+assert.match(plan, /complete valid implementation decision reserved for `DEC-179`/);
+assert.match(durableSpecialistPlan, /^# AI Company Durable Specialist Batch Plan$/m);
+assert.match(
+  durableSpecialistHandoff,
+  /^# AI Company Durable Specialist Batch Implementation Decision Handoff$/m,
+);
 
 assert.match(
   handoff,
@@ -114,12 +126,14 @@ for (const decisionId of [
   'DEC-174',
   'DEC-175',
   'DEC-176',
+  'DEC-177',
+  'DEC-178',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /`DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-178`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -191,6 +205,8 @@ process.stdout.write(
         specialistBatchPreviewHandoff: 'documented-dec-174',
         specialistBatchPreviewClarification: 'accepted-dec-175',
         specialistBatchPreviewImplementation: 'accepted-dec-176',
+        durableSpecialistBatchPlanning: 'accepted-dec-177',
+        durableSpecialistBatchHandoff: 'documented-dec-178',
       },
       currentRuntime: {
         schemaVersion: 19,
@@ -207,19 +223,21 @@ process.stdout.write(
         stage: '4B',
         object: 'durable-specialist-batch',
         implementationAllowed: false,
-        nextDecisionLogEntry: null,
+        nextDecisionLogEntry: 'DEC-179',
       },
       authority: {
         documentationAllowed: true,
-        implementationAllowed: true,
-        schemaMigrationAllowed: true,
-        durableRecordAllowed: true,
+        priorApprovedSlicesImplemented: true,
+        schemaV20MigrationAllowed: false,
+        specialistBatchRecordAllowed: false,
         councilBindingAllowed: true,
         operatorSteppedSchedulerPlanningAllowed: true,
         workOrderAttemptImplementationAllowed: true,
         operatorSteppedSchedulingAllowed: true,
         specialistBatchPreviewPlanningAllowed: true,
         specialistBatchPreviewImplementationAllowed: true,
+        durableSpecialistBatchPlanningAllowed: true,
+        durableSpecialistBatchImplementationAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,
         providerExpansionAllowed: false,

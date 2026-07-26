@@ -453,9 +453,13 @@ exact request, source gate, canonical digest, contained-file, deadline, redacted
 browser invalidation rules. `DEC-176` implements only that schema-v19 response/browser-memory
 preview for the source-backed Researcher and QA read-only contracts.
 `parallelSpecialistsAllowed=false` and one-active WorkOrderAttempt remain authoritative.
-Schema-v20 records, actual parallel execution, provider calls, cancellation, retry/recovery, and
-policy changes remain outside the runtime contract until separate complete fielded decisions are
-accepted.
+Planning-only `DEC-177` defines a separate fixed post-Council evidence-batch namespace that does not
+open `StaffingPlan.mode=parallel-specialists`, and `DEC-178` records its complete fielded
+implementation handoff. It fixes durable input and deadline evidence, exact terminal/failure
+semantics, exact-id and bounded current-chain inspection, and generic-snapshot exclusion without
+opening a collection projection. Schema-v20 records, worker execution, serial settlement writes,
+provider calls, cancellation, retry/recovery, and policy changes remain outside the runtime contract
+until the complete valid `DEC-179` decision is accepted.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

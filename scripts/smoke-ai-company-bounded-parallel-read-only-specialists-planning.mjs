@@ -186,6 +186,9 @@ assert.match(councilProtocol, /`DEC-175` fixes its exact/);
 assert.match(deliveryRoadmap, /`DEC-175` fixes its exact implementation-readiness contracts/);
 assert.match(inventory, /AI Company bounded parallel read-only specialists planning \| pass/);
 assert.match(inventory, /AI Company SpecialistBatchPreview implementation \| pass/);
+assert.match(inventory, /AI Company durable SpecialistBatch planning \| pass/);
+assert.match(plan, /Stage 4B may only begin after a separate schema-v20 decision/);
+assert.doesNotMatch(plan, /DEC-177|DEC-178|DEC-179/);
 assert.match(readme, /docs\/119_ai-company-bounded-parallel-read-only-specialists-plan\.md/);
 assert.match(
   readme,
@@ -193,9 +196,9 @@ assert.match(
 );
 assert.match(readme, /planning-only `DEC-175` fixes the exact request/);
 assert.match(readme, /`DEC-176` implements only/);
-assert.match(readme, /960 smoke files/);
+assert.match(readme, /961 smoke files/);
 assert.match(readme, /699 UI smoke files/);
-assert.match(readme, /informational `277\/277`, total `278\/278`/);
+assert.match(readme, /informational `278\/278`, total `279\/279`/);
 assert.match(taskLedger, /ai-company-bounded-parallel-read-only-specialists-planning-post-m7-2013/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-readiness-clarification-post-m7-2014/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-implementation-post-m7-2015/);
@@ -226,11 +229,13 @@ process.stdout.write(
       ok: true,
       mode,
       planningAllowed: true,
-      implementationAllowed: true,
+      previewImplementationAllowed: true,
+      durableSpecialistBatchImplementationAllowed: false,
       schemaMigrationAllowed: false,
       actualParallelExecutionAllowed: false,
-      nextRequiredDecision: 'separate Stage 4B schema-v20 durable specialist decision',
-      nextDecisionLogEntry: null,
+      nextRequiredDecision:
+        'complete fielded DEC-179 durable specialist batch implementation decision',
+      nextDecisionLogEntry: 'DEC-179',
     },
     null,
     2,

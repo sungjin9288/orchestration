@@ -232,6 +232,8 @@ assert.match(decisionLog, /^### DEC-162$/m);
 assert.match(decisionLog, /^### DEC-163$/m);
 assert.match(decisionLog, /^### DEC-164$/m);
 assert.match(decisionLog, /^### DEC-165$/m);
+assert.match(decisionLog, /^### DEC-177$/m);
+assert.match(decisionLog, /^### DEC-178$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -270,13 +272,17 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /`DEC-163`, `DEC-164`, `DEC-165`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-178`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(councilProtocolText, /clarification은 `DEC-165`/);
 assert.match(deliveryRoadmapText, /VNext Multi-Agent Completion Sequence/);
 assert.match(deliveryRoadmapText, /readiness clarification은 `DEC-165`/);
+assert.match(masterPlanText, /Planning-only `DEC-177` fixes the Stage 4B/);
+assert.match(runtimeContractText, /Planning-only `DEC-177` defines a separate fixed post-Council/);
+assert.match(councilProtocolText, /Planning-only `DEC-177` and handoff-only `DEC-178`/);
+assert.match(deliveryRoadmapText, /Planning-only `DEC-177`[\s\S]*`DEC-178`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -389,6 +395,8 @@ process.stdout.write(
         'DEC-174',
         'DEC-175',
         'DEC-176',
+        'DEC-177',
+        'DEC-178',
       ],
       currentRuntime: {
         schemaVersion: 19,
@@ -470,6 +478,8 @@ process.stdout.write(
         workOrderAttemptPersistenceAllowed: true,
         specialistBatchPreviewPlanningAllowed: true,
         specialistBatchPreviewImplementationAllowed: true,
+        durableSpecialistBatchPlanningAllowed: true,
+        durableSpecialistBatchImplementationAllowed: false,
         actualParallelSpecialistExecutionAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
@@ -479,7 +489,8 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Stage 4B schema-v20 durable specialist records require a separate decision',
+      nextGate:
+        'complete fielded DEC-179 durable specialist batch implementation decision required',
     },
     null,
     2,

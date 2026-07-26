@@ -120,7 +120,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`, `DEC-167`, `DEC-168`, `DEC-169`, `DEC-170`, `DEC-171`, `DEC-172`
+- Recorded decisions: `DEC-163` through `DEC-178`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -141,8 +141,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   exact bound WorkOrder preview/persistence, deterministic dependency-ready selection,
   active-before-coordinator persistence, one role per start/step, and exact attempt inspection;
   schema-v19 response/browser-memory-only SpecialistBatchPreview for two fixed read-only cells
-- Next gate: Stage 4B durable specialist records and bounded execution require a separate complete
-  fielded decision; solo remains deferred because no executable solo contract exists
+- Planning evidence: `DEC-177` fixes the Stage 4B schema-v20 durable fixed-cell batch contract and
+  `DEC-178` records its complete fielded handoff; no Stage 4B runtime, schema, API, or UI
+  implementation is present
+- Next gate: the complete valid `DEC-179` implementation decision for one request-scoped local
+  SpecialistBatch first attempt; solo remains deferred because no executable solo contract exists
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -470,8 +473,12 @@ Stage 4A bounded parallel specialists planning is accepted as `DEC-173`, its fie
 `SpecialistBatchPreview` implementation handoff is `DEC-174`, and `DEC-175` fixes the exact
 request, digest, path, deadline, redaction, error, and browser-memory contract. `DEC-176` implements
 one schema-v19 response/browser-memory-only preview of two independent Researcher and QA contracts.
-Actual parallel workers, durable schema-v20 batch or cell records, cancellation, retry/recovery,
-provider calls, and CompanyBlueprint policy change remain blocked behind separate decisions.
+Planning-only `DEC-177` fixes the Stage 4B schema-v20 record, active-before-execution, bounded
+concurrency, serial CAS settlement, durable deadline budgets, exact terminal/failure semantics,
+bounded current-chain inspection, generic-snapshot exclusion, interruption, redaction, and rollback
+contract; `DEC-178` records the complete fielded implementation handoff. Durable records, actual
+workers, settlement writes, collection/list exposure, cancellation, retry/recovery, provider calls,
+and CompanyBlueprint policy change remain blocked until the complete valid `DEC-179` decision.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
