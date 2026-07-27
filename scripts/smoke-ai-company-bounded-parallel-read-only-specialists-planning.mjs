@@ -196,7 +196,7 @@ assert.match(
 );
 assert.match(readme, /planning-only `DEC-175` fixes the exact request/);
 assert.match(readme, /`DEC-176` implements only/);
-assert.match(readme, /966 smoke files/);
+assert.match(readme, /967 smoke files/);
 assert.match(readme, /701 UI smoke files/);
 assert.match(taskLedger, /ai-company-bounded-parallel-read-only-specialists-planning-post-m7-2013/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-readiness-clarification-post-m7-2014/);
@@ -234,7 +234,8 @@ process.stdout.write(
       requestScopedConcurrentExecutionAllowed: true,
       broadParallelStaffingPolicyAllowed: false,
       implementationDecision: 'accepted-dec-179',
-      nextRequiredDecision: 'complete DEC-182 specialist cell retry implementation decision',
+      nextRequiredDecision:
+        'operator-decision-ai-company-ops-supervision-preview-implementation-001',
     },
     null,
     2,

@@ -460,9 +460,13 @@ durable input/deadline evidence, active-before-execution persistence, request-sc
 serial settlement, exact-id and bounded current-chain inspection, and generic-snapshot exclusion.
 Planning-only `DEC-180` defines a separate schema-v21 append relationship for one exact failed
 first-attempt retry, `DEC-181` records its complete fielded implementation handoff, and `DEC-182`
-implements only that exact immutable-source same-role attempt #2. Provider calls, cancellation,
-active-attempt recovery, automatic or repeated retry, retries beyond attempt #2, collection
-projection, result application, and policy changes remain outside the runtime contract.
+implements only that exact immutable-source same-role attempt #2. Planning-only `DEC-183` defines
+one exact schema-v21-preserving response-only OpsSupervisionPreview across the three active-attempt
+types, and `DEC-184` records its complete fielded implementation handoff. Every future valid preview
+must keep `allowedActions=[]`; implementation remains reserved for `DEC-185`. Provider calls,
+cancellation, active-attempt mutation or recovery, automatic or repeated retry, retries beyond
+attempt #2, collection projection, result application, and policy changes remain outside the
+runtime contract.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

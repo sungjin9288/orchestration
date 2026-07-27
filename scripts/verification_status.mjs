@@ -422,6 +422,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 4C planning source-checks DEC-180 and DEC-181, immutable schema-v20 batch and first-attempt evidence, one future schema-v21 failed-cell retry relationship and attempt number two, exact source-current approval deadline replay settlement inspection rollback, and the still-blocked DEC-182 implementation authority',
   },
   {
+    id: 'ai-company-ops-supervision-preview-planning',
+    script: 'scripts/smoke-ai-company-ops-supervision-preview-planning.mjs',
+    purpose: 'AI Company Stage 6A planning source-checks DEC-183 and DEC-184, one future schema-v21-preserving exact active-attempt OpsSupervisionPreview across WorkOrder and specialist evidence, six-key GET transport, deterministic deadline and lineage classification, allowedActions empty, zero writes, rollback, and still-blocked DEC-185 implementation plus recovery authority',
+  },
+  {
     id: 'ai-company-specialist-batch-preview',
     script: 'scripts/smoke-ai-company-specialist-batch-preview.mjs',
     purpose: 'AI Company Stage 4A runtime and API prove one exact source-current schema-v19 response-only SpecialistBatchPreview with two fixed read-only cells, raw-byte path digests, exact transport errors, unchanged state bytes, and no worker provider persistence scheduling mutation Git release or policy authority',

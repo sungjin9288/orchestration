@@ -232,7 +232,8 @@ process.stdout.write(
       planningDecision: 'accepted-dec-180',
       handoffDecision: 'accepted-dec-181',
       implementationDecision: 'accepted-dec-182',
-      nextRequiredDecision: 'active specialist attempt recovery decision',
+      nextRequiredDecision:
+        'operator-decision-ai-company-ops-supervision-preview-implementation-001',
     },
     null,
     2,

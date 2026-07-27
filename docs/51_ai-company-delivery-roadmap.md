@@ -502,6 +502,11 @@ gap을 다음 순서로 닫는다.
 7. reviewed Mission context attachment와 role별 provider expansion을 별도 권한으로 연다;
 8. Phase 9 isolated dogfood scenarios와 honest README evidence를 닫는다.
 
+`DEC-183`은 Stage 6 command authority보다 먼저 필요한 Stage 6A inspect-only
+OpsSupervisionPreview를 planning-only로 고정하고, `DEC-184`는 그 fielded implementation
+handoff를 기록한다. 이 response-only classifier는 Reviewer rework나 recovery command 순서를
+바꾸지 않으며, future `DEC-185`가 승인되더라도 `allowedActions=[]`로 멈춘다.
+
 Source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`, first durable StaffingPlan
 implementation handoff는 `DEC-164`, readiness clarification은 `DEC-165`로 기록됐다. The
 clarified handoff fixes active-project binding, fresh blueprint and role-source digests, existing
@@ -577,9 +582,12 @@ terminal/failure, exact source-bound inspection, and generic-snapshot exclusion 
 exact request-scoped fixed Researcher/QA local first attempt with serial settlement and exact
 inspection. Planning-only `DEC-180` fixes the schema-v21 failed-cell-only retry boundary with
 immutable source evidence, `DEC-181` records its complete fielded implementation handoff, and
-`DEC-182` implements only one exact same-role attempt #2. Collection exposure, cancellation,
-active-attempt recovery, automatic or repeated retry, retries beyond attempt #2, provider calls,
-result application, background scheduling, and policy changes remain blocked.
+`DEC-182` implements only one exact same-role attempt #2. Planning-only `DEC-183` fixes one exact
+schema-v21-preserving response-only OpsSupervisionPreview, and `DEC-184` records its complete
+fielded implementation handoff; runtime/API/UI implementation is reserved for `DEC-185`.
+Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
+retries beyond attempt #2, provider calls, result application, background scheduling, and policy
+changes remain blocked.
 
 Implemented acceptance target:
 
@@ -669,6 +677,7 @@ node scripts/smoke-ui-slice-655.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ui-slice-656.mjs
+node scripts/smoke-ai-company-ops-supervision-preview-planning.mjs
 node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
 node scripts/smoke-ai-company-durable-delivery-package.mjs
 node scripts/smoke-ui-slice-657.mjs

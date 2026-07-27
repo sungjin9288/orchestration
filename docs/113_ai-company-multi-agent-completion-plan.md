@@ -168,6 +168,14 @@ and `resume-safe-checkpoint` commands. Restart never infers success or replays a
 
 The UI shows role, dependency, attempt, checkpoint, budget, and terminal reason from durable evidence.
 
+Stage 6A planning-only `DEC-183` now fixes the first common inspection boundary before any command:
+one exact schema-v21-preserving `OpsSupervisionPreview` over an operator-selected active
+WorkOrderAttempt, SpecialistBatch first attempt, or SpecialistCellRetry attempt #2. `DEC-184`
+records the complete fielded implementation handoff. Every valid preview has `allowedActions=[]`;
+it classifies exact durable lineage and deadline evidence without list/search, migration, persistence,
+settlement, cancellation, quarantine mutation, replay, retry, or resume. Runtime/API/UI
+implementation remains reserved for a complete `DEC-185` decision.
+
 ### Stage 7: Reviewed Mission Context Attachment
 
 Promote one exact MissionMemoryContextPreview only after a separate operator review into a

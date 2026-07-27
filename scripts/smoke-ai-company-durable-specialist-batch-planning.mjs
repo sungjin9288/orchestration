@@ -292,7 +292,8 @@ process.stdout.write(
       actualConcurrentExecutionAllowed: true,
       parallelSpecialistsPolicyChangeAllowed: false,
       implementationDecision: 'accepted-dec-179',
-      nextRequiredDecision: 'complete DEC-182 specialist cell retry implementation decision',
+      nextRequiredDecision:
+        'operator-decision-ai-company-ops-supervision-preview-implementation-001',
     },
     null,
     2,
