@@ -80,7 +80,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   active-before-coordinator WorkOrderAttempt, and one local role boundary per explicit start or step.
   `DEC-179` adds one separately approved request-scoped fixed Researcher/QA local first attempt with
   active-before-execution records and exact inspection while broad parallel StaffingPlan policy
-  remains disabled. Solo binding, bound Council revision/resume/auto-chain, dynamic specialists, Reviewer rework,
+  remains disabled. `DEC-180` and `DEC-181` define, without implementing, one immutable-source
+  failed-cell retry and its complete implementation handoff. Solo binding, bound Council
+  revision/resume/auto-chain, dynamic specialists, Reviewer rework,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
   application은 아직 구현되지 않았다.
 
@@ -122,7 +124,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-179`
+- Recorded decisions: `DEC-163` through `DEC-181`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -147,8 +149,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   fixed local Researcher/QA first attempt, serial CAS settlement, and exact inspection
 - Stage 4B implementation: `DEC-177` fixes the contract, `DEC-178` records the handoff, and
   `DEC-179` implements only the request-scoped first attempt
-- Next gate: a separate complete decision for retry/recovery or any broader authority; solo remains
-  deferred because no executable solo contract exists
+- Stage 4C planning: `DEC-180` fixes one failed-first-attempt retry while preserving immutable source
+  evidence, and `DEC-181` records its complete fielded implementation handoff
+- Next gate: the complete exact `DEC-182` implementation decision; active-attempt recovery and solo
+  remain deferred
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -480,8 +484,10 @@ Planning-only `DEC-177` fixes the Stage 4B schema-v20 record, active-before-exec
 concurrency, serial CAS settlement, durable deadline budgets, exact terminal/failure semantics,
 bounded current-chain inspection, generic-snapshot exclusion, interruption, redaction, and rollback
 contract; `DEC-178` records the complete fielded implementation handoff, and `DEC-179` implements
-only that exact fixed local first attempt. Collection/list exposure, cancellation, retry/recovery,
-provider calls, result application, and CompanyBlueprint policy change remain blocked.
+only that exact fixed local first attempt. Planning-only `DEC-180` and handoff-only `DEC-181` define
+one future schema-v21 failed-cell retry that preserves every source record and leaves implementation
+for `DEC-182`. Collection/list exposure, cancellation, active-attempt recovery, automatic or repeated
+retry, provider calls, result application, and CompanyBlueprint policy change remain blocked.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와

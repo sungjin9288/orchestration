@@ -124,6 +124,8 @@ Planning source files:
 - `docs/120_ai-company-specialist-batch-preview-implementation-decision-handoff.md`
 - `docs/121_ai-company-durable-specialist-batch-plan.md`
 - `docs/122_ai-company-durable-specialist-batch-implementation-decision-handoff.md`
+- `docs/123_ai-company-specialist-cell-retry-plan.md`
+- `docs/124_ai-company-specialist-cell-retry-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -182,8 +184,14 @@ fielded implementation handoff in `docs/121_ai-company-durable-specialist-batch-
 records and the fixed local Researcher/QA first attempt are implemented by `DEC-179`: active records
 are saved before worker invocation, each result settles through a serial fresh-state CAS boundary,
 exact inspection is source-bound, and the generic snapshot omits both durable maps. Broad parallel
-StaffingPlan policy, cancellation, retry/recovery, provider calls, result application, background
-scheduling, and all downstream authority remain blocked.
+StaffingPlan policy remains disabled. Planning-only `DEC-180` defines one future schema-v21
+failed-cell retry that keeps the source batch and both first attempts immutable, and `DEC-181`
+records its complete fielded implementation handoff in
+`docs/123_ai-company-specialist-cell-retry-plan.md` and
+`docs/124_ai-company-specialist-cell-retry-implementation-decision-handoff.md`. Runtime
+implementation remains reserved for `DEC-182`; cancellation, active-attempt recovery, automatic or
+repeated retry, provider calls, result application, background scheduling, and all downstream
+authority remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -678,7 +686,8 @@ close-out implementation together, and
 DEC-169 StaffingPlan and StaffingEntry implementation evidence, DEC-170 through DEC-172 Stage 3
 scheduler evidence, and DEC-173 through DEC-176 Stage 4A planning and response-only implementation
 evidence plus DEC-177 through DEC-179 Stage 4B planning, handoff, and fixed first-attempt
-implementation evidence pass aggregate required `1/1`, informational `279/279`, total `280/280`,
+implementation evidence plus DEC-180 and DEC-181 Stage 4C retry planning/handoff evidence pass
+aggregate required `1/1`, informational `280/280`, total `281/281`,
 and UI QA required `78/78`. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
@@ -2339,7 +2348,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 963 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 964 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 700 UI smoke files
 ```
@@ -2913,15 +2922,18 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161, and
-  the first multi-agent completion runtime slices are evidence-closed through DEC-179. DEC-173
+  the first multi-agent completion runtime slices are evidence-closed through DEC-179, with
+  planning/handoff evidence recorded through DEC-181. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
-  request-scoped local first attempt. DEC-169 implements
+  request-scoped local first attempt. DEC-180 and DEC-181 define but do not implement one
+  immutable-source failed-cell retry; implementation remains reserved for DEC-182. DEC-169 implements
   Council-first StaffingEntry binding; DEC-172 implements only the exact schema-v19 operator-stepped
-  local Builder/Reviewer/QA path. Broad parallel StaffingPlan mode, retry/recovery, provider/
+  local Builder/Reviewer/QA path. Broad parallel StaffingPlan mode, active-attempt recovery,
+  automatic or repeated retry, provider/
   background WorkOrders, memory application, source/Git/release, policy bypass, and connectors remain
   blocked. This is not a claim of hosted production readiness. Focused source and compatibility
-  checks, the local browser matrix, UI QA `78/78`, and aggregate `280/280` pass. This remains local
+  checks, the local browser matrix, UI QA `78/78`, and aggregate `281/281` pass. This remains local
   synthetic/browser evidence rather than hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
@@ -3147,8 +3159,11 @@ Playwright CLI:
   preserving the closed parallel-specialists policy. `DEC-177` fixes the Stage 4B
   schema-v20 durable fixed-cell plan, and `DEC-178` records its complete fielded implementation
   handoff, and `DEC-179` implements one exact schema-v20 fixed Researcher/QA first attempt while the
-  broad parallel StaffingPlan policy stays disabled. Dynamic or additional cells, bound
-  Council revision/resume/auto-chain, retry/rework, interrupted-attempt recovery, memory application,
+  broad parallel StaffingPlan policy stays disabled. `DEC-180` plans one schema-v21 failed-cell-only
+  retry, and `DEC-181` records its complete fielded implementation handoff without opening runtime;
+  exact implementation remains reserved for `DEC-182`. Dynamic or additional cells, bound
+  Council revision/resume/auto-chain, automatic or repeated retry/rework, interrupted-attempt
+  recovery, memory application,
   provider/background WorkOrders, source/Git/release, policy, bypass, and connector authority remain
   blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.

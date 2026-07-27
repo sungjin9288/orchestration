@@ -47,6 +47,9 @@ assert.match(plan, /### Stage 3: Operator-Stepped WorkOrder Scheduler/);
 assert.match(plan, /### Stage 4A: SpecialistBatchPreview/);
 assert.match(plan, /### Stage 4B: Durable Concurrent First Attempt/);
 assert.match(plan, /### Stage 4C: Failed-Cell Retry And Recovery/);
+assert.match(plan, /Planning-only `DEC-180`/);
+assert.match(plan, /`DEC-181` records/);
+assert.match(plan, /reserved for `DEC-182`/);
 assert.match(plan, /### Stage 5: Reviewer Rework/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
 assert.match(plan, /### Stage 7: Reviewed Mission Context Attachment/);
@@ -129,12 +132,14 @@ for (const decisionId of [
   'DEC-177',
   'DEC-178',
   'DEC-179',
+  'DEC-180',
+  'DEC-181',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-179`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-181`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -209,6 +214,8 @@ process.stdout.write(
         durableSpecialistBatchPlanning: 'accepted-dec-177',
         durableSpecialistBatchHandoff: 'documented-dec-178',
         durableSpecialistBatchImplementation: 'accepted-dec-179',
+        specialistCellRetryPlanning: 'accepted-dec-180',
+        specialistCellRetryHandoff: 'documented-dec-181',
       },
       currentRuntime: {
         schemaVersion: 20,
@@ -222,11 +229,11 @@ process.stdout.write(
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
-      nextPlanningTarget: {
+      nextImplementationTarget: {
         stage: '4C',
-        object: 'failed-cell-retry-and-recovery',
+        object: 'failed-first-attempt-cell-retry',
         implementationAllowed: false,
-        nextDecisionLogEntry: null,
+        nextDecisionLogEntry: 'DEC-182',
       },
       authority: {
         documentationAllowed: true,
@@ -241,6 +248,9 @@ process.stdout.write(
         specialistBatchPreviewImplementationAllowed: true,
         durableSpecialistBatchPlanningAllowed: true,
         durableSpecialistBatchImplementationAllowed: true,
+        specialistCellRetryPlanningAllowed: true,
+        specialistCellRetryImplementationAllowed: false,
+        activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,
         providerExpansionAllowed: false,

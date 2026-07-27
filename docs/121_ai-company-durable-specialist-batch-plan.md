@@ -49,6 +49,11 @@ StaffingPlan, or authorize retry, recovery, cancellation, providers, background 
 application, downstream records, source mutation, memory application, Git/release, policy bypass,
 or connectors.
 
+Planning-only `DEC-180` and handoff-only `DEC-181` now define the next failed-cell-only retry as a
+separate schema-v21 append relationship. They do not change this schema-v20 first-attempt contract.
+Implementation remains reserved for `DEC-182`, and active-attempt recovery remains a later Ops
+authority.
+
 ## Current Evidence And Gap
 
 Stage 4A already provides the exact source-current request, canonical digests, two fixed cell

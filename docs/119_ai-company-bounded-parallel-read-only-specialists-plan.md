@@ -249,9 +249,11 @@ remains response/browser-memory-only and adds no durable schema member.
 `DEC-179` implements Stage 4B through the separate schema-v20 decision. It persists one
 `SpecialistBatch` and two `SpecialistCellAttempt` records before request-scoped execution, caps
 concurrent cells at two, uses one serial CAS writer for settlements, and never infers success or
-automatically reruns an active cell after interruption. Stage 4C may only add an explicit bounded
-retry for failed cells while retaining successful evidence. Active-attempt recovery belongs with the
-later Ops supervision decision, not either preview or retry shortcut.
+automatically reruns an active cell after interruption. Planning-only `DEC-180` and handoff-only
+`DEC-181` now define Stage 4C as one explicit bounded retry for one failed first attempt while
+retaining the source batch and both first attempts byte-for-byte. The future implementation remains
+reserved for `DEC-182`. Active-attempt recovery belongs with the later Ops supervision decision, not
+either preview or retry shortcut.
 
 ## Rollback, Verification, And Stop Condition
 

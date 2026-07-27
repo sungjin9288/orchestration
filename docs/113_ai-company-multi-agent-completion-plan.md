@@ -142,8 +142,14 @@ after interruption.
 
 ### Stage 4C: Failed-Cell Retry And Recovery
 
-Only a later decision may retain successful cell evidence and permit an explicit bounded retry for a
-failed cell. Active-attempt recovery remains part of Ops supervision, not a retry shortcut.
+Planning-only `DEC-180` now fixes the append-only failed-cell retry boundary, and `DEC-181` records
+its complete fielded implementation handoff. The future schema-v21 path may retain the immutable
+source batch and both first attempts, append one `SpecialistCellRetry` plus one same-role
+`attemptNumber=2`, and execute that exact failed cell once after a separate operator approval.
+
+Implementation remains reserved for `DEC-182`. Active-attempt recovery, reconciliation,
+cancellation, automatic or repeated retry, and inferred success remain part of later Ops
+supervision, not this retry shortcut.
 
 ### Stage 5: Reviewer Rework
 

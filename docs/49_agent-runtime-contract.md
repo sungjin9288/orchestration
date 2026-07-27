@@ -458,7 +458,10 @@ open `StaffingPlan.mode=parallel-specialists`, and `DEC-178` records its complet
 implementation handoff. `DEC-179` implements the exact schema-v20 fixed two-cell first attempt with
 durable input/deadline evidence, active-before-execution persistence, request-scoped local workers,
 serial settlement, exact-id and bounded current-chain inspection, and generic-snapshot exclusion.
-Provider calls, cancellation, retry/recovery, collection projection, result application, and policy
+Planning-only `DEC-180` defines a separate future schema-v21 append relationship for one exact failed
+first-attempt retry, and `DEC-181` records its complete fielded implementation handoff. Runtime
+implementation remains reserved for `DEC-182`. Provider calls, cancellation, active-attempt
+recovery, automatic or repeated retry, collection projection, result application, and policy
 changes remain outside the runtime contract.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와

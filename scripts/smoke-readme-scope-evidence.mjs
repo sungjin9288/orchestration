@@ -409,7 +409,7 @@ const completionFocusEvidence = [
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate\s+registration, UI QA registration, zero-open backlog/,
   /defaultCompletionImplementationOpen=false/,
-  /DEC-161 browser baseline plus DEC-162 through\s+DEC-169 StaffingPlan and StaffingEntry implementation evidence, DEC-170 through DEC-172 Stage 3\s+scheduler evidence, and DEC-173 through DEC-176 Stage 4A planning and response-only implementation\s+evidence plus DEC-177 through DEC-179 Stage 4B planning, handoff, and fixed first-attempt\s+implementation evidence pass aggregate required `1\/1`, informational `279\/279`, total `280\/280`,\s+and UI QA required `78\/78`/,
+  /DEC-161 browser baseline plus DEC-162 through\s+DEC-169 StaffingPlan and StaffingEntry implementation evidence, DEC-170 through DEC-172 Stage 3\s+scheduler evidence, and DEC-173 through DEC-176 Stage 4A planning and response-only implementation\s+evidence plus DEC-177 through DEC-179 Stage 4B planning, handoff, and fixed first-attempt\s+implementation evidence plus DEC-180 and DEC-181 Stage 4C retry planning\/handoff evidence pass\s+aggregate required `1\/1`, informational `280\/280`, total `281\/281`,\s+and UI QA required `78\/78`/,
   /Focused browser checks at 1280x720 and\s+390x844 cover the loaded Mission shell and mobile Council navigation/,
   /DEC-158 matrix remains the evidence for the default-closed Task\s+provenance disclosure/,
   /docs\/110_llm-native-visual-system-convergence-plan\.md/,

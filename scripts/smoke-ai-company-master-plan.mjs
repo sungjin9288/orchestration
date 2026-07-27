@@ -234,6 +234,8 @@ assert.match(decisionLog, /^### DEC-164$/m);
 assert.match(decisionLog, /^### DEC-165$/m);
 assert.match(decisionLog, /^### DEC-177$/m);
 assert.match(decisionLog, /^### DEC-178$/m);
+assert.match(decisionLog, /^### DEC-180$/m);
+assert.match(decisionLog, /^### DEC-181$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -272,7 +274,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-179`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-181`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -283,6 +285,10 @@ assert.match(masterPlanText, /Planning-only `DEC-177` fixes the Stage 4B/);
 assert.match(runtimeContractText, /Planning-only `DEC-177` defines a separate fixed post-Council/);
 assert.match(councilProtocolText, /Planning-only `DEC-177` and handoff-only `DEC-178`/);
 assert.match(deliveryRoadmapText, /Planning-only `DEC-177`[\s\S]*`DEC-178`/);
+assert.match(masterPlanText, /Stage 4C planning: `DEC-180`/);
+assert.match(runtimeContractText, /Planning-only `DEC-180`/);
+assert.match(councilProtocolText, /Planning-only `DEC-180` and handoff-only `DEC-181`/);
+assert.match(deliveryRoadmapText, /Planning-only `DEC-180`[\s\S]*`DEC-181`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -396,6 +402,8 @@ const report = {
         'DEC-177',
         'DEC-178',
         'DEC-179',
+        'DEC-180',
+        'DEC-181',
       ],
       currentRuntime: {
         schemaVersion: 20,
@@ -427,6 +435,7 @@ const report = {
         operatorSteppedScheduler: 'schema-v19-operator-stepped-local-builder-reviewer-qa',
         specialistBatchPreview: 'schema-v19-response-browser-memory-only',
         durableSpecialistBatch: 'schema-v20-request-scoped-researcher-qa-first-attempt',
+        specialistCellRetry: 'planning-only-schema-v21-failed-first-attempt-retry',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -481,6 +490,9 @@ const report = {
         durableSpecialistBatchPlanningAllowed: true,
         durableSpecialistBatchImplementationAllowed: true,
         requestScopedConcurrentSpecialistExecutionAllowed: true,
+        specialistCellRetryPlanningAllowed: true,
+        specialistCellRetryImplementationAllowed: false,
+        activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
@@ -491,12 +503,15 @@ const report = {
         unattendedPushAllowed: false,
       },
       nextGate:
-        'separate Stage 4C retry and recovery decision required',
+        'complete DEC-182 specialist cell retry implementation decision required',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
+assert.equal(report.authority.specialistCellRetryPlanningAllowed, true);
+assert.equal(report.authority.specialistCellRetryImplementationAllowed, false);
+assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
-assert.match(report.nextGate, /Stage 4C retry and recovery/);
+assert.match(report.nextGate, /DEC-182 specialist cell retry implementation/);
 
 process.stdout.write(
   `${JSON.stringify(report, null, 2)}\n`,

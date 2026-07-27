@@ -575,8 +575,11 @@ fixes the Stage 4B durable record, request-scoped settlement, reload-validatable
 terminal/failure, exact source-bound inspection, and generic-snapshot exclusion contract, and
 `DEC-178` records its complete fielded implementation handoff, and `DEC-179` implements only the
 exact request-scoped fixed Researcher/QA local first attempt with serial settlement and exact
-inspection. Collection exposure, cancellation, retry/recovery, provider calls, result application,
-background scheduling, and policy changes remain blocked.
+inspection. Planning-only `DEC-180` fixes a future schema-v21 failed-cell-only retry with immutable
+source evidence, and `DEC-181` records its complete fielded implementation handoff. Implementation
+is reserved for `DEC-182`. Collection exposure, cancellation, active-attempt recovery, automatic or
+repeated retry, provider calls, result application, background scheduling, and policy changes remain
+blocked.
 
 Implemented acceptance target:
 

@@ -292,7 +292,7 @@ process.stdout.write(
       actualConcurrentExecutionAllowed: true,
       parallelSpecialistsPolicyChangeAllowed: false,
       implementationDecision: 'accepted-dec-179',
-      nextRequiredDecision: 'separate Stage 4C retry and recovery decision',
+      nextRequiredDecision: 'complete DEC-182 specialist cell retry implementation decision',
     },
     null,
     2,

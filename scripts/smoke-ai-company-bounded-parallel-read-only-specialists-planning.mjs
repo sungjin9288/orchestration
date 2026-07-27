@@ -188,7 +188,7 @@ assert.match(inventory, /AI Company bounded parallel read-only specialists plann
 assert.match(inventory, /AI Company SpecialistBatchPreview implementation \| pass/);
 assert.match(inventory, /AI Company durable SpecialistBatch planning \| pass/);
 assert.match(plan, /`DEC-179` implements Stage 4B through the separate schema-v20 decision/);
-assert.match(plan, /Stage 4C may only add an explicit bounded/);
+assert.match(plan, /Planning-only `DEC-180` and handoff-only\s+`DEC-181` now define Stage 4C/);
 assert.match(readme, /docs\/119_ai-company-bounded-parallel-read-only-specialists-plan\.md/);
 assert.match(
   readme,
@@ -196,9 +196,9 @@ assert.match(
 );
 assert.match(readme, /planning-only `DEC-175` fixes the exact request/);
 assert.match(readme, /`DEC-176` implements only/);
-assert.match(readme, /963 smoke files/);
+assert.match(readme, /964 smoke files/);
 assert.match(readme, /700 UI smoke files/);
-assert.match(readme, /informational `279\/279`, total `280\/280`/);
+assert.match(readme, /informational `280\/280`, total `281\/281`/);
 assert.match(taskLedger, /ai-company-bounded-parallel-read-only-specialists-planning-post-m7-2013/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-readiness-clarification-post-m7-2014/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-implementation-post-m7-2015/);
@@ -235,7 +235,7 @@ process.stdout.write(
       requestScopedConcurrentExecutionAllowed: true,
       broadParallelStaffingPolicyAllowed: false,
       implementationDecision: 'accepted-dec-179',
-      nextRequiredDecision: 'separate Stage 4C retry and recovery decision',
+      nextRequiredDecision: 'complete DEC-182 specialist cell retry implementation decision',
     },
     null,
     2,
