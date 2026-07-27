@@ -126,7 +126,7 @@ assert.match(
 
 assert.match(completionPlan, /### Stage 3: Operator-Stepped WorkOrder Scheduler/);
 assert.match(completionPlan, /### Stage 4A: SpecialistBatchPreview/);
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 19/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 20/);
 assert.match(contracts, /workOrderAttempt: 0/);
 assert.match(contracts, /workOrderAttempts: \{\}/);
 assert.match(runtimeService, /function assertBoundStaffingSchedulerSourceCurrent/);

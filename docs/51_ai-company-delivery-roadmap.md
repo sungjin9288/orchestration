@@ -549,7 +549,7 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Current runtime is schema v19. The accepted implementation chain through `DEC-130` provides exact
+Current runtime is schema v20. The accepted implementation chain through `DEC-130` provides exact
 Mission memory context review without injection. `DEC-131` through `DEC-136` add WorkOrder
 verification planning, optimistic state transactions, AcceptanceCriterion and VerificationProof
 records, one-step continuation preview, optional exact fetch, and measurement-only context telemetry.
@@ -573,10 +573,10 @@ implementation decision handoff, `DEC-175` fixes its exact implementation-readin
 `DEC-176` implements the response/browser-memory-only schema-v19 preview. Planning-only `DEC-177`
 fixes the Stage 4B durable record, request-scoped settlement, reload-validatable deadline,
 terminal/failure, exact source-bound inspection, and generic-snapshot exclusion contract, and
-`DEC-178` records its complete fielded implementation handoff. The immediate next gate is the
-complete valid `DEC-179` implementation decision. Schema-v20 records, actual workers, settlement
-writes, collection exposure, cancellation, retry/recovery, provider calls, and policy changes remain
-blocked.
+`DEC-178` records its complete fielded implementation handoff, and `DEC-179` implements only the
+exact request-scoped fixed Researcher/QA local first attempt with serial settlement and exact
+inspection. Collection exposure, cancellation, retry/recovery, provider calls, result application,
+background scheduling, and policy changes remain blocked.
 
 Implemented acceptance target:
 

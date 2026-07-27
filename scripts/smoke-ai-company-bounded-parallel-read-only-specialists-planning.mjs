@@ -172,7 +172,7 @@ for (const profileId of ['agent-researcher', 'agent-qa']) {
   assert.equal(profile.authority.canCommit, false);
   assert.equal(profile.authority.canPush, false);
 }
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 19/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 20/);
 assert.match(scheduler, /WORK_ORDER_ATTEMPT_STATUS\.ACTIVE/);
 
 assert.match(completionPlan, /### Stage 4A: SpecialistBatchPreview/);
@@ -187,8 +187,8 @@ assert.match(deliveryRoadmap, /`DEC-175` fixes its exact implementation-readines
 assert.match(inventory, /AI Company bounded parallel read-only specialists planning \| pass/);
 assert.match(inventory, /AI Company SpecialistBatchPreview implementation \| pass/);
 assert.match(inventory, /AI Company durable SpecialistBatch planning \| pass/);
-assert.match(plan, /Stage 4B may only begin after a separate schema-v20 decision/);
-assert.doesNotMatch(plan, /DEC-177|DEC-178|DEC-179/);
+assert.match(plan, /`DEC-179` implements Stage 4B through the separate schema-v20 decision/);
+assert.match(plan, /Stage 4C may only add an explicit bounded/);
 assert.match(readme, /docs\/119_ai-company-bounded-parallel-read-only-specialists-plan\.md/);
 assert.match(
   readme,
@@ -196,9 +196,9 @@ assert.match(
 );
 assert.match(readme, /planning-only `DEC-175` fixes the exact request/);
 assert.match(readme, /`DEC-176` implements only/);
-assert.match(readme, /961 smoke files/);
-assert.match(readme, /699 UI smoke files/);
-assert.match(readme, /informational `278\/278`, total `279\/279`/);
+assert.match(readme, /963 smoke files/);
+assert.match(readme, /700 UI smoke files/);
+assert.match(readme, /informational `279\/279`, total `280\/280`/);
 assert.match(taskLedger, /ai-company-bounded-parallel-read-only-specialists-planning-post-m7-2013/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-readiness-clarification-post-m7-2014/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-implementation-post-m7-2015/);
@@ -230,12 +230,12 @@ process.stdout.write(
       mode,
       planningAllowed: true,
       previewImplementationAllowed: true,
-      durableSpecialistBatchImplementationAllowed: false,
-      schemaMigrationAllowed: false,
-      actualParallelExecutionAllowed: false,
-      nextRequiredDecision:
-        'complete fielded DEC-179 durable specialist batch implementation decision',
-      nextDecisionLogEntry: 'DEC-179',
+      durableSpecialistBatchImplementationAllowed: true,
+      schemaMigrationAllowed: true,
+      requestScopedConcurrentExecutionAllowed: true,
+      broadParallelStaffingPolicyAllowed: false,
+      implementationDecision: 'accepted-dec-179',
+      nextRequiredDecision: 'separate Stage 4C retry and recovery decision',
     },
     null,
     2,

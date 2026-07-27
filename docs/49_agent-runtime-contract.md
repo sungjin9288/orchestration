@@ -430,7 +430,7 @@ content와 derived UI preview의 source-of-truth 경계를 유지한다.
 ## Implementation Boundary
 
 `CompanyBlueprint`와 `AgentProfile` source loading은 `DEC-079`로 구현됐다. 이 path가
-schema-v6 foundation을 만들었고, current persisted runtime은 schema v19이며 company policy는 여전히 `state.json`에 저장되지 않는다.
+schema-v6 foundation을 만들었고, current persisted runtime은 schema v20이며 company policy는 여전히 `state.json`에 저장되지 않는다.
 Direct runtime caller가 blueprint path를 생략하면 기존 snapshot shape를
 유지하고, configured local server만 additive read-only `companyRuntime` envelope를 노출한다.
 One exact immutable StaffingPlan preview/accept/inspection path는 `DEC-166`으로 구현됐다.
@@ -450,16 +450,16 @@ scheduling, source/Git/release, memory application, policy bypass, and connector
 
 `DEC-174` records the Stage 4A SpecialistBatchPreview handoff, and planning-only `DEC-175` fixes its
 exact request, source gate, canonical digest, contained-file, deadline, redacted response, error, and
-browser invalidation rules. `DEC-176` implements only that schema-v19 response/browser-memory
+browser invalidation rules. `DEC-176` implements only that response/browser-memory
 preview for the source-backed Researcher and QA read-only contracts.
 `parallelSpecialistsAllowed=false` and one-active WorkOrderAttempt remain authoritative.
 Planning-only `DEC-177` defines a separate fixed post-Council evidence-batch namespace that does not
 open `StaffingPlan.mode=parallel-specialists`, and `DEC-178` records its complete fielded
-implementation handoff. It fixes durable input and deadline evidence, exact terminal/failure
-semantics, exact-id and bounded current-chain inspection, and generic-snapshot exclusion without
-opening a collection projection. Schema-v20 records, worker execution, serial settlement writes,
-provider calls, cancellation, retry/recovery, and policy changes remain outside the runtime contract
-until the complete valid `DEC-179` decision is accepted.
+implementation handoff. `DEC-179` implements the exact schema-v20 fixed two-cell first attempt with
+durable input/deadline evidence, active-before-execution persistence, request-scoped local workers,
+serial settlement, exact-id and bounded current-chain inspection, and generic-snapshot exclusion.
+Provider calls, cancellation, retry/recovery, collection projection, result application, and policy
+changes remain outside the runtime contract.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

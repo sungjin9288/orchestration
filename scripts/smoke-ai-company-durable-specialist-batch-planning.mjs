@@ -114,7 +114,7 @@ assertHasAll(plan, [
   /returns at most that chain's one immutable batch/,
   /It is not a collection projection/,
   /no raw source, output body, absolute path, raw error, credential, transcript, provider payload/i,
-  /Runtime implementation remains\s+blocked until the operator supplies the exact complete `DEC-179` decision/,
+  /`DEC-179` consumes the exact complete approval/,
 ]);
 
 for (const failureReason of [
@@ -175,10 +175,10 @@ assertHasAll(handoff, [
   /never rerun or infer success for an active interrupted cell/,
   /add schemaVersion 20 plus only specialistBatch and specialistCellAttempt sequences and maps/,
   /scripts\/smoke-ui-slice-700\.mjs/,
-  /implementation remains blocked until the operator supplies the complete valid approval outcome/i,
+  /`DEC-179` is consumed/,
 ]);
 
-for (const decisionId of ['DEC-176', 'DEC-177', 'DEC-178']) {
+for (const decisionId of ['DEC-176', 'DEC-177', 'DEC-178', 'DEC-179']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -202,11 +202,10 @@ for (const text of [
   assert.match(text, /DEC-178/);
   assert.match(text, /DEC-179/);
 }
-assert.match(stage4Plan, /Stage 4B may only begin after a separate schema-v20 decision/);
-assert.doesNotMatch(stage4Plan, /DEC-177|DEC-178|DEC-179/);
+assert.match(stage4Plan, /`DEC-179` implements Stage 4B through the separate schema-v20 decision/);
 assert.match(
   masterPlan,
-  /Planning evidence: `DEC-177` fixes the Stage 4B[\s\S]*no Stage 4B runtime, schema, API, or UI\s+implementation is present/,
+  /`DEC-179` implements\s+only that exact fixed local first attempt/,
 );
 assert.match(inventory, /AI Company durable SpecialistBatch planning \| pass/);
 assert.match(readme, /docs\/121_ai-company-durable-specialist-batch-plan\.md/);
@@ -239,21 +238,20 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-specialist-batch-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 19/);
-assert.doesNotMatch(contracts, /specialistBatch|specialistCellAttempt/);
-assert.doesNotMatch(decisionLog, /^### DEC-179$/m);
-assert.doesNotMatch(fileStore, /\bspecialistBatches\b|\bspecialistCellAttempts\b/);
-assert.doesNotMatch(
-  runtimeService,
-  /\bcreateSpecialistBatch\b|\bstartSpecialistBatch\b|\bgetSpecialistBatch\b/,
-);
-assert.doesNotMatch(
-  server,
-  /\/api\/council-sessions\/[^'"]*\/specialist-batches|\/api\/council-sessions\/[^'"]*\/specialist-batch(?:['"?])|\/api\/specialist-batches\//,
-);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 20/);
+assert.match(contracts, /specialistBatch/);
+assert.match(contracts, /specialistCellAttempt/);
+assert.match(decisionLog, /^### DEC-179$/m);
+assert.match(fileStore, /\bspecialistBatches\b/);
+assert.match(fileStore, /\bspecialistCellAttempts\b/);
+assert.match(runtimeService, /\bstartCouncilSpecialistBatch\b/);
+assert.match(runtimeService, /\bgetSpecialistBatch\b/);
+assert.match(runtimeService, /\bgetCurrentCouncilSpecialistBatch\b/);
+assert.match(server, /\/specialist-batches/);
+assert.match(server, /\/specialist-batch/);
 assert.doesNotMatch(uiSignals, /\bdurableSpecialistBatch\b/);
-assert.doesNotMatch(uiApp, /\bdurableSpecialistBatch\b/);
-assert.doesNotMatch(uiStyles, /\bdurable-specialist-batch\b/);
+assert.match(uiApp, /\bcouncilSpecialistBatch\b/);
+assert.match(uiStyles, /\.specialist-batch-durable\b/);
 assert.equal(blueprint.defaultStaffingPolicy.defaultMode, 'council');
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.match(
@@ -278,8 +276,8 @@ for (const implementationPath of [
 ]) {
   assert.equal(
     fs.existsSync(path.join(repoRoot, implementationPath)),
-    false,
-    `${implementationPath} must remain absent before DEC-179`,
+    true,
+    `${implementationPath} must exist after accepted DEC-179 implementation`,
   );
 }
 
@@ -289,13 +287,12 @@ process.stdout.write(
       ok: true,
       mode,
       planningAllowed: true,
-      implementationAllowed: false,
-      schemaMigrationAllowed: false,
-      actualConcurrentExecutionAllowed: false,
+      implementationAllowed: true,
+      schemaMigrationAllowed: true,
+      actualConcurrentExecutionAllowed: true,
       parallelSpecialistsPolicyChangeAllowed: false,
-      nextRequiredDecision:
-        'complete fielded DEC-179 durable specialist batch implementation decision',
-      nextDecisionLogEntry: 'DEC-179',
+      implementationDecision: 'accepted-dec-179',
+      nextRequiredDecision: 'separate Stage 4C retry and recovery decision',
     },
     null,
     2,

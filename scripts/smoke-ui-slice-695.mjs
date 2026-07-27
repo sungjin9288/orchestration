@@ -56,6 +56,14 @@ assert.match(
 );
 assert.match(
   stylesSource,
+  /body \.llm-app-shell \.council-synthesis \.llm-turn-meta strong,[\s\S]*body \.llm-app-shell \.council-synthesis-content h3[\s\S]*color: #f4f6f5/,
+);
+assert.match(
+  stylesSource,
+  /body \.llm-app-shell \.council-synthesis-content > p,[\s\S]*color: #d0d5d2/,
+);
+assert.match(
+  stylesSource,
   /body \.llm-app-shell \.llm-context-inspector \{[\s\S]*position: sticky[\s\S]*background: #17191e/,
 );
 assert.match(

@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 19;
+const STATE_SCHEMA_VERSION = 20;
+const SPECIALIST_BATCH_STATE_SCHEMA_VERSION = 20;
 const WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION = 19;
 const STAFFING_ENTRY_STATE_SCHEMA_VERSION = 18;
 const STAFFING_PLAN_STATE_SCHEMA_VERSION = 17;
@@ -399,6 +400,8 @@ function createEmptyState() {
       staffingPlan: 0,
       staffingEntry: 0,
       workOrderAttempt: 0,
+      specialistBatch: 0,
+      specialistCellAttempt: 0,
     },
     missions: {},
     councilSessions: {},
@@ -427,6 +430,8 @@ function createEmptyState() {
     staffingPlans: {},
     staffingEntries: {},
     workOrderAttempts: {},
+    specialistBatches: {},
+    specialistCellAttempts: {},
   };
 }
 
@@ -475,6 +480,7 @@ module.exports = {
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
+  SPECIALIST_BATCH_STATE_SCHEMA_VERSION,
   STAFFING_PLAN_STATE_SCHEMA_VERSION,
   STAFFING_ENTRY_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,

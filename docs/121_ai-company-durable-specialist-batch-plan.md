@@ -35,6 +35,20 @@ handoff in `docs/122_ai-company-durable-specialist-batch-implementation-decision
 Neither decision authorizes schema migration, durable records, execution, concurrency, or policy
 change. A complete valid operator implementation decision is reserved for `DEC-179`.
 
+## Accepted Implementation Decision
+
+`DEC-179` consumes the exact complete approval in the handoff and implements only this plan's
+request-scoped first attempt. The runtime is now schema v20, persists one active batch plus its two
+active cells atomically before worker invocation, launches the fixed local Researcher and QA
+workers together, and settles each result through the planned failure-isolated serial fresh-state
+CAS queue. Exact-id and current-chain inspection are available, while both durable maps remain
+excluded from the generic snapshot.
+
+This does not change `parallelSpecialistsAllowed=false`, create a `parallel-specialists`
+StaffingPlan, or authorize retry, recovery, cancellation, providers, background scheduling, result
+application, downstream records, source mutation, memory application, Git/release, policy bypass,
+or connectors.
+
 ## Current Evidence And Gap
 
 Stage 4A already provides the exact source-current request, canonical digests, two fixed cell
@@ -310,7 +324,11 @@ until every worker returns.
 ### Researcher
 
 The local Researcher produces a deterministic source evidence manifest, not a semantic LLM summary.
-It consumes only the post-save revalidated bounded byte snapshot and returns:
+It consumes only the post-save revalidated bounded byte snapshot. Each canonical contained target is
+opened once with `O_NOFOLLOW`; the descriptor's regular-file identity is matched back to the current
+contained path before reading, and the read stops at the smaller remaining file or aggregate cap plus
+one byte. A path swap or file growth therefore fails before outside or unbounded bytes can enter the
+manifest. It returns:
 
 ```text
 kind=source-evidence-manifest
@@ -325,7 +343,8 @@ external content.
 
 QA may run only the exact allowlisted shell-free `node --check <relative-path>` commands. Each check
 uses the smaller remaining cell or batch deadline, a bounded output cap, an empty child environment,
-and contained project paths.
+and the same descriptor-bound contained byte capture. `node --check -` receives only the captured
+bounded bytes, so command execution never resolves the source path a second time.
 
 The durable summary contains only:
 
@@ -360,6 +379,9 @@ the limit settles `cell-deadline-exceeded` without a completed manifest. QA uses
 cell or batch duration for every subprocess and checks the deadline again after every check and final
 source hash. Internal QA subprocess termination after timeout or output-cap breach is safety
 enforcement, not an operator cancellation authority. There is no cancel route or cancel status.
+The serial settlement writer checks the clock again. If a worker returned on time but waited behind
+another settlement until its deadline, the writer records `cell-deadline-exceeded` instead of storing
+late completed evidence. Core cell validation rejects any completed record at or after its deadline.
 
 ## Inspection And UI
 
@@ -449,6 +471,7 @@ controls, and desktop/mobile fit.
 
 ## Stop Condition
 
-Planning stops with `DEC-177`, `DEC-178`, this plan, the complete fielded handoff, focused planning
-smoke, synchronized public evidence, and one cohesive commit and push. Runtime implementation remains
-blocked until the operator supplies the exact complete `DEC-179` decision.
+Implementation stops with the exact schema-v20 durable first-attempt records, bounded local worker
+execution, serial settlement, exact inspection, focused runtime/API/UI smoke, synchronized public
+evidence, and one cohesive commit and push. Stage 4C retry/recovery and every downstream authority
+remain blocked.

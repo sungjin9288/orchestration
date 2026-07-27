@@ -61,10 +61,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
   runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
   envelope로 노출된다.
-- Persisted runtime은 schema v19이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
+- Persisted runtime은 schema v20이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
   WorkflowCheckpoint, DeliveryPackage, acceptance, MissionCloseOut, LearningCandidate, MemoryItem,
   MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan, StaffingEntry, and
-  WorkOrderAttempt evidence를 보존한다.
+  WorkOrderAttempt, SpecialistBatch, and SpecialistCellAttempt evidence를 보존한다.
 - One exact MissionMemoryContextPreview, WorkOrderVerificationPlanPreview, and bounded one-step
   continuation preview는 response/browser memory에서만 동작한다.
 - Provider 기본값은 local stub이다. OpenAI Responses는 현재 Council 역할에만 명시적 opt-in으로
@@ -78,7 +78,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   alignment에서 멈춘다. `DEC-172` implements the Stage 3 operator-stepped WorkOrder scheduler from
   the `DEC-170` plan and `DEC-171` handoff: one exact bound Builder/Reviewer/QA graph, one durable
   active-before-coordinator WorkOrderAttempt, and one local role boundary per explicit start or step.
-  Solo binding, bound Council revision/resume/auto-chain, parallel specialists, Reviewer rework,
+  `DEC-179` adds one separately approved request-scoped fixed Researcher/QA local first attempt with
+  active-before-execution records and exact inspection while broad parallel StaffingPlan policy
+  remains disabled. Solo binding, bound Council revision/resume/auto-chain, dynamic specialists, Reviewer rework,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
   application은 아직 구현되지 않았다.
 
@@ -120,7 +122,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-178`
+- Recorded decisions: `DEC-163` through `DEC-179`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -140,12 +142,13 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   replay/inspection, and alignment-only approve or stop; schema-v19 WorkOrderAttempt migration,
   exact bound WorkOrder preview/persistence, deterministic dependency-ready selection,
   active-before-coordinator persistence, one role per start/step, and exact attempt inspection;
-  schema-v19 response/browser-memory-only SpecialistBatchPreview for two fixed read-only cells
-- Planning evidence: `DEC-177` fixes the Stage 4B schema-v20 durable fixed-cell batch contract and
-  `DEC-178` records its complete fielded handoff; no Stage 4B runtime, schema, API, or UI
-  implementation is present
-- Next gate: the complete valid `DEC-179` implementation decision for one request-scoped local
-  SpecialistBatch first attempt; solo remains deferred because no executable solo contract exists
+  schema-v19 response/browser-memory-only SpecialistBatchPreview for two fixed read-only cells;
+  schema-v20 SpecialistBatch and SpecialistCellAttempt records, active-before-execution persistence,
+  fixed local Researcher/QA first attempt, serial CAS settlement, and exact inspection
+- Stage 4B implementation: `DEC-177` fixes the contract, `DEC-178` records the handoff, and
+  `DEC-179` implements only the request-scoped first attempt
+- Next gate: a separate complete decision for retry/recovery or any broader authority; solo remains
+  deferred because no executable solo contract exists
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -476,9 +479,9 @@ one schema-v19 response/browser-memory-only preview of two independent Researche
 Planning-only `DEC-177` fixes the Stage 4B schema-v20 record, active-before-execution, bounded
 concurrency, serial CAS settlement, durable deadline budgets, exact terminal/failure semantics,
 bounded current-chain inspection, generic-snapshot exclusion, interruption, redaction, and rollback
-contract; `DEC-178` records the complete fielded implementation handoff. Durable records, actual
-workers, settlement writes, collection/list exposure, cancellation, retry/recovery, provider calls,
-and CompanyBlueprint policy change remain blocked until the complete valid `DEC-179` decision.
+contract; `DEC-178` records the complete fielded implementation handoff, and `DEC-179` implements
+only that exact fixed local first attempt. Collection/list exposure, cancellation, retry/recovery,
+provider calls, result application, and CompanyBlueprint policy change remain blocked.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와

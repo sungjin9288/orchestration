@@ -108,6 +108,7 @@ async function main() {
     const statePath = path.join(seeded.runtimeRoot, 'state.json');
     const sourcePath = path.join(seeded.projectPath, 'src/runtime/runtime-service.js');
     const stateBefore = runtime.getSnapshot();
+    const persistedStateBefore = JSON.parse(fs.readFileSync(statePath, 'utf8'));
     const missionBefore = structuredClone(stateBefore.missions[request.missionId]);
     const taskBefore = structuredClone(stateBefore.tasks[request.linkedTaskId]);
     const packageBefore = structuredClone(stateBefore.deliveryPackages[request.deliveryPackageId]);
@@ -115,7 +116,7 @@ async function main() {
       stateBefore.deliveryPackageAcceptances[request.deliveryPackageAcceptanceId],
     );
     const sourceBefore = fs.readFileSync(sourcePath, 'utf8');
-    assert.equal(stateBefore.schemaVersion, 19);
+    assert.equal(stateBefore.schemaVersion, 20);
     assert.equal(missionBefore.status, 'executing');
     assert.equal(taskBefore.lifecycleState, 'Review');
     assert.equal(taskBefore.review.status, 'passed');
@@ -142,7 +143,7 @@ async function main() {
     const migrationRoot = path.join(tempRoot, 'migration-v10');
     writeState(migrationRoot, schema10);
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 19);
+    assert.equal(migrated.schemaVersion, 20);
     assert.equal(migrated.sequences.missionCloseOut, 0);
     assert.deepEqual(migrated.missionCloseOuts, {});
     assert.deepEqual(migrated.missions[request.missionId], missionBefore);
@@ -211,7 +212,7 @@ async function main() {
     );
 
     const syncBypassRoot = path.join(tempRoot, 'sync-bypass');
-    const syncBypassState = structuredClone(stateBefore);
+    const syncBypassState = structuredClone(persistedStateBefore);
     syncBypassState.tasks[request.linkedTaskId].lifecycleState = 'Done';
     writeState(syncBypassRoot, syncBypassState);
     const syncBypassRuntime = createRuntimeService({ runtimeRoot: syncBypassRoot });
@@ -225,7 +226,7 @@ async function main() {
     );
 
     const activeGateRoot = path.join(tempRoot, 'active-gate');
-    const activeGateState = structuredClone(stateBefore);
+    const activeGateState = structuredClone(persistedStateBefore);
     activeGateState.approvals[seeded.plan.approvalId].status = 'pending';
     writeState(activeGateRoot, activeGateState);
     const activeGateRuntime = createRuntimeService({ runtimeRoot: activeGateRoot });
@@ -262,6 +263,7 @@ async function main() {
     );
 
     const stateAfter = runtime.getSnapshot();
+    const persistedStateAfter = JSON.parse(fs.readFileSync(statePath, 'utf8'));
     assert.equal(stateAfter.sequences.missionCloseOut, 1);
     assert.equal(Object.keys(stateAfter.missionCloseOuts).length, 1);
     assert.deepEqual(stateAfter.deliveryPackages[request.deliveryPackageId], packageBefore);
@@ -351,7 +353,7 @@ async function main() {
     ];
     for (const [name, mutate, pattern] of invalidCases) {
       const invalidRoot = path.join(tempRoot, `invalid-${name}`);
-      const invalidState = structuredClone(stateAfter);
+      const invalidState = structuredClone(persistedStateAfter);
       mutate(invalidState);
       writeState(invalidRoot, invalidState);
       const beforeInvalid = fs.readFileSync(path.join(invalidRoot, 'state.json'), 'utf8');
@@ -359,7 +361,7 @@ async function main() {
       assert.equal(fs.readFileSync(path.join(invalidRoot, 'state.json'), 'utf8'), beforeInvalid);
     }
     const partialRoot = path.join(tempRoot, 'partial-v11');
-    const partial = structuredClone(stateAfter);
+    const partial = structuredClone(persistedStateAfter);
     delete partial.missionCloseOuts;
     writeState(partialRoot, partial);
     assert.throws(
@@ -367,7 +369,7 @@ async function main() {
       /missing MissionCloseOut fields/,
     );
     const futureRoot = path.join(tempRoot, 'future');
-    writeState(futureRoot, { ...stateAfter, schemaVersion: 20 });
+    writeState(futureRoot, { ...stateAfter, schemaVersion: 21 });
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadState(),
       /Unsupported runtime state/,

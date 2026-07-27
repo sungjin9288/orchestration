@@ -11,7 +11,7 @@ expansion.
 Generic approval, broad continuation, delegated self-approval, and `DEC-176` preview authority are
 invalid shortcuts. One complete valid operator decision may be accepted as `DEC-179`.
 
-## Current Gate
+## Historical Gate Before DEC-179
 
 - Runtime state is schema v19.
 - `DEC-176` provides one exact response/browser-memory-only preview.
@@ -20,6 +20,19 @@ invalid shortcuts. One complete valid operator decision may be accepted as `DEC-
 - No local specialist coordinator, serial settlement queue, start route, exact durable GET,
   bounded current-chain locator, snapshot exclusion, or UI execution action exists.
 - Implementation remains blocked until the operator supplies every required field below.
+
+## Accepted Outcome
+
+The operator supplied the complete `Valid Approval Outcome` below and it is recorded as `DEC-179`.
+The implementation now provides the exact schema-v20 fixed Researcher/QA first-attempt path,
+active-before-execution persistence, request-scoped concurrent launch, failure-isolated serial CAS
+settlement, bounded redacted evidence, exact-id inspection, bounded current-chain recovery, and
+generic snapshot exclusion.
+
+The approval does not open broad parallel StaffingPlan mode, dynamic cells, providers, retry,
+recovery, cancellation, background scheduling, result application, downstream records, source
+mutation, memory application, runtime-agent Git/release, lifecycle collections, policy bypass, or
+connectors.
 
 ## Required Decision Fields
 
@@ -142,6 +155,5 @@ approvalStatement=I defer durable SpecialistBatch implementation. No schema reco
 
 ## Completion Rule
 
-Implementation remains blocked until the operator supplies the complete valid approval outcome above.
-If accepted as `DEC-179`, implementation must stop after exact durable inspection and verified
+`DEC-179` is consumed. Implementation stops after exact durable inspection and verified
 request-scoped settlement. No downstream authority is implied.

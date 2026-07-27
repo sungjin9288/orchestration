@@ -42,6 +42,7 @@ const {
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
+  SPECIALIST_BATCH_STATE_SCHEMA_VERSION,
   STAFFING_ENTRY_STATE_SCHEMA_VERSION,
   STAFFING_PLAN_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,
@@ -117,6 +118,15 @@ const {
   WORK_ORDER_ATTEMPT_STATUS,
   assertWorkOrderAttemptRecord,
 } = require('./work-order-attempts');
+const {
+  SPECIALIST_BATCH_STATUS,
+  assertSpecialistBatchRecord,
+  deriveSpecialistBatchStatus,
+} = require('./specialist-batches');
+const {
+  SPECIALIST_CELL_ATTEMPT_STATUS,
+  assertSpecialistCellAttemptRecord,
+} = require('./specialist-cell-attempts');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 const {
   BLOCKED_ACTIONS: VERIFICATION_PROOF_BLOCKED_ACTIONS,
@@ -2139,6 +2149,121 @@ function validateWorkOrderAttemptRecords(state) {
   }
 }
 
+function validateSpecialistBatchRecords(state) {
+  const boundSourceChains = new Set();
+  const referencedCellAttemptIds = new Set();
+
+  for (const [key, batch] of Object.entries(state.specialistBatches)) {
+    const label = `SpecialistBatch ${key}`;
+    if (
+      !batch ||
+      typeof batch !== 'object' ||
+      Array.isArray(batch) ||
+      batch.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertSpecialistBatchRecord(batch);
+
+    const project = state.projects[batch.projectId];
+    const mission = state.missions[batch.missionId];
+    const staffingPlan = state.staffingPlans[batch.staffingPlanId];
+    const staffingEntry = state.staffingEntries[batch.staffingEntryId];
+    const councilSession = state.councilSessions[batch.councilSessionId];
+    if (
+      !project ||
+      !mission ||
+      !staffingPlan ||
+      !staffingEntry ||
+      !councilSession ||
+      mission.projectId !== batch.projectId ||
+      staffingPlan.missionId !== batch.missionId ||
+      staffingPlan.projectId !== batch.projectId ||
+      staffingPlan.mode !== 'council' ||
+      staffingPlan.providerMode !== 'local-stub' ||
+      staffingPlan.parallelGroups?.length !== 0 ||
+      staffingEntry.missionId !== batch.missionId ||
+      staffingEntry.projectId !== batch.projectId ||
+      staffingEntry.staffingPlanId !== batch.staffingPlanId ||
+      staffingEntry.councilSessionId !== batch.councilSessionId ||
+      councilSession.missionId !== batch.missionId ||
+      !councilSession.attempts?.some(
+        (attempt) => attempt.id === batch.currentAttemptId,
+      )
+    ) {
+      throw new Error(`${label} has invalid bound source references`);
+    }
+
+    const sourceChain = [
+      batch.councilSessionId,
+      batch.staffingEntryId,
+      batch.currentAttemptId,
+    ].join('\u0000');
+    if (boundSourceChains.has(sourceChain)) {
+      throw new Error(`${label} duplicates a SpecialistBatch source chain`);
+    }
+    boundSourceChains.add(sourceChain);
+
+    const cellAttempts = batch.cellAttemptIds.map((cellAttemptId, position) => {
+      if (referencedCellAttemptIds.has(cellAttemptId)) {
+        throw new Error(`${label} repeats a SpecialistCellAttempt reference`);
+      }
+      referencedCellAttemptIds.add(cellAttemptId);
+      const cellAttempt = state.specialistCellAttempts[cellAttemptId];
+      if (
+        !cellAttempt ||
+        cellAttempt.specialistBatchId !== batch.id ||
+        cellAttempt.position !== position ||
+        cellAttempt.sourceDigest !== batch.sourceDigest ||
+        cellAttempt.startedAt !== batch.startedAt
+      ) {
+        throw new Error(`${label} has an invalid SpecialistCellAttempt binding`);
+      }
+      assertSpecialistCellAttemptRecord(cellAttempt, {
+        batchDeadlineAt: batch.deadlineAt,
+      });
+      if (
+        cellAttempt.status === SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED &&
+        Date.parse(cellAttempt.completedAt) > Date.parse(cellAttempt.deadlineAt)
+      ) {
+        throw new Error(`${label} has completed evidence after its cell deadline`);
+      }
+      return cellAttempt;
+    });
+
+    const derived = deriveSpecialistBatchStatus(cellAttempts);
+    if (
+      batch.status !== derived.status ||
+      batch.completedAt !== derived.completedAt
+    ) {
+      throw new Error(`${label} status does not match its two cell attempts`);
+    }
+    if (
+      batch.status === SPECIALIST_BATCH_STATUS.ACTIVE &&
+      cellAttempts.every(
+        (cellAttempt) =>
+          cellAttempt.status !== SPECIALIST_CELL_ATTEMPT_STATUS.ACTIVE,
+      )
+    ) {
+      throw new Error(`${label} has no active cell attempt`);
+    }
+  }
+
+  for (const [key, cellAttempt] of Object.entries(state.specialistCellAttempts)) {
+    if (
+      !cellAttempt ||
+      typeof cellAttempt !== 'object' ||
+      Array.isArray(cellAttempt) ||
+      cellAttempt.id !== key ||
+      !referencedCellAttemptIds.has(key)
+    ) {
+      throw new Error(
+        `SpecialistCellAttempt ${key} is invalid or has no SpecialistBatch`,
+      );
+    }
+  }
+}
+
 function validateAcceptanceCriterionRecords(state) {
   const digestPattern = /^[a-f0-9]{64}$/;
   const sourceCriterionKeys = new Set();
@@ -2745,6 +2870,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STAFFING_PLAN_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STAFFING_ENTRY_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -2942,6 +3068,23 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= SPECIALIST_BATCH_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.specialistBatch) ||
+        !Number.isInteger(state.sequences?.specialistCellAttempt) ||
+        !state.specialistBatches ||
+        typeof state.specialistBatches !== 'object' ||
+        Array.isArray(state.specialistBatches) ||
+        !state.specialistCellAttempts ||
+        typeof state.specialistCellAttempts !== 'object' ||
+        Array.isArray(state.specialistCellAttempts)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing SpecialistBatch fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -2977,6 +3120,8 @@ function createFileStore(options = {}) {
       staffingPlans: state.staffingPlans || {},
       staffingEntries: state.staffingEntries || {},
       workOrderAttempts: state.workOrderAttempts || {},
+      specialistBatches: state.specialistBatches || {},
+      specialistCellAttempts: state.specialistCellAttempts || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -3262,6 +3407,7 @@ function createFileStore(options = {}) {
     validateStaffingPlanRecords(normalizedState);
     validateStaffingEntryRecords(normalizedState);
     validateWorkOrderAttemptRecords(normalizedState);
+    validateSpecialistBatchRecords(normalizedState);
     return normalizedState;
   }
 
@@ -3318,7 +3464,7 @@ function createFileStore(options = {}) {
 
   function loadStateSupportedReadonly() {
     if (!fs.existsSync(statePath)) {
-      throw new Error('state file does not exist');
+      ensureStateFile();
     }
     const sourceBytes = readStateBytes();
     return attachStateRevision(

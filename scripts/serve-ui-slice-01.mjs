@@ -1740,6 +1740,134 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const specialistBatchStartMatch = url.pathname.match(
+    /^\/api\/council-sessions\/([^/]+)\/specialist-batches$/,
+  );
+
+  if (method === 'POST' && specialistBatchStartMatch) {
+    try {
+      const councilSessionId = decodeURIComponent(specialistBatchStartMatch[1]);
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'compileSpec',
+        'evaluatedAt',
+        'executionApproval',
+        'previewDigest',
+        'previewId',
+        'sourceDigest',
+        'sourceRefs',
+        'specialistSpec',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'SpecialistBatch start body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = await runtime.startCouncilSpecialistBatch({
+        councilSessionId,
+        ...input,
+      });
+      json(response, result.idempotent ? 200 : 201, {
+        generatedAt: new Date().toISOString(),
+        idempotent: result.idempotent,
+        specialistBatch: result.specialistBatch,
+        specialistCellAttempts: result.specialistCellAttempts,
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      const payload = {
+        error: error.message || 'SpecialistBatch 실행에 실패했습니다.',
+      };
+      if (error.specialistBatchId) {
+        payload.specialistBatchId = error.specialistBatchId;
+      }
+      json(response, statusCode, payload);
+      return;
+    }
+  }
+
+  const specialistBatchInspectMatch = url.pathname.match(
+    /^\/api\/specialist-batches\/([^/]+)$/,
+  );
+
+  if (specialistBatchInspectMatch) {
+    if (method !== 'GET') {
+      text(response, 405, 'Method Not Allowed', 'text/plain; charset=utf-8');
+      return;
+    }
+    try {
+      const result = runtime.getSpecialistBatch(
+        decodeURIComponent(specialistBatchInspectMatch[1]),
+      );
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        specialistBatch: result.specialistBatch,
+        specialistCellAttempts: result.specialistCellAttempts,
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'SpecialistBatch를 찾지 못했습니다.',
+      });
+      return;
+    }
+  }
+
+  const currentSpecialistBatchMatch = url.pathname.match(
+    /^\/api\/council-sessions\/([^/]+)\/specialist-batch$/,
+  );
+
+  if (currentSpecialistBatchMatch) {
+    if (method !== 'GET') {
+      text(response, 405, 'Method Not Allowed', 'text/plain; charset=utf-8');
+      return;
+    }
+    try {
+      const queryKeys = [...url.searchParams.keys()].sort();
+      if (
+        queryKeys.length !== 2 ||
+        queryKeys[0] !== 'currentAttemptId' ||
+        queryKeys[1] !== 'staffingEntryId' ||
+        url.searchParams.getAll('currentAttemptId').length !== 1 ||
+        url.searchParams.getAll('staffingEntryId').length !== 1
+      ) {
+        const error = new Error(
+          'SpecialistBatch locator requires exactly currentAttemptId and staffingEntryId',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.getCurrentCouncilSpecialistBatch({
+        councilSessionId: decodeURIComponent(currentSpecialistBatchMatch[1]),
+        currentAttemptId: url.searchParams.get('currentAttemptId'),
+        staffingEntryId: url.searchParams.get('staffingEntryId'),
+      });
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        specialistBatch: result.specialistBatch,
+        specialistCellAttempts: result.specialistCellAttempts,
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || '현재 SpecialistBatch를 찾지 못했습니다.',
+      });
+      return;
+    }
+  }
+
   if (method === 'POST' && realCouncilDecisionMatch) {
     try {
       const councilSessionId = decodeURIComponent(realCouncilDecisionMatch[1]);

@@ -171,7 +171,9 @@ function assertNoWrite(runtimeRoot, operation, pattern) {
 
 function writeReviewDecisionVariant(seed, decision) {
   const runtimeRoot = path.join(tempRoot, `review-${decision}`);
-  const state = seed.runtime.getSnapshot();
+  const state = JSON.parse(
+    fs.readFileSync(path.join(seed.runtimeRoot, 'state.json'), 'utf8'),
+  );
   const review = state.learningCandidateReviews[seed.review.id];
   review.decision = decision;
   review.reviewDigest = computeLearningCandidateReviewDigest(review);
@@ -199,7 +201,7 @@ async function main() {
     const stateBytesBefore = fs.readFileSync(statePath, 'utf8');
     const sourceBytesBefore = fs.readFileSync(sourcePath, 'utf8');
 
-    assert.equal(stateBefore.schemaVersion, 19);
+    assert.equal(stateBefore.schemaVersion, 20);
     assert.equal(seed.review.decision, 'accepted');
     assert.equal(
       Object.prototype.hasOwnProperty.call(stateBefore, 'memoryCandidates'),
@@ -438,7 +440,7 @@ async function main() {
     }
 
     const expiredRoot = path.join(tempRoot, 'expired-candidate');
-    const expiredState = seed.runtime.getSnapshot();
+    const expiredState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
     const expiredCandidate = expiredState.learningCandidates[seed.candidate.id];
     const expiredReview = expiredState.learningCandidateReviews[seed.review.id];
     expiredCandidate.expiry.expiresAt = new Date(

@@ -49,7 +49,7 @@ assert.match(panelSource, /provider:0/);
 assert.match(panelSource, /persist:false/);
 assert.doesNotMatch(
   panelSource,
-  /data-action="(?:start|cancel|retry|execute|persist|apply|schedule)[^"]*"/,
+  /data-action="(?:cancel|retry|execute|persist|apply|schedule)[^"]*"/,
 );
 assert.doesNotMatch(
   appSource,
@@ -282,7 +282,7 @@ process.stdout.write(
         selectionEditFailureAndDriftClear: true,
       },
       authority: {
-        executionControls: false,
+        executionControls: 'separate-exact-first-attempt-only',
         persistenceControls: false,
         providerControls: false,
       },

@@ -421,8 +421,11 @@ const state = {
     expectedArtifacts: 'Specialist evidence contract preview',
     verificationCommands: 'node --check src/runtime/runtime-service.js',
     stopConditions: 'Stop before persistence or execution',
+    executionRationale:
+      'Run the exact source-current local read-only specialist batch once.',
   },
   councilSpecialistBatchPreview: null,
+  councilSpecialistBatch: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -4857,6 +4860,15 @@ async function fetchJson(url) {
   return response.json();
 }
 
+async function fetchOptionalJson(url) {
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(`요청이 실패했습니다: ${response.status} ${response.statusText}`);
+  }
+  return response.json();
+}
+
 function resetMissionGraphExplorer() {
   state.missionGraphQuery = '';
   state.missionGraphStage = 'all';
@@ -5127,6 +5139,15 @@ function applySnapshotPayload(payload) {
     state.councilSpecialistBatchPreview = payload.specialistBatchPreview || null;
   } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.councilSpecialistBatchPreview = retainedSpecialistBatchPreview;
+    state.councilSpecialistBatch = null;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'specialistBatch')) {
+    state.councilSpecialistBatch = payload.specialistBatch
+      ? {
+          specialistBatch: payload.specialistBatch,
+          specialistCellAttempts: payload.specialistCellAttempts || [],
+        }
+      : null;
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'deliveryPackagePreview')) {
     state.missionDeliveryPackagePreview = payload.deliveryPackagePreview || null;
@@ -5456,6 +5477,25 @@ async function hydrateSelectedDetails() {
     }
   }
 
+  if (
+    selectedCouncilSession?.staffingEntryRef?.staffingEntryId &&
+    selectedCouncilSession.currentAttemptId
+  ) {
+    const locator = new URLSearchParams({
+      currentAttemptId: selectedCouncilSession.currentAttemptId,
+      staffingEntryId: selectedCouncilSession.staffingEntryRef.staffingEntryId,
+    });
+    const specialistPayload = await fetchOptionalJson(
+      `/api/council-sessions/${encodeURIComponent(selectedCouncilSession.id)}/specialist-batch?${locator}`,
+    );
+    state.councilSpecialistBatch = specialistPayload
+      ? {
+          specialistBatch: specialistPayload.specialistBatch,
+          specialistCellAttempts: specialistPayload.specialistCellAttempts || [],
+        }
+      : null;
+  }
+
   if (executionPlanBundle?.executionPlan.status === 'delivery-ready') {
     const encodedExecutionPlanId = encodeURIComponent(executionPlanBundle.executionPlan.id);
     const [deliveryPayload, durablePayload] = await Promise.all([
@@ -5663,6 +5703,7 @@ function syncSelectionsFromMission(missionId) {
 
   if (missionChanged) {
     state.councilSpecialistBatchPreview = null;
+    state.councilSpecialistBatch = null;
     state.missionEvidenceGraph = null;
     state.missionEvidenceGraphError = null;
     state.missionEvidenceGraphLoading = false;
@@ -6800,6 +6841,7 @@ function readSpecialistBatchDraft(form) {
     expectedArtifacts: readText('expectedArtifacts'),
     verificationCommands: readText('verificationCommands'),
     stopConditions: readText('stopConditions'),
+    executionRationale: readText('executionRationale'),
   };
   state.councilSpecialistBatchDraft = draft;
 
@@ -6849,6 +6891,73 @@ function readSpecialistBatchDraft(form) {
       maxProviderCalls: 0,
     },
   };
+}
+
+async function submitSpecialistBatchStart(actionButton) {
+  const form = actionButton?.closest?.('[data-form="specialist-batch-preview"]');
+  const councilSessionId = String(actionButton?.dataset.id || '').trim();
+  const preview = state.councilSpecialistBatchPreview;
+  if (!form || !preview || state.councilSpecialistBatch) {
+    throw new Error('source-current SpecialistBatch preview가 먼저 필요합니다.');
+  }
+  const { compileSpec, specialistSpec } = readSpecialistBatchDraft(form);
+  const rationale = state.councilSpecialistBatchDraft.executionRationale.trim();
+  if (!rationale) {
+    throw new Error('첫 실행 승인 사유가 필요합니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent =
+    `${preview.id}의 local first attempt를 실행하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/council-sessions/${encodeURIComponent(councilSessionId)}/specialist-batches`,
+      {
+        compileSpec,
+        evaluatedAt: preview.evaluatedAt,
+        executionApproval: {
+          decision: 'start-first-attempt',
+          acknowledgement: 'execute-exact-readonly-specialist-batch-once',
+          rationale,
+          reviewedAt: new Date().toISOString(),
+        },
+        previewDigest: preview.previewDigest,
+        previewId: preview.id,
+        sourceDigest: preview.sourceDigest,
+        sourceRefs: {
+          blueprintDigest: preview.blueprintDigest,
+          councilSessionSourceDigest: preview.councilSessionSourceDigest,
+          councilSynthesisDigest: preview.councilSynthesisDigest,
+          currentAttemptId: preview.currentAttemptId,
+          missionId: preview.missionId,
+          projectId: preview.projectId,
+          qaRoleSourceDigest: preview.roleSourceDigests.find(
+            (entry) => entry.agentProfileId === 'agent-qa',
+          )?.sha256,
+          researcherRoleSourceDigest: preview.roleSourceDigests.find(
+            (entry) => entry.agentProfileId === 'agent-researcher',
+          )?.sha256,
+          staffingEntryId: preview.staffingEntryId,
+          staffingEntryRecordDigest: preview.staffingEntryRecordDigest,
+          staffingPlanId: preview.staffingPlanId,
+          staffingPlanRecordDigest: preview.staffingPlanRecordDigest,
+        },
+        specialistSpec,
+      },
+    );
+    state.councilSpecialistBatch = {
+      specialistBatch: payload.specialistBatch,
+      specialistCellAttempts: payload.specialistCellAttempts || [],
+    };
+    elements.refreshStatus.textContent =
+      `${payload.specialistBatch.id} ${payload.specialistBatch.status}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
 }
 
 function findRoleSourceDigest(companyRuntime, ref) {
@@ -12870,6 +12979,16 @@ function renderSpecialistBatchPreview(councilSession) {
     staffingPlan,
     staffingEntry,
   );
+  const durable = state.councilSpecialistBatch;
+  const durableBatch =
+    durable?.specialistBatch?.councilSessionId === councilSession.id
+      ? durable.specialistBatch
+      : null;
+  const durableCells = durableBatch
+    ? [...(durable.specialistCellAttempts || [])].sort(
+        (left, right) => left.position - right.position || left.id.localeCompare(right.id),
+      )
+    : [];
   const cellRows = summary
     ? summary.cells
         .map(
@@ -12901,6 +13020,10 @@ function renderSpecialistBatchPreview(councilSession) {
         </div>
       </div>
       <form class="specialist-batch-form" data-form="specialist-batch-preview">
+        ${
+          durableBatch
+            ? ''
+            : `
         <div class="specialist-contract-grid">
           <fieldset class="specialist-contract-cell">
             <legend>Researcher · source evidence</legend>
@@ -12958,6 +13081,34 @@ function renderSpecialistBatchPreview(councilSession) {
             Contract preview
           </button>
         </div>
+        `
+        }
+        ${
+          summary && !durableBatch
+            ? `
+              <div class="specialist-batch-actions specialist-batch-execution">
+                <label class="field">
+                  <span class="field-label">First attempt approval rationale</span>
+                  <input
+                    class="text-input"
+                    name="executionRationale"
+                    maxlength="500"
+                    value="${escapeHtml(draft.executionRationale)}"
+                  />
+                </label>
+                <button
+                  class="primary-button"
+                  type="button"
+                  data-action="start-specialist-batch"
+                  data-id="${escapeHtml(councilSession.id)}"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                >
+                  Run first attempt
+                </button>
+              </div>
+            `
+            : ''
+        }
       </form>
       ${
         summary
@@ -12969,6 +13120,38 @@ function renderSpecialistBatchPreview(councilSession) {
                 ${createToken(`digest:${summary.previewDigest.slice(0, 12)}`, 'neutral')}
               </div>
               <div class="specialist-contract-list">${cellRows}</div>
+            </div>
+          `
+          : ''
+      }
+      ${
+        durableBatch
+          ? `
+            <div class="specialist-batch-result specialist-batch-durable">
+              <div class="card-title-row card-title-row-tight">
+                <strong>${escapeHtml(durableBatch.id)}</strong>
+                ${createToken(durableBatch.status, durableBatch.status === 'completed' ? 'success' : durableBatch.status === 'active' ? 'accent' : 'danger')}
+                ${createToken('persist:true', 'neutral')}
+              </div>
+              <div class="specialist-contract-list">
+                ${durableCells
+                  .map(
+                    (cell) => `
+                      <div class="specialist-contract-row">
+                        <div>
+                          <strong>${escapeHtml(cell.role)}</strong>
+                          <span>${escapeHtml(cell.cellId)}</span>
+                        </div>
+                        <div class="token-row token-row-compact">
+                          ${createToken(cell.status, cell.status === 'completed' ? 'success' : cell.status === 'active' ? 'accent' : 'danger')}
+                          ${cell.failureReason ? createToken(cell.failureReason, 'danger') : ''}
+                          ${cell.resultSummary?.verdict ? createToken(cell.resultSummary.verdict, cell.resultSummary.verdict === 'passed' ? 'success' : 'danger') : ''}
+                        </div>
+                      </div>
+                    `,
+                  )
+                  .join('')}
+              </div>
             </div>
           `
           : ''
@@ -21730,6 +21913,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'preview-specialist-batch') {
         await submitSpecialistBatchPreview(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'start-specialist-batch') {
+        await submitSpecialistBatchStart(actionButton);
         return;
       }
 

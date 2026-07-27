@@ -122,6 +122,8 @@ Planning source files:
 - `docs/118_ai-company-operator-stepped-workorder-scheduler-implementation-decision-handoff.md`
 - `docs/119_ai-company-bounded-parallel-read-only-specialists-plan.md`
 - `docs/120_ai-company-specialist-batch-preview-implementation-decision-handoff.md`
+- `docs/121_ai-company-durable-specialist-batch-plan.md`
+- `docs/122_ai-company-durable-specialist-batch-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -135,7 +137,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v19 after the additive Durable WorkOrderAttempt migration, while
+execution state is schema v20 after the additive Durable SpecialistBatch migration, while
 `companyRuntime` remains an additive read-only snapshot on the configured local server path. The
 editable company roster remains browser presentation only.
 
@@ -177,8 +179,11 @@ budgets, exact terminal/failure semantics, exact-id and bounded current-chain in
 snapshot exclusion, redaction, interruption, and rollback contract; `DEC-178` records the complete
 fielded implementation handoff in `docs/121_ai-company-durable-specialist-batch-plan.md` and
 `docs/122_ai-company-durable-specialist-batch-implementation-decision-handoff.md`. Schema-v20
-records, workers, settlement writes, cancellation, retry/recovery, provider calls, and all
-downstream authority remain blocked until the complete valid `DEC-179` decision.
+records and the fixed local Researcher/QA first attempt are implemented by `DEC-179`: active records
+are saved before worker invocation, each result settles through a serial fresh-state CAS boundary,
+exact inspection is source-bound, and the generic snapshot omits both durable maps. Broad parallel
+StaffingPlan policy, cancellation, retry/recovery, provider calls, result application, background
+scheduling, and all downstream authority remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -672,9 +677,9 @@ close-out implementation together, and
 `defaultCompletionImplementationOpen=false`. The DEC-161 browser baseline plus DEC-162 through
 DEC-169 StaffingPlan and StaffingEntry implementation evidence, DEC-170 through DEC-172 Stage 3
 scheduler evidence, and DEC-173 through DEC-176 Stage 4A planning and response-only implementation
-evidence plus DEC-177 and DEC-178 Stage 4B planning/handoff evidence pass aggregate required `1/1`,
-informational `278/278`, total `279/279`, and UI QA
-required `77/77`. Focused browser checks at 1280x720 and
+evidence plus DEC-177 through DEC-179 Stage 4B planning, handoff, and fixed first-attempt
+implementation evidence pass aggregate required `1/1`, informational `279/279`, total `280/280`,
+and UI QA required `78/78`. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
 The earlier DEC-158 matrix remains the evidence for the default-closed Task
@@ -2334,9 +2339,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 961 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 963 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 699 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 700 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2908,16 +2913,15 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161, and
-  the first multi-agent completion runtime slices are evidence-closed through DEC-176. DEC-173
+  the first multi-agent completion runtime slices are evidence-closed through DEC-179. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
-  memory preview, and DEC-177 through DEC-178 add Stage 4B planning/handoff evidence only. DEC-169 implements
+  memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
+  request-scoped local first attempt. DEC-169 implements
   Council-first StaffingEntry binding; DEC-172 implements only the exact schema-v19 operator-stepped
-  local Builder/Reviewer/QA path. Stage 4B implementation requires the complete valid DEC-179
-  decision. Actual concurrency, schema-v20 records,
-  retry/recovery, provider/
+  local Builder/Reviewer/QA path. Broad parallel StaffingPlan mode, retry/recovery, provider/
   background WorkOrders, memory application, source/Git/release, policy bypass, and connectors remain
   blocked. This is not a claim of hosted production readiness. Focused source and compatibility
-  checks, the local browser matrix, UI QA `77/77`, and aggregate `279/279` pass. This remains local
+  checks, the local browser matrix, UI QA `78/78`, and aggregate `280/280` pass. This remains local
   synthetic/browser evidence rather than hosted proof.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
@@ -3140,11 +3144,10 @@ Playwright CLI:
   path. `DEC-173` plans the Stage 4A response-only SpecialistBatchPreview, `DEC-174` records its
   fielded implementation decision, and `DEC-175` fixes the implementation-readiness contract without
   opening runtime authority. `DEC-176` implements the exact response/browser-memory preview while
-  preserving schema v19 and the closed parallel-specialists policy. `DEC-177` fixes the Stage 4B
+  preserving the closed parallel-specialists policy. `DEC-177` fixes the Stage 4B
   schema-v20 durable fixed-cell plan, and `DEC-178` records its complete fielded implementation
-  handoff without opening runtime authority. The next gate is the complete valid `DEC-179` decision.
-  Actual parallel execution,
-  schema-v20 records, bound
+  handoff, and `DEC-179` implements one exact schema-v20 fixed Researcher/QA first attempt while the
+  broad parallel StaffingPlan policy stays disabled. Dynamic or additional cells, bound
   Council revision/resume/auto-chain, retry/rework, interrupted-attempt recovery, memory application,
   provider/background WorkOrders, source/Git/release, policy, bypass, and connector authority remain
   blocked.

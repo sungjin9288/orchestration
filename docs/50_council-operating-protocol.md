@@ -422,12 +422,13 @@ response-only inspection of the exact approved StaffingEntry-bound local Council
 two source-backed read-only contracts. It cannot execute specialists, call a provider, persist
 results, change Council policy, or alter Council alignment behavior.
 
-Planning-only `DEC-177` and handoff-only `DEC-178` define a future fixed Researcher/QA evidence batch
+Planning-only `DEC-177` and handoff-only `DEC-178` define a fixed Researcher/QA evidence batch
 after that approved Council synthesis. The batch remains separate from Council positions and
 alignment, keeps its original deadline budgets and exact source-bound single-record inspection,
 excludes its maps from the generic snapshot, and uses only fixed terminal and failure semantics.
-Broad parallel StaffingPlan mode remains disabled, and no schema record, worker, settlement,
-collection exposure, result application, or downstream Council behavior opens before `DEC-179`.
+`DEC-179` implements only its request-scoped schema-v20 local first attempt and exact inspection.
+Broad parallel StaffingPlan mode remains disabled, and no collection exposure, retry/recovery,
+provider call, result application, or downstream Council behavior opens.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

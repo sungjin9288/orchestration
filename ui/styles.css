@@ -8912,6 +8912,16 @@ h3 {
   justify-content: start;
 }
 
+.specialist-batch-execution {
+  grid-template-columns: minmax(280px, 1fr) auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.specialist-batch-durable {
+  padding-top: 4px;
+}
+
 .specialist-contract-list {
   display: grid;
   border-top: 1px solid var(--surface-control-border);
@@ -10432,6 +10442,14 @@ body[data-evidence-density='compact'] .control-overview-stack {
 
   .specialist-batch-actions .secondary-button {
     width: 100%;
+  }
+
+  .specialist-batch-actions .primary-button {
+    width: 100%;
+  }
+
+  .specialist-batch-panel input.text-input {
+    min-height: 42px;
   }
 
   .specialist-contract-row {
@@ -15841,6 +15859,29 @@ body .llm-app-shell .llm-deliverables-command {
   border-color: #2b2f35;
   background: #191b20;
   color: #f4f6f5;
+}
+
+body .llm-app-shell .council-synthesis .llm-turn-meta strong,
+body .llm-app-shell .council-synthesis-content h3,
+body .llm-app-shell .llm-execution-command h3,
+body .llm-app-shell .llm-deliverables-command h3 {
+  color: #f4f6f5;
+}
+
+body .llm-app-shell .council-synthesis .llm-turn-meta span {
+  border-color: #42474f;
+  background: #272a30;
+  color: #d9ddda;
+}
+
+body .llm-app-shell .council-synthesis-content > p,
+body .llm-app-shell .llm-execution-command p,
+body .llm-app-shell .llm-deliverables-command p {
+  color: #d0d5d2;
+}
+
+body .llm-app-shell .council-synthesis-content .council-synthesis-boundary {
+  color: #aeb6b1;
 }
 
 body .llm-app-shell .project-bootstrap-mission,

@@ -282,12 +282,11 @@ async function main() {
     delete v7.staffingPlans;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(v7));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 19);
+    assert.equal(migrated.schemaVersion, 20);
     assert.equal(migrated.sequences.workflowCheckpoint, 0);
     assert.deepEqual(migrated.workflowCheckpoints, {});
     assert.equal(
-      JSON.parse(fs.readFileSync(path.join(migrationRoot, 'state.json'), 'utf8')).schemaVersion,
-      19,
+      JSON.parse(fs.readFileSync(path.join(migrationRoot, 'state.json'), 'utf8')).schemaVersion, 20,
     );
 
     const populatedMigration = createContext('populated-migration');
@@ -297,7 +296,7 @@ async function main() {
     const populatedMigrated = createFileStore({
       runtimeRoot: populatedMigration.runtimeRoot,
     }).loadState();
-    assert.equal(populatedMigrated.schemaVersion, 19);
+    assert.equal(populatedMigrated.schemaVersion, 20);
     assert.deepEqual(asSchemaV7(populatedMigrated), populatedV7);
     assert.deepEqual(
       JSON.parse(fs.readFileSync(populatedStatePath, 'utf8')),
@@ -310,7 +309,7 @@ async function main() {
         delete value.workflowCheckpoints;
         return value;
       })(), /missing WorkflowCheckpoint fields/],
-      ['future-v20', { ...createEmptyState(), schemaVersion: 20 }, /Unsupported runtime state/],
+      ['future-v21', { ...createEmptyState(), schemaVersion: 21 }, /Unsupported runtime state/],
     ]) {
       const root = path.join(tempRoot, name);
       fs.mkdirSync(root, { recursive: true });
@@ -547,7 +546,7 @@ async function main() {
     const persistedState = JSON.parse(
       fs.readFileSync(path.join(success.runtimeRoot, 'state.json'), 'utf8'),
     );
-    assert.equal(persistedState.schemaVersion, 19);
+    assert.equal(persistedState.schemaVersion, 20);
     assert.equal(Object.keys(persistedState.workflowCheckpoints).length, 4);
     assert.equal(persistedState.executionPlans[executionPlanId].checkpointRefs.length, 4);
     assert.deepEqual(persistedState.deliveryPackages, {});

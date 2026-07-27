@@ -347,6 +347,12 @@ const smokeChecks = [
       'SpecialistBatchPreview UI preserves two fixed Researcher and QA contract cells, exact source-digest browser memory, hard-refresh edit failure selection and source-drift invalidation, source-identical retention, bounded desktop/mobile layout, and absent worker execution persistence provider retry or scheduling controls',
   },
   {
+    id: 'ai-company-durable-specialist-batch-ui-api',
+    script: 'scripts/smoke-ui-slice-700.mjs',
+    purpose:
+      'Durable SpecialistBatch UI and API preserve one exact first-attempt action, bounded current-chain hard-refresh hydration, active partial completed and failed evidence, generic snapshot exclusion, responsive fit, and absent retry cancel provider result-application or downstream controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

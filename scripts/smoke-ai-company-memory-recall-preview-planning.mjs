@@ -74,7 +74,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-memory-recall-preview-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 19/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 20/);
 assert.match(runtimeService, /function previewMemoryItemRecall\(/);
 assert.match(server, /memoryItemRecallPreviewMatch/);
 assert.match(ui, /data-action="preview-memory-recall"/);

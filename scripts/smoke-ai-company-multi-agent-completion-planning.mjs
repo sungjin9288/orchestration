@@ -77,7 +77,7 @@ assert.match(plan, /`DEC-175`[\s\S]*readiness gaps/);
 assert.match(plan, /`DEC-176` implements the exact response-only slice/);
 assert.match(plan, /Planning-only `DEC-177` fixes the schema-v20 SpecialistBatch/);
 assert.match(plan, /`DEC-178` records the complete fielded implementation handoff/);
-assert.match(plan, /complete valid implementation decision reserved for `DEC-179`/);
+assert.match(plan, /`DEC-179` implements the\s+request-scoped first attempt only/);
 assert.match(durableSpecialistPlan, /^# AI Company Durable Specialist Batch Plan$/m);
 assert.match(
   durableSpecialistHandoff,
@@ -128,12 +128,13 @@ for (const decisionId of [
   'DEC-176',
   'DEC-177',
   'DEC-178',
+  'DEC-179',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-178`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-179`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -171,7 +172,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 19/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 20/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -207,29 +208,31 @@ process.stdout.write(
         specialistBatchPreviewImplementation: 'accepted-dec-176',
         durableSpecialistBatchPlanning: 'accepted-dec-177',
         durableSpecialistBatchHandoff: 'documented-dec-178',
+        durableSpecialistBatchImplementation: 'accepted-dec-179',
       },
       currentRuntime: {
-        schemaVersion: 19,
+        schemaVersion: 20,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,
         operatorSteppedScheduler: true,
         specialistBatchPreview: true,
+        durableSpecialistBatch: true,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextPlanningTarget: {
-        stage: '4B',
-        object: 'durable-specialist-batch',
+        stage: '4C',
+        object: 'failed-cell-retry-and-recovery',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-179',
+        nextDecisionLogEntry: null,
       },
       authority: {
         documentationAllowed: true,
         priorApprovedSlicesImplemented: true,
-        schemaV20MigrationAllowed: false,
-        specialistBatchRecordAllowed: false,
+        schemaV20MigrationAllowed: true,
+        specialistBatchRecordAllowed: true,
         councilBindingAllowed: true,
         operatorSteppedSchedulerPlanningAllowed: true,
         workOrderAttemptImplementationAllowed: true,
@@ -237,7 +240,7 @@ process.stdout.write(
         specialistBatchPreviewPlanningAllowed: true,
         specialistBatchPreviewImplementationAllowed: true,
         durableSpecialistBatchPlanningAllowed: true,
-        durableSpecialistBatchImplementationAllowed: false,
+        durableSpecialistBatchImplementationAllowed: true,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,
         providerExpansionAllowed: false,

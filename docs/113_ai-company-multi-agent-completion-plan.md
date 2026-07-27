@@ -123,9 +123,9 @@ closes its readiness gaps, and `DEC-176` implements the exact response-only slic
 is one response-only schema-v19 preview for exactly two independent Researcher and QA contracts after
 an approved StaffingEntry-bound local Council synthesis and before WorkOrder plan persistence.
 
-It preserves `parallelSpecialistsAllowed=false`, exposes no worker execution or durable record, and
-keeps current schema-v19 one-active WorkOrderAttempt behavior authoritative. The next authority
-boundary is Stage 4B, which requires a separate schema-v20 decision.
+It preserves `parallelSpecialistsAllowed=false`; `DEC-179` later consumes this preview only through
+the separately approved Stage 4B fixed first-attempt path. The schema-v19 one-active WorkOrderAttempt
+behavior remains authoritative for the sequential delivery graph.
 
 ### Stage 4B: Durable Concurrent First Attempt
 
@@ -135,9 +135,8 @@ in-flight count of two, serial fresh-state CAS settlements, durable batch/per-ce
 exact terminal and allowlisted failure semantics, partial evidence, exact-id and bounded
 current-chain inspection, generic-snapshot exclusion, redaction, replay, interruption, and rollback
 behavior.
-`DEC-178` records the complete fielded implementation handoff. Neither decision opens runtime
-authority. One complete valid implementation decision reserved for `DEC-179` may add the
-request-scoped first attempt only; it must not enable broad parallel StaffingPlan mode, background
+`DEC-178` records the complete fielded implementation handoff, and `DEC-179` implements the
+request-scoped first attempt only. It does not enable broad parallel StaffingPlan mode, background
 scheduling, retry, recovery, cancellation, provider calls, result application, or inferred success
 after interruption.
 

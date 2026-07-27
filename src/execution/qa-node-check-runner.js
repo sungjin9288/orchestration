@@ -8,6 +8,8 @@ const { spawn } = require('child_process');
 const DEFAULT_MAX_CHECKS = 10;
 const DEFAULT_OUTPUT_CAP_BYTES = 64 * 1024;
 const DEFAULT_TIMEOUT_MS = 5_000;
+const DEFAULT_MAX_FILE_BYTES = 1024 * 1024;
+const DEFAULT_MAX_TOTAL_FILE_BYTES = 8 * 1024 * 1024;
 const NODE_CHECK_PATTERN = /^node --check ([A-Za-z0-9][A-Za-z0-9._/-]*)$/;
 
 function digest(value) {
@@ -69,6 +71,169 @@ function sameDigestEntries(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+function createSpecialistRunnerError(code) {
+  const error = new Error(code);
+  error.code = code;
+  return error;
+}
+
+function readBoundedSpecialistFile(root, target, maxBytes) {
+  const noFollow = fs.constants.O_NOFOLLOW;
+  if (!Number.isInteger(noFollow)) {
+    throw createSpecialistRunnerError('source-unavailable-after-start');
+  }
+
+  let descriptor;
+  try {
+    descriptor = fs.openSync(target, fs.constants.O_RDONLY | noFollow);
+    const descriptorStat = fs.fstatSync(descriptor);
+    const currentTarget = fs.realpathSync(target);
+    const currentStat = fs.statSync(target);
+    if (
+      currentTarget !== target ||
+      (currentTarget !== root && !currentTarget.startsWith(`${root}${path.sep}`)) ||
+      !descriptorStat.isFile() ||
+      descriptorStat.dev !== currentStat.dev ||
+      descriptorStat.ino !== currentStat.ino
+    ) {
+      throw createSpecialistRunnerError('source-unavailable-after-start');
+    }
+    if (descriptorStat.size > maxBytes) {
+      throw createSpecialistRunnerError('source-byte-cap-exceeded-after-start');
+    }
+
+    const buffer = Buffer.allocUnsafe(maxBytes + 1);
+    let byteLength = 0;
+    while (byteLength < buffer.length) {
+      const bytesRead = fs.readSync(
+        descriptor,
+        buffer,
+        byteLength,
+        buffer.length - byteLength,
+        null,
+      );
+      if (bytesRead === 0) break;
+      byteLength += bytesRead;
+    }
+    if (byteLength > maxBytes) {
+      throw createSpecialistRunnerError('source-byte-cap-exceeded-after-start');
+    }
+    return buffer.subarray(0, byteLength);
+  } catch (error) {
+    if (typeof error?.code === 'string' && error.code.startsWith('source-')) {
+      throw error;
+    }
+    throw createSpecialistRunnerError('source-unavailable-after-start');
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+  }
+}
+
+function specialistNowMs(options = {}) {
+  const value = typeof options.now === 'function' ? options.now() : Date.now();
+  const milliseconds =
+    value instanceof Date
+      ? value.getTime()
+      : typeof value === 'string'
+        ? Date.parse(value)
+        : Number(value);
+  if (!Number.isFinite(milliseconds)) {
+    throw createSpecialistRunnerError('runner-contract-failed');
+  }
+  return milliseconds;
+}
+
+function digestSpecialistInputPathDigests(entries) {
+  return digest(
+    JSON.stringify(
+      [...entries]
+        .sort((left, right) => left.path.localeCompare(right.path))
+        .map(({ byteLength, path: relativePath, sha256 }) => ({
+          byteLength,
+          path: relativePath,
+          sha256,
+        })),
+    ),
+  );
+}
+
+function captureBoundedSpecialistInputEvidence(
+  projectRoot,
+  expectedInputPathDigests,
+  options = {},
+) {
+  const root = fs.realpathSync(String(projectRoot || ''));
+  const maxFileBytes = Math.min(
+    DEFAULT_MAX_FILE_BYTES,
+    Math.max(1, Number(options.maxFileBytes || DEFAULT_MAX_FILE_BYTES)),
+  );
+  const maxTotalFileBytes = Math.min(
+    DEFAULT_MAX_TOTAL_FILE_BYTES,
+    Math.max(1, Number(options.maxTotalFileBytes || DEFAULT_MAX_TOTAL_FILE_BYTES)),
+  );
+  const expected = [...(expectedInputPathDigests || [])]
+    .map(({ byteLength, path: relativePath, sha256 }) => ({
+      byteLength,
+      path: normalizeRelativePath(relativePath, 'Specialist input path'),
+      sha256,
+    }))
+    .sort((left, right) => left.path.localeCompare(right.path));
+  const evidenceByTarget = new Map();
+  const sourceBytesByPath = new Map();
+  const observed = [];
+  let totalBytes = 0;
+
+  for (const entry of expected) {
+    let resolved;
+    try {
+      resolved = resolveContainedFile(root, entry.path);
+    } catch {
+      throw createSpecialistRunnerError('source-unavailable-after-start');
+    }
+
+    let evidence = evidenceByTarget.get(resolved.target);
+    if (!evidence) {
+      const remainingBytes = Math.min(
+        maxFileBytes,
+        maxTotalFileBytes - totalBytes,
+      );
+      if (remainingBytes <= 0) {
+        throw createSpecialistRunnerError('source-byte-cap-exceeded-after-start');
+      }
+      const bytes = readBoundedSpecialistFile(
+        resolved.root,
+        resolved.target,
+        remainingBytes,
+      );
+      totalBytes += bytes.byteLength;
+      if (totalBytes > maxTotalFileBytes) {
+        throw createSpecialistRunnerError('source-byte-cap-exceeded-after-start');
+      }
+      evidence = {
+        byteLength: bytes.byteLength,
+        bytes,
+        sha256: digest(bytes),
+      };
+      evidenceByTarget.set(resolved.target, evidence);
+    }
+    observed.push({
+      byteLength: evidence.byteLength,
+      path: entry.path,
+      sha256: evidence.sha256,
+    });
+    if (options.includeSourceBytes === true) {
+      sourceBytesByPath.set(entry.path, Buffer.from(evidence.bytes));
+    }
+  }
+
+  return {
+    inputPathDigests: observed,
+    inputDigest: digestSpecialistInputPathDigests(observed),
+    matchesExpected: sameDigestEntries(observed, expected),
+    sourceBytesByPath: options.includeSourceBytes === true ? sourceBytesByPath : null,
+  };
+}
+
 function runNodeCheck(input, options = {}) {
   const spawnImpl = options.spawnImpl || spawn;
   const timeoutMs = Math.min(
@@ -79,6 +244,8 @@ function runNodeCheck(input, options = {}) {
     DEFAULT_OUTPUT_CAP_BYTES,
     Math.max(1, Number(options.outputCapBytes || DEFAULT_OUTPUT_CAP_BYTES)),
   );
+  const sourceBytes = Buffer.isBuffer(input.sourceBytes) ? input.sourceBytes : null;
+  const checkArgument = sourceBytes ? '-' : input.relativePath;
   const startedAtMs = Date.now();
 
   return new Promise((resolve) => {
@@ -90,12 +257,13 @@ function runNodeCheck(input, options = {}) {
     let outputLimitExceeded = false;
     let timedOut = false;
     let settled = false;
-    const child = spawnImpl(process.execPath, ['--check', input.relativePath], {
+    const child = spawnImpl(process.execPath, ['--check', checkArgument], {
       cwd: input.projectRoot,
       env: {},
       shell: false,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: [sourceBytes ? 'pipe' : 'ignore', 'pipe', 'pipe'],
     });
+    if (sourceBytes) child.stdin?.end(sourceBytes);
 
     const consume = (hash, kind) => (chunk) => {
       const buffer = Buffer.from(chunk);
@@ -270,13 +438,134 @@ async function runSourceBoundNodeChecks(input, options = {}) {
   };
 }
 
+async function runSpecialistSourceBoundNodeChecks(input, options = {}) {
+  const deadlineAtMs = Date.parse(String(input.deadlineAt || ''));
+  if (!Number.isFinite(deadlineAtMs)) {
+    throw createSpecialistRunnerError('runner-contract-failed');
+  }
+  if (specialistNowMs(options) >= deadlineAtMs) {
+    throw createSpecialistRunnerError('deadline-expired-before-worker');
+  }
+
+  let baseline;
+  try {
+    baseline = captureBoundedSpecialistInputEvidence(
+      input.projectRoot,
+      input.inputPathDigests,
+      { ...options, includeSourceBytes: true },
+    );
+  } catch (error) {
+    if (error.code) throw error;
+    throw createSpecialistRunnerError('runner-contract-failed');
+  }
+  if (!baseline.matchesExpected) {
+    throw createSpecialistRunnerError('source-drift-before-worker');
+  }
+
+  let prepared;
+  try {
+    prepared = prepareSourceBoundNodeChecks(
+      {
+        projectRoot: input.projectRoot,
+        targetPathAllowlist: input.targetPathAllowlist,
+        commands: input.commands,
+      },
+      options,
+    );
+  } catch {
+    throw createSpecialistRunnerError('runner-contract-failed');
+  }
+
+  const checks = [];
+  for (const check of prepared.checks) {
+    const remainingMs = deadlineAtMs - specialistNowMs(options);
+    if (remainingMs <= 0) {
+      throw createSpecialistRunnerError('cell-deadline-exceeded');
+    }
+    const sourceBytes = baseline.sourceBytesByPath.get(check.relativePath);
+    if (!Buffer.isBuffer(sourceBytes)) {
+      throw createSpecialistRunnerError('runner-contract-failed');
+    }
+    let result;
+    try {
+      result = await runNodeCheck(
+        {
+          projectRoot: prepared.projectRoot,
+          relativePath: check.relativePath,
+          sourceBytes,
+        },
+        {
+          ...options,
+          timeoutMs: remainingMs,
+        },
+      );
+    } catch {
+      throw createSpecialistRunnerError('qa-spawn-failed');
+    }
+    if (result.error) {
+      throw createSpecialistRunnerError('qa-spawn-failed');
+    }
+    if (result.truncated) {
+      throw createSpecialistRunnerError('qa-output-cap-exceeded');
+    }
+    if (result.timedOut || specialistNowMs(options) >= deadlineAtMs) {
+      throw createSpecialistRunnerError('cell-deadline-exceeded');
+    }
+    checks.push({
+      relativePath: check.relativePath,
+      exitCode: result.exitCode,
+      timedOut: result.timedOut,
+      truncated: result.truncated,
+      passed: result.passed,
+      stdoutDigest: result.stdoutDigest,
+      stderrDigest: result.stderrDigest,
+    });
+  }
+
+  let finalEvidence;
+  try {
+    finalEvidence = captureBoundedSpecialistInputEvidence(
+      input.projectRoot,
+      input.inputPathDigests,
+      options,
+    );
+  } catch (error) {
+    if (error.code) throw error;
+    throw createSpecialistRunnerError('runner-contract-failed');
+  }
+  if (
+    !finalEvidence.matchesExpected ||
+    finalEvidence.inputDigest !== baseline.inputDigest
+  ) {
+    throw createSpecialistRunnerError('source-drift-during-worker');
+  }
+  if (specialistNowMs(options) >= deadlineAtMs) {
+    throw createSpecialistRunnerError('cell-deadline-exceeded');
+  }
+
+  return {
+    observedInputDigest: baseline.inputDigest,
+    resultSummary: {
+      kind: 'node-syntax-check',
+      checks,
+      mutationDetected: false,
+      verdict: checks.every((check) => check.passed) ? 'passed' : 'failed',
+    },
+  };
+}
+
 module.exports = {
+  DEFAULT_MAX_FILE_BYTES,
+  DEFAULT_MAX_TOTAL_FILE_BYTES,
   DEFAULT_MAX_CHECKS,
   DEFAULT_OUTPUT_CAP_BYTES,
   DEFAULT_TIMEOUT_MS,
+  captureBoundedSpecialistInputEvidence,
+  digestSpecialistInputPathDigests,
   parseNodeCheckCommand,
   computeSourceBoundVerificationInputDigest,
   runNodeCheck,
   runQaNodeChecks,
+  runSpecialistSourceBoundNodeChecks,
   runSourceBoundNodeChecks,
 };

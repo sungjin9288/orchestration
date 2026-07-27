@@ -118,6 +118,8 @@ const {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertRun,
+  assertSpecialistBatch,
+  assertSpecialistCellAttempt,
   assertStaffingEntry,
   assertStaffingPlan,
   assertWorkOrder,
@@ -220,6 +222,20 @@ const {
   digestCanonical: digestSpecialistCanonical,
   normalizeSpecialistBatchPreviewRequest,
 } = require('./specialist-batch-preview');
+const {
+  computeExecutionApprovalDigest,
+  createSpecialistBatch,
+  normalizeExecutionApproval,
+  transitionSpecialistBatch,
+} = require('./specialist-batches');
+const {
+  SPECIALIST_CELL_ATTEMPT_STATUS,
+  createSpecialistCellAttempt,
+  settleSpecialistCellAttempt,
+} = require('./specialist-cell-attempts');
+const {
+  runSpecialistBatch,
+} = require('../execution/specialist-batch-coordinator');
 const { buildMissionEvidenceGraph } = require('./mission-evidence-graph');
 const { buildTaskExecutionProvenanceGraph } = require('./execution-provenance-graph');
 const {
@@ -254,6 +270,8 @@ function createRuntimeService(options = {}) {
   const councilLiveCoordinator = createCouncilCoordinator({ adapter: councilLiveAdapter });
   const exactResearchAdapter =
     options.exactResearchAdapter || createWigoloExactFetchAdapter({ enabled: false });
+  const specialistBatchCoordinator =
+    options.specialistBatchCoordinator || runSpecialistBatch;
   const decisionInboxKinds = new Set(Object.values(DECISION_INBOX_KIND));
   const decisionInboxSourceTypes = new Set(Object.values(DECISION_INBOX_SOURCE_TYPE));
   const proposalRecordTypes = new Set(Object.values(PROPOSAL_RECORD_TYPE));
@@ -321,6 +339,18 @@ function createRuntimeService(options = {}) {
   function nextWorkOrderAttemptId(state) {
     state.sequences.workOrderAttempt += 1;
     return `work-order-attempt-${String(state.sequences.workOrderAttempt).padStart(4, '0')}`;
+  }
+
+  function nextSpecialistBatchId(state) {
+    state.sequences.specialistBatch += 1;
+    return `specialist-batch-${String(state.sequences.specialistBatch).padStart(4, '0')}`;
+  }
+
+  function nextSpecialistCellAttemptId(state) {
+    state.sequences.specialistCellAttempt += 1;
+    return `specialist-cell-attempt-${String(
+      state.sequences.specialistCellAttempt,
+    ).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -2619,6 +2649,338 @@ function createRuntimeService(options = {}) {
       }
       throw error;
     }
+  }
+
+  function specialistNowIso() {
+    const value =
+      typeof options.specialistNow === 'function'
+        ? options.specialistNow()
+        : new Date();
+    const timestamp = value instanceof Date ? value.getTime() : Date.parse(String(value));
+    if (!Number.isFinite(timestamp)) {
+      throw new Error('SpecialistBatch clock must return a valid timestamp');
+    }
+    return new Date(timestamp).toISOString();
+  }
+
+  function getSpecialistBatchEnvelopeFromState(state, specialistBatchId) {
+    const batch = assertSpecialistBatch(specialistBatchId, state);
+    const cellAttempts = batch.cellAttemptIds
+      .map((cellAttemptId) => assertSpecialistCellAttempt(cellAttemptId, state))
+      .sort(
+        (left, right) =>
+          left.position - right.position || left.id.localeCompare(right.id),
+      );
+    return {
+      specialistBatch: batch,
+      specialistCellAttempts: cellAttempts,
+    };
+  }
+
+  function getSpecialistBatch(specialistBatchId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+      return getSpecialistBatchEnvelopeFromState(state, specialistBatchId);
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+  }
+
+  function getCurrentCouncilSpecialistBatch(input) {
+    const expectedFields = [
+      'councilSessionId',
+      'currentAttemptId',
+      'staffingEntryId',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      const error = new Error(
+        'SpecialistBatch locator has unexpected or missing fields',
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+    for (const field of expectedFields) {
+      if (typeof input[field] !== 'string' || !input[field].trim()) {
+        const error = new Error(`SpecialistBatch locator ${field} is required`);
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+
+    let state;
+    let councilSession;
+    try {
+      state = store.loadStateSupportedReadonly();
+      councilSession = assertCouncilSession(input.councilSessionId, state);
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+    if (
+      councilSession.currentAttemptId !== input.currentAttemptId ||
+      councilSession.staffingEntryRef?.staffingEntryId !== input.staffingEntryId
+    ) {
+      throw conflict('SpecialistBatch locator source chain is stale');
+    }
+    assertBoundStaffingSchedulerSourceCurrent(state, councilSession, {
+      requireUnlinkedMission: true,
+    });
+    const batch = Object.values(state.specialistBatches || {}).find(
+      (candidate) =>
+        candidate.councilSessionId === councilSession.id &&
+        candidate.currentAttemptId === input.currentAttemptId &&
+        candidate.staffingEntryId === input.staffingEntryId,
+    );
+    if (!batch) {
+      const error = new Error('SpecialistBatch not found for the current source chain');
+      error.statusCode = 404;
+      throw error;
+    }
+    return getSpecialistBatchEnvelopeFromState(state, batch.id);
+  }
+
+  async function startCouncilSpecialistBatch(input) {
+    const expectedFields = [
+      'compileSpec',
+      'councilSessionId',
+      'evaluatedAt',
+      'executionApproval',
+      'previewDigest',
+      'previewId',
+      'sourceDigest',
+      'sourceRefs',
+      'specialistSpec',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      const error = new Error(
+        'SpecialistBatch start request has unexpected or missing fields',
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    let normalizedRequest;
+    let executionApproval;
+    const validatedAt = specialistNowIso();
+    try {
+      normalizedRequest = normalizeSpecialistBatchPreviewRequest({
+        compileSpec: input.compileSpec,
+        evaluatedAt: input.evaluatedAt,
+        sourceRefs: input.sourceRefs,
+        specialistSpec: input.specialistSpec,
+      });
+      executionApproval = normalizeExecutionApproval(input.executionApproval, {
+        evaluatedAt: normalizedRequest.evaluatedAt,
+        now: validatedAt,
+      });
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`SpecialistBatch requires supported state: ${error.message}`);
+    }
+    const preview = previewCouncilSpecialistBatch({
+      councilSessionId: input.councilSessionId,
+      ...normalizedRequest,
+    });
+    if (
+      input.previewId !== preview.id ||
+      input.previewDigest !== preview.previewDigest ||
+      input.sourceDigest !== preview.sourceDigest
+    ) {
+      throw conflict('SpecialistBatch preview or source digest is stale');
+    }
+
+    const executionApprovalDigest = computeExecutionApprovalDigest(executionApproval);
+    const existing = Object.values(state.specialistBatches || {}).find(
+      (batch) =>
+        batch.councilSessionId === preview.councilSessionId &&
+        batch.currentAttemptId === preview.currentAttemptId &&
+        batch.staffingEntryId === preview.staffingEntryId,
+    );
+    if (existing) {
+      if (
+        existing.previewId !== preview.id ||
+        existing.previewDigest !== preview.previewDigest ||
+        existing.sourceDigest !== preview.sourceDigest ||
+        existing.executionApprovalDigest !== executionApprovalDigest
+      ) {
+        throw conflict('SpecialistBatch source chain already has a different first attempt');
+      }
+      return {
+        idempotent: true,
+        ...getSpecialistBatchEnvelopeFromState(state, existing.id),
+      };
+    }
+
+    const project = assertProject(preview.projectId, state);
+    const startedAt = specialistNowIso();
+    const specialistBatchId = nextSpecialistBatchId(state);
+    const cellAttemptIds = preview.cells.map(() =>
+      nextSpecialistCellAttemptId(state));
+    const batch = createSpecialistBatch(
+      {
+        id: specialistBatchId,
+        projectId: preview.projectId,
+        missionId: preview.missionId,
+        staffingPlanId: preview.staffingPlanId,
+        staffingEntryId: preview.staffingEntryId,
+        councilSessionId: preview.councilSessionId,
+        currentAttemptId: preview.currentAttemptId,
+        previewId: preview.id,
+        previewDigest: preview.previewDigest,
+        sourceDigest: preview.sourceDigest,
+        executionApproval,
+        cellAttemptIds,
+        batchDeadlineMs: preview.deadline.batchDeadlineMs,
+        startedAt,
+      },
+      {
+        evaluatedAt: normalizedRequest.evaluatedAt,
+        now: validatedAt,
+      },
+    );
+    const cellAttempts = preview.cells.map((cell, position) =>
+      createSpecialistCellAttempt({
+        id: cellAttemptIds[position],
+        specialistBatchId,
+        cellId: cell.cellId,
+        agentProfileId: cell.agentProfileId,
+        role: cell.role,
+        position,
+        cellSpecDigest: cell.cellSpecDigest,
+        sourceDigest: preview.sourceDigest,
+        inputPathDigests: cell.inputPathDigests,
+        cellDeadlineMs: cell.cellDeadlineMs,
+        batchDeadlineAt: batch.deadlineAt,
+        startedAt,
+      }));
+
+    state.specialistBatches[specialistBatchId] = batch;
+    for (const cellAttempt of cellAttempts) {
+      state.specialistCellAttempts[cellAttempt.id] = cellAttempt;
+    }
+    store.saveState(state);
+
+    const activeState = store.loadStateReadonly();
+    const activeEnvelope = getSpecialistBatchEnvelopeFromState(
+      activeState,
+      specialistBatchId,
+    );
+    const settle = async (settlement) => {
+      const currentState = store.loadStateReadonly();
+      const currentBatch = assertSpecialistBatch(
+        settlement.specialistBatchId,
+        currentState,
+      );
+      const currentCellAttempt = assertSpecialistCellAttempt(
+        settlement.cellAttemptId,
+        currentState,
+      );
+      if (
+        currentBatch.status !== 'active' ||
+        currentCellAttempt.status !== SPECIALIST_CELL_ATTEMPT_STATUS.ACTIVE ||
+        currentCellAttempt.specialistBatchId !== currentBatch.id ||
+        settlement.sourceDigest !== currentBatch.sourceDigest ||
+        settlement.inputDigest !== currentCellAttempt.inputDigest
+      ) {
+        throw conflict('SpecialistBatch settlement source is stale');
+      }
+
+      const completedAt = specialistNowIso();
+      const transition =
+        settlement.transition.status === SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED &&
+        Date.parse(completedAt) >= Date.parse(currentCellAttempt.deadlineAt)
+          ? {
+              status: SPECIALIST_CELL_ATTEMPT_STATUS.FAILED,
+              observedInputDigest: settlement.transition.observedInputDigest,
+              failureReason: 'cell-deadline-exceeded',
+            }
+          : settlement.transition;
+      const nextCellAttempt =
+        transition.status === SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED
+          ? settleSpecialistCellAttempt(currentCellAttempt, {
+              status: SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED,
+              observedInputDigest: transition.observedInputDigest,
+              resultSummary: transition.resultSummary,
+              completedAt,
+            })
+          : settleSpecialistCellAttempt(currentCellAttempt, {
+              status: SPECIALIST_CELL_ATTEMPT_STATUS.FAILED,
+              observedInputDigest: transition.observedInputDigest,
+              failureReason: transition.failureReason,
+              completedAt,
+            });
+      currentState.specialistCellAttempts[nextCellAttempt.id] = nextCellAttempt;
+      const currentCells = currentBatch.cellAttemptIds.map(
+        (cellAttemptId) => currentState.specialistCellAttempts[cellAttemptId],
+      );
+      currentState.specialistBatches[currentBatch.id] =
+        transitionSpecialistBatch(currentBatch, currentCells);
+      store.saveState(currentState);
+      return currentState.specialistCellAttempts[nextCellAttempt.id];
+    };
+
+    let coordinatorResult;
+    try {
+      coordinatorResult = await specialistBatchCoordinator(
+        {
+          batch: activeEnvelope.specialistBatch,
+          cellAttempts: activeEnvelope.specialistCellAttempts,
+          projectRoot: project.projectPath,
+          qaInput: {
+            commands: normalizedRequest.compileSpec.verificationCommands,
+            targetPathAllowlist: normalizedRequest.compileSpec.targetPathAllowlist,
+          },
+          settle,
+        },
+        {
+          researcherRunner: options.specialistResearcherRunner,
+          qaRunner: options.specialistQaRunner,
+          spawnImpl: options.specialistQaSpawnImpl,
+          now: options.specialistWorkerNow,
+        },
+      );
+    } catch {
+      const error = conflict(
+        'SpecialistBatch settlement conflicted; inspect exact durable evidence',
+      );
+      error.specialistBatchId = specialistBatchId;
+      error.settlementDiagnostics = coordinatorResult?.settlements || [];
+      throw error;
+    }
+    if (
+      !Array.isArray(coordinatorResult?.settlements) ||
+      coordinatorResult.settlements.some((settlement) => settlement.status !== 'fulfilled')
+    ) {
+      const error = conflict(
+        'SpecialistBatch settlement conflicted; inspect exact durable evidence',
+      );
+      error.specialistBatchId = specialistBatchId;
+      error.settlementDiagnostics = coordinatorResult?.settlements || [];
+      throw error;
+    }
+
+    const settledState = store.loadStateReadonly();
+    return {
+      idempotent: false,
+      ...getSpecialistBatchEnvelopeFromState(settledState, specialistBatchId),
+    };
   }
 
   function preflightMissionWorkOrderPreview(input) {
@@ -8241,9 +8603,12 @@ function createRuntimeService(options = {}) {
   }
 
   function getSnapshot() {
-    const state = store.loadState();
+    const state = store.loadStateSupportedReadonly();
     normalizeProjectsInState(state);
     const snapshot = normalizeMissionsInState(state);
+    const snapshotForPublicProjection = { ...snapshot };
+    delete snapshotForPublicProjection.specialistBatches;
+    delete snapshotForPublicProjection.specialistCellAttempts;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -8283,10 +8648,10 @@ function createRuntimeService(options = {}) {
 
     return currentCompanyRuntime
       ? {
-          ...snapshot,
+          ...snapshotForPublicProjection,
           companyRuntime: currentCompanyRuntime,
         }
-      : snapshot;
+      : snapshotForPublicProjection;
   }
 
   function resetRuntime() {
@@ -8357,6 +8722,8 @@ function createRuntimeService(options = {}) {
     getProject,
     getRun,
     getSnapshot,
+    getSpecialistBatch,
+    getCurrentCouncilSpecialistBatch,
     getStaffingEntry,
     getStaffingPlan,
     getTask,
@@ -8411,6 +8778,7 @@ function createRuntimeService(options = {}) {
     startProviderCouncilForMission,
     startRun,
     startPlaceholderRun,
+    startCouncilSpecialistBatch,
     resumeRealCouncilSession,
     resumeProviderCouncilSession,
     resumeExecutionPlanFromCheckpoint,

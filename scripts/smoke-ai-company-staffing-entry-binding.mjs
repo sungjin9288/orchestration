@@ -273,7 +273,7 @@ async function main() {
     );
 
     const persisted = readState(runtimeRoot);
-    assert.equal(persisted.schemaVersion, 19);
+    assert.equal(persisted.schemaVersion, 20);
     assert.equal(persisted.sequences.staffingEntry, 1);
     assert.equal(persisted.sequences.councilSession, 1);
     assert.equal(
@@ -443,13 +443,13 @@ async function main() {
 
     const futureRoot = path.join(tempRoot, 'future-schema');
     copyState(runtimeRoot, futureRoot, (state) => {
-      state.schemaVersion = 20;
+      state.schemaVersion = 21;
       return state;
     });
     const futureBytes = readStateBytes(futureRoot);
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadStateSupportedReadonly(),
-      /Unsupported runtime state schemaVersion: 20/,
+      /Unsupported runtime state schemaVersion: 21/,
     );
     assert.equal(readStateBytes(futureRoot), futureBytes);
 
@@ -485,7 +485,7 @@ async function main() {
         {
           ok: true,
           mode: MODE,
-          schemaVersion: 19,
+          schemaVersion: 20,
           staffingEntryId: created.staffingEntry.id,
           councilSessionId: created.councilSession.id,
           exactReplay: 'no-write',

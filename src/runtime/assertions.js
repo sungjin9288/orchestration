@@ -30,6 +30,22 @@ function assertWorkOrderAttempt(workOrderAttemptId, state) {
   return workOrderAttempt;
 }
 
+function assertSpecialistBatch(specialistBatchId, state) {
+  const specialistBatch = state.specialistBatches[specialistBatchId];
+  if (!specialistBatch) {
+    throw new Error(`SpecialistBatch not found: ${specialistBatchId}`);
+  }
+  return specialistBatch;
+}
+
+function assertSpecialistCellAttempt(specialistCellAttemptId, state) {
+  const specialistCellAttempt = state.specialistCellAttempts[specialistCellAttemptId];
+  if (!specialistCellAttempt) {
+    throw new Error(`SpecialistCellAttempt not found: ${specialistCellAttemptId}`);
+  }
+  return specialistCellAttempt;
+}
+
 function assertHandoffPacket(handoffPacketId, state) {
   const handoffPacket = state.handoffPackets[handoffPacketId];
   if (!handoffPacket) throw new Error(`HandoffPacket not found: ${handoffPacketId}`);
@@ -144,6 +160,8 @@ module.exports = {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertRun,
+  assertSpecialistBatch,
+  assertSpecialistCellAttempt,
   assertStaffingEntry,
   assertStaffingPlan,
   assertWorkOrder,

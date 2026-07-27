@@ -301,7 +301,7 @@ async function main() {
     const schema8 = stripV9Fields(currentState);
     writeState(migrationRoot, schema8);
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 19);
+    assert.equal(migrated.schemaVersion, 20);
     assert.equal(migrated.sequences.deliveryPackage, 0);
     assert.equal(migrated.sequences.deliveryPackageAcceptance, 0);
     assert.deepEqual(migrated.deliveryPackages, {});
@@ -318,7 +318,7 @@ async function main() {
     writeState(partialRoot, partial);
     assert.throws(() => createFileStore({ runtimeRoot: partialRoot }).loadState(), /missing DeliveryPackage fields/);
     const futureRoot = path.join(tempRoot, 'future');
-    writeState(futureRoot, { ...currentState, schemaVersion: 20 });
+    writeState(futureRoot, { ...currentState, schemaVersion: 21 });
     assert.throws(() => createFileStore({ runtimeRoot: futureRoot }).loadState(), /Unsupported runtime state/);
 
     const exactTuple = {
@@ -380,7 +380,7 @@ async function main() {
     );
 
     const extraFieldRoot = path.join(tempRoot, 'invalid-extra-field');
-    const extraFieldState = structuredClone(afterPersist);
+    const extraFieldState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
     extraFieldState.deliveryPackages[result.deliveryPackage.id].rawProviderOutput = 'forbidden';
     writeState(extraFieldRoot, extraFieldState);
     const extraFieldBefore = fs.readFileSync(path.join(extraFieldRoot, 'state.json'), 'utf8');
@@ -403,7 +403,7 @@ async function main() {
     });
     const durable = reloaded.getExecutionPlanDeliveryPackage(executionPlanId).deliveryPackage;
     assert.deepEqual(durable, result.deliveryPackage);
-    assert.equal(reloaded.getSnapshot().schemaVersion, 19);
+    assert.equal(reloaded.getSnapshot().schemaVersion, 20);
     assert.equal(reloaded.getDeliveryPackageAcceptance(durable.id).acceptance, null);
     assert.equal(typeof reloaded.acceptDeliveryPackage, 'function');
     assert.equal(typeof reloaded.completeMissionFromDeliveryPackage, 'undefined');

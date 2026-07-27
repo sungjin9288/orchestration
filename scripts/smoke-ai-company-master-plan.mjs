@@ -272,7 +272,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-178`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-179`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -296,7 +296,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 19/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 20/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -308,9 +308,7 @@ assert.match(runtimeService, /participants: \[[\s\S]*role: 'Conductor'[\s\S]*rol
 assert.match(companyConfig, /COMPANY_MEMBER_STORAGE_KEY = 'orchestration\.company-members\.v1'/);
 assert.match(companyConfig, /DEFAULT_COMPANY_MEMBERS/);
 
-process.stdout.write(
-  `${JSON.stringify(
-    {
+const report = {
       ok: true,
       mode: MODE,
       phase: 'phase-0-source-of-truth-foundation',
@@ -397,9 +395,10 @@ process.stdout.write(
         'DEC-176',
         'DEC-177',
         'DEC-178',
+        'DEC-179',
       ],
       currentRuntime: {
-        schemaVersion: 19,
+        schemaVersion: 20,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -427,6 +426,7 @@ process.stdout.write(
         staffingEntry: 'schema-v18-exact-accepted-plan-local-council-binding',
         operatorSteppedScheduler: 'schema-v19-operator-stepped-local-builder-reviewer-qa',
         specialistBatchPreview: 'schema-v19-response-browser-memory-only',
+        durableSpecialistBatch: 'schema-v20-request-scoped-researcher-qa-first-attempt',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -479,8 +479,9 @@ process.stdout.write(
         specialistBatchPreviewPlanningAllowed: true,
         specialistBatchPreviewImplementationAllowed: true,
         durableSpecialistBatchPlanningAllowed: true,
-        durableSpecialistBatchImplementationAllowed: false,
-        actualParallelSpecialistExecutionAllowed: false,
+        durableSpecialistBatchImplementationAllowed: true,
+        requestScopedConcurrentSpecialistExecutionAllowed: true,
+        broadParallelStaffingPolicyAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryApplicationAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -490,9 +491,13 @@ process.stdout.write(
         unattendedPushAllowed: false,
       },
       nextGate:
-        'complete fielded DEC-179 durable specialist batch implementation decision required',
-    },
-    null,
-    2,
-  )}\n`,
+        'separate Stage 4C retry and recovery decision required',
+};
+assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
+assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
+assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
+assert.match(report.nextGate, /Stage 4C retry and recovery/);
+
+process.stdout.write(
+  `${JSON.stringify(report, null, 2)}\n`,
 );
