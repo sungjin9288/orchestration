@@ -427,11 +427,11 @@ after that approved Council synthesis. The batch remains separate from Council p
 alignment, keeps its original deadline budgets and exact source-bound single-record inspection,
 excludes its maps from the generic snapshot, and uses only fixed terminal and failure semantics.
 `DEC-179` implements only its request-scoped schema-v20 local first attempt and exact inspection.
-Planning-only `DEC-180` and handoff-only `DEC-181` define one future failed-first-attempt retry that
-keeps the source batch and both first attempts immutable; implementation remains reserved for
-`DEC-182`. Broad parallel StaffingPlan mode remains disabled, and no collection exposure,
-active-attempt recovery, automatic or repeated retry, provider call, result application, or
-downstream Council behavior opens.
+Planning-only `DEC-180` and handoff-only `DEC-181` define one failed-first-attempt retry that keeps
+the source batch and both first attempts immutable; `DEC-182` implements only that exact same-role
+attempt #2 path. Broad parallel StaffingPlan mode remains disabled, and no collection exposure,
+active-attempt recovery, automatic or repeated retry, retries beyond attempt #2, provider call,
+result application, or downstream Council behavior opens.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

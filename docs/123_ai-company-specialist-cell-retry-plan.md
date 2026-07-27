@@ -1,5 +1,12 @@
 # AI Company Specialist Cell Retry Plan
 
+## Implemented Status
+
+`DEC-182` accepted the complete implementation decision and this bounded slice now runs on schema
+v21. The planning-only language below remains as provenance for `DEC-180` and `DEC-181`; it no
+longer describes the current runtime gate. Implementation preserves the exact authority boundary
+defined here.
+
 ## Purpose
 
 Stage 4C adds one explicit, bounded retry for one exact failed first-attempt specialist cell. It
@@ -330,16 +337,16 @@ inferred completion. DEC-179 inspection remains available.
 
 ## Verification
 
-Planning verification must prove:
+Planning provenance verification proves:
 
 - `DEC-180` planning and `DEC-181` handoff are docs-only;
 - schema v20 still permits only first attempts in current runtime;
 - immutable source records and the separate schema-v21 retry relationship are explicit;
 - exact eligibility, request, approval, migration, replay, deadline, redaction, CAS, inspection,
   rollback, and blocked-authority contracts are complete;
-- implementation remains reserved for `DEC-182`.
+- implementation was reserved for, and then opened only by, the exact `DEC-182` decision.
 
-The future focused implementation smoke must cover:
+The focused implementation smoke covers:
 
 - additive v20-to-v21 migration with no boot/read records;
 - one failed first attempt and one active retry/attempt #2 atomic save;
@@ -355,14 +362,16 @@ The future focused implementation smoke must cover:
 
 ## Still Blocked
 
-Planning does not authorize schema v21, record creation, attempt #2, worker execution, settlement,
-API/UI changes, active-attempt recovery, reconciliation, cancel, quarantine, automatic retry,
-retry-all, retries beyond attempt #2, dynamic cells, parallel policy, providers, background
-scheduling, result application, downstream records, source mutation, memory application, Git,
-release, profile or policy mutation, approval bypass, collection/list/search/update/delete, or
-connectors.
+`DEC-182` authorizes only schema v21, the exact retry record and attempt #2, one selected local
+worker invocation, settlement, exact routes, and the bounded UI action described above.
+Active-attempt recovery, reconciliation, cancel, quarantine, automatic retry, retry-all, retries
+beyond attempt #2, dynamic cells, parallel policy, providers, background scheduling, result
+application, downstream records, source mutation, memory application, runtime-agent Git or release,
+profile or policy mutation, approval bypass, collection/list/search/update/delete, and connectors
+remain blocked.
 
 ## Completion Rule
 
-This slice stops after planning evidence, handoff, and verification. Runtime remains schema v20.
-Implementation requires the complete exact `DEC-182` decision.
+The exact `DEC-182` decision was accepted and consumed. This slice stops after one explicitly
+approved failed-first-attempt retry and exact inspection; it does not infer recovery or widen
+downstream authority.

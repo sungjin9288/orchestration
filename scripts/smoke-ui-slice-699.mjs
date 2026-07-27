@@ -46,10 +46,11 @@ assert.match(panelSource, /Researcher · source evidence/);
 assert.match(panelSource, /QA · node check plan/);
 assert.match(panelSource, /response-only/);
 assert.match(panelSource, /provider:0/);
-assert.match(panelSource, /persist:false/);
+assert.match(panelSource, /persist:\$\{durableBatch \? 'true' : 'false'\}/);
+assert.match(panelSource, /data-action="retry-specialist-cell"/);
 assert.doesNotMatch(
   panelSource,
-  /data-action="(?:cancel|retry|execute|persist|apply|schedule)[^"]*"/,
+  /data-action="(?:cancel|retry-all|execute|persist|apply|schedule)[^"]*"/,
 );
 assert.doesNotMatch(
   appSource,

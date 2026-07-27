@@ -172,7 +172,7 @@ for (const profileId of ['agent-researcher', 'agent-qa']) {
   assert.equal(profile.authority.canCommit, false);
   assert.equal(profile.authority.canPush, false);
 }
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 20/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 21/);
 assert.match(scheduler, /WORK_ORDER_ATTEMPT_STATUS\.ACTIVE/);
 
 assert.match(completionPlan, /### Stage 4A: SpecialistBatchPreview/);
@@ -188,7 +188,7 @@ assert.match(inventory, /AI Company bounded parallel read-only specialists plann
 assert.match(inventory, /AI Company SpecialistBatchPreview implementation \| pass/);
 assert.match(inventory, /AI Company durable SpecialistBatch planning \| pass/);
 assert.match(plan, /`DEC-179` implements Stage 4B through the separate schema-v20 decision/);
-assert.match(plan, /Planning-only `DEC-180` and handoff-only\s+`DEC-181` now define Stage 4C/);
+assert.match(plan, /Planning-only `DEC-180` and handoff-only\s+`DEC-181` define Stage 4C/);
 assert.match(readme, /docs\/119_ai-company-bounded-parallel-read-only-specialists-plan\.md/);
 assert.match(
   readme,
@@ -196,9 +196,8 @@ assert.match(
 );
 assert.match(readme, /planning-only `DEC-175` fixes the exact request/);
 assert.match(readme, /`DEC-176` implements only/);
-assert.match(readme, /964 smoke files/);
-assert.match(readme, /700 UI smoke files/);
-assert.match(readme, /informational `280\/280`, total `281\/281`/);
+assert.match(readme, /966 smoke files/);
+assert.match(readme, /701 UI smoke files/);
 assert.match(taskLedger, /ai-company-bounded-parallel-read-only-specialists-planning-post-m7-2013/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-readiness-clarification-post-m7-2014/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-implementation-post-m7-2015/);

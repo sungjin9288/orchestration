@@ -142,12 +142,13 @@ after interruption.
 
 ### Stage 4C: Failed-Cell Retry And Recovery
 
-Planning-only `DEC-180` now fixes the append-only failed-cell retry boundary, and `DEC-181` records
-its complete fielded implementation handoff. The future schema-v21 path may retain the immutable
-source batch and both first attempts, append one `SpecialistCellRetry` plus one same-role
-`attemptNumber=2`, and execute that exact failed cell once after a separate operator approval.
+Planning-only `DEC-180` fixes the append-only failed-cell retry boundary, `DEC-181` records its
+complete fielded implementation handoff, and `DEC-182` implements the schema-v21 path. It retains
+the immutable source batch and both first attempts, appends one `SpecialistCellRetry` plus one
+same-role `attemptNumber=2`, and executes that exact failed cell once after a separate operator
+approval.
 
-Implementation remains reserved for `DEC-182`. Active-attempt recovery, reconciliation,
+Active-attempt recovery, reconciliation,
 cancellation, automatic or repeated retry, and inferred success remain part of later Ops
 supervision, not this retry shortcut.
 

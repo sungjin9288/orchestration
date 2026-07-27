@@ -43,6 +43,7 @@ const {
   RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
   SPECIALIST_BATCH_STATE_SCHEMA_VERSION,
+  SPECIALIST_CELL_RETRY_STATE_SCHEMA_VERSION,
   STAFFING_ENTRY_STATE_SCHEMA_VERSION,
   STAFFING_PLAN_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,
@@ -127,6 +128,10 @@ const {
   SPECIALIST_CELL_ATTEMPT_STATUS,
   assertSpecialistCellAttemptRecord,
 } = require('./specialist-cell-attempts');
+const {
+  SPECIALIST_CELL_RETRY_STATUS,
+  assertSpecialistCellRetryRecord,
+} = require('./specialist-cell-retries');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 const {
   BLOCKED_ACTIONS: VERIFICATION_PROOF_BLOCKED_ACTIONS,
@@ -2152,6 +2157,7 @@ function validateWorkOrderAttemptRecords(state) {
 function validateSpecialistBatchRecords(state) {
   const boundSourceChains = new Set();
   const referencedCellAttemptIds = new Set();
+  const retryCellAttemptIds = new Set();
 
   for (const [key, batch] of Object.entries(state.specialistBatches)) {
     const label = `SpecialistBatch ${key}`;
@@ -2221,6 +2227,7 @@ function validateSpecialistBatchRecords(state) {
       }
       assertSpecialistCellAttemptRecord(cellAttempt, {
         batchDeadlineAt: batch.deadlineAt,
+        expectedAttemptNumber: 1,
       });
       if (
         cellAttempt.status === SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED &&
@@ -2249,16 +2256,97 @@ function validateSpecialistBatchRecords(state) {
     }
   }
 
+  const retriedSourceCellAttemptIds = new Set();
+  const activeRetryBatchIds = new Set();
+  for (const [key, retry] of Object.entries(state.specialistCellRetries)) {
+    const label = `SpecialistCellRetry ${key}`;
+    if (
+      !retry ||
+      typeof retry !== 'object' ||
+      Array.isArray(retry) ||
+      retry.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertSpecialistCellRetryRecord(retry);
+
+    const batch = state.specialistBatches[retry.specialistBatchId];
+    const sourceCellAttempt =
+      state.specialistCellAttempts[retry.sourceCellAttemptId];
+    const retryCellAttempt =
+      state.specialistCellAttempts[retry.retryCellAttemptId];
+    if (
+      !batch ||
+      !sourceCellAttempt ||
+      !retryCellAttempt ||
+      ![SPECIALIST_BATCH_STATUS.PARTIAL_FAILED, SPECIALIST_BATCH_STATUS.FAILED].includes(
+        batch.status,
+      ) ||
+      !batch.cellAttemptIds.includes(sourceCellAttempt.id) ||
+      sourceCellAttempt.attemptNumber !== 1 ||
+      sourceCellAttempt.status !== SPECIALIST_CELL_ATTEMPT_STATUS.FAILED ||
+      retryCellAttempt.id === sourceCellAttempt.id ||
+      retryCellAttempt.specialistBatchId !== batch.id
+    ) {
+      throw new Error(`${label} has invalid source or attempt references`);
+    }
+    if (
+      retry.sourceBatchRecordDigest !== batch.recordDigest ||
+      retry.sourceCellAttemptRecordDigest !== sourceCellAttempt.recordDigest
+    ) {
+      throw new Error(`${label} source record digests are stale`);
+    }
+    if (
+      retriedSourceCellAttemptIds.has(sourceCellAttempt.id) ||
+      retryCellAttemptIds.has(retryCellAttempt.id)
+    ) {
+      throw new Error(`${label} duplicates a retry relationship`);
+    }
+    retriedSourceCellAttemptIds.add(sourceCellAttempt.id);
+    retryCellAttemptIds.add(retryCellAttempt.id);
+
+    assertSpecialistCellAttemptRecord(retryCellAttempt, {
+      expectedAttemptNumber: 2,
+    });
+    if (
+      retryCellAttempt.cellId !== sourceCellAttempt.cellId ||
+      retryCellAttempt.agentProfileId !== sourceCellAttempt.agentProfileId ||
+      retryCellAttempt.role !== sourceCellAttempt.role ||
+      retryCellAttempt.position !== sourceCellAttempt.position ||
+      retryCellAttempt.cellSpecDigest !== sourceCellAttempt.cellSpecDigest ||
+      retryCellAttempt.sourceDigest !== sourceCellAttempt.sourceDigest ||
+      JSON.stringify(retryCellAttempt.inputPathDigests) !==
+        JSON.stringify(sourceCellAttempt.inputPathDigests) ||
+      retryCellAttempt.inputDigest !== sourceCellAttempt.inputDigest ||
+      retryCellAttempt.cellDeadlineMs !== retry.retryDeadlineMs ||
+      retryCellAttempt.startedAt !== retry.startedAt ||
+      retryCellAttempt.deadlineAt !==
+        new Date(
+          Date.parse(retry.startedAt) + retry.retryDeadlineMs,
+        ).toISOString() ||
+      retry.status !== retryCellAttempt.status ||
+      retry.completedAt !== retryCellAttempt.completedAt
+    ) {
+      throw new Error(`${label} retry attempt evidence is inconsistent`);
+    }
+    if (retry.status === SPECIALIST_CELL_RETRY_STATUS.ACTIVE) {
+      if (activeRetryBatchIds.has(batch.id)) {
+        throw new Error(`${label} duplicates an active retry for ${batch.id}`);
+      }
+      activeRetryBatchIds.add(batch.id);
+    }
+  }
+
   for (const [key, cellAttempt] of Object.entries(state.specialistCellAttempts)) {
     if (
       !cellAttempt ||
       typeof cellAttempt !== 'object' ||
       Array.isArray(cellAttempt) ||
       cellAttempt.id !== key ||
-      !referencedCellAttemptIds.has(key)
+      (!referencedCellAttemptIds.has(key) && !retryCellAttemptIds.has(key))
     ) {
       throw new Error(
-        `SpecialistCellAttempt ${key} is invalid or has no SpecialistBatch`,
+        `SpecialistCellAttempt ${key} is invalid or has no specialist lineage`,
       );
     }
   }
@@ -2871,6 +2959,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== STAFFING_PLAN_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STAFFING_ENTRY_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== SPECIALIST_BATCH_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -3085,6 +3174,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= SPECIALIST_CELL_RETRY_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.specialistCellRetry) ||
+        !state.specialistCellRetries ||
+        typeof state.specialistCellRetries !== 'object' ||
+        Array.isArray(state.specialistCellRetries)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing SpecialistCellRetry fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -3122,6 +3224,7 @@ function createFileStore(options = {}) {
       workOrderAttempts: state.workOrderAttempts || {},
       specialistBatches: state.specialistBatches || {},
       specialistCellAttempts: state.specialistCellAttempts || {},
+      specialistCellRetries: state.specialistCellRetries || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {

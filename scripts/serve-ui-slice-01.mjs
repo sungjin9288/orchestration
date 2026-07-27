@@ -1794,6 +1794,145 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const specialistCellRetryStartMatch = url.pathname.match(
+    /^\/api\/specialist-batches\/([^/]+)\/cell-retries$/,
+  );
+
+  if (method === 'POST' && specialistCellRetryStartMatch) {
+    try {
+      const specialistBatchId = decodeURIComponent(
+        specialistCellRetryStartMatch[1],
+      );
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'compileSpec',
+        'evaluatedAt',
+        'expectedBatchRecordDigest',
+        'expectedSourceCellAttemptRecordDigest',
+        'previewDigest',
+        'previewId',
+        'retryApproval',
+        'retryDeadlineMs',
+        'sourceCellAttemptId',
+        'sourceDigest',
+        'sourceRefs',
+        'specialistSpec',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'SpecialistCellRetry body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = await runtime.retrySpecialistBatchCell({
+        specialistBatchId,
+        ...input,
+      });
+      json(response, result.idempotent ? 200 : 201, {
+        generatedAt: new Date().toISOString(),
+        idempotent: result.idempotent,
+        specialistCellRetry: result.specialistCellRetry,
+        specialistCellAttempt: result.specialistCellAttempt,
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      const payload =
+        error.specialistCellRetryId && error.retryCellAttemptId
+          ? {
+              error:
+                error.message || 'SpecialistCellRetry settlement에 실패했습니다.',
+              specialistCellRetryId: error.specialistCellRetryId,
+              retryCellAttemptId: error.retryCellAttemptId,
+            }
+          : {
+              error:
+                error.message || 'SpecialistCellRetry 실행에 실패했습니다.',
+            };
+      json(response, statusCode, payload);
+      return;
+    }
+  }
+
+  const specialistCellRetryInspectMatch = url.pathname.match(
+    /^\/api\/specialist-cell-retries\/([^/]+)$/,
+  );
+
+  if (specialistCellRetryInspectMatch) {
+    if (method !== 'GET') {
+      text(response, 405, 'Method Not Allowed', 'text/plain; charset=utf-8');
+      return;
+    }
+    try {
+      const result = runtime.getSpecialistCellRetry(
+        decodeURIComponent(specialistCellRetryInspectMatch[1]),
+      );
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        specialistCellRetry: result.specialistCellRetry,
+        specialistCellAttempt: result.specialistCellAttempt,
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'SpecialistCellRetry를 찾지 못했습니다.',
+      });
+      return;
+    }
+  }
+
+  const specialistBatchCellRetryMatch = url.pathname.match(
+    /^\/api\/specialist-batches\/([^/]+)\/cell-retry$/,
+  );
+
+  if (specialistBatchCellRetryMatch) {
+    if (method !== 'GET') {
+      text(response, 405, 'Method Not Allowed', 'text/plain; charset=utf-8');
+      return;
+    }
+    try {
+      const queryKeys = [...url.searchParams.keys()].sort();
+      if (
+        queryKeys.length !== 1 ||
+        queryKeys[0] !== 'sourceCellAttemptId' ||
+        url.searchParams.getAll('sourceCellAttemptId').length !== 1
+      ) {
+        const error = new Error(
+          'SpecialistCellRetry locator requires exactly sourceCellAttemptId',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.getSpecialistBatchCellRetry({
+        specialistBatchId: decodeURIComponent(
+          specialistBatchCellRetryMatch[1],
+        ),
+        sourceCellAttemptId: url.searchParams.get('sourceCellAttemptId'),
+      });
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        specialistCellRetry: result.specialistCellRetry,
+        specialistCellAttempt: result.specialistCellAttempt,
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'SpecialistCellRetry를 찾지 못했습니다.',
+      });
+      return;
+    }
+  }
+
   const specialistBatchInspectMatch = url.pathname.match(
     /^\/api\/specialist-batches\/([^/]+)$/,
   );

@@ -244,16 +244,16 @@ start, cancel, retry, persistence, or downstream WorkOrder mutation control.
 `scripts/smoke-ui-slice-699.mjs`, and the verification/UI-QA registrations. The resulting object
 remains response/browser-memory-only and adds no durable schema member.
 
-## Implemented Stage 4B And Future Stage 4C Boundary
+## Implemented Stage 4B And Stage 4C Boundary
 
 `DEC-179` implements Stage 4B through the separate schema-v20 decision. It persists one
 `SpecialistBatch` and two `SpecialistCellAttempt` records before request-scoped execution, caps
 concurrent cells at two, uses one serial CAS writer for settlements, and never infers success or
 automatically reruns an active cell after interruption. Planning-only `DEC-180` and handoff-only
-`DEC-181` now define Stage 4C as one explicit bounded retry for one failed first attempt while
-retaining the source batch and both first attempts byte-for-byte. The future implementation remains
-reserved for `DEC-182`. Active-attempt recovery belongs with the later Ops supervision decision, not
-either preview or retry shortcut.
+`DEC-181` define Stage 4C as one explicit bounded retry for one failed first attempt while retaining
+the source batch and both first attempts byte-for-byte. `DEC-182` implements only that exact
+schema-v21 same-role attempt #2 path. Active-attempt recovery belongs with the later Ops supervision
+decision, not either preview or retry shortcut.
 
 ## Rollback, Verification, And Stop Condition
 

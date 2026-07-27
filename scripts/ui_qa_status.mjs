@@ -350,7 +350,13 @@ const smokeChecks = [
     id: 'ai-company-durable-specialist-batch-ui-api',
     script: 'scripts/smoke-ui-slice-700.mjs',
     purpose:
-      'Durable SpecialistBatch UI and API preserve one exact first-attempt action, bounded current-chain hard-refresh hydration, active partial completed and failed evidence, generic snapshot exclusion, responsive fit, and absent retry cancel provider result-application or downstream controls',
+      'Durable SpecialistBatch UI and API preserve one exact first-attempt action, bounded current-chain hard-refresh hydration, active partial completed and failed evidence, generic snapshot exclusion, responsive fit, and only the separately authorized exact failed-cell retry without cancel provider result-application or downstream controls',
+  },
+  {
+    id: 'ai-company-specialist-cell-retry-ui-api',
+    script: 'scripts/smoke-ui-slice-701.mjs',
+    purpose:
+      'SpecialistCellRetry UI and API preserve fresh-preview gating, one operator-selected failed first-attempt action, separate original and retry evidence, exact source-bound hard-refresh locator, closed response shapes, responsive desktop/mobile controls, and absent retry-all recovery cancel provider result-application or downstream controls',
   },
   {
     id: 'llm-native-active-mission-focus',

@@ -120,6 +120,7 @@ const {
   assertRun,
   assertSpecialistBatch,
   assertSpecialistCellAttempt,
+  assertSpecialistCellRetry,
   assertStaffingEntry,
   assertStaffingPlan,
   assertWorkOrder,
@@ -230,12 +231,24 @@ const {
 } = require('./specialist-batches');
 const {
   SPECIALIST_CELL_ATTEMPT_STATUS,
+  computeInputDigest,
   createSpecialistCellAttempt,
+  createSpecialistRetryCellAttempt,
   settleSpecialistCellAttempt,
 } = require('./specialist-cell-attempts');
 const {
+  SPECIALIST_CELL_RETRY_STATUS,
+  computeSpecialistCellRetryRequestDigest,
+  createSpecialistCellRetry,
+  normalizeSpecialistCellRetryRequest,
+  settleSpecialistCellRetry,
+} = require('./specialist-cell-retries');
+const {
   runSpecialistBatch,
 } = require('../execution/specialist-batch-coordinator');
+const {
+  runSpecialistCellRetry,
+} = require('../execution/specialist-cell-retry-coordinator');
 const { buildMissionEvidenceGraph } = require('./mission-evidence-graph');
 const { buildTaskExecutionProvenanceGraph } = require('./execution-provenance-graph');
 const {
@@ -272,6 +285,8 @@ function createRuntimeService(options = {}) {
     options.exactResearchAdapter || createWigoloExactFetchAdapter({ enabled: false });
   const specialistBatchCoordinator =
     options.specialistBatchCoordinator || runSpecialistBatch;
+  const specialistCellRetryCoordinator =
+    options.specialistCellRetryCoordinator || runSpecialistCellRetry;
   const decisionInboxKinds = new Set(Object.values(DECISION_INBOX_KIND));
   const decisionInboxSourceTypes = new Set(Object.values(DECISION_INBOX_SOURCE_TYPE));
   const proposalRecordTypes = new Set(Object.values(PROPOSAL_RECORD_TYPE));
@@ -350,6 +365,13 @@ function createRuntimeService(options = {}) {
     state.sequences.specialistCellAttempt += 1;
     return `specialist-cell-attempt-${String(
       state.sequences.specialistCellAttempt,
+    ).padStart(4, '0')}`;
+  }
+
+  function nextSpecialistCellRetryId(state) {
+    state.sequences.specialistCellRetry += 1;
+    return `specialist-cell-retry-${String(
+      state.sequences.specialistCellRetry,
     ).padStart(4, '0')}`;
   }
 
@@ -2980,6 +3002,412 @@ function createRuntimeService(options = {}) {
     return {
       idempotent: false,
       ...getSpecialistBatchEnvelopeFromState(settledState, specialistBatchId),
+    };
+  }
+
+  function getSpecialistCellRetryEnvelopeFromState(
+    state,
+    specialistCellRetryId,
+  ) {
+    const specialistCellRetry = assertSpecialistCellRetry(
+      specialistCellRetryId,
+      state,
+    );
+    const specialistCellAttempt = assertSpecialistCellAttempt(
+      specialistCellRetry.retryCellAttemptId,
+      state,
+    );
+    return {
+      specialistCellRetry,
+      specialistCellAttempt,
+    };
+  }
+
+  function getSpecialistCellRetry(specialistCellRetryId) {
+    try {
+      const state = store.loadStateSupportedReadonly();
+      return getSpecialistCellRetryEnvelopeFromState(
+        state,
+        specialistCellRetryId,
+      );
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+  }
+
+  function getSpecialistBatchCellRetry(input) {
+    const expectedFields = [
+      'sourceCellAttemptId',
+      'specialistBatchId',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      const error = new Error(
+        'SpecialistCellRetry locator has unexpected or missing fields',
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+    try {
+      const state = store.loadStateSupportedReadonly();
+      const batch = assertSpecialistBatch(input.specialistBatchId, state);
+      const sourceCellAttempt = assertSpecialistCellAttempt(
+        input.sourceCellAttemptId,
+        state,
+      );
+      if (
+        sourceCellAttempt.specialistBatchId !== batch.id ||
+        !batch.cellAttemptIds.includes(sourceCellAttempt.id)
+      ) {
+        throw conflict('SpecialistCellRetry locator source is stale');
+      }
+      const retry = Object.values(state.specialistCellRetries || {}).find(
+        (candidate) =>
+          candidate.specialistBatchId === batch.id &&
+          candidate.sourceCellAttemptId === sourceCellAttempt.id,
+      );
+      if (!retry) {
+        const error = new Error(
+          'SpecialistCellRetry not found for the exact source cell',
+        );
+        error.statusCode = 404;
+        throw error;
+      }
+      return getSpecialistCellRetryEnvelopeFromState(state, retry.id);
+    } catch (error) {
+      if (/not found/i.test(error.message) && !error.statusCode) {
+        error.statusCode = 404;
+      }
+      throw error;
+    }
+  }
+
+  async function retrySpecialistBatchCell(input) {
+    const expectedFields = [
+      'compileSpec',
+      'evaluatedAt',
+      'expectedBatchRecordDigest',
+      'expectedSourceCellAttemptRecordDigest',
+      'previewDigest',
+      'previewId',
+      'retryApproval',
+      'retryDeadlineMs',
+      'sourceCellAttemptId',
+      'sourceDigest',
+      'sourceRefs',
+      'specialistBatchId',
+      'specialistSpec',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      const error = new Error(
+        'SpecialistCellRetry request has unexpected or missing fields',
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const validatedAt = specialistNowIso();
+    let normalizedRequest;
+    try {
+      const {
+        specialistBatchId: _specialistBatchId,
+        ...requestBody
+      } = input;
+      normalizedRequest = normalizeSpecialistCellRetryRequest(requestBody, {
+        now: validatedAt,
+      });
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+    const retryRequestDigest =
+      computeSpecialistCellRetryRequestDigest(normalizedRequest);
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `SpecialistCellRetry requires supported state: ${error.message}`,
+      );
+    }
+    const batch = assertSpecialistBatch(input.specialistBatchId, state);
+    const sourceCellAttempt = assertSpecialistCellAttempt(
+      normalizedRequest.sourceCellAttemptId,
+      state,
+    );
+    const existing = Object.values(state.specialistCellRetries || {}).find(
+      (candidate) =>
+        candidate.specialistBatchId === batch.id &&
+        candidate.sourceCellAttemptId === sourceCellAttempt.id,
+    );
+    if (existing) {
+      if (existing.retryRequestDigest !== retryRequestDigest) {
+        throw conflict(
+          'SpecialistCellRetry source cell already has a different retry',
+        );
+      }
+      return {
+        idempotent: true,
+        ...getSpecialistCellRetryEnvelopeFromState(state, existing.id),
+      };
+    }
+
+    if (
+      !['partial-failed', 'failed'].includes(batch.status) ||
+      !batch.cellAttemptIds.includes(sourceCellAttempt.id) ||
+      sourceCellAttempt.specialistBatchId !== batch.id ||
+      sourceCellAttempt.attemptNumber !== 1 ||
+      sourceCellAttempt.status !== SPECIALIST_CELL_ATTEMPT_STATUS.FAILED
+    ) {
+      throw conflict(
+        'SpecialistCellRetry requires one failed first-attempt source cell',
+      );
+    }
+    if (
+      batch.recordDigest !== normalizedRequest.expectedBatchRecordDigest ||
+      sourceCellAttempt.recordDigest !==
+        normalizedRequest.expectedSourceCellAttemptRecordDigest
+    ) {
+      throw conflict('SpecialistCellRetry source record digest is stale');
+    }
+    if (
+      Object.values(state.specialistCellRetries || {}).some(
+        (candidate) =>
+          candidate.specialistBatchId === batch.id &&
+          candidate.status === SPECIALIST_CELL_RETRY_STATUS.ACTIVE,
+      )
+    ) {
+      throw conflict('SpecialistBatch already has an active cell retry');
+    }
+    if (
+      normalizedRequest.retryDeadlineMs > sourceCellAttempt.cellDeadlineMs
+    ) {
+      const error = new Error(
+        'retryDeadlineMs must not exceed the source cell deadline',
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const preview = previewCouncilSpecialistBatch({
+      councilSessionId: batch.councilSessionId,
+      compileSpec: normalizedRequest.compileSpec,
+      evaluatedAt: normalizedRequest.evaluatedAt,
+      sourceRefs: normalizedRequest.sourceRefs,
+      specialistSpec: normalizedRequest.specialistSpec,
+    });
+    if (
+      normalizedRequest.previewId !== preview.id ||
+      normalizedRequest.previewDigest !== preview.previewDigest ||
+      normalizedRequest.sourceDigest !== preview.sourceDigest
+    ) {
+      throw conflict('SpecialistCellRetry preview or source digest is stale');
+    }
+    const previewCell = preview.cells.find(
+      (cell) =>
+        cell.position === sourceCellAttempt.position &&
+        cell.cellId === sourceCellAttempt.cellId &&
+        cell.agentProfileId === sourceCellAttempt.agentProfileId &&
+        cell.role === sourceCellAttempt.role,
+    );
+    if (
+      !previewCell ||
+      preview.sourceDigest !== batch.sourceDigest ||
+      preview.sourceDigest !== sourceCellAttempt.sourceDigest ||
+      previewCell.cellSpecDigest !== sourceCellAttempt.cellSpecDigest ||
+      JSON.stringify(previewCell.inputPathDigests) !==
+        JSON.stringify(sourceCellAttempt.inputPathDigests) ||
+      computeInputDigest(previewCell.inputPathDigests) !==
+        sourceCellAttempt.inputDigest
+    ) {
+      throw conflict(
+        'SpecialistCellRetry selected cell evidence is source-drifted',
+      );
+    }
+
+    const project = assertProject(batch.projectId, state);
+    const startedAt = specialistNowIso();
+    const specialistCellRetryId = nextSpecialistCellRetryId(state);
+    const retryCellAttemptId = nextSpecialistCellAttemptId(state);
+    const retryCellAttempt = createSpecialistRetryCellAttempt({
+      id: retryCellAttemptId,
+      specialistBatchId: batch.id,
+      cellId: sourceCellAttempt.cellId,
+      agentProfileId: sourceCellAttempt.agentProfileId,
+      role: sourceCellAttempt.role,
+      position: sourceCellAttempt.position,
+      cellSpecDigest: sourceCellAttempt.cellSpecDigest,
+      sourceDigest: sourceCellAttempt.sourceDigest,
+      inputPathDigests: sourceCellAttempt.inputPathDigests,
+      cellDeadlineMs: normalizedRequest.retryDeadlineMs,
+      startedAt,
+    });
+    const specialistCellRetry = createSpecialistCellRetry(
+      {
+        id: specialistCellRetryId,
+        specialistBatchId: batch.id,
+        sourceCellAttemptId: sourceCellAttempt.id,
+        retryCellAttemptId,
+        sourceBatchRecordDigest: batch.recordDigest,
+        sourceCellAttemptRecordDigest: sourceCellAttempt.recordDigest,
+        retryPreviewId: preview.id,
+        retryPreviewDigest: preview.previewDigest,
+        retryRequestDigest,
+        retryApproval: normalizedRequest.retryApproval,
+        retryDeadlineMs: normalizedRequest.retryDeadlineMs,
+        startedAt,
+      },
+      {
+        evaluatedAt: normalizedRequest.evaluatedAt,
+        now: validatedAt,
+      },
+    );
+    state.specialistCellAttempts[retryCellAttempt.id] = retryCellAttempt;
+    state.specialistCellRetries[specialistCellRetry.id] =
+      specialistCellRetry;
+    store.saveState(state);
+
+    const activeState = store.loadStateReadonly();
+    const activeRetry = assertSpecialistCellRetry(
+      specialistCellRetryId,
+      activeState,
+    );
+    const activeRetryAttempt = assertSpecialistCellAttempt(
+      retryCellAttemptId,
+      activeState,
+    );
+    const activeSourceAttempt = assertSpecialistCellAttempt(
+      sourceCellAttempt.id,
+      activeState,
+    );
+
+    const settle = async (settlement) => {
+      const currentState = store.loadStateReadonly();
+      const currentRetry = assertSpecialistCellRetry(
+        settlement.specialistCellRetryId,
+        currentState,
+      );
+      const currentRetryAttempt = assertSpecialistCellAttempt(
+        settlement.retryCellAttemptId,
+        currentState,
+      );
+      const currentSourceAttempt = assertSpecialistCellAttempt(
+        settlement.sourceCellAttemptId,
+        currentState,
+      );
+      const currentBatch = assertSpecialistBatch(
+        currentRetry.specialistBatchId,
+        currentState,
+      );
+      if (
+        currentRetry.status !== SPECIALIST_CELL_RETRY_STATUS.ACTIVE ||
+        currentRetryAttempt.status !==
+          SPECIALIST_CELL_ATTEMPT_STATUS.ACTIVE ||
+        currentRetry.retryCellAttemptId !== currentRetryAttempt.id ||
+        currentRetry.sourceCellAttemptId !== currentSourceAttempt.id ||
+        currentRetry.sourceBatchRecordDigest !== currentBatch.recordDigest ||
+        currentRetry.sourceCellAttemptRecordDigest !==
+          currentSourceAttempt.recordDigest ||
+        settlement.sourceDigest !== currentRetryAttempt.sourceDigest ||
+        settlement.inputDigest !== currentRetryAttempt.inputDigest
+      ) {
+        throw conflict('SpecialistCellRetry settlement source is stale');
+      }
+
+      const completedAt = specialistNowIso();
+      const transition =
+        settlement.transition.status ===
+          SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED &&
+        Date.parse(completedAt) >= Date.parse(currentRetryAttempt.deadlineAt)
+          ? {
+              status: SPECIALIST_CELL_ATTEMPT_STATUS.FAILED,
+              observedInputDigest:
+                settlement.transition.observedInputDigest,
+              failureReason: 'cell-deadline-exceeded',
+            }
+          : settlement.transition;
+      const nextRetryAttempt =
+        transition.status === SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED
+          ? settleSpecialistCellAttempt(currentRetryAttempt, {
+              status: SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED,
+              observedInputDigest: transition.observedInputDigest,
+              resultSummary: transition.resultSummary,
+              completedAt,
+            })
+          : settleSpecialistCellAttempt(currentRetryAttempt, {
+              status: SPECIALIST_CELL_ATTEMPT_STATUS.FAILED,
+              observedInputDigest: transition.observedInputDigest,
+              failureReason: transition.failureReason,
+              completedAt,
+            });
+      const nextRetry = settleSpecialistCellRetry(currentRetry, {
+        status:
+          nextRetryAttempt.status ===
+          SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED
+            ? SPECIALIST_CELL_RETRY_STATUS.COMPLETED
+            : SPECIALIST_CELL_RETRY_STATUS.FAILED,
+        completedAt,
+      });
+      currentState.specialistCellAttempts[nextRetryAttempt.id] =
+        nextRetryAttempt;
+      currentState.specialistCellRetries[nextRetry.id] = nextRetry;
+      store.saveState(currentState);
+      return {
+        specialistCellRetry: nextRetry,
+        specialistCellAttempt: nextRetryAttempt,
+      };
+    };
+
+    try {
+      const coordinatorResult = await specialistCellRetryCoordinator(
+        {
+          retry: activeRetry,
+          sourceCellAttempt: activeSourceAttempt,
+          retryCellAttempt: activeRetryAttempt,
+          projectRoot: project.projectPath,
+          qaInput: {
+            commands: normalizedRequest.compileSpec.verificationCommands,
+            targetPathAllowlist:
+              normalizedRequest.compileSpec.targetPathAllowlist,
+          },
+          settle,
+        },
+        {
+          researcherRunner: options.specialistResearcherRunner,
+          qaRunner: options.specialistQaRunner,
+          spawnImpl: options.specialistQaSpawnImpl,
+          now: options.specialistWorkerNow,
+        },
+      );
+      if (coordinatorResult?.settlement?.status !== 'fulfilled') {
+        throw conflict('SpecialistCellRetry settlement did not complete');
+      }
+    } catch (cause) {
+      const error = conflict(
+        'SpecialistCellRetry settlement conflicted; inspect exact durable evidence',
+      );
+      error.specialistCellRetryId = specialistCellRetryId;
+      error.retryCellAttemptId = retryCellAttemptId;
+      error.cause = cause;
+      throw error;
+    }
+
+    const settledState = store.loadStateReadonly();
+    return {
+      idempotent: false,
+      ...getSpecialistCellRetryEnvelopeFromState(
+        settledState,
+        specialistCellRetryId,
+      ),
     };
   }
 
@@ -8609,6 +9037,7 @@ function createRuntimeService(options = {}) {
     const snapshotForPublicProjection = { ...snapshot };
     delete snapshotForPublicProjection.specialistBatches;
     delete snapshotForPublicProjection.specialistCellAttempts;
+    delete snapshotForPublicProjection.specialistCellRetries;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -8723,6 +9152,8 @@ function createRuntimeService(options = {}) {
     getRun,
     getSnapshot,
     getSpecialistBatch,
+    getSpecialistBatchCellRetry,
+    getSpecialistCellRetry,
     getCurrentCouncilSpecialistBatch,
     getStaffingEntry,
     getStaffingPlan,
@@ -8779,6 +9210,7 @@ function createRuntimeService(options = {}) {
     startRun,
     startPlaceholderRun,
     startCouncilSpecialistBatch,
+    retrySpecialistBatchCell,
     resumeRealCouncilSession,
     resumeProviderCouncilSession,
     resumeExecutionPlanFromCheckpoint,

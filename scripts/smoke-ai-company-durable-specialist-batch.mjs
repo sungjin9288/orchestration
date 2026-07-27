@@ -180,8 +180,10 @@ function downgradeStateToV19(targetStatePath = statePath) {
   state.schemaVersion = 19;
   delete state.sequences.specialistBatch;
   delete state.sequences.specialistCellAttempt;
+  delete state.sequences.specialistCellRetry;
   delete state.specialistBatches;
   delete state.specialistCellAttempts;
+  delete state.specialistCellRetries;
   fs.writeFileSync(targetStatePath, `${JSON.stringify(state, null, 2)}\n`);
 }
 
@@ -384,7 +386,7 @@ async function main() {
   });
   const assertActiveSave = () => {
     const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(state.schemaVersion, 20);
+    assert.equal(state.schemaVersion, 21);
     assert.equal(Object.keys(state.specialistBatches).length, 1);
     assert.deepEqual(
       Object.values(state.specialistCellAttempts).map((attempt) => attempt.status),
@@ -442,6 +444,7 @@ async function main() {
   assert.deepEqual(fs.readFileSync(statePath), v19Bytes);
   assert.equal(Object.hasOwn(publicSnapshot, 'specialistBatches'), false);
   assert.equal(Object.hasOwn(publicSnapshot, 'specialistCellAttempts'), false);
+  assert.equal(Object.hasOwn(publicSnapshot, 'specialistCellRetries'), false);
 
   const invalidRequest = buildStartRequest(previewRequest, preview);
   invalidRequest.extra = true;
@@ -1164,9 +1167,10 @@ async function main() {
   );
 
   const finalState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-  assert.equal(finalState.schemaVersion, 20);
+  assert.equal(finalState.schemaVersion, 21);
   assert.equal(Object.keys(finalState.specialistBatches).length, 1);
   assert.equal(Object.keys(finalState.specialistCellAttempts).length, 2);
+  assert.equal(Object.keys(finalState.specialistCellRetries).length, 0);
   assert.equal(Object.keys(finalState.executionPlans).length, 0);
   assert.equal(Object.keys(finalState.workOrders).length, 0);
   assert.equal(Object.keys(finalState.runs).length, 0);
@@ -1192,13 +1196,29 @@ async function main() {
   );
 }
 
-main().finally(() => {
-  if (!keepFixture) {
-    fs.rmSync(tempRoot, {
-      recursive: true,
-      force: true,
-      maxRetries: 10,
-      retryDelay: 50,
-    });
-  }
-});
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().finally(() => {
+    if (!keepFixture) {
+      fs.rmSync(tempRoot, {
+        recursive: true,
+        force: true,
+        maxRetries: 10,
+        retryDelay: 50,
+      });
+    }
+  });
+}
+
+export {
+  blueprintPath,
+  buildPreviewRequest,
+  buildStartRequest,
+  completedQaOutcome,
+  completedResearcherOutcome,
+  createResolvedCouncilAdapter,
+  projectPath,
+  repoRoot,
+  seedBoundCouncil,
+  tempRoot,
+  writeFixtureSources,
+};

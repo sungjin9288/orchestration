@@ -117,6 +117,41 @@ export function getSpecialistBatchPreviewSummary(
   };
 }
 
+export function getSpecialistCellRetryEligibility(
+  specialistBatch,
+  specialistCellAttempts,
+  specialistCellRetries,
+  previewSummary,
+) {
+  const retries = Array.isArray(specialistCellRetries)
+    ? specialistCellRetries
+    : [];
+  const activeRetry = retries.some(
+    (entry) => entry?.specialistCellRetry?.status === 'active',
+  );
+  const retryBySourceId = new Map(
+    retries.map((entry) => [
+      entry?.specialistCellRetry?.sourceCellAttemptId,
+      entry,
+    ]),
+  );
+  return (specialistCellAttempts || []).map((attempt) => {
+    const retry = retryBySourceId.get(attempt.id) || null;
+    return {
+      attempt,
+      retry,
+      eligible: Boolean(
+        ['partial-failed', 'failed'].includes(specialistBatch?.status) &&
+          attempt.attemptNumber === 1 &&
+          attempt.status === 'failed' &&
+          previewSummary?.sourceDigest === specialistBatch?.sourceDigest &&
+          !retry &&
+          !activeRetry,
+      ),
+    };
+  });
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

@@ -466,7 +466,7 @@ async function main() {
       companyBlueprintPath: blueprintPath,
       companyRepoRoot: repoRoot,
     });
-    assert.equal(reloaded.getSnapshot().schemaVersion, 20);
+    assert.equal(reloaded.getSnapshot().schemaVersion, 21);
     assert.deepEqual(
       reloaded.previewExecutionPlanDelivery({
         executionPlanId: success.persisted.executionPlan.id,
@@ -520,7 +520,7 @@ async function main() {
       ok: true,
       mode: MODE,
       runtime: {
-        schemaVersion: 20,
+        schemaVersion: 21,
         sequence: ['builder-live-mutation', 'reviewer', 'node-check-qa'],
         finalPlanStatus: 'delivery-ready',
         missionDone: false,

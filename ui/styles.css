@@ -8922,9 +8922,44 @@ h3 {
   padding-top: 4px;
 }
 
+.specialist-retry-approval {
+  grid-template-columns: minmax(160px, 220px) minmax(280px, 1fr);
+  padding-top: 12px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
 .specialist-contract-list {
   display: grid;
   border-top: 1px solid var(--surface-control-border);
+}
+
+.specialist-attempt-stack {
+  display: grid;
+  min-width: 0;
+  border-bottom: 1px solid var(--surface-control-border);
+}
+
+.specialist-attempt-stack > .specialist-contract-row {
+  border-bottom: 0;
+}
+
+.specialist-retry-row {
+  margin-left: 18px;
+  border-top: 1px dashed var(--surface-control-border);
+}
+
+.specialist-retry-command {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0 12px 18px;
+  border-top: 1px dashed var(--surface-control-border);
+}
+
+.specialist-retry-command .form-help {
+  margin: 0;
 }
 
 .specialist-contract-row {
@@ -10454,6 +10489,21 @@ body[data-evidence-density='compact'] .control-overview-stack {
 
   .specialist-contract-row {
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .specialist-retry-approval {
+    grid-template-columns: 1fr;
+  }
+
+  .specialist-retry-row,
+  .specialist-retry-command {
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .specialist-retry-command {
+    align-items: stretch;
     flex-direction: column;
   }
 

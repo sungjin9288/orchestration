@@ -46,6 +46,14 @@ function assertSpecialistCellAttempt(specialistCellAttemptId, state) {
   return specialistCellAttempt;
 }
 
+function assertSpecialistCellRetry(specialistCellRetryId, state) {
+  const specialistCellRetry = state.specialistCellRetries[specialistCellRetryId];
+  if (!specialistCellRetry) {
+    throw new Error(`SpecialistCellRetry not found: ${specialistCellRetryId}`);
+  }
+  return specialistCellRetry;
+}
+
 function assertHandoffPacket(handoffPacketId, state) {
   const handoffPacket = state.handoffPackets[handoffPacketId];
   if (!handoffPacket) throw new Error(`HandoffPacket not found: ${handoffPacketId}`);
@@ -162,6 +170,7 @@ module.exports = {
   assertRun,
   assertSpecialistBatch,
   assertSpecialistCellAttempt,
+  assertSpecialistCellRetry,
   assertStaffingEntry,
   assertStaffingPlan,
   assertWorkOrder,

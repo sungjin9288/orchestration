@@ -425,18 +425,18 @@ async function main() {
     delete schemaV18.workOrderAttempts;
     fs.writeFileSync(path.join(migrationRoot, 'state.json'), JSON.stringify(schemaV18));
     const migrated = createFileStore({ runtimeRoot: migrationRoot }).loadState();
-    assert.equal(migrated.schemaVersion, 20);
+    assert.equal(migrated.schemaVersion, 21);
     assert.equal(migrated.sequences.workOrderAttempt, 0);
     assert.deepEqual(migrated.workOrderAttempts, {});
 
     const futureRoot = path.join(tempRoot, 'future');
     fs.mkdirSync(futureRoot, { recursive: true });
     const future = createEmptyState();
-    future.schemaVersion = 21;
+    future.schemaVersion = 22;
     fs.writeFileSync(path.join(futureRoot, 'state.json'), JSON.stringify(future));
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadState(),
-      /Unsupported runtime state schemaVersion: 21/,
+      /Unsupported runtime state schemaVersion: 22/,
     );
 
     const success = createBoundContext('success');
@@ -583,9 +583,9 @@ async function main() {
       ok: true,
       mode: MODE,
       schema: {
-        version: 20,
+        version: 21,
         migrationFrom: 18,
-        futureRejected: 21,
+        futureRejected: 22,
       },
       scheduler: {
         attemptCount: finalBundle.workOrderAttempts.length,

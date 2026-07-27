@@ -1,5 +1,12 @@
 # AI Company Specialist Cell Retry Implementation Decision Handoff
 
+## Implemented Status
+
+The operator supplied the exact `Valid Approval Outcome`; `DEC-182` accepted and consumed it for
+the bounded schema-v21 implementation. This handoff remains immutable decision provenance and does
+not grant any additional retry, recovery, application, provider, source, Git, release, memory,
+policy, collection, or connector authority.
+
 ## Purpose
 
 This document is the complete fielded decision shape for the Stage 4C failed-cell-only retry
@@ -11,7 +18,7 @@ Generic approval, continuation, delegated self-approval, and DEC-179 first-attem
 invalid implementation shortcuts. One complete valid operator decision may be accepted as
 `DEC-182`.
 
-## Current Gate
+## Gate At Handoff Time
 
 - Runtime remains schema v20.
 - Every existing batch keeps exactly two immutable first-attempt ids.
@@ -137,5 +144,5 @@ approvalStatement=I defer SpecialistCellRetry implementation. No schema retry re
 
 ## Completion Rule
 
-Implementation remains blocked until the operator supplies the complete `Valid Approval Outcome`.
-Only that exact decision may be recorded as `DEC-182`.
+The exact `Valid Approval Outcome` was supplied and recorded as `DEC-182`. The implementation gate
+is consumed; every authority in `stillBlockedAuthorities` remains separately gated.

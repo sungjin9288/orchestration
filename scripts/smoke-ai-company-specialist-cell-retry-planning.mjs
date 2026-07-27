@@ -43,6 +43,8 @@ assertHasAll(plan, [
   /^# AI Company Specialist Cell Retry Plan$/m,
   /operator-decision-ai-company-specialist-cell-retry-planning-001/,
   /approve-ai-company-specialist-cell-retry-planning-only/,
+  /^## Implemented Status$/m,
+  /`DEC-182` accepted the complete implementation decision/,
   /`DEC-180` records this planning-only boundary/,
   /`DEC-181` records the complete fielded/,
   /reserved for `DEC-182`/,
@@ -86,8 +88,7 @@ assertHasAll(plan, [
   /generic `\/api\/snapshot` continues to omit/,
   /There is no retry-all, automatic retry, cancel, resume, provider, result-application/,
   /active-attempt (?:recovery|reconciliation)[\s\S]{0,80}later Ops supervision/i,
-  /Runtime remains schema v20/,
-  /Implementation requires the complete exact `DEC-182` decision/,
+  /exact `DEC-182` decision was accepted and consumed/,
 ]);
 
 for (const field of [
@@ -131,11 +132,11 @@ assertHasAll(handoff, [
   /add schemaVersion 21 plus only sequences\.specialistCellRetry and specialistCellRetries/,
   /reuse the existing specialistCellAttempt sequence and map for attemptNumber=2/,
   /scripts\/smoke-ui-slice-701\.mjs/,
-  /Implementation remains blocked until the operator supplies the complete `Valid Approval Outcome`/,
-  /Only that exact decision may be recorded as `DEC-182`/,
+  /exact `Valid Approval Outcome` was supplied and recorded as `DEC-182`/,
+  /implementation gate\s+is consumed/,
 ]);
 
-for (const decisionId of ['DEC-179', 'DEC-180', 'DEC-181']) {
+for (const decisionId of ['DEC-179', 'DEC-180', 'DEC-181', 'DEC-182']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -145,6 +146,10 @@ assert.match(
 assert.match(
   decisionLog,
   /### DEC-181[\s\S]*Status: `Accepted`[\s\S]*No implementation authority is recorded[\s\S]*reserved for `DEC-182`/,
+);
+assert.match(
+  decisionLog,
+  /### DEC-182[\s\S]*Status: `Accepted`[\s\S]*same-role `SpecialistCellAttempt`[\s\S]*source batch and both original first attempts remain immutable/i,
 );
 
 for (const text of [
@@ -163,12 +168,13 @@ for (const text of [
 }
 
 assert.match(inventory, /AI Company SpecialistCellRetry planning \| pass/);
+assert.match(inventory, /AI Company SpecialistCellRetry implementation \| pass/);
 assert.match(readme, /docs\/123_ai-company-specialist-cell-retry-plan\.md/);
 assert.match(
   readme,
   /docs\/124_ai-company-specialist-cell-retry-implementation-decision-handoff\.md/,
 );
-assert.match(taskLedger, /ai-company-specialist-cell-retry-planning-post-m7-2018/);
+assert.match(taskLedger, /ai-company-specialist-cell-retry-implementation-post-m7-2019/);
 assert.match(
   lessons,
   /failed specialist retry[\s\S]*immutable first-attempt evidence/i,
@@ -185,15 +191,19 @@ assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-specialist-cell-retry-planning\.mjs'/,
 );
+assert.match(
+  verification,
+  /script: 'scripts\/smoke-ai-company-specialist-cell-retry\.mjs'/,
+);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 20/);
-assert.doesNotMatch(contracts, /specialistCellRetry/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 21/);
+assert.match(contracts, /specialistCellRetry: 0/);
 assert.match(
   cellAttempts,
-  /record\.persisted !== true \|\| record\.attemptNumber !== 1/,
+  /expectedAttemptNumber/,
 );
-assert.match(fileStore, /SpecialistCellAttempt \$\{key\} is invalid or has no SpecialistBatch/);
-assert.doesNotMatch(runtimeService, /\bstartSpecialistCellRetry\b/);
+assert.match(fileStore, /SpecialistCellRetry \$\{key\}/);
+assert.match(runtimeService, /\bretrySpecialistBatchCell\b/);
 
 for (const implementationPath of [
   'src/runtime/specialist-cell-retries.js',
@@ -203,8 +213,8 @@ for (const implementationPath of [
 ]) {
   assert.equal(
     fs.existsSync(path.join(repoRoot, implementationPath)),
-    false,
-    `${implementationPath} must remain absent before DEC-182`,
+    true,
+    `${implementationPath} must exist after DEC-182`,
   );
 }
 
@@ -214,14 +224,15 @@ process.stdout.write(
       ok: true,
       mode,
       planningAllowed: true,
-      implementationAllowed: false,
-      schemaMigrationAllowed: false,
-      failedCellRetryAllowed: false,
+      implementationAllowed: true,
+      schemaMigrationAllowed: true,
+      failedCellRetryAllowed: true,
       activeAttemptRecoveryAllowed: false,
       sourceRecordsRemainImmutable: true,
       planningDecision: 'accepted-dec-180',
       handoffDecision: 'accepted-dec-181',
-      nextRequiredDecision: 'complete DEC-182 specialist cell retry implementation decision',
+      implementationDecision: 'accepted-dec-182',
+      nextRequiredDecision: 'active specialist attempt recovery decision',
     },
     null,
     2,

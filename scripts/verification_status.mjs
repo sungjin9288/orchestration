@@ -429,7 +429,12 @@ const informationalChecks = [
   {
     id: 'ai-company-durable-specialist-batch',
     script: 'scripts/smoke-ai-company-durable-specialist-batch.mjs',
-    purpose: 'AI Company Stage 4B runtime and API prove one exact schema-v20 SpecialistBatch with two active-before-execution fixed local cells, concurrent worker starts, serial durable settlement, exact replay and inspection, generic snapshot exclusion, additive v19 migration, and no downstream provider source Git memory scheduling or policy authority',
+    purpose: 'AI Company Stage 4B runtime and API preserve one exact immutable schema-v20 SpecialistBatch lineage under current schema v21, with two active-before-execution fixed local first attempts, concurrent worker starts, serial durable settlement, exact replay and inspection, generic snapshot exclusion, additive migration, and no downstream provider source Git memory scheduling or policy authority',
+  },
+  {
+    id: 'ai-company-specialist-cell-retry',
+    script: 'scripts/smoke-ai-company-specialist-cell-retry.mjs',
+    purpose: 'AI Company Stage 4C runtime and API prove additive schema-v20 to v21 migration, one exact operator-approved failed-first-attempt SpecialistCellRetry and attempt number two, immutable source records, one fixed local worker invocation, bounded settlement and failure evidence, exact replay and inspection, active conflict retention, generic snapshot exclusion, and blocked recovery provider application source Git memory scheduling policy bypass and connector authority',
   },
   {
     id: 'ai-company-operator-stepped-workorder-scheduler',

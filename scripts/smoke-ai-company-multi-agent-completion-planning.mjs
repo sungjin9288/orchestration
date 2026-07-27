@@ -49,7 +49,7 @@ assert.match(plan, /### Stage 4B: Durable Concurrent First Attempt/);
 assert.match(plan, /### Stage 4C: Failed-Cell Retry And Recovery/);
 assert.match(plan, /Planning-only `DEC-180`/);
 assert.match(plan, /`DEC-181` records/);
-assert.match(plan, /reserved for `DEC-182`/);
+assert.match(plan, /`DEC-182` implements the schema-v21 path/);
 assert.match(plan, /### Stage 5: Reviewer Rework/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
 assert.match(plan, /### Stage 7: Reviewed Mission Context Attachment/);
@@ -134,12 +134,13 @@ for (const decisionId of [
   'DEC-179',
   'DEC-180',
   'DEC-181',
+  'DEC-182',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-181`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-182`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -177,7 +178,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 20/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 21/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -216,9 +217,10 @@ process.stdout.write(
         durableSpecialistBatchImplementation: 'accepted-dec-179',
         specialistCellRetryPlanning: 'accepted-dec-180',
         specialistCellRetryHandoff: 'documented-dec-181',
+        specialistCellRetryImplementation: 'accepted-dec-182',
       },
       currentRuntime: {
-        schemaVersion: 20,
+        schemaVersion: 21,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,
@@ -230,10 +232,10 @@ process.stdout.write(
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '4C',
-        object: 'failed-first-attempt-cell-retry',
+        stage: '6',
+        object: 'active-specialist-attempt-recovery',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-182',
+        nextDecisionLogEntry: 'separate-fielded-decision-required',
       },
       authority: {
         documentationAllowed: true,
@@ -249,7 +251,7 @@ process.stdout.write(
         durableSpecialistBatchPlanningAllowed: true,
         durableSpecialistBatchImplementationAllowed: true,
         specialistCellRetryPlanningAllowed: true,
-        specialistCellRetryImplementationAllowed: false,
+        specialistCellRetryImplementationAllowed: true,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

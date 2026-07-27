@@ -228,7 +228,7 @@ try {
     companyBlueprintPath: blueprintPath,
     companyRepoRoot: repoRoot,
   });
-  assert.equal(reloaded.getSnapshot().schemaVersion, 20);
+  assert.equal(reloaded.getSnapshot().schemaVersion, 21);
   assert.equal(reloaded.getCouncilSession(session.id).mode, 'real-openai-responses');
 
   let retryCalls = 0;

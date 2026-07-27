@@ -430,7 +430,7 @@ content와 derived UI preview의 source-of-truth 경계를 유지한다.
 ## Implementation Boundary
 
 `CompanyBlueprint`와 `AgentProfile` source loading은 `DEC-079`로 구현됐다. 이 path가
-schema-v6 foundation을 만들었고, current persisted runtime은 schema v20이며 company policy는 여전히 `state.json`에 저장되지 않는다.
+schema-v6 foundation을 만들었고, current persisted runtime은 schema v21이며 company policy는 여전히 `state.json`에 저장되지 않는다.
 Direct runtime caller가 blueprint path를 생략하면 기존 snapshot shape를
 유지하고, configured local server만 additive read-only `companyRuntime` envelope를 노출한다.
 One exact immutable StaffingPlan preview/accept/inspection path는 `DEC-166`으로 구현됐다.
@@ -458,11 +458,11 @@ open `StaffingPlan.mode=parallel-specialists`, and `DEC-178` records its complet
 implementation handoff. `DEC-179` implements the exact schema-v20 fixed two-cell first attempt with
 durable input/deadline evidence, active-before-execution persistence, request-scoped local workers,
 serial settlement, exact-id and bounded current-chain inspection, and generic-snapshot exclusion.
-Planning-only `DEC-180` defines a separate future schema-v21 append relationship for one exact failed
-first-attempt retry, and `DEC-181` records its complete fielded implementation handoff. Runtime
-implementation remains reserved for `DEC-182`. Provider calls, cancellation, active-attempt
-recovery, automatic or repeated retry, collection projection, result application, and policy
-changes remain outside the runtime contract.
+Planning-only `DEC-180` defines a separate schema-v21 append relationship for one exact failed
+first-attempt retry, `DEC-181` records its complete fielded implementation handoff, and `DEC-182`
+implements only that exact immutable-source same-role attempt #2. Provider calls, cancellation,
+active-attempt recovery, automatic or repeated retry, retries beyond attempt #2, collection
+projection, result application, and policy changes remain outside the runtime contract.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

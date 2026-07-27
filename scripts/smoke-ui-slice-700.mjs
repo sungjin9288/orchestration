@@ -42,7 +42,7 @@ assert.match(panelSource, /persist:true/);
 assert.match(panelSource, /specialistCellAttempts/);
 assert.doesNotMatch(
   panelSource,
-  /data-action="(?:cancel|retry|persist|apply|schedule|provider)[^"]*"/,
+  /data-action="(?:cancel|retry-all|persist|apply|schedule|provider)[^"]*"/,
 );
 assert.doesNotMatch(
   appSource,
@@ -85,6 +85,10 @@ assert.match(
   runtimeSource,
   /delete snapshotForPublicProjection\.specialistCellAttempts/,
 );
+assert.match(
+  runtimeSource,
+  /delete snapshotForPublicProjection\.specialistCellRetries/,
+);
 
 assert.match(
   styleSource,
@@ -107,7 +111,8 @@ process.stdout.write(
       authority: {
         firstAttemptOnly: true,
         providerControls: false,
-        retryOrCancelControls: false,
+        exactFailedCellRetryControl: true,
+        retryAllOrCancelControls: false,
         resultApplicationControls: false,
       },
       durability: {

@@ -139,6 +139,7 @@ import {
   getLatestRealCouncilPositions,
   getMissionStaffingPlanSummary,
   getSpecialistBatchPreviewSummary,
+  getSpecialistCellRetryEligibility,
   getMissionExecutionPlanBundle,
   getMissionDeliveryPackagePersistenceSummary,
   getMissionDeliveryPackageAcceptanceSummary,
@@ -423,6 +424,9 @@ const state = {
     stopConditions: 'Stop before persistence or execution',
     executionRationale:
       'Run the exact source-current local read-only specialist batch once.',
+    retryDeadlineMs: 30000,
+    retryRationale:
+      'Retry the exact failed read-only specialist cell once while retaining original evidence.',
   },
   councilSpecialistBatchPreview: null,
   councilSpecialistBatch: null,
@@ -5146,8 +5150,29 @@ function applySnapshotPayload(payload) {
       ? {
           specialistBatch: payload.specialistBatch,
           specialistCellAttempts: payload.specialistCellAttempts || [],
+          specialistCellRetries:
+            payload.specialistCellRetries ||
+            state.councilSpecialistBatch?.specialistCellRetries ||
+            [],
         }
       : null;
+  }
+  if (
+    Object.prototype.hasOwnProperty.call(payload, 'specialistCellRetry') &&
+    state.councilSpecialistBatch
+  ) {
+    const existing = state.councilSpecialistBatch.specialistCellRetries || [];
+    state.councilSpecialistBatch.specialistCellRetries = [
+      ...existing.filter(
+        (entry) =>
+          entry.specialistCellRetry?.sourceCellAttemptId !==
+          payload.specialistCellRetry?.sourceCellAttemptId,
+      ),
+      {
+        specialistCellRetry: payload.specialistCellRetry,
+        specialistCellAttempt: payload.specialistCellAttempt,
+      },
+    ];
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'deliveryPackagePreview')) {
     state.missionDeliveryPackagePreview = payload.deliveryPackagePreview || null;
@@ -5492,8 +5517,35 @@ async function hydrateSelectedDetails() {
       ? {
           specialistBatch: specialistPayload.specialistBatch,
           specialistCellAttempts: specialistPayload.specialistCellAttempts || [],
+          specialistCellRetries: [],
         }
       : null;
+    if (state.councilSpecialistBatch) {
+      const failedCells =
+        state.councilSpecialistBatch.specialistCellAttempts.filter(
+          (attempt) =>
+            attempt.attemptNumber === 1 && attempt.status === 'failed',
+        );
+      const retryPayloads = await Promise.all(
+        failedCells.map((attempt) => {
+          const locator = new URLSearchParams({
+            sourceCellAttemptId: attempt.id,
+          });
+          return fetchOptionalJson(
+            `/api/specialist-batches/${encodeURIComponent(
+              state.councilSpecialistBatch.specialistBatch.id,
+            )}/cell-retry?${locator}`,
+          );
+        }),
+      );
+      state.councilSpecialistBatch.specialistCellRetries =
+        retryPayloads
+          .filter(Boolean)
+          .map((payload) => ({
+            specialistCellRetry: payload.specialistCellRetry,
+            specialistCellAttempt: payload.specialistCellAttempt,
+          }));
+    }
   }
 
   if (executionPlanBundle?.executionPlan.status === 'delivery-ready') {
@@ -6951,9 +7003,118 @@ async function submitSpecialistBatchStart(actionButton) {
     state.councilSpecialistBatch = {
       specialistBatch: payload.specialistBatch,
       specialistCellAttempts: payload.specialistCellAttempts || [],
+      specialistCellRetries: [],
     };
     elements.refreshStatus.textContent =
       `${payload.specialistBatch.id} ${payload.specialistBatch.status}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitSpecialistCellRetry(actionButton) {
+  const form = actionButton
+    ?.closest?.('.specialist-batch-panel')
+    ?.querySelector?.('[data-form="specialist-batch-preview"]');
+  const specialistBatchId = String(actionButton?.dataset.id || '').trim();
+  const sourceCellAttemptId = String(
+    actionButton?.dataset.sourceCellAttemptId || '',
+  ).trim();
+  const durable = state.councilSpecialistBatch;
+  const preview = state.councilSpecialistBatchPreview;
+  const batch = durable?.specialistBatch;
+  const sourceCellAttempt = durable?.specialistCellAttempts?.find(
+    (attempt) => attempt.id === sourceCellAttemptId,
+  );
+  if (
+    !form ||
+    !batch ||
+    batch.id !== specialistBatchId ||
+    !sourceCellAttempt ||
+    sourceCellAttempt.attemptNumber !== 1 ||
+    sourceCellAttempt.status !== 'failed' ||
+    !preview
+  ) {
+    throw new Error(
+      '재시도할 failed first attempt와 fresh contract preview가 필요합니다.',
+    );
+  }
+  const { compileSpec, specialistSpec } = readSpecialistBatchDraft(form);
+  const retryDeadlineMs = Number(
+    state.councilSpecialistBatchDraft.retryDeadlineMs,
+  );
+  const rationale =
+    state.councilSpecialistBatchDraft.retryRationale.trim();
+  if (
+    !Number.isInteger(retryDeadlineMs) ||
+    retryDeadlineMs < 1 ||
+    retryDeadlineMs > sourceCellAttempt.cellDeadlineMs
+  ) {
+    throw new Error(
+      `Retry deadline은 1-${sourceCellAttempt.cellDeadlineMs}ms 범위여야 합니다.`,
+    );
+  }
+  if (!rationale) {
+    throw new Error('실패 셀 재시도 승인 사유가 필요합니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent =
+    `${sourceCellAttempt.id}의 local retry attempt를 실행하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/specialist-batches/${encodeURIComponent(
+        batch.id,
+      )}/cell-retries`,
+      {
+        compileSpec,
+        evaluatedAt: preview.evaluatedAt,
+        expectedBatchRecordDigest: batch.recordDigest,
+        expectedSourceCellAttemptRecordDigest:
+          sourceCellAttempt.recordDigest,
+        previewDigest: preview.previewDigest,
+        previewId: preview.id,
+        retryApproval: {
+          decision: 'retry-failed-cell-once',
+          acknowledgement:
+            'retain-original-evidence-and-retry-exact-failed-cell-once',
+          rationale,
+          reviewedAt: new Date().toISOString(),
+        },
+        retryDeadlineMs,
+        sourceCellAttemptId: sourceCellAttempt.id,
+        sourceDigest: preview.sourceDigest,
+        sourceRefs: {
+          blueprintDigest: preview.blueprintDigest,
+          councilSessionSourceDigest:
+            preview.councilSessionSourceDigest,
+          councilSynthesisDigest: preview.councilSynthesisDigest,
+          currentAttemptId: preview.currentAttemptId,
+          missionId: preview.missionId,
+          projectId: preview.projectId,
+          qaRoleSourceDigest: preview.roleSourceDigests.find(
+            (entry) => entry.agentProfileId === 'agent-qa',
+          )?.sha256,
+          researcherRoleSourceDigest: preview.roleSourceDigests.find(
+            (entry) => entry.agentProfileId === 'agent-researcher',
+          )?.sha256,
+          staffingEntryId: preview.staffingEntryId,
+          staffingEntryRecordDigest:
+            preview.staffingEntryRecordDigest,
+          staffingPlanId: preview.staffingPlanId,
+          staffingPlanRecordDigest:
+            preview.staffingPlanRecordDigest,
+        },
+        specialistSpec,
+      },
+    );
+    applySnapshotPayload(payload);
+    elements.refreshStatus.textContent =
+      `${payload.specialistCellRetry.id} ${payload.specialistCellRetry.status}`;
   } finally {
     state.mutating = false;
     render();
@@ -12989,6 +13150,17 @@ function renderSpecialistBatchPreview(councilSession) {
         (left, right) => left.position - right.position || left.id.localeCompare(right.id),
       )
     : [];
+  const retryRows = durableBatch
+    ? getSpecialistCellRetryEligibility(
+        durableBatch,
+        durableCells,
+        durable.specialistCellRetries || [],
+        summary,
+      )
+    : [];
+  const retryInputRequired = retryRows.some(
+    ({ attempt, retry }) => attempt.status === 'failed' && !retry,
+  );
   const cellRows = summary
     ? summary.cells
         .map(
@@ -13014,16 +13186,12 @@ function renderSpecialistBatchPreview(councilSession) {
       <div class="llm-section-heading">
         <h3>Read-only specialist batch</h3>
         <div class="token-row token-row-compact">
-          ${createToken('response-only', 'accent')}
+          ${createToken(durableBatch ? 'durable evidence' : 'response-only', durableBatch ? 'success' : 'accent')}
           ${createToken('provider:0', 'neutral')}
-          ${createToken('persist:false', 'neutral')}
+          ${createToken(`persist:${durableBatch ? 'true' : 'false'}`, 'neutral')}
         </div>
       </div>
       <form class="specialist-batch-form" data-form="specialist-batch-preview">
-        ${
-          durableBatch
-            ? ''
-            : `
         <div class="specialist-contract-grid">
           <fieldset class="specialist-contract-cell">
             <legend>Researcher · source evidence</legend>
@@ -13078,11 +13246,9 @@ function renderSpecialistBatchPreview(councilSession) {
             data-id="${escapeHtml(councilSession.id)}"
             ${state.loading || state.mutating ? 'disabled' : ''}
           >
-            Contract preview
+            ${durableBatch ? 'Recompute retry contract' : 'Contract preview'}
           </button>
         </div>
-        `
-        }
         ${
           summary && !durableBatch
             ? `
@@ -13105,6 +13271,34 @@ function renderSpecialistBatchPreview(councilSession) {
                 >
                   Run first attempt
                 </button>
+              </div>
+            `
+            : ''
+        }
+        ${
+          durableBatch && retryInputRequired
+            ? `
+              <div class="specialist-batch-actions specialist-retry-approval">
+                <label class="field field-compact">
+                  <span class="field-label">Retry deadline (ms)</span>
+                  <input
+                    class="text-input"
+                    name="retryDeadlineMs"
+                    type="number"
+                    min="1"
+                    max="300000"
+                    value="${draft.retryDeadlineMs}"
+                  />
+                </label>
+                <label class="field">
+                  <span class="field-label">Failed-cell retry approval rationale</span>
+                  <input
+                    class="text-input"
+                    name="retryRationale"
+                    maxlength="500"
+                    value="${escapeHtml(draft.retryRationale)}"
+                  />
+                </label>
               </div>
             `
             : ''
@@ -13134,19 +13328,56 @@ function renderSpecialistBatchPreview(councilSession) {
                 ${createToken('persist:true', 'neutral')}
               </div>
               <div class="specialist-contract-list">
-                ${durableCells
+                ${retryRows
                   .map(
-                    (cell) => `
-                      <div class="specialist-contract-row">
-                        <div>
-                          <strong>${escapeHtml(cell.role)}</strong>
-                          <span>${escapeHtml(cell.cellId)}</span>
+                    ({ attempt: cell, retry, eligible }) => `
+                      <div class="specialist-attempt-stack">
+                        <div class="specialist-contract-row">
+                          <div>
+                            <strong>${escapeHtml(cell.role)} · attempt #1</strong>
+                            <span>${escapeHtml(cell.cellId)}</span>
+                          </div>
+                          <div class="token-row token-row-compact">
+                            ${createToken(cell.status, cell.status === 'completed' ? 'success' : cell.status === 'active' ? 'accent' : 'danger')}
+                            ${cell.failureReason ? createToken(cell.failureReason, 'danger') : ''}
+                            ${cell.resultSummary?.verdict ? createToken(cell.resultSummary.verdict, cell.resultSummary.verdict === 'passed' ? 'success' : 'danger') : ''}
+                          </div>
                         </div>
-                        <div class="token-row token-row-compact">
-                          ${createToken(cell.status, cell.status === 'completed' ? 'success' : cell.status === 'active' ? 'accent' : 'danger')}
-                          ${cell.failureReason ? createToken(cell.failureReason, 'danger') : ''}
-                          ${cell.resultSummary?.verdict ? createToken(cell.resultSummary.verdict, cell.resultSummary.verdict === 'passed' ? 'success' : 'danger') : ''}
-                        </div>
+                        ${
+                          retry
+                            ? `
+                              <div class="specialist-contract-row specialist-retry-row">
+                                <div>
+                                  <strong>${escapeHtml(retry.specialistCellAttempt.role)} · attempt #2</strong>
+                                  <span>${escapeHtml(retry.specialistCellRetry.id)}</span>
+                                </div>
+                                <div class="token-row token-row-compact">
+                                  ${createToken(retry.specialistCellRetry.status, retry.specialistCellRetry.status === 'completed' ? 'success' : retry.specialistCellRetry.status === 'active' ? 'accent' : 'danger')}
+                                  ${retry.specialistCellAttempt.failureReason ? createToken(retry.specialistCellAttempt.failureReason, 'danger') : ''}
+                                  ${retry.specialistCellAttempt.resultSummary?.verdict ? createToken(retry.specialistCellAttempt.resultSummary.verdict, retry.specialistCellAttempt.resultSummary.verdict === 'passed' ? 'success' : 'danger') : ''}
+                                </div>
+                              </div>
+                            `
+                            : eligible
+                              ? `
+                                <div class="specialist-retry-command">
+                                  <p class="form-help">Fresh preview와 exact source digests에 묶인 한 번의 local retry만 실행합니다.</p>
+                                  <button
+                                    class="primary-button"
+                                    type="button"
+                                    data-action="retry-specialist-cell"
+                                    data-id="${escapeHtml(durableBatch.id)}"
+                                    data-source-cell-attempt-id="${escapeHtml(cell.id)}"
+                                    ${state.loading || state.mutating ? 'disabled' : ''}
+                                  >
+                                    Retry failed cell
+                                  </button>
+                                </div>
+                              `
+                              : cell.status === 'failed'
+                                ? '<p class="form-help">재시도 전에 current contract preview를 다시 계산해야 합니다.</p>'
+                                : ''
+                        }
                       </div>
                     `,
                   )
@@ -21921,6 +22152,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'retry-specialist-cell') {
+        await submitSpecialistCellRetry(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'request-builder-live-mutation-approval') {
         await requestBuilderLiveMutationApproval(actionButton.dataset.id);
         return;
@@ -22361,10 +22597,17 @@ function handleFormInput(event) {
           ? Number(event.target.value)
           : event.target.value;
       state.councilSpecialistBatchPreview = null;
-      event.target
-        .closest('.specialist-batch-panel')
-        ?.querySelector('.specialist-batch-result')
+      const specialistPanel = event.target.closest('.specialist-batch-panel');
+      specialistPanel
+        ?.querySelector(
+          '.specialist-batch-result:not(.specialist-batch-durable)',
+        )
         ?.remove();
+      specialistPanel
+        ?.querySelectorAll('[data-action="retry-specialist-cell"]')
+        .forEach((button) => {
+          button.disabled = true;
+        });
     }
     return;
   }

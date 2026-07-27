@@ -1,5 +1,7 @@
 # lessons
 
+- A durable failed-cell retry needs a separate append-only authority lineage, not a rewrite of the source batch or first attempt. Validate source/retry attempt role, cell, profile, position, spec, source, path, and input digests again at the coordinator boundary so direct invocation cannot bypass file-store lineage checks.
+- Exact idempotent replay should bind the complete normalized retry request and run before source-current recomputation. That permits a previously accepted command to return its durable evidence after later source drift without invoking the worker again, while every non-identical request still fails closed against fresh source.
 - A fixed two-cell batch can preserve a closed broad parallel policy when its source chain, cell identities, attempt count, provider budget, and execution approval are exact and durable. Persist all active records before invocation, then settle each completion independently through a failure-isolated fresh-state CAS queue; joining workers before the first write would lose partial evidence, while automatic CAS retry would silently widen recovery authority.
 - A response-only preview still needs a current read model for browser invalidation. Expose only the
   additive digests the client must compare, reload source-backed policy before every decision, and

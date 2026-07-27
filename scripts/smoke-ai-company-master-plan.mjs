@@ -236,6 +236,7 @@ assert.match(decisionLog, /^### DEC-177$/m);
 assert.match(decisionLog, /^### DEC-178$/m);
 assert.match(decisionLog, /^### DEC-180$/m);
 assert.match(decisionLog, /^### DEC-181$/m);
+assert.match(decisionLog, /^### DEC-182$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -274,7 +275,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-181`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-182`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -302,7 +303,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 20/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 21/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -404,9 +405,10 @@ const report = {
         'DEC-179',
         'DEC-180',
         'DEC-181',
+        'DEC-182',
       ],
       currentRuntime: {
-        schemaVersion: 20,
+        schemaVersion: 21,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -435,7 +437,7 @@ const report = {
         operatorSteppedScheduler: 'schema-v19-operator-stepped-local-builder-reviewer-qa',
         specialistBatchPreview: 'schema-v19-response-browser-memory-only',
         durableSpecialistBatch: 'schema-v20-request-scoped-researcher-qa-first-attempt',
-        specialistCellRetry: 'planning-only-schema-v21-failed-first-attempt-retry',
+        specialistCellRetry: 'schema-v21-exact-failed-first-attempt-retry',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -491,7 +493,7 @@ const report = {
         durableSpecialistBatchImplementationAllowed: true,
         requestScopedConcurrentSpecialistExecutionAllowed: true,
         specialistCellRetryPlanningAllowed: true,
-        specialistCellRetryImplementationAllowed: false,
+        specialistCellRetryImplementationAllowed: true,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
         providerRoleExpansionAllowed: false,
@@ -503,15 +505,15 @@ const report = {
         unattendedPushAllowed: false,
       },
       nextGate:
-        'complete DEC-182 specialist cell retry implementation decision required',
+        'active specialist attempt recovery and Ops reconciliation decision required',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
 assert.equal(report.authority.specialistCellRetryPlanningAllowed, true);
-assert.equal(report.authority.specialistCellRetryImplementationAllowed, false);
+assert.equal(report.authority.specialistCellRetryImplementationAllowed, true);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
-assert.match(report.nextGate, /DEC-182 specialist cell retry implementation/);
+assert.match(report.nextGate, /active specialist attempt recovery/);
 
 process.stdout.write(
   `${JSON.stringify(report, null, 2)}\n`,

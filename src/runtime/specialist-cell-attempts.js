@@ -61,6 +61,20 @@ const CREATE_INPUT_KEYS = Object.freeze([
   'startedAt',
 ]);
 
+const RETRY_CREATE_INPUT_KEYS = Object.freeze([
+  'id',
+  'specialistBatchId',
+  'cellId',
+  'agentProfileId',
+  'role',
+  'position',
+  'cellSpecDigest',
+  'sourceDigest',
+  'inputPathDigests',
+  'cellDeadlineMs',
+  'startedAt',
+]);
+
 const COMPLETED_TRANSITION_KEYS = Object.freeze([
   'completedAt',
   'observedInputDigest',
@@ -420,6 +434,45 @@ function createSpecialistCellAttempt(input) {
   });
 }
 
+function createSpecialistRetryCellAttempt(input) {
+  assertExactKeys(input, RETRY_CREATE_INPUT_KEYS, 'retry SpecialistCellAttempt create input');
+  normalizeFixedCell(input);
+  const id = normalizeIdentifier(input.id, 'SpecialistCellAttempt id');
+  if (!/^specialist-cell-attempt-\d{4}$/.test(id)) {
+    throw new Error('SpecialistCellAttempt id must use the specialist-cell-attempt-0000 format');
+  }
+  const startedAt = normalizeTimestamp(input.startedAt, 'SpecialistCellAttempt startedAt');
+  const inputPathDigests = normalizeInputPathDigests(input.inputPathDigests);
+  const cellDeadlineMs = normalizeCellDeadlineMs(input.cellDeadlineMs);
+  const record = {
+    id,
+    persisted: true,
+    specialistBatchId: normalizeIdentifier(input.specialistBatchId, 'SpecialistCellAttempt specialistBatchId'),
+    cellId: normalizeIdentifier(input.cellId, 'SpecialistCellAttempt cellId'),
+    agentProfileId: normalizeIdentifier(input.agentProfileId, 'SpecialistCellAttempt agentProfileId'),
+    role: normalizeIdentifier(input.role, 'SpecialistCellAttempt role'),
+    position: input.position,
+    attemptNumber: 2,
+    status: SPECIALIST_CELL_ATTEMPT_STATUS.ACTIVE,
+    cellSpecDigest: normalizeDigest(input.cellSpecDigest, 'SpecialistCellAttempt cellSpecDigest'),
+    sourceDigest: normalizeDigest(input.sourceDigest, 'SpecialistCellAttempt sourceDigest'),
+    inputPathDigests,
+    inputDigest: computeInputDigest(inputPathDigests),
+    observedInputDigest: null,
+    cellDeadlineMs,
+    deadlineAt: new Date(Date.parse(startedAt) + cellDeadlineMs).toISOString(),
+    resultSummary: null,
+    resultDigest: null,
+    failureReason: null,
+    startedAt,
+    completedAt: null,
+  };
+  return deepFreeze({
+    ...record,
+    recordDigest: computeSpecialistCellAttemptRecordDigest(record),
+  });
+}
+
 function settleSpecialistCellAttempt(record, transition) {
   assertSpecialistCellAttemptRecord(record);
   if (record.status !== SPECIALIST_CELL_ATTEMPT_STATUS.ACTIVE) {
@@ -496,10 +549,19 @@ function settleSpecialistCellAttempt(record, transition) {
 
 function assertSpecialistCellAttemptRecord(record, options = {}) {
   assertExactKeys(record, SPECIALIST_CELL_ATTEMPT_RECORD_KEYS, 'SpecialistCellAttempt record');
-  if (record.persisted !== true || record.attemptNumber !== 1) {
+  if (
+    record.persisted !== true ||
+    ![1, 2].includes(record.attemptNumber)
+  ) {
     throw new Error('SpecialistCellAttempt persistence or attempt number is invalid');
   }
-  const active = createSpecialistCellAttempt({
+  if (
+    options.expectedAttemptNumber !== undefined &&
+    record.attemptNumber !== options.expectedAttemptNumber
+  ) {
+    throw new Error('SpecialistCellAttempt attempt number does not match its lineage');
+  }
+  const commonInput = {
     id: record.id,
     specialistBatchId: record.specialistBatchId,
     cellId: record.cellId,
@@ -510,9 +572,14 @@ function assertSpecialistCellAttemptRecord(record, options = {}) {
     sourceDigest: record.sourceDigest,
     inputPathDigests: record.inputPathDigests,
     cellDeadlineMs: record.cellDeadlineMs,
-    batchDeadlineAt: record.deadlineAt,
     startedAt: record.startedAt,
-  });
+  };
+  const active = record.attemptNumber === 1
+    ? createSpecialistCellAttempt({
+        ...commonInput,
+        batchDeadlineAt: record.deadlineAt,
+      })
+    : createSpecialistRetryCellAttempt(commonInput);
   if (record.inputDigest !== active.inputDigest) {
     throw new Error('SpecialistCellAttempt inputDigest is invalid');
   }
@@ -527,6 +594,9 @@ function assertSpecialistCellAttemptRecord(record, options = {}) {
     throw new Error('SpecialistCellAttempt deadlineAt is invalid');
   }
   if (options.batchDeadlineAt !== undefined) {
+    if (record.attemptNumber !== 1) {
+      throw new Error('Retry SpecialistCellAttempt must not use the original batch deadline');
+    }
     const expectedDeadlineAt = deriveCellDeadlineAt(
       record.startedAt,
       record.cellDeadlineMs,
@@ -606,6 +676,7 @@ module.exports = {
   computeResultDigest,
   computeSpecialistCellAttemptRecordDigest,
   createSpecialistCellAttempt,
+  createSpecialistRetryCellAttempt,
   deepFreeze,
   deriveCellDeadlineAt,
   digestCanonical,
