@@ -430,8 +430,8 @@ excludes its maps from the generic snapshot, and uses only fixed terminal and fa
 Planning-only `DEC-180` and handoff-only `DEC-181` define one failed-first-attempt retry that keeps
 the source batch and both first attempts immutable; `DEC-182` implements only that exact same-role
 attempt #2 path. Planning-only `DEC-183` and handoff-only `DEC-184` define one exact inspect-only
-OpsSupervisionPreview over an operator-selected active WorkOrder or specialist attempt. Its future
-implementation remains reserved for `DEC-185`, keeps `allowedActions=[]`, and cannot alter Council
+OpsSupervisionPreview over an operator-selected active WorkOrder or specialist attempt. `DEC-185`
+implements only that response-only path, keeps `allowedActions=[]`, and cannot alter Council
 alignment or execution. Broad parallel StaffingPlan mode remains disabled, and no collection
 exposure, active-attempt recovery mutation, automatic or repeated retry, retries beyond attempt #2,
 provider call, result application, or downstream Council behavior opens.
@@ -480,6 +480,8 @@ node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ui-slice-656.mjs
 node scripts/smoke-ai-company-ops-supervision-preview-planning.mjs
+node scripts/smoke-ai-company-ops-supervision-preview.mjs
+node scripts/smoke-ui-slice-702.mjs
 node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
 node scripts/smoke-ai-company-durable-delivery-package.mjs
 node scripts/smoke-ui-slice-657.mjs

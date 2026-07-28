@@ -202,8 +202,8 @@ Planning-only `DEC-183` now defines one schema-v21-preserving response-only
 `OpsSupervisionPreview` over one operator-selected exact active WorkOrderAttempt, SpecialistBatch
 first attempt, or SpecialistCellRetry attempt #2. `DEC-184` records the complete fielded
 implementation handoff in `docs/125_ai-company-ops-supervision-preview-plan.md` and
-`docs/126_ai-company-ops-supervision-preview-implementation-decision-handoff.md`. Runtime/API/UI
-implementation is reserved for an exact `DEC-185` decision. The future preview keeps
+`docs/126_ai-company-ops-supervision-preview-implementation-decision-handoff.md`. `DEC-185`
+implements the exact six-key runtime/API path and browser-memory inspection action. The preview keeps
 `allowedActions=[]`; schema migration, durable recovery records, settlement, cancellation,
 quarantine mutation, replay, retry, resume, and every downstream authority remain blocked.
 
@@ -701,7 +701,8 @@ DEC-169 StaffingPlan and StaffingEntry implementation evidence, DEC-170 through 
 scheduler evidence, and DEC-173 through DEC-176 Stage 4A planning and response-only implementation
 evidence plus DEC-177 through DEC-179 Stage 4B planning, handoff, and fixed first-attempt
 implementation evidence plus DEC-180 through DEC-182 Stage 4C retry planning, handoff, and exact
-implementation evidence plus DEC-183 and DEC-184 Stage 6A inspect-only planning and handoff
+implementation evidence plus DEC-183 through DEC-185 Stage 6A inspect-only planning, handoff, and
+implementation
 evidence pass the aggregate and UI QA gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
@@ -2362,9 +2363,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 967 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 969 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 701 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 702 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2936,7 +2937,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161, and
-  the first multi-agent completion runtime slices are evidence-closed through DEC-182. DEC-173
+  the first multi-agent completion runtime slices are evidence-closed through DEC-185. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell
@@ -2948,11 +2949,11 @@ Playwright CLI:
   blocked. This is not a claim of hosted production readiness. Focused source and compatibility
   checks, the local browser matrix, UI QA, and aggregate verification pass. This remains local
   synthetic/browser evidence rather than hosted proof.
-- `DEC-183` and `DEC-184` are planning and handoff evidence only for one exact response-only
-  OpsSupervisionPreview. No runtime module, API route, UI action, schema migration, durable Ops
-  record, settlement, cancellation, quarantine mutation, resume, replay, retry, recovery command,
-  or automatic attempt selection exists until a complete `DEC-185` decision is accepted and
-  implemented.
+- `DEC-183` and `DEC-184` are consumed planning and handoff evidence for the exact response-only
+  OpsSupervisionPreview implemented by `DEC-185`. The runtime module, exact six-key GET, and
+  browser-memory inspect action exist; no schema migration, durable Ops record, settlement,
+  cancellation, quarantine mutation, resume, replay, retry, recovery command, or automatic attempt
+  selection is implemented.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.
@@ -3180,8 +3181,8 @@ Playwright CLI:
   broad parallel StaffingPlan policy stays disabled. `DEC-180` plans one schema-v21 failed-cell-only
   retry, `DEC-181` records its complete fielded implementation handoff, and `DEC-182` implements
   only one separately approved same-role attempt #2. `DEC-183` plans one exact inspect-only
-  OpsSupervisionPreview and `DEC-184` records its implementation handoff; implementation is
-  reserved for `DEC-185`. Dynamic or additional cells, bound
+  OpsSupervisionPreview, `DEC-184` records its implementation handoff, and `DEC-185` implements only
+  the exact no-write inspection path. Dynamic or additional cells, bound
   Council revision/resume/auto-chain, automatic or repeated retry/rework, interrupted-attempt
   recovery, memory application,
   provider/background WorkOrders, source/Git/release, policy, bypass, and connector authority remain

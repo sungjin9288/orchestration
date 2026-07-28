@@ -463,7 +463,8 @@ first-attempt retry, `DEC-181` records its complete fielded implementation hando
 implements only that exact immutable-source same-role attempt #2. Planning-only `DEC-183` defines
 one exact schema-v21-preserving response-only OpsSupervisionPreview across the three active-attempt
 types, and `DEC-184` records its complete fielded implementation handoff. Every future valid preview
-must keep `allowedActions=[]`; implementation remains reserved for `DEC-185`. Provider calls,
+must keep `allowedActions=[]`; `DEC-185` implements only the exact no-write classifier, six-key GET,
+and browser-memory inspection path. Provider calls,
 cancellation, active-attempt mutation or recovery, automatic or repeated retry, retries beyond
 attempt #2, collection projection, result application, and policy changes remain outside the
 runtime contract.

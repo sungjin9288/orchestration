@@ -138,6 +138,7 @@ import {
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
   getMissionStaffingPlanSummary,
+  getOpsSupervisionTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
   getMissionExecutionPlanBundle,
@@ -430,6 +431,7 @@ const state = {
   },
   councilSpecialistBatchPreview: null,
   councilSpecialistBatch: null,
+  opsSupervisionPreview: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5127,6 +5129,9 @@ function applySnapshotPayload(payload) {
   if (refreshExecutionProvenance) {
     invalidateExecutionProvenance();
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
+    state.opsSupervisionPreview = null;
+  }
 
   state.payload = {
     derived: payload.derived || createEmptyDerivedState(),
@@ -5503,6 +5508,7 @@ async function hydrateSelectedDetails() {
   }
 
   if (
+    selectedMission?.status === 'draft' &&
     selectedCouncilSession?.staffingEntryRef?.staffingEntryId &&
     selectedCouncilSession.currentAttemptId
   ) {
@@ -5705,6 +5711,7 @@ function syncSelectionsFromTask(taskId, options = {}) {
 
   if (state.selectedTaskId !== taskId) {
     resetExecutionProvenance();
+    state.opsSupervisionPreview = null;
   }
   state.selectedTaskId = taskId;
   state.selectionSeeded = true;
@@ -5756,6 +5763,7 @@ function syncSelectionsFromMission(missionId) {
   if (missionChanged) {
     state.councilSpecialistBatchPreview = null;
     state.councilSpecialistBatch = null;
+    state.opsSupervisionPreview = null;
     state.missionEvidenceGraph = null;
     state.missionEvidenceGraphError = null;
     state.missionEvidenceGraphLoading = false;
@@ -7119,6 +7127,86 @@ async function submitSpecialistCellRetry(actionButton) {
     state.mutating = false;
     render();
   }
+}
+
+function getOpsSupervisionSource(actionButton) {
+  const targetType = String(actionButton?.dataset.targetType || '').trim();
+  const targetId = String(actionButton?.dataset.targetId || '').trim();
+  const parentId = String(actionButton?.dataset.parentId || '').trim();
+  const snapshot = getDerived().snapshot;
+  let target = null;
+  let parent = null;
+
+  if (targetType === 'work-order-attempt') {
+    target = snapshot.workOrderAttempts?.[targetId] || null;
+    parent = snapshot.executionPlans?.[parentId] || null;
+  } else if (targetType === 'specialist-first-attempt') {
+    target =
+      state.councilSpecialistBatch?.specialistCellAttempts?.find(
+        (attempt) => attempt.id === targetId,
+      ) || null;
+    parent =
+      state.councilSpecialistBatch?.specialistBatch?.id === parentId
+        ? state.councilSpecialistBatch.specialistBatch
+        : null;
+  } else if (targetType === 'specialist-retry-attempt') {
+    const retry =
+      state.councilSpecialistBatch?.specialistCellRetries?.find(
+        (entry) =>
+          entry.specialistCellRetry?.id === parentId &&
+          entry.specialistCellAttempt?.id === targetId,
+      ) || null;
+    target = retry?.specialistCellAttempt || null;
+    parent = retry?.specialistCellRetry || null;
+  }
+
+  return {
+    parent,
+    target,
+    targetType,
+    request: getOpsSupervisionTarget(targetType, target, parent),
+  };
+}
+
+async function inspectOpsSupervision(actionButton) {
+  state.opsSupervisionPreview = null;
+  const source = getOpsSupervisionSource(actionButton);
+  if (!source.request) {
+    throw new Error('현재 화면의 exact active attempt evidence가 필요합니다.');
+  }
+
+  const expectedParentDigest =
+    source.request.expectedParentDigest ||
+    (await computeExecutionPlanRecordDigest(source.parent));
+  const request = {
+    ...source.request,
+    expectedParentDigest,
+    evaluatedAt: new Date().toISOString(),
+  };
+  const query = new URLSearchParams(request);
+  const response = await fetch(`/api/ops/supervision-preview?${query}`, {
+    headers: { Accept: 'application/json' },
+  });
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(
+      payload.error ||
+        `Ops supervision 조회가 실패했습니다: ${response.status}`,
+    );
+  }
+  if (
+    payload.targetId !== request.targetId ||
+    payload.parentId !== request.parentId ||
+    payload.targetRecordDigest !== request.expectedTargetRecordDigest ||
+    payload.parentDigest !== request.expectedParentDigest
+  ) {
+    throw new Error('Ops supervision 응답이 요청한 exact source와 다릅니다.');
+  }
+
+  state.opsSupervisionPreview = payload;
+  elements.refreshStatus.textContent =
+    `${payload.targetId} ${payload.timeClassification}`;
+  render();
 }
 
 function findRoleSourceDigest(companyRuntime, ref) {
@@ -13102,6 +13190,65 @@ function renderRealCouncilEvidence(councilSession) {
   `;
 }
 
+function renderOpsSupervisionPreview(targetId) {
+  const preview = state.opsSupervisionPreview;
+  if (!preview || preview.targetId !== targetId) return '';
+
+  const evidence = Object.entries(preview.evidenceRefs || {})
+    .filter(([, value]) => value)
+    .map(
+      ([key, value]) => `
+        <div>
+          <dt>${escapeHtml(key)}</dt>
+          <dd>${escapeHtml(value)}</dd>
+        </div>
+      `,
+    )
+    .join('');
+  return `
+    <section
+      class="ops-supervision-preview"
+      aria-label="Ops supervision preview"
+      data-ops-supervision-target-id="${escapeHtml(preview.targetId)}"
+    >
+      <div class="card-title-row card-title-row-tight">
+        <strong>Active attempt evidence</strong>
+        ${createToken(preview.timeClassification, preview.timeClassification === 'active-deadline-exceeded' ? 'danger' : 'warning')}
+        ${createToken('inspect only', 'neutral')}
+      </div>
+      <div class="token-row token-row-compact">
+        ${createToken(preview.targetType, 'accent')}
+        ${createToken(`attempt:${preview.attemptNumber}`, 'neutral')}
+        ${createToken(preview.role, 'neutral')}
+      </div>
+      <dl class="ops-supervision-evidence">${evidence}</dl>
+      <div class="ops-supervision-blocked" aria-label="Blocked actions">
+        ${(preview.blockedActions || [])
+          .map((action) => createToken(action, 'neutral'))
+          .join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderOpsSupervisionButton(targetType, target, parent) {
+  const source = getOpsSupervisionTarget(targetType, target, parent);
+  if (!source) return '';
+  return `
+    <button
+      class="secondary-button ops-supervision-action"
+      type="button"
+      data-action="inspect-ops-supervision"
+      data-target-type="${escapeHtml(source.targetType)}"
+      data-target-id="${escapeHtml(source.targetId)}"
+      data-parent-id="${escapeHtml(source.parentId)}"
+      ${state.loading || state.mutating ? 'disabled' : ''}
+    >
+      Inspect active attempt
+    </button>
+  `;
+}
+
 function renderSpecialistBatchPreview(councilSession) {
   const data = getDerived();
   const mission = data.missionMap.get(councilSession?.missionId) || null;
@@ -13343,6 +13490,8 @@ function renderSpecialistBatchPreview(councilSession) {
                             ${cell.resultSummary?.verdict ? createToken(cell.resultSummary.verdict, cell.resultSummary.verdict === 'passed' ? 'success' : 'danger') : ''}
                           </div>
                         </div>
+                        ${renderOpsSupervisionButton('specialist-first-attempt', cell, durableBatch)}
+                        ${renderOpsSupervisionPreview(cell.id)}
                         ${
                           retry
                             ? `
@@ -13357,6 +13506,8 @@ function renderSpecialistBatchPreview(councilSession) {
                                   ${retry.specialistCellAttempt.resultSummary?.verdict ? createToken(retry.specialistCellAttempt.resultSummary.verdict, retry.specialistCellAttempt.resultSummary.verdict === 'passed' ? 'success' : 'danger') : ''}
                                 </div>
                               </div>
+                              ${renderOpsSupervisionButton('specialist-retry-attempt', retry.specialistCellAttempt, retry.specialistCellRetry)}
+                              ${renderOpsSupervisionPreview(retry.specialistCellAttempt.id)}
                             `
                             : eligible
                               ? `
@@ -13737,6 +13888,8 @@ function renderMissionExecutionPlan(bundle, recovery) {
                   ? `<p class="form-help">${escapeHtml(attempt.stopReason)}</p>`
                   : ''
               }
+              ${renderOpsSupervisionButton('work-order-attempt', attempt, executionPlan)}
+              ${renderOpsSupervisionPreview(attempt.id)}
             </div>
           `,
         )
@@ -22157,6 +22310,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'inspect-ops-supervision') {
+        await inspectOpsSupervision(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'request-builder-live-mutation-approval') {
         await requestBuilderLiveMutationApproval(actionButton.dataset.id);
         return;
@@ -22597,6 +22755,7 @@ function handleFormInput(event) {
           ? Number(event.target.value)
           : event.target.value;
       state.councilSpecialistBatchPreview = null;
+      state.opsSupervisionPreview = null;
       const specialistPanel = event.target.closest('.specialist-batch-panel');
       specialistPanel
         ?.querySelector(

@@ -239,6 +239,7 @@ assert.match(decisionLog, /^### DEC-181$/m);
 assert.match(decisionLog, /^### DEC-182$/m);
 assert.match(decisionLog, /^### DEC-183$/m);
 assert.match(decisionLog, /^### DEC-184$/m);
+assert.match(decisionLog, /^### DEC-185$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -277,7 +278,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-184`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-185`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -414,6 +415,7 @@ const report = {
         'DEC-182',
         'DEC-183',
         'DEC-184',
+        'DEC-185',
       ],
       currentRuntime: {
         schemaVersion: 21,
@@ -446,7 +448,7 @@ const report = {
         specialistBatchPreview: 'schema-v19-response-browser-memory-only',
         durableSpecialistBatch: 'schema-v20-request-scoped-researcher-qa-first-attempt',
         specialistCellRetry: 'schema-v21-exact-failed-first-attempt-retry',
-        opsSupervisionPreview: 'planning-only-schema-v21-exact-active-attempt-inspection',
+        opsSupervisionPreview: 'schema-v21-response-only-exact-active-attempt-inspection',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -503,6 +505,8 @@ const report = {
         requestScopedConcurrentSpecialistExecutionAllowed: true,
         specialistCellRetryPlanningAllowed: true,
         specialistCellRetryImplementationAllowed: true,
+        opsSupervisionPreviewPlanningAllowed: true,
+        opsSupervisionPreviewImplementationAllowed: true,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
         providerRoleExpansionAllowed: false,
@@ -514,15 +518,17 @@ const report = {
         unattendedPushAllowed: false,
       },
       nextGate:
-        'active specialist attempt recovery and Ops reconciliation decision required',
+        'durable recovery or Reviewer rework planning decision required; solo remains deferred',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
 assert.equal(report.authority.specialistCellRetryPlanningAllowed, true);
 assert.equal(report.authority.specialistCellRetryImplementationAllowed, true);
+assert.equal(report.authority.opsSupervisionPreviewPlanningAllowed, true);
+assert.equal(report.authority.opsSupervisionPreviewImplementationAllowed, true);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
-assert.match(report.nextGate, /active specialist attempt recovery/);
+assert.match(report.nextGate, /durable recovery or Reviewer rework planning/);
 
 process.stdout.write(
   `${JSON.stringify(report, null, 2)}\n`,

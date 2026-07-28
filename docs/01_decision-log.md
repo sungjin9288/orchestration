@@ -1208,6 +1208,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff fixes valid approval, evidence-request, rejection, and deferral outcomes for one inspect-only projection. It explicitly excludes schema migration, durable Ops records, attempt mutation, settlement, success inference, cancellation, quarantine mutation, resume, replay, retry, rework, provider execution, result application, source mutation, memory, runtime-agent Git/release, policy mutation, collections, bypass, and connectors. No implementation authority is recorded.
 - Needed Before: The operator must supply every required field in one valid implementation decision. `DEC-183`, this handoff, broad approval, delegated self-approval, or continuation does not authorize runtime, API, UI, or inspection behavior. A valid implementation outcome is reserved for `DEC-185`.
 
+### DEC-185
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic schema-v21-preserving response-only `OpsSupervisionPreview` over one operator-selected active WorkOrderAttempt, SpecialistBatch first attempt, or SpecialistCellRetry attempt #2.
+- Why: `DEC-183` and `DEC-184` fixed the closed target vocabulary, exact six-key GET, source-record and parent digest binding, canonical ExecutionPlan parent digest, deadline equality semantics, bounded response, browser-memory invalidation, zero-write proof, rollback, and still-blocked authority. The supplied decision matches that 15-field outcome byte-for-byte.
+- Impact: Runtime now validates one exact durable active target and complete source lineage through the no-migration read path, returns one deeply frozen canonical preview with `allowedActions=[]`, and exposes only a bounded inspect action beside an already loaded exact source record. The implementation creates no state, schema, durable Ops record, worker, provider call, approval, inbox item, run, artifact, checkpoint, source mutation, Git action, memory application, or policy mutation.
+- Needed Before: Durable recovery or disposition records, settlement, success or failure inference, cancellation, quarantine mutation, resume, replay, retry, rework, automatic scheduling, provider execution, result application, source mutation, runtime-agent Git/release, memory application, policy mutation, collection/list/search, approval bypass, and connectors require separate complete fielded decisions.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

@@ -26,7 +26,15 @@ attempt #2 중 exact target 하나만 검사하고 어떤 state도 변경하지 
 | `approvalStatement` | The operator delegates planning only for one exact response-only Ops supervision preview. Runtime, API, UI, schema, recovery, settlement, cancellation, replay, and every downstream authority require a later complete fielded decision. |
 
 This planning authority is recorded as `DEC-183`. The complete fielded implementation handoff is
-recorded separately as `DEC-184`. Implementation remains reserved for an exact `DEC-185` decision.
+recorded separately as `DEC-184`. At the planning boundary, implementation was reserved for an exact
+`DEC-185` decision; the implemented status below records its later consumption.
+
+## Implemented Status
+
+`DEC-185` accepted the exact complete 15-field implementation decision. Current runtime now exposes
+the schema-v21-preserving response-only classifier, exact six-key GET, and browser-memory inspection
+action described here. Focused runtime/API/UI verification proves all three active target types,
+canonical replay, deadline equality, bounded errors, and zero state or source writes.
 
 ## Current Baseline Evidence
 
@@ -319,9 +327,9 @@ invalidation, safe failure rendering, no authority controls, and desktop/mobile 
 
 ## Still Blocked
 
-Implementation remains blocked until the complete fielded decision in
-`docs/126_ai-company-ops-supervision-preview-implementation-decision-handoff.md` is accepted.
-Schema-v22 migration, durable Ops records, active-attempt settlement, cancel, quarantine mutation,
+The exact implementation decision in
+`docs/126_ai-company-ops-supervision-preview-implementation-decision-handoff.md` is accepted and
+consumed as `DEC-185`. Schema-v22 migration, durable Ops records, active-attempt settlement, cancel, quarantine mutation,
 resume, replay, retry, rework, background scheduling, provider execution, result application,
 source mutation, memory, runtime-agent Git/release, policy mutation, approval bypass, collections,
 and connectors remain separately gated.

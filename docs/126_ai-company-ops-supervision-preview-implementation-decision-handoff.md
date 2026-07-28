@@ -140,5 +140,7 @@ node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Until the exact valid approval outcome is supplied and recorded as `DEC-185`, only planning and
-handoff evidence exist.
+The exact valid approval outcome was supplied and recorded as `DEC-185`. The implementation gate is
+consumed for the response-only inspect path only; every recovery, mutation, execution, schema,
+provider, source, Git, release, memory, policy, collection, bypass, and connector authority remains
+blocked.

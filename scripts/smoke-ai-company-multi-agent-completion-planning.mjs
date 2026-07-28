@@ -54,7 +54,7 @@ assert.match(plan, /### Stage 5: Reviewer Rework/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
 assert.match(plan, /Stage 6A planning-only `DEC-183`/);
 assert.match(plan, /`DEC-184`\s+records the complete fielded implementation handoff/);
-assert.match(plan, /complete `DEC-185` decision/);
+assert.match(plan, /`DEC-185` implements only\s+that exact runtime\/API\/UI inspection path/);
 assert.match(plan, /allowedActions=\[\]/);
 assert.match(plan, /### Stage 7: Reviewed Mission Context Attachment/);
 assert.match(plan, /### Stage 8: Provider Expansion And Dogfood/);
@@ -141,12 +141,13 @@ for (const decisionId of [
   'DEC-182',
   'DEC-183',
   'DEC-184',
+  'DEC-185',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-184`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-185`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -240,10 +241,10 @@ process.stdout.write(
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '6A',
-        object: 'ops-supervision-preview',
+        stage: '6B-or-5',
+        object: 'durable-recovery-or-reviewer-rework',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-185',
+        nextDecisionLogEntry: null,
       },
       authority: {
         documentationAllowed: true,
@@ -261,7 +262,7 @@ process.stdout.write(
         specialistCellRetryPlanningAllowed: true,
         specialistCellRetryImplementationAllowed: true,
         opsSupervisionPreviewPlanningAllowed: true,
-        opsSupervisionPreviewImplementationAllowed: false,
+        opsSupervisionPreviewImplementationAllowed: true,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

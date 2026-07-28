@@ -27,6 +27,15 @@ const harnessRunScript = path.join(repoRoot, 'scripts', 'harness-run.mjs');
 const harnessConsumerStatusScript = path.join(repoRoot, 'scripts', 'harness-consumer-status.mjs');
 const harnessConsumerBriefScript = path.join(repoRoot, 'scripts', 'harness-consumer-brief.mjs');
 const verificationOutputBriefScript = path.join(repoRoot, 'scripts', 'verification-output-brief.mjs');
+const OPS_SUPERVISION_QUERY_KEYS = Object.freeze([
+  'evaluatedAt',
+  'expectedParentDigest',
+  'expectedTargetRecordDigest',
+  'parentId',
+  'targetId',
+  'targetType',
+]);
+const OPS_SUPERVISION_MAX_REQUEST_TARGET_LENGTH = 2048;
 let latestHarnessExecution = null;
 let recentHarnessExecutions = [];
 let harnessExecutionSequence = 0;
@@ -1018,6 +1027,52 @@ async function runMissionAlignmentAutoChain(missionId, options = {}) {
 const server = createServer(async (request, response) => {
   const method = request.method || 'GET';
   const url = new URL(request.url || '/', `http://${request.headers.host || '127.0.0.1'}`);
+
+  if (url.pathname === '/api/ops/supervision-preview') {
+    if (method !== 'GET') {
+      text(response, 405, 'Method Not Allowed', 'text/plain; charset=utf-8');
+      return;
+    }
+    try {
+      const requestTarget = request.url || '';
+      const queryKeys = [...url.searchParams.keys()].sort();
+      if (
+        requestTarget.length > OPS_SUPERVISION_MAX_REQUEST_TARGET_LENGTH ||
+        queryKeys.length !== OPS_SUPERVISION_QUERY_KEYS.length ||
+        queryKeys.some(
+          (key, index) => key !== OPS_SUPERVISION_QUERY_KEYS[index],
+        ) ||
+        OPS_SUPERVISION_QUERY_KEYS.some(
+          (key) => url.searchParams.getAll(key).length !== 1,
+        )
+      ) {
+        const error = new Error(
+          'OpsSupervisionPreview requires exactly six bounded query fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const preview = runtime.getOpsSupervisionPreview(
+        Object.fromEntries(
+          OPS_SUPERVISION_QUERY_KEYS.map((key) => [
+            key,
+            url.searchParams.get(key),
+          ]),
+        ),
+      );
+      json(response, 200, preview);
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: String(
+          error.message || 'OpsSupervisionPreview 조회에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
 
   if (method === 'GET' && url.pathname === '/api/research/exact-fetch/readiness') {
     json(response, 200, {

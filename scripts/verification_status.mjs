@@ -424,7 +424,12 @@ const informationalChecks = [
   {
     id: 'ai-company-ops-supervision-preview-planning',
     script: 'scripts/smoke-ai-company-ops-supervision-preview-planning.mjs',
-    purpose: 'AI Company Stage 6A planning source-checks DEC-183 and DEC-184, one future schema-v21-preserving exact active-attempt OpsSupervisionPreview across WorkOrder and specialist evidence, six-key GET transport, deterministic deadline and lineage classification, allowedActions empty, zero writes, rollback, and still-blocked DEC-185 implementation plus recovery authority',
+    purpose: 'AI Company Stage 6A planning source-checks consumed DEC-183 through DEC-185 provenance, the schema-v21-preserving exact active-attempt OpsSupervisionPreview contract, six-key GET transport, deterministic deadline and lineage classification, allowedActions empty, zero writes, rollback, and still-blocked recovery authority',
+  },
+  {
+    id: 'ai-company-ops-supervision-preview',
+    script: 'scripts/smoke-ai-company-ops-supervision-preview.mjs',
+    purpose: 'AI Company Stage 6A runtime and API prove all three exact active attempt types, canonical source and parent digest binding, deterministic deadline equality, deep-frozen bounded responses, exact 200 400 404 and 409 transport, zero state and source mutation, and blocked recovery provider Git memory policy collection bypass and connector authority',
   },
   {
     id: 'ai-company-specialist-batch-preview',

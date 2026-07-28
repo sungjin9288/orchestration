@@ -41,7 +41,9 @@ assertHasAll(plan, [
   /approve-ai-company-ops-supervision-preview-planning-only/,
   /planning authority is recorded as `DEC-183`/,
   /implementation handoff is\s+recorded separately as `DEC-184`/,
-  /reserved for an exact `DEC-185` decision/,
+  /implementation was reserved for an exact\s+`DEC-185` decision/,
+  /^## Implemented Status$/m,
+  /`DEC-185` accepted the exact complete 15-field implementation decision/,
   /response-only\s+`OpsSupervisionPreview`/,
   /schema v21/,
   /^work-order-attempt$/m,
@@ -91,7 +93,7 @@ assertHasAll(plan, [
   /Create no approval, Decision Inbox item, Run, Artifact, WorkflowCheckpoint/,
   /src\/runtime\/ops-supervision-preview\.js/,
   /scripts\/smoke-ui-slice-702\.mjs/,
-  /Implementation remains blocked until the complete fielded decision/,
+  /accepted and\s+consumed as `DEC-185`/,
   /Schema-v22 migration, durable Ops records, active-attempt settlement/,
 ]);
 
@@ -134,10 +136,11 @@ assertHasAll(handoff, [
   /scripts\/smoke-ui-slice-702\.mjs/,
   /schema-v22 migration, durable Ops supervision recovery disposition/,
   /does not approve schema migration durable recovery records settlement cancellation/,
-  /Until the exact valid approval outcome is supplied and recorded as `DEC-185`/,
+  /exact valid approval outcome was supplied and recorded as `DEC-185`/,
+  /implementation gate is\s+consumed/,
 ]);
 
-for (const decisionId of ['DEC-182', 'DEC-183', 'DEC-184']) {
+for (const decisionId of ['DEC-182', 'DEC-183', 'DEC-184', 'DEC-185']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -147,6 +150,10 @@ assert.match(
 assert.match(
   decisionLog,
   /### DEC-184[\s\S]*Status: `Accepted`[\s\S]*No implementation authority is recorded[\s\S]*reserved for `DEC-185`/,
+);
+assert.match(
+  decisionLog,
+  /### DEC-185[\s\S]*Status: `Accepted`[\s\S]*schema-v21-preserving response-only `OpsSupervisionPreview`[\s\S]*allowedActions=\[\]/,
 );
 
 for (const text of [
@@ -163,6 +170,7 @@ for (const text of [
 }
 
 assert.match(inventory, /AI Company OpsSupervisionPreview planning \| pass/);
+assert.match(inventory, /AI Company OpsSupervisionPreview implementation \| pass/);
 assert.match(readme, /docs\/125_ai-company-ops-supervision-preview-plan\.md/);
 assert.match(
   readme,
@@ -170,7 +178,7 @@ assert.match(
 );
 assert.match(
   taskLedger,
-  /ai-company-ops-supervision-preview-planning-post-m7-2020/,
+  /ai-company-ops-supervision-preview-implementation-post-m7-2021/,
 );
 assert.match(
   lessons,
@@ -184,27 +192,25 @@ assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-ops-supervision-preview-planning\.mjs'/,
 );
+assert.match(
+  verification,
+  /script: 'scripts\/smoke-ai-company-ops-supervision-preview\.mjs'/,
+);
 
 assert.match(contracts, /const STATE_SCHEMA_VERSION = 21/);
 assert.doesNotMatch(contracts, /opsSupervisionPreview/);
-assert.doesNotMatch(runtimeService, /\bgetOpsSupervisionPreview\b/);
-assert.equal(
-  fs.existsSync(path.join(repoRoot, 'src/runtime/ops-supervision-preview.js')),
-  false,
-  'planning must not create the future runtime module',
-);
-assert.equal(
-  fs.existsSync(
-    path.join(repoRoot, 'scripts/smoke-ai-company-ops-supervision-preview.mjs'),
-  ),
-  false,
-  'planning must not create the future implementation smoke',
-);
-assert.equal(
-  fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-702.mjs')),
-  false,
-  'planning must not create the future UI implementation smoke',
-);
+assert.match(runtimeService, /\bgetOpsSupervisionPreview\b/);
+for (const implementationPath of [
+  'src/runtime/ops-supervision-preview.js',
+  'scripts/smoke-ai-company-ops-supervision-preview.mjs',
+  'scripts/smoke-ui-slice-702.mjs',
+]) {
+  assert.equal(
+    fs.existsSync(path.join(repoRoot, implementationPath)),
+    true,
+    `${implementationPath} must exist after DEC-185`,
+  );
+}
 
 process.stdout.write(
   `${JSON.stringify(
@@ -213,14 +219,14 @@ process.stdout.write(
       mode,
       schemaVersion: 21,
       planningAllowed: true,
-      implementationAllowed: false,
+      implementationAllowed: true,
       schemaMigrationAllowed: false,
       activeAttemptMutationAllowed: false,
       recoveryActionAllowed: false,
       planningDecision: 'accepted-dec-183',
       handoffDecision: 'accepted-dec-184',
-      nextRequiredDecision:
-        'operator-decision-ai-company-ops-supervision-preview-implementation-001',
+      implementationDecision: 'accepted-dec-185',
+      nextRequiredDecision: 'durable-ops-recovery-or-rework-planning',
     },
     null,
     2,

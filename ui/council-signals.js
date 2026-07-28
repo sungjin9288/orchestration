@@ -152,6 +152,68 @@ export function getSpecialistCellRetryEligibility(
   });
 }
 
+export function getOpsSupervisionTarget(targetType, target, parent) {
+  if (
+    !target ||
+    !parent ||
+    target.status !== 'active' ||
+    typeof target.recordDigest !== 'string'
+  ) {
+    return null;
+  }
+
+  if (
+    targetType === 'work-order-attempt' &&
+    target.executionPlanId === parent.id &&
+    Array.isArray(parent.workOrderIds) &&
+    parent.workOrderIds.includes(target.workOrderId)
+  ) {
+    return {
+      targetType,
+      targetId: target.id,
+      parentId: parent.id,
+      expectedTargetRecordDigest: target.recordDigest,
+      expectedParentDigest: null,
+    };
+  }
+
+  if (
+    targetType === 'specialist-first-attempt' &&
+    target.attemptNumber === 1 &&
+    parent.status === 'active' &&
+    target.specialistBatchId === parent.id &&
+    Array.isArray(parent.cellAttemptIds) &&
+    parent.cellAttemptIds.includes(target.id) &&
+    typeof parent.recordDigest === 'string'
+  ) {
+    return {
+      targetType,
+      targetId: target.id,
+      parentId: parent.id,
+      expectedTargetRecordDigest: target.recordDigest,
+      expectedParentDigest: parent.recordDigest,
+    };
+  }
+
+  if (
+    targetType === 'specialist-retry-attempt' &&
+    target.attemptNumber === 2 &&
+    parent.status === 'active' &&
+    parent.retryCellAttemptId === target.id &&
+    typeof parent.recordDigest === 'string'
+  ) {
+    return {
+      targetType,
+      targetId: target.id,
+      parentId: parent.id,
+      expectedTargetRecordDigest: target.recordDigest,
+      expectedParentDigest: parent.recordDigest,
+    };
+  }
+
+  return null;
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

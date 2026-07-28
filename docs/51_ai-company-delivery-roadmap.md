@@ -505,7 +505,8 @@ gap을 다음 순서로 닫는다.
 `DEC-183`은 Stage 6 command authority보다 먼저 필요한 Stage 6A inspect-only
 OpsSupervisionPreview를 planning-only로 고정하고, `DEC-184`는 그 fielded implementation
 handoff를 기록한다. 이 response-only classifier는 Reviewer rework나 recovery command 순서를
-바꾸지 않으며, future `DEC-185`가 승인되더라도 `allowedActions=[]`로 멈춘다.
+바꾸지 않는다. `DEC-185`는 exact six-key GET과 browser-memory inspection만 구현하며
+`allowedActions=[]`로 멈춘다.
 
 Source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`, first durable StaffingPlan
 implementation handoff는 `DEC-164`, readiness clarification은 `DEC-165`로 기록됐다. The
@@ -584,7 +585,7 @@ inspection. Planning-only `DEC-180` fixes the schema-v21 failed-cell-only retry 
 immutable source evidence, `DEC-181` records its complete fielded implementation handoff, and
 `DEC-182` implements only one exact same-role attempt #2. Planning-only `DEC-183` fixes one exact
 schema-v21-preserving response-only OpsSupervisionPreview, and `DEC-184` records its complete
-fielded implementation handoff; runtime/API/UI implementation is reserved for `DEC-185`.
+fielded implementation handoff; `DEC-185` implements only the exact no-write runtime/API/UI path.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.
@@ -678,6 +679,8 @@ node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/smoke-ai-company-checkpoint-resume-recovery.mjs
 node scripts/smoke-ui-slice-656.mjs
 node scripts/smoke-ai-company-ops-supervision-preview-planning.mjs
+node scripts/smoke-ai-company-ops-supervision-preview.mjs
+node scripts/smoke-ui-slice-702.mjs
 node scripts/smoke-ai-company-durable-delivery-package-planning.mjs
 node scripts/smoke-ai-company-durable-delivery-package.mjs
 node scripts/smoke-ui-slice-657.mjs

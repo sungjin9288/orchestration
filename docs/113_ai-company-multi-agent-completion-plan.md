@@ -173,8 +173,8 @@ one exact schema-v21-preserving `OpsSupervisionPreview` over an operator-selecte
 WorkOrderAttempt, SpecialistBatch first attempt, or SpecialistCellRetry attempt #2. `DEC-184`
 records the complete fielded implementation handoff. Every valid preview has `allowedActions=[]`;
 it classifies exact durable lineage and deadline evidence without list/search, migration, persistence,
-settlement, cancellation, quarantine mutation, replay, retry, or resume. Runtime/API/UI
-implementation remains reserved for a complete `DEC-185` decision.
+settlement, cancellation, quarantine mutation, replay, retry, or resume. `DEC-185` implements only
+that exact runtime/API/UI inspection path.
 
 ### Stage 7: Reviewed Mission Context Attachment
 

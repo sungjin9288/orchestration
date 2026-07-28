@@ -359,6 +359,12 @@ const smokeChecks = [
       'SpecialistCellRetry UI and API preserve fresh-preview gating, one operator-selected failed first-attempt action, separate original and retry evidence, exact source-bound hard-refresh locator, closed response shapes, responsive desktop/mobile controls, and absent retry-all recovery cancel provider result-application or downstream controls',
   },
   {
+    id: 'ai-company-ops-supervision-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-702.mjs',
+    purpose:
+      'OpsSupervisionPreview UI and API preserve exact active-source eligibility across WorkOrder first-attempt and retry evidence, browser-memory invalidation, bounded safe failures, inspect-only rendering, absent recovery or mutation controls, and responsive desktop/mobile fit',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

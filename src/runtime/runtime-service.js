@@ -204,6 +204,7 @@ const {
   WORK_ORDER_ATTEMPT_ACTION,
   WORK_ORDER_ATTEMPT_COMMAND,
   WORK_ORDER_ATTEMPT_STATUS,
+  assertWorkOrderAttemptRecord,
   computeWorkOrderAttemptAuthorityDigest,
   computeWorkOrderAttemptDependencyDigest,
   createWorkOrderAttempt,
@@ -219,18 +220,25 @@ const {
   previewWorkOrderVerificationPlan: compileWorkOrderVerificationPlanPreview,
 } = require('./workorder-verification-plan-preview');
 const {
+  OPS_SUPERVISION_TARGET_TYPE,
+  buildOpsSupervisionPreview,
+  normalizeOpsSupervisionRequest,
+} = require('./ops-supervision-preview');
+const {
   buildSpecialistBatchPreview,
   digestCanonical: digestSpecialistCanonical,
   normalizeSpecialistBatchPreviewRequest,
 } = require('./specialist-batch-preview');
 const {
   computeExecutionApprovalDigest,
+  assertSpecialistBatchRecord,
   createSpecialistBatch,
   normalizeExecutionApproval,
   transitionSpecialistBatch,
 } = require('./specialist-batches');
 const {
   SPECIALIST_CELL_ATTEMPT_STATUS,
+  assertSpecialistCellAttemptRecord,
   computeInputDigest,
   createSpecialistCellAttempt,
   createSpecialistRetryCellAttempt,
@@ -238,6 +246,7 @@ const {
 } = require('./specialist-cell-attempts');
 const {
   SPECIALIST_CELL_RETRY_STATUS,
+  assertSpecialistCellRetryRecord,
   computeSpecialistCellRetryRequestDigest,
   createSpecialistCellRetry,
   normalizeSpecialistCellRetryRequest,
@@ -3926,6 +3935,267 @@ function createRuntimeService(options = {}) {
       ),
       persisted: true,
     };
+  }
+
+  function opsSupervisionNowIso() {
+    const value =
+      typeof options.opsSupervisionNow === 'function'
+        ? options.opsSupervisionNow()
+        : new Date();
+    const timestamp =
+      value instanceof Date ? value.getTime() : Date.parse(String(value));
+    if (!Number.isFinite(timestamp)) {
+      const error = new Error(
+        'OpsSupervisionPreview clock must return a valid timestamp',
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+    return new Date(timestamp).toISOString();
+  }
+
+  function opsSupervisionNotFound(message) {
+    const error = new Error(message);
+    error.statusCode = 404;
+    return error;
+  }
+
+  function getOpsSupervisionPreview(input) {
+    let request;
+    try {
+      request = normalizeOpsSupervisionRequest(input);
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `OpsSupervisionPreview requires supported state: ${error.message}`,
+      );
+    }
+
+    let source;
+    if (
+      request.targetType ===
+      OPS_SUPERVISION_TARGET_TYPE.WORK_ORDER_ATTEMPT
+    ) {
+      const attempt = state.workOrderAttempts?.[request.targetId];
+      if (!attempt) {
+        throw opsSupervisionNotFound('WorkOrderAttempt not found');
+      }
+      const executionPlan = state.executionPlans?.[request.parentId];
+      if (!executionPlan) {
+        throw opsSupervisionNotFound('ExecutionPlan not found');
+      }
+      try {
+        assertWorkOrderAttemptRecord(attempt);
+      } catch (error) {
+        throw conflict(`WorkOrderAttempt evidence is invalid: ${error.message}`);
+      }
+      if (
+        attempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE ||
+        attempt.executionPlanId !== executionPlan.id
+      ) {
+        throw conflict(
+          'WorkOrderAttempt target is terminal or has a different parent',
+        );
+      }
+      const workOrder = assertWorkOrder(attempt.workOrderId, state);
+      const councilSession = assertCouncilSession(
+        executionPlan.councilSessionId,
+        state,
+      );
+      const bound = assertBoundStaffingSchedulerSourceCurrent(
+        state,
+        councilSession,
+        { executionPlan },
+      );
+      const dependencies = workOrder.dependencyIds.map((dependencyId) => {
+        const dependency = assertWorkOrder(dependencyId, state);
+        return { id: dependency.id, status: dependency.status };
+      });
+      if (
+        !bound ||
+        attempt.missionId !== executionPlan.missionId ||
+        attempt.projectId !== executionPlan.projectId ||
+        attempt.councilSessionId !== councilSession.id ||
+        attempt.staffingPlanId !== bound.staffingPlan.id ||
+        attempt.staffingEntryId !== bound.staffingEntry.id ||
+        attempt.sourceDigest !== executionPlan.sourceDigest ||
+        workOrder.executionPlanId !== executionPlan.id ||
+        workOrder.sourceDigest !== executionPlan.sourceDigest ||
+        attempt.dependencyDigest !==
+          computeWorkOrderAttemptDependencyDigest({
+            executionPlanId: executionPlan.id,
+            workOrderId: workOrder.id,
+            dependencies,
+          }) ||
+        attempt.role !== workOrder.role ||
+        attempt.position !== workOrder.position ||
+        !executionPlan.workOrderIds.includes(workOrder.id)
+      ) {
+        throw conflict('WorkOrderAttempt source lineage is stale');
+      }
+      if (attempt.checkpointRef) {
+        const checkpoint = state.workflowCheckpoints?.[attempt.checkpointRef];
+        if (
+          !checkpoint ||
+          checkpoint.executionPlanId !== executionPlan.id ||
+          checkpoint.sourceDigest !== attempt.sourceDigest
+        ) {
+          throw conflict('WorkOrderAttempt checkpoint lineage is stale');
+        }
+      }
+      source = {
+        targetRecordDigest: attempt.recordDigest,
+        parentDigest: computeExecutionPlanRecordDigest(executionPlan),
+        sourceDigest: attempt.sourceDigest,
+        attemptNumber: attempt.attemptNumber,
+        role: attempt.role,
+        startedAt: attempt.startedAt,
+        deadlineAt: null,
+        evidenceRefs: {
+          targetRef: attempt.id,
+          parentRef: executionPlan.id,
+          executionPlanRef: executionPlan.id,
+          workOrderRef: workOrder.id,
+          sourceBatchRef: null,
+          sourceAttemptRef: null,
+          checkpointRef: attempt.checkpointRef,
+        },
+      };
+    } else if (
+      request.targetType ===
+      OPS_SUPERVISION_TARGET_TYPE.SPECIALIST_FIRST_ATTEMPT
+    ) {
+      const attempt = state.specialistCellAttempts?.[request.targetId];
+      if (!attempt) {
+        throw opsSupervisionNotFound('SpecialistCellAttempt not found');
+      }
+      const batch = state.specialistBatches?.[request.parentId];
+      if (!batch) {
+        throw opsSupervisionNotFound('SpecialistBatch not found');
+      }
+      try {
+        assertSpecialistBatchRecord(batch);
+        assertSpecialistCellAttemptRecord(attempt, {
+          expectedAttemptNumber: 1,
+          batchDeadlineAt: batch.deadlineAt,
+        });
+      } catch (error) {
+        throw conflict(`Specialist first-attempt evidence is invalid: ${error.message}`);
+      }
+      if (
+        batch.status !== 'active' ||
+        attempt.status !== SPECIALIST_CELL_ATTEMPT_STATUS.ACTIVE ||
+        attempt.attemptNumber !== 1 ||
+        attempt.specialistBatchId !== batch.id ||
+        !batch.cellAttemptIds.includes(attempt.id) ||
+        attempt.sourceDigest !== batch.sourceDigest ||
+        attempt.position !== batch.cellAttemptIds.indexOf(attempt.id)
+      ) {
+        throw conflict('Specialist first-attempt lineage is stale');
+      }
+      source = {
+        targetRecordDigest: attempt.recordDigest,
+        parentDigest: batch.recordDigest,
+        sourceDigest: attempt.sourceDigest,
+        attemptNumber: attempt.attemptNumber,
+        role: attempt.role,
+        startedAt: attempt.startedAt,
+        deadlineAt: attempt.deadlineAt,
+        evidenceRefs: {
+          targetRef: attempt.id,
+          parentRef: batch.id,
+          executionPlanRef: null,
+          workOrderRef: null,
+          sourceBatchRef: batch.id,
+          sourceAttemptRef: null,
+          checkpointRef: null,
+        },
+      };
+    } else {
+      const attempt = state.specialistCellAttempts?.[request.targetId];
+      if (!attempt) {
+        throw opsSupervisionNotFound('SpecialistCellAttempt not found');
+      }
+      const retry = state.specialistCellRetries?.[request.parentId];
+      if (!retry) {
+        throw opsSupervisionNotFound('SpecialistCellRetry not found');
+      }
+      const batch = state.specialistBatches?.[retry.specialistBatchId];
+      const sourceAttempt =
+        state.specialistCellAttempts?.[retry.sourceCellAttemptId];
+      if (!batch || !sourceAttempt) {
+        throw conflict('Specialist retry source lineage is incomplete');
+      }
+      try {
+        assertSpecialistCellRetryRecord(retry);
+        assertSpecialistBatchRecord(batch);
+        assertSpecialistCellAttemptRecord(sourceAttempt, {
+          expectedAttemptNumber: 1,
+          batchDeadlineAt: batch.deadlineAt,
+        });
+        assertSpecialistCellAttemptRecord(attempt, {
+          expectedAttemptNumber: 2,
+        });
+      } catch (error) {
+        throw conflict(`Specialist retry-attempt evidence is invalid: ${error.message}`);
+      }
+      if (
+        retry.status !== SPECIALIST_CELL_RETRY_STATUS.ACTIVE ||
+        attempt.status !== SPECIALIST_CELL_ATTEMPT_STATUS.ACTIVE ||
+        sourceAttempt.status !== SPECIALIST_CELL_ATTEMPT_STATUS.FAILED ||
+        attempt.attemptNumber !== 2 ||
+        retry.retryCellAttemptId !== attempt.id ||
+        retry.sourceBatchRecordDigest !== batch.recordDigest ||
+        retry.sourceCellAttemptRecordDigest !== sourceAttempt.recordDigest ||
+        sourceAttempt.specialistBatchId !== batch.id ||
+        !batch.cellAttemptIds.includes(sourceAttempt.id) ||
+        attempt.specialistBatchId !== batch.id ||
+        attempt.cellId !== sourceAttempt.cellId ||
+        attempt.agentProfileId !== sourceAttempt.agentProfileId ||
+        attempt.role !== sourceAttempt.role ||
+        attempt.position !== sourceAttempt.position ||
+        attempt.cellSpecDigest !== sourceAttempt.cellSpecDigest ||
+        attempt.sourceDigest !== sourceAttempt.sourceDigest ||
+        attempt.inputDigest !== sourceAttempt.inputDigest ||
+        attempt.cellDeadlineMs !== retry.retryDeadlineMs
+      ) {
+        throw conflict('Specialist retry-attempt lineage is stale');
+      }
+      source = {
+        targetRecordDigest: attempt.recordDigest,
+        parentDigest: retry.recordDigest,
+        sourceDigest: attempt.sourceDigest,
+        attemptNumber: attempt.attemptNumber,
+        role: attempt.role,
+        startedAt: attempt.startedAt,
+        deadlineAt: attempt.deadlineAt,
+        evidenceRefs: {
+          targetRef: attempt.id,
+          parentRef: retry.id,
+          executionPlanRef: null,
+          workOrderRef: null,
+          sourceBatchRef: batch.id,
+          sourceAttemptRef: sourceAttempt.id,
+          checkpointRef: null,
+        },
+      };
+    }
+
+    try {
+      return buildOpsSupervisionPreview(request, source, {
+        now: opsSupervisionNowIso(),
+      });
+    } catch (error) {
+      error.statusCode = error.statusCode || 409;
+      throw error;
+    }
   }
 
   function getExactResearchReadiness() {
@@ -9140,6 +9410,7 @@ function createRuntimeService(options = {}) {
     getMission,
     getMissionEvidenceGraph,
     getTaskExecutionProvenance,
+    getOpsSupervisionPreview,
     getMissionCloseOut,
     getMissionLearningCandidate,
     getLearningCandidateReview,
