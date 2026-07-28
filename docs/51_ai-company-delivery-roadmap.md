@@ -516,6 +516,14 @@ sourceProgressDigest만 다루며 `allowedActions=[]`로 멈춘다. `DEC-188`은
 inspection path만 구현한다. Durable rework, Builder attempt append, preflight, approval, mutation,
 Reviewer/QA 실행, scheduling, provider authority는 계속 blocked다.
 
+`DEC-189`은 Stage 5B planning-only boundary로 one exact recomputed DEC-188 preview와 separate
+operator record approval에서 immutable schema-v22 `ReworkPlan(status=review-required)` 하나만
+append하는 계약을 고정한다. `DEC-190`은 complete fielded implementation handoff를 기록한다.
+Exact ten-key POST, atomic migration-plus-append, exact-id/current-chain inspection, generic snapshot
+exclusion, idempotency, collision, rollback, and focused verification are planned; schema migration,
+record creation, rework decision, Builder append, retry, preflight, approval, mutation, role
+execution, and scheduling remain blocked pending DEC-191.
+
 Source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`, first durable StaffingPlan
 implementation handoff는 `DEC-164`, readiness clarification은 `DEC-165`로 기록됐다. The
 clarified handoff fixes active-project binding, fresh blueprint and role-source digests, existing
@@ -596,6 +604,9 @@ schema-v21-preserving response-only OpsSupervisionPreview, and `DEC-184` records
 fielded implementation handoff; `DEC-185` implements only the exact no-write runtime/API/UI path.
 Planning-only `DEC-186` fixes one exact response-only ReviewerReworkPlanPreview, and handoff-only
 `DEC-187` fixes its fielded gate; `DEC-188` implements only its exact no-write runtime/API/UI path.
+Planning-only `DEC-189` fixes the immutable schema-v22 ReworkPlan record boundary, and handoff-only
+`DEC-190` fixes its complete implementation gate; schema and persistence remain blocked before
+DEC-191.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.

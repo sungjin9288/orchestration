@@ -83,7 +83,7 @@ assertHasAll(plan, [
   /^## Implemented Status$/m,
   /`DEC-188` consumes the exact fielded handoff/,
   /GET \/api\/execution-plans\/:executionPlanId\/reviewer-rework-preview/,
-  /Schema-v22,\s+durable ReworkPlan/,
+  /Schema-v22 durable ReworkPlan implementation requires the exact DEC-191 decision/,
 ]);
 
 for (const field of [
@@ -231,9 +231,9 @@ const smokeCount = fs
 const uiSmokeCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
-assert.equal(smokeCount, 972);
+assert.equal(smokeCount, 973);
 assert.equal(uiSmokeCount, 703);
-assert.match(readme, /972 smoke files/);
+assert.match(readme, /973 smoke files/);
 assert.match(readme, /703 UI smoke files/);
 
 process.stdout.write(
@@ -254,7 +254,7 @@ process.stdout.write(
       handoffDecision: 'accepted-dec-187',
       implementationDecision: 'accepted-dec-188',
       nextRequiredDecision:
-        'durable-reviewer-rework-append-planning-decision',
+        'operator-decision-ai-company-durable-reviewer-rework-plan-implementation-001',
     },
     null,
     2,

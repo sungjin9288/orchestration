@@ -243,6 +243,8 @@ assert.match(decisionLog, /^### DEC-185$/m);
 assert.match(decisionLog, /^### DEC-186$/m);
 assert.match(decisionLog, /^### DEC-187$/m);
 assert.match(decisionLog, /^### DEC-188$/m);
+assert.match(decisionLog, /^### DEC-189$/m);
+assert.match(decisionLog, /^### DEC-190$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -281,7 +283,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-188`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-190`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -305,6 +307,10 @@ assert.match(masterPlanText, /Stage 5 implementation: `DEC-188`/);
 assert.match(runtimeContractText, /Planning-only `DEC-186` defines the Stage 5/);
 assert.match(councilProtocolText, /Planning-only `DEC-186` and handoff-only `DEC-187`/);
 assert.match(deliveryRoadmapText, /`DEC-186`[\s\S]*`DEC-187`/);
+assert.match(masterPlanText, /Stage 5B planning: `DEC-189`/);
+assert.match(runtimeContractText, /Planning-only `DEC-189` defines one schema-v22 immutable/);
+assert.match(councilProtocolText, /Planning-only `DEC-189` and handoff-only `DEC-190`/);
+assert.match(deliveryRoadmapText, /`DEC-189`[\s\S]*`DEC-190`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -427,6 +433,8 @@ const report = {
         'DEC-186',
         'DEC-187',
         'DEC-188',
+        'DEC-189',
+        'DEC-190',
       ],
       currentRuntime: {
         schemaVersion: 21,
@@ -461,6 +469,7 @@ const report = {
         specialistCellRetry: 'schema-v21-exact-failed-first-attempt-retry',
         opsSupervisionPreview: 'schema-v21-response-only-exact-active-attempt-inspection',
         reviewerReworkPreview: 'schema-v21-response-only-exact-changes-requested-inspection',
+        durableReviewerReworkPlan: 'planning-only-no-record',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -521,6 +530,8 @@ const report = {
         opsSupervisionPreviewImplementationAllowed: true,
         reviewerReworkPreviewPlanningAllowed: true,
         reviewerReworkPreviewImplementationAllowed: true,
+        durableReviewerReworkPlanPlanningAllowed: true,
+        durableReviewerReworkPlanImplementationAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
         providerRoleExpansionAllowed: false,
@@ -532,7 +543,7 @@ const report = {
         unattendedPushAllowed: false,
       },
       nextGate:
-        'durable Reviewer rework append planning decision required; solo remains deferred',
+        'exact DEC-191 durable Reviewer ReworkPlan implementation decision required; solo remains deferred',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -542,9 +553,14 @@ assert.equal(report.authority.opsSupervisionPreviewPlanningAllowed, true);
 assert.equal(report.authority.opsSupervisionPreviewImplementationAllowed, true);
 assert.equal(report.authority.reviewerReworkPreviewPlanningAllowed, true);
 assert.equal(report.authority.reviewerReworkPreviewImplementationAllowed, true);
+assert.equal(report.authority.durableReviewerReworkPlanPlanningAllowed, true);
+assert.equal(report.authority.durableReviewerReworkPlanImplementationAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
-assert.match(report.nextGate, /durable Reviewer rework append planning decision/);
+assert.match(
+  report.nextGate,
+  /exact DEC-191 durable Reviewer ReworkPlan implementation decision required/,
+);
 
 process.stdout.write(
   `${JSON.stringify(report, null, 2)}\n`,

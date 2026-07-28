@@ -427,6 +427,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 5 planning source-checks consumed DEC-186 through DEC-188 provenance, one exact schema-v21-preserving source-current Reviewer changes-requested projection, bounded review Artifact and finding normalization, inherited target and verification scope, canonical progress digest, one-attempt cap, allowedActions empty, rollback, and still-blocked durable rework and mutation authority',
   },
   {
+    id: 'ai-company-durable-reviewer-rework-plan-planning',
+    script: 'scripts/smoke-ai-company-durable-reviewer-rework-plan-planning.mjs',
+    purpose: 'AI Company Stage 5B planning source-checks DEC-189 and DEC-190, one future schema-v22 immutable review-required ReworkPlan, exact DEC-188 preview recomputation, separate record approval, atomic migration-plus-append, exact inspection, snapshot exclusion, idempotency, rollback, and still-blocked DEC-191 implementation and rework execution authority',
+  },
+  {
     id: 'ai-company-reviewer-rework-preview',
     script: 'scripts/smoke-ai-company-reviewer-rework-preview.mjs',
     purpose: 'AI Company Stage 5 runtime and API prove one exact source-current StaffingEntry-bound Reviewer changes-requested stop, canonical response-only rework evidence, duplicate-preserving bounded findings, inherited target and verification scope, 64 KiB pre-read Artifact protection, exact 200 400 404 and 409 transport, zero writes, and blocked retry execution provider source Git memory policy collection bypass and connector authority',

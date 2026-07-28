@@ -442,6 +442,13 @@ exact inspection path: it normalizes `changes-requested` findings and inherited 
 cannot revise the Council synthesis, change alignment, append a Builder attempt, resolve an
 approval, or execute any role. Those authorities remain blocked pending later downstream decisions.
 
+Planning-only `DEC-189` and handoff-only `DEC-190` define the next record-only boundary: one exact
+recomputed DEC-188 preview plus separate operator record approval may later become one immutable
+schema-v22 `ReworkPlan(status=review-required)`. The planned record preserves Council, StaffingEntry,
+Mission, ExecutionPlan, Reviewer attempt, review Artifact, findings, target, verification, and
+progress provenance. It does not revise Council alignment or authorize a Builder attempt, retry,
+preflight, approval, mutation, Reviewer/QA execution, scheduling, or provider use.
+
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한

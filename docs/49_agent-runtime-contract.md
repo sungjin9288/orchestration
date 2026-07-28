@@ -478,6 +478,14 @@ canonical progress digest with `allowedActions=[]`. Schema migration, durable re
 WorkOrders or attempts, preflight, approval, mutation, execution, scheduling, and providers remain
 outside the runtime contract.
 
+Planning-only `DEC-189` defines one schema-v22 immutable `ReworkPlan(status=review-required)` from
+the exact recomputed DEC-188 preview and a separate operator record approval. Handoff-only `DEC-190`
+fixes the complete implementation decision shape, exact ten-key POST, atomic migration-plus-append,
+record and approval digests, exact-id and bounded ExecutionPlan current-chain inspection, generic
+snapshot exclusion, idempotency, collision, rollback, and focused verification contracts. The
+current runtime remains schema v21: no ReworkPlan sequence, map, record, route, UI, Builder append,
+retry, preflight, approval, mutation, or execution authority exists before DEC-191.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

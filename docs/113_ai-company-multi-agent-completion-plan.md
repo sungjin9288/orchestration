@@ -171,6 +171,14 @@ source progress digest, cap the later Builder attempt at one, and return `allowe
 Builder WorkOrder or attempt append, preflight, approval, mutation, Reviewer/QA execution, automatic
 scheduling, and provider execution remain separately gated.
 
+Planning-only `DEC-189` now fixes Stage 5B as one immutable schema-v22
+`ReworkPlan(status=review-required)` append from one exact recomputed DEC-188 preview and separate
+operator record approval. `DEC-190` records its complete fielded implementation handoff. The plan
+adds only a sequence and map, exact-id and bounded ExecutionPlan current-chain inspection, generic
+snapshot exclusion, idempotency, collision, rollback, and focused evidence. Schema migration,
+record creation, a ReworkPlan decision, Builder append, retry, preflight, approval, mutation,
+Reviewer/QA execution, and scheduling remain blocked before DEC-191.
+
 ### Stage 6: Ops Supervision And Recovery
 
 Expose one read-only supervision snapshot and explicit `step`, `retry-failed`, `cancel`, `quarantine`,

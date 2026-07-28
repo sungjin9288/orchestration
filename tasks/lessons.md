@@ -1,5 +1,6 @@
 # lessons
 
+- A durable rework plan must separate evidence retention from execution approval. Persist only the exact recomputed redaction-safe preview and a record-only operator acknowledgement as append-only evidence; require later decisions for plan acceptance, Builder attempt creation, preflight, approval, mutation, and role execution.
 - A shared parser that deduplicates lists is not suitable when source observations must preserve order and multiplicity. Reuse it for stable verdict and provenance fields, but parse the bounded Findings section separately, reject raw or sensitive content before output, and bind each one-based occurrence into its own digest.
 - Reviewer rework planning must make the no-progress stop observable before mutation authority opens. Bind one exact changes-requested review to a canonical progress digest, preserve duplicate findings and the original target and verification scope, cap the next attempt explicitly, and keep the preview actionless until a later decision authorizes append, approval, and execution.
 - A durable failed-cell retry needs a separate append-only authority lineage, not a rewrite of the source batch or first attempt. Validate source/retry attempt role, cell, profile, position, spec, source, path, and input digests again at the coordinator boundary so direct invocation cannot bypass file-store lineage checks.

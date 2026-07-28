@@ -54,6 +54,8 @@ assert.match(plan, /### Stage 5: Reviewer Rework/);
 assert.match(plan, /Planning-only `DEC-186`/);
 assert.match(plan, /`DEC-187` records its complete fielded implementation handoff/);
 assert.match(plan, /`DEC-188` implements only that exact response-only runtime\/API\/UI boundary/);
+assert.match(plan, /Planning-only `DEC-189` now fixes Stage 5B/);
+assert.match(plan, /`DEC-190` records its complete fielded implementation handoff/);
 assert.match(plan, /source progress digest/);
 assert.match(plan, /allowedActions=\[\]/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
@@ -150,18 +152,24 @@ for (const decisionId of [
   'DEC-186',
   'DEC-187',
   'DEC-188',
+  'DEC-189',
+  'DEC-190',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-188`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-190`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(councilProtocol, /clarification은 `DEC-165`/);
 assert.match(deliveryRoadmap, /## VNext Multi-Agent Completion Sequence/);
 assert.match(deliveryRoadmap, /readiness clarification은 `DEC-165`/);
+assert.match(masterPlan, /Stage 5B planning: `DEC-189`/);
+assert.match(runtimeContract, /Planning-only `DEC-189` defines one schema-v22 immutable/);
+assert.match(councilProtocol, /Planning-only `DEC-189` and handoff-only `DEC-190`/);
+assert.match(deliveryRoadmap, /`DEC-189`[\s\S]*`DEC-190`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
@@ -239,6 +247,8 @@ process.stdout.write(
         reviewerReworkPreviewPlanning: 'accepted-dec-186',
         reviewerReworkPreviewHandoff: 'documented-dec-187',
         reviewerReworkPreviewImplementation: 'accepted-dec-188',
+        durableReviewerReworkPlanPlanning: 'accepted-dec-189',
+        durableReviewerReworkPlanHandoff: 'documented-dec-190',
       },
       currentRuntime: {
         schemaVersion: 21,
@@ -249,15 +259,16 @@ process.stdout.write(
         specialistBatchPreview: true,
         durableSpecialistBatch: true,
         reviewerReworkPreview: true,
+        durableReviewerReworkPlan: false,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '5',
-        object: 'durable-reviewer-rework-append-planning',
+        stage: '5B',
+        object: 'durable-reviewer-rework-plan-implementation',
         implementationAllowed: false,
-        nextDecisionLogEntry: null,
+        nextDecisionLogEntry: 'DEC-191',
       },
       authority: {
         documentationAllowed: true,
@@ -278,6 +289,8 @@ process.stdout.write(
         opsSupervisionPreviewImplementationAllowed: true,
         reviewerReworkPreviewPlanningAllowed: true,
         reviewerReworkPreviewImplementationAllowed: true,
+        durableReviewerReworkPlanPlanningAllowed: true,
+        durableReviewerReworkPlanImplementationAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

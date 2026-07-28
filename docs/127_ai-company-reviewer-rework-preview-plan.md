@@ -371,10 +371,14 @@ fit.
   browser memory on refresh, Mission/task/surface change, source change, or failure.
 - `scripts/smoke-ai-company-reviewer-rework-preview.mjs` and
   `scripts/smoke-ui-slice-703.mjs` prove the focused runtime/API/UI boundary.
+- Planning-only `DEC-189` and handoff-only `DEC-190` now define the next immutable schema-v22
+  ReworkPlan record boundary in `docs/129_ai-company-durable-reviewer-rework-plan.md` and
+  `docs/130_ai-company-durable-reviewer-rework-plan-implementation-decision-handoff.md`.
 
 ## Still Blocked
 
-Schema-v22, durable ReworkPlan, Builder WorkOrder or WorkOrderAttempt append, retry, rework start,
+Schema-v22 durable ReworkPlan implementation requires the exact DEC-191 decision. Builder WorkOrder
+or WorkOrderAttempt append, retry, rework start,
 preflight, approval, source mutation, Reviewer/QA execution, automatic scheduling, providers,
 memory, runtime-agent Git/release, policy mutation, approval bypass, collections, and connectors
 remain separately gated.
