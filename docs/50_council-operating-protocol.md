@@ -449,6 +449,13 @@ Mission, ExecutionPlan, Reviewer attempt, review Artifact, findings, target, ver
 progress provenance. It does not revise Council alignment or authorize a Builder attempt, retry,
 preflight, approval, mutation, Reviewer/QA execution, scheduling, or provider use.
 
+Planning-only `DEC-192` and handoff-only `DEC-193` define the next evidence-only boundary as one
+future append-only schema-v23 ReworkPlanAcceptance. Acceptance must bind the exact DEC-191 record
+and recomputed DEC-188 source evidence while leaving Council synthesis, alignment, ReworkPlan status,
+Builder append, retry, preflight, approval, source mutation, role execution, scheduling, and provider
+use unchanged. Implementation remains blocked pending the exact fielded decision reserved for
+`DEC-194`.
+
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한

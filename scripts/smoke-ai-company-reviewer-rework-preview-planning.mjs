@@ -231,9 +231,9 @@ const smokeCount = fs
 const uiSmokeCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
-assert.equal(smokeCount, 975);
+assert.equal(smokeCount, 976);
 assert.equal(uiSmokeCount, 704);
-assert.match(readme, /975 smoke files/);
+assert.match(readme, /976 smoke files/);
 assert.match(readme, /704 UI smoke files/);
 
 process.stdout.write(
@@ -254,7 +254,7 @@ process.stdout.write(
       handoffDecision: 'accepted-dec-187',
       implementationDecision: 'accepted-dec-188',
       nextRequiredDecision:
-        'operator-decision-ai-company-durable-reviewer-rework-plan-implementation-001',
+        'operator-decision-ai-company-rework-plan-acceptance-implementation-001',
     },
     null,
     2,

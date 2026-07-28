@@ -524,6 +524,13 @@ generic snapshot exclusion, idempotency, collision, rollback, and focused verifi
 ReworkPlan decision, Builder append, retry, preflight, approval, mutation, role execution, and
 scheduling remain blocked.
 
+`DEC-192`는 Stage 5C planning-only boundary로 exact source-current DEC-191 ReworkPlan과 recomputed
+DEC-188 source projection에서 append-only schema-v23 ReworkPlanAcceptance 하나만 생성하는
+계약을 고정한다. `DEC-193`은 complete fielded implementation handoff를 기록한다. Source
+ReworkPlan은 immutable `review-required`로 남고, schema migration, acceptance creation, Builder
+append, retry, preflight, approval, mutation, role execution, scheduling, provider authority는 exact
+`DEC-194` decision 전까지 blocked다.
+
 Source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`, first durable StaffingPlan
 implementation handoff는 `DEC-164`, readiness clarification은 `DEC-165`로 기록됐다. The
 clarified handoff fixes active-project binding, fresh blueprint and role-source digests, existing
@@ -605,8 +612,9 @@ fielded implementation handoff; `DEC-185` implements only the exact no-write run
 Planning-only `DEC-186` fixes one exact response-only ReviewerReworkPlanPreview, and handoff-only
 `DEC-187` fixes its fielded gate; `DEC-188` implements only its exact no-write runtime/API/UI path.
 Planning-only `DEC-189` fixes the immutable schema-v22 ReworkPlan record boundary, and handoff-only
-`DEC-190` fixes its complete implementation gate; schema and persistence remain blocked before
-DEC-191.
+`DEC-190` fixes its complete implementation gate; `DEC-191` implements only that record-and-inspect
+path. Planning-only `DEC-192` and handoff-only `DEC-193` fix one future append-only schema-v23
+ReworkPlanAcceptance boundary, while implementation remains blocked pending `DEC-194`.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.

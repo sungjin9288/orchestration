@@ -486,6 +486,15 @@ snapshot exclusion, idempotency, collision, rollback, and focused verification c
 `DEC-191` implements only that schema-v22 record-and-inspect boundary. ReworkPlan decisions, Builder
 append, retry, preflight, approval, mutation, and execution authority remain absent.
 
+Planning-only `DEC-192` defines one future schema-v23 append-only `ReworkPlanAcceptance` from one
+exact source-current DEC-191 record and a freshly recomputed DEC-188 source projection.
+Handoff-only `DEC-193` fixes the complete implementation decision shape, exact path-plus-ten-key
+accept request, sequence/map-only migration, immutable acceptance and closed authority summary,
+exact ReworkPlan-bound inspection, generic snapshot exclusion, idempotency, collision, rollback, and
+focused verification contracts. No schema, record, API, UI, Builder append, retry, preflight,
+approval, mutation, or execution authority exists before the exact decision reserved for
+`DEC-194`.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

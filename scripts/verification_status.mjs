@@ -429,7 +429,12 @@ const informationalChecks = [
   {
     id: 'ai-company-durable-reviewer-rework-plan-planning',
     script: 'scripts/smoke-ai-company-durable-reviewer-rework-plan-planning.mjs',
-    purpose: 'AI Company Stage 5B planning source-checks DEC-189 and DEC-190, one future schema-v22 immutable review-required ReworkPlan, exact DEC-188 preview recomputation, separate record approval, atomic migration-plus-append, exact inspection, snapshot exclusion, idempotency, rollback, and still-blocked DEC-191 implementation and rework execution authority',
+    purpose: 'AI Company Stage 5B planning source-checks consumed DEC-189 through DEC-191 provenance, one schema-v22 immutable review-required ReworkPlan, exact DEC-188 preview recomputation, separate record approval, atomic migration-plus-append, exact inspection, snapshot exclusion, idempotency, rollback, and still-blocked rework execution authority',
+  },
+  {
+    id: 'ai-company-rework-plan-acceptance-planning',
+    script: 'scripts/smoke-ai-company-rework-plan-acceptance-planning.mjs',
+    purpose: 'AI Company Stage 5C planning source-checks DEC-192 and DEC-193, one future schema-v23 append-only ReworkPlanAcceptance, exact DEC-191 record and recomputed DEC-188 source binding, closed authority summary, exact inspection, snapshot exclusion, idempotency, rollback, and still-blocked DEC-194 implementation plus Builder append and execution authority',
   },
   {
     id: 'ai-company-reviewer-rework-preview',

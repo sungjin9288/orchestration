@@ -57,6 +57,9 @@ assert.match(plan, /`DEC-188` implements only that exact response-only runtime\/
 assert.match(plan, /Planning-only `DEC-189` now fixes Stage 5B/);
 assert.match(plan, /`DEC-190` records its complete fielded implementation handoff/);
 assert.match(plan, /`DEC-191` implements/);
+assert.match(plan, /Planning-only `DEC-192` now fixes Stage 5C/);
+assert.match(plan, /`DEC-193` records its complete fielded implementation handoff/);
+assert.match(plan, /reserved for `DEC-194`/);
 assert.match(plan, /source progress digest/);
 assert.match(plan, /allowedActions=\[\]/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
@@ -156,12 +159,14 @@ for (const decisionId of [
   'DEC-189',
   'DEC-190',
   'DEC-191',
+  'DEC-192',
+  'DEC-193',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-191`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-193`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -172,6 +177,10 @@ assert.match(masterPlan, /Stage 5B planning: `DEC-189`/);
 assert.match(runtimeContract, /Planning-only `DEC-189` defines one schema-v22 immutable/);
 assert.match(councilProtocol, /Planning-only `DEC-189` and handoff-only `DEC-190`/);
 assert.match(deliveryRoadmap, /`DEC-189`[\s\S]*`DEC-190`/);
+assert.match(masterPlan, /Stage 5C planning: `DEC-192`/);
+assert.match(runtimeContract, /Planning-only `DEC-192` defines one future schema-v23/);
+assert.match(councilProtocol, /Planning-only `DEC-192` and handoff-only `DEC-193`/);
+assert.match(deliveryRoadmap, /`DEC-192`[\s\S]*`DEC-193`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
@@ -252,6 +261,8 @@ process.stdout.write(
         durableReviewerReworkPlanPlanning: 'accepted-dec-189',
         durableReviewerReworkPlanHandoff: 'documented-dec-190',
         durableReviewerReworkPlanImplementation: 'accepted-dec-191',
+        reworkPlanAcceptancePlanning: 'accepted-dec-192',
+        reworkPlanAcceptanceHandoff: 'documented-dec-193',
       },
       currentRuntime: {
         schemaVersion: 22,
@@ -269,9 +280,9 @@ process.stdout.write(
       },
       nextImplementationTarget: {
         stage: '5C',
-        object: 'reviewer-rework-decision-or-builder-append',
+        object: 'rework-plan-acceptance',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'fielded-separately',
+        nextDecisionLogEntry: 'reserved-dec-194',
       },
       authority: {
         documentationAllowed: true,
@@ -294,6 +305,8 @@ process.stdout.write(
         reviewerReworkPreviewImplementationAllowed: true,
         durableReviewerReworkPlanPlanningAllowed: true,
         durableReviewerReworkPlanImplementationAllowed: true,
+        reworkPlanAcceptancePlanningAllowed: true,
+        reworkPlanAcceptanceImplementationAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

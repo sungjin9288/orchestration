@@ -89,6 +89,8 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   fielded implementation handoff; `DEC-188` implements the exact no-write runtime/API/UI path.
   `DEC-189` plans one immutable schema-v22 ReworkPlan record, `DEC-190` records its complete
   fielded implementation handoff, and `DEC-191` implements the bounded record-and-inspect path.
+  `DEC-192` plans one append-only schema-v23 ReworkPlanAcceptance fact, and `DEC-193` records its
+  complete fielded implementation handoff without opening schema or record authority.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, durable Reviewer rework implementation,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
@@ -132,7 +134,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-191`
+- Recorded decisions: `DEC-163` through `DEC-193`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -178,7 +180,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Stage 5B implementation: `DEC-191` adds the sequence/map-only schema-v22 migration, one immutable
   record, no-write exact replay, exact-id/current-chain inspection, snapshot exclusion, and a
   rationale-gated record-only UI
-- Next gate: a separately fielded ReworkPlan decision or Builder append slice; solo remains deferred
+- Stage 5C planning: `DEC-192` fixes one schema-v23 append-only ReworkPlanAcceptance from an exact
+  source-current DEC-191 record and recomputed DEC-188 source projection; `DEC-193` records the
+  complete fielded implementation handoff
+- Next gate: the exact 15-field schema-v23 acceptance implementation decision reserved for
+  `DEC-194`; Builder append remains a later separate boundary
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -518,7 +524,9 @@ inspect path with `allowedActions=[]`. Planning-only `DEC-186` and handoff-only 
 exact response-only ReviewerReworkPlanPreview, and `DEC-188` implements only its exact no-write
 runtime/API/UI path. Planning-only `DEC-189` and handoff-only `DEC-190` define one immutable
 schema-v22 ReworkPlan record and exact inspection boundary, and `DEC-191` implements only that
-record-and-inspect path with no downstream execution authority.
+record-and-inspect path with no downstream execution authority. Planning-only `DEC-192` and
+handoff-only `DEC-193` define one future append-only schema-v23 ReworkPlanAcceptance fact while
+leaving migration, acceptance creation, Builder append, and execution blocked pending `DEC-194`.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

@@ -1257,6 +1257,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Runtime now migrates valid schema-v21 state only on the first valid append, persists one immutable review-required record, returns exact replay without saving, exposes exact-id and one-ExecutionPlan current-chain inspection, and hydrates the record-only UI through that bounded locator. The generic snapshot excludes the map, and no WorkOrder, attempt, approval, run, artifact, checkpoint, source, provider, memory, Git/release, policy, collection, bypass, or connector authority changes.
 - Needed Before: ReworkPlan acceptance, rejection, status mutation, Builder WorkOrder or WorkOrderAttempt append, retry, rework start, preflight, approval creation or resolution, source mutation, Reviewer/QA execution, scheduling, provider-backed WorkOrders, result or memory application, runtime-agent Git/release, policy mutation, collections, bypass, and connectors require separate complete fielded decisions.
 
+### DEC-192
+- Status: `Accepted`
+- Decision: Accept `docs/131_ai-company-rework-plan-acceptance-plan.md` as planning-only authority for one deterministic local schema-v23 append-only ReworkPlanAcceptance record from one exact source-current schema-v22 review-required ReworkPlan.
+- Why: DEC-191 retains one immutable review-required rework scope, but retained evidence is not operator acceptance and must not be converted directly into Builder execution. The next safe boundary is a separate append-only acceptance fact that binds the exact ReworkPlan, recomputed DEC-188 source evidence, operator rationale, attempt cap, and closed authority summary without rewriting the source record.
+- Impact: The plan fixes schema-v23 additions, exact path-plus-ten-key accept request, current source recomputation, immutable acceptance/digest contract, exact ReworkPlan-bound inspection, snapshot exclusion, idempotency, collision, rollback, UI, and focused verification requirements. This planning decision changes no runtime, schema, API, UI, state, record, ReworkPlan status, WorkOrder, attempt, approval, execution, provider, source, Git/release, memory, policy, collection, bypass, or connector behavior.
+- Needed Before: Runtime/schema/API/UI implementation requires the complete fielded decision in `docs/132_ai-company-rework-plan-acceptance-implementation-decision-handoff.md`. Builder append, retry, preflight, approval, mutation, role execution, scheduling, and every downstream authority remain separately gated.
+
+### DEC-193
+- Status: `Accepted`
+- Decision: Record `docs/132_ai-company-rework-plan-acceptance-implementation-decision-handoff.md` as the complete 15-field input shape for the schema-v23 append-only ReworkPlanAcceptance implementation gate.
+- Why: Generic continuation cannot choose the exact source tuple, source-current recomputation, operator acceptance, migration shape, immutable fields, idempotency, collision policy, bounded inspection, snapshot exclusion, rollback, focused smoke, or every execution authority that must remain closed.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one acceptance-record-and-inspect-only slice. It explicitly excludes ReworkPlan mutation, Builder WorkOrder or WorkOrderAttempt append, retry, preflight, approval creation or resolution, source mutation, Builder/Reviewer/QA execution, scheduling, providers, memory, runtime-agent Git/release, policy mutation, collections, approval bypass, and connectors. No implementation authority is recorded.
+- Needed Before: The operator must supply every required field in one valid implementation decision. `DEC-192`, this handoff, broad approval, delegated self-approval, or continuation does not authorize schema migration or durable acceptance creation. A valid implementation outcome is reserved for `DEC-194`.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
