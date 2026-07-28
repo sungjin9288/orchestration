@@ -36,6 +36,16 @@ const OPS_SUPERVISION_QUERY_KEYS = Object.freeze([
   'targetType',
 ]);
 const OPS_SUPERVISION_MAX_REQUEST_TARGET_LENGTH = 2048;
+const REVIEWER_REWORK_QUERY_KEYS = Object.freeze([
+  'evaluatedAt',
+  'expectedAttemptRecordDigest',
+  'expectedExecutionPlanDigest',
+  'reviewArtifactId',
+  'reviewerAttemptId',
+  'reviewerRunId',
+  'reviewerWorkOrderId',
+]);
+const REVIEWER_REWORK_MAX_REQUEST_TARGET_LENGTH = 3072;
 let latestHarnessExecution = null;
 let recentHarnessExecutions = [];
 let harnessExecutionSequence = 0;
@@ -2307,6 +2317,59 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, { error: error.message || 'ExecutionPlan 조회에 실패했습니다.' });
+      return;
+    }
+  }
+
+  const reviewerReworkPreviewMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/reviewer-rework-preview$/,
+  );
+  if (reviewerReworkPreviewMatch) {
+    if (method !== 'GET') {
+      text(response, 405, 'Method Not Allowed', 'text/plain; charset=utf-8');
+      return;
+    }
+    try {
+      const requestTarget = request.url || '';
+      const queryKeys = [...url.searchParams.keys()].sort();
+      if (
+        requestTarget.length > REVIEWER_REWORK_MAX_REQUEST_TARGET_LENGTH ||
+        queryKeys.length !== REVIEWER_REWORK_QUERY_KEYS.length ||
+        queryKeys.some(
+          (key, index) => key !== REVIEWER_REWORK_QUERY_KEYS[index],
+        ) ||
+        REVIEWER_REWORK_QUERY_KEYS.some(
+          (key) => url.searchParams.getAll(key).length !== 1,
+        )
+      ) {
+        const error = new Error(
+          'ReviewerReworkPlanPreview requires exactly seven bounded query fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const executionPlanId = decodeURIComponent(
+        reviewerReworkPreviewMatch[1],
+      );
+      const preview = runtime.getReviewerReworkPlanPreview({
+        executionPlanId,
+        ...Object.fromEntries(
+          REVIEWER_REWORK_QUERY_KEYS.map((key) => [
+            key,
+            url.searchParams.get(key),
+          ]),
+        ),
+      });
+      json(response, 200, preview);
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: String(
+          error.message || 'Reviewer rework preview 조회에 실패했습니다.',
+        ).slice(0, 240),
+      });
       return;
     }
   }

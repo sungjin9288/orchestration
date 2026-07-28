@@ -12,9 +12,10 @@ authority를 열지 않는다.
 
 - Planning-only decision: accepted as `DEC-186`
 - Implementation handoff: recorded as `DEC-187`
-- Complete fielded implementation decision: missing and reserved for `DEC-188`
+- Complete fielded implementation decision: accepted as `DEC-188`
 - Current runtime: schema v21 with exact Reviewer changes-requested durable evidence only
-- Implementation authority: blocked
+- Implementation authority: consumed for the exact response-only runtime/API/UI slice
+- Downstream authority: blocked
 
 ## Minimum Required Decision Fields
 
@@ -143,6 +144,7 @@ node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Until one exact valid outcome is supplied, implementation remains blocked. Planning and this handoff
-authorize no runtime, API, UI, schema, durable rework, retry, execution, approval, provider, source,
-Git/release, memory, policy, collection, bypass, or connector behavior.
+The exact valid approval outcome has been supplied and consumed as `DEC-188`. This handoff now
+serves as immutable implementation provenance. Schema migration, durable rework, retry, execution,
+approval, provider, source, Git/release, memory, policy, collection, bypass, and connector
+authority remain blocked.

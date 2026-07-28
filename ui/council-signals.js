@@ -214,6 +214,54 @@ export function getOpsSupervisionTarget(targetType, target, parent) {
   return null;
 }
 
+export function getReviewerReworkPreviewTarget(bundle) {
+  if (!bundle?.executionPlan || !Array.isArray(bundle.workOrders)) return null;
+  const executionPlan = bundle.executionPlan;
+  const byRole = Object.fromEntries(
+    bundle.workOrders.map((workOrder) => [workOrder.role, workOrder]),
+  );
+  const latestAttempt = bundle.latestWorkOrderAttempt || null;
+  const qaAttempt = (bundle.workOrderAttempts || []).some(
+    (attempt) =>
+      attempt.role === 'qa' ||
+      attempt.action === 'run-qa' ||
+      attempt.workOrderId === byRole.qa?.id,
+  );
+  if (
+    executionPlan.status !== 'blocked' ||
+    executionPlan.stopReason !== 'reviewer-changes-requested' ||
+    executionPlan.stoppedAt !== 'reviewer' ||
+    executionPlan.activeWorkOrderId !== null ||
+    bundle.workOrders.length !== 3 ||
+    byRole.builder?.status !== 'completed' ||
+    byRole.reviewer?.status !== 'changes-requested' ||
+    byRole.qa?.status !== 'blocked-dependency' ||
+    qaAttempt ||
+    latestAttempt?.workOrderId !== byRole.reviewer.id ||
+    latestAttempt?.role !== 'reviewer' ||
+    latestAttempt?.action !== 'run-reviewer' ||
+    latestAttempt?.status !== 'changes-requested' ||
+    latestAttempt?.stopReason !== 'reviewer-changes-requested' ||
+    latestAttempt?.attemptNumber !== 1 ||
+    latestAttempt?.sourceDigest !== executionPlan.sourceDigest ||
+    latestAttempt?.runRefs?.length !== 1 ||
+    latestAttempt?.artifactRefs?.length !== 1 ||
+    byRole.reviewer.completionRunId !== latestAttempt.runRefs[0] ||
+    byRole.reviewer.reviewArtifactId !== latestAttempt.artifactRefs[0]
+  ) {
+    return null;
+  }
+
+  return {
+    executionPlanId: executionPlan.id,
+    reviewerWorkOrderId: byRole.reviewer.id,
+    reviewerAttemptId: latestAttempt.id,
+    reviewerRunId: byRole.reviewer.completionRunId,
+    reviewArtifactId: byRole.reviewer.reviewArtifactId,
+    expectedAttemptRecordDigest: latestAttempt.recordDigest,
+  };
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

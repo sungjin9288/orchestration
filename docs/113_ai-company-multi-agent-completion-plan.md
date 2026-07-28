@@ -167,7 +167,7 @@ Reviewer `changes-requested`. `DEC-187` records its complete fielded implementat
 The preview must parse one bounded canonical review Artifact, preserve source-ordered duplicate
 findings, inherit target paths and verification commands without widening, compute one canonical
 source progress digest, cap the later Builder attempt at one, and return `allowedActions=[]`.
-Runtime/API/UI implementation remains reserved for an exact `DEC-188` decision. Durable ReworkPlan,
+`DEC-188` implements only that exact response-only runtime/API/UI boundary. Durable ReworkPlan,
 Builder WorkOrder or attempt append, preflight, approval, mutation, Reviewer/QA execution, automatic
 scheduling, and provider execution remain separately gated.
 

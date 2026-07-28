@@ -8853,6 +8853,119 @@ h3 {
   min-width: 0;
 }
 
+.reviewer-rework-preview-action {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 8px;
+}
+
+.reviewer-rework-preview {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin-top: 10px;
+  padding-block: 12px;
+  border-block: 1px solid var(--surface-control-border);
+}
+
+.reviewer-rework-findings {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reviewer-rework-finding {
+  display: grid;
+  grid-template-columns: minmax(112px, 0.24fr) minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+  padding-block: 7px;
+  border-bottom: 1px solid var(--surface-control-border);
+}
+
+.reviewer-rework-finding span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.reviewer-rework-finding strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.reviewer-rework-scope {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  min-width: 0;
+}
+
+.reviewer-rework-scope > div {
+  min-width: 0;
+}
+
+.reviewer-rework-scope strong {
+  font-size: 0.72rem;
+}
+
+.reviewer-rework-scope ul {
+  display: grid;
+  gap: 5px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reviewer-rework-scope code {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 0.72rem;
+  white-space: normal;
+}
+
+.reviewer-rework-evidence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 14px;
+  margin: 0;
+}
+
+.reviewer-rework-evidence > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.42fr) minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+}
+
+.reviewer-rework-evidence dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.reviewer-rework-evidence dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.reviewer-rework-blocked {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+}
+
 .verification-approval-form,
 .verification-proof-form {
   display: grid;
@@ -10561,8 +10674,22 @@ body[data-evidence-density='compact'] .control-overview-stack {
     width: 100%;
   }
 
+  .reviewer-rework-preview-action {
+    width: 100%;
+  }
+
   .ops-supervision-evidence {
     grid-template-columns: 1fr;
+  }
+
+  .reviewer-rework-evidence,
+  .reviewer-rework-scope {
+    grid-template-columns: 1fr;
+  }
+
+  .reviewer-rework-finding {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 
   .app-shell {

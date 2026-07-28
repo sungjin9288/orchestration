@@ -210,14 +210,14 @@ quarantine mutation, replay, retry, resume, and every downstream authority remai
 Planning-only `DEC-186` defines one schema-v21-preserving response-only
 `ReviewerReworkPlanPreview` in `docs/127_ai-company-reviewer-rework-preview-plan.md`, and `DEC-187`
 records its complete fielded implementation handoff in
-`docs/128_ai-company-reviewer-rework-preview-implementation-decision-handoff.md`. The planned
+`docs/128_ai-company-reviewer-rework-preview-implementation-decision-handoff.md`. `DEC-188`
+implements the exact seven-key runtime/API path and browser-memory inspection action. The
 projection accepts only one exact source-current StaffingEntry-bound ExecutionPlan stopped at
 Reviewer `changes-requested`, caps the review Artifact before read, preserves source-ordered
 duplicate findings, inherits the original target allowlist and verification commands without
 widening, computes one canonical source progress digest, caps a later Builder attempt at one, and
-returns `allowedActions=[]`. Runtime/API/UI implementation, durable rework, WorkOrder or attempt
-append, preflight, approval, mutation, Reviewer/QA execution, scheduling, and providers remain
-blocked until an exact `DEC-188` decision.
+returns `allowedActions=[]`. Durable rework, WorkOrder or attempt append, preflight, approval,
+mutation, Reviewer/QA execution, scheduling, and providers remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -714,8 +714,8 @@ scheduler evidence, and DEC-173 through DEC-176 Stage 4A planning and response-o
 evidence plus DEC-177 through DEC-179 Stage 4B planning, handoff, and fixed first-attempt
 implementation evidence plus DEC-180 through DEC-182 Stage 4C retry planning, handoff, and exact
 implementation evidence plus DEC-183 through DEC-185 Stage 6A inspect-only planning, handoff, and
-implementation evidence plus DEC-186 and DEC-187 Stage 5 Reviewer rework preview planning and
-handoff-only
+implementation evidence plus DEC-186 through DEC-188 Stage 5 Reviewer rework preview planning,
+handoff, and response-only implementation
 evidence pass the aggregate and UI QA gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
@@ -2376,9 +2376,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 970 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 972 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 702 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 703 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2967,11 +2967,11 @@ Playwright CLI:
   browser-memory inspect action exist; no schema migration, durable Ops record, settlement,
   cancellation, quarantine mutation, resume, replay, retry, recovery command, or automatic attempt
   selection is implemented.
-- `DEC-186` and `DEC-187` are planning and handoff-only evidence for one exact response-only
-  ReviewerReworkPlanPreview. No runtime module, route, UI action, schema migration, durable
-  ReworkPlan, Builder WorkOrder or attempt append, retry, preflight, approval, source mutation,
-  Reviewer/QA execution, scheduling, provider execution, or automatic selection is implemented.
-  Those changes require the exact fielded `DEC-188` decision.
+- `DEC-186` and `DEC-187` are consumed planning and handoff evidence for the exact response-only
+  ReviewerReworkPlanPreview implemented by `DEC-188`. The runtime module, exact seven-key GET, and
+  browser-memory inspection action exist; no schema migration, durable ReworkPlan, Builder
+  WorkOrder or attempt append, retry, preflight, approval, source mutation, Reviewer/QA execution,
+  scheduling, provider execution, or automatic selection is implemented.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.
@@ -3201,8 +3201,8 @@ Playwright CLI:
   only one separately approved same-role attempt #2. `DEC-183` plans one exact inspect-only
   OpsSupervisionPreview, `DEC-184` records its implementation handoff, and `DEC-185` implements only
   the exact no-write inspection path. `DEC-186` plans one exact ReviewerReworkPlanPreview and
-  `DEC-187` records its complete fielded implementation handoff; no runtime/API/UI behavior opens
-  before `DEC-188`. Dynamic or additional cells, bound
+  `DEC-187` records its complete fielded implementation handoff; `DEC-188` implements only its exact
+  no-write runtime/API/UI behavior. Dynamic or additional cells, bound
   Council revision/resume/auto-chain, automatic or repeated retry/rework, interrupted-attempt
   recovery, memory application,
   provider/background WorkOrders, source/Git/release, policy, bypass, and connector authority remain

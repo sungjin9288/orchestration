@@ -225,6 +225,14 @@ const {
   normalizeOpsSupervisionRequest,
 } = require('./ops-supervision-preview');
 const {
+  MAX_REVIEW_ARTIFACT_BYTES,
+  buildReviewerReworkPlanPreview,
+  normalizeReviewerReworkPreviewRequest,
+} = require('./reviewer-rework-preview');
+const {
+  parseReviewerArtifactContent,
+} = require('../execution/coordinator/artifact-content');
+const {
   buildSpecialistBatchPreview,
   digestCanonical: digestSpecialistCanonical,
   normalizeSpecialistBatchPreviewRequest,
@@ -3935,6 +3943,319 @@ function createRuntimeService(options = {}) {
       ),
       persisted: true,
     };
+  }
+
+  function reviewerReworkNowIso() {
+    const value =
+      typeof options.reviewerReworkNow === 'function'
+        ? options.reviewerReworkNow()
+        : new Date();
+    const timestamp =
+      value instanceof Date ? value.getTime() : Date.parse(String(value));
+    if (!Number.isFinite(timestamp)) {
+      const error = new Error(
+        'ReviewerReworkPlanPreview clock must return a valid timestamp',
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+    return new Date(timestamp).toISOString();
+  }
+
+  function reviewerReworkNotFound(message) {
+    const error = new Error(message);
+    error.statusCode = 404;
+    return error;
+  }
+
+  function readBoundReviewArtifactBytes(artifact) {
+    const artifactPath = path.resolve(store.resolveArtifactPath(artifact.path));
+    const artifactRoot = path.resolve(store.artifactsDir);
+    if (
+      artifactPath === artifactRoot ||
+      !artifactPath.startsWith(`${artifactRoot}${path.sep}`)
+    ) {
+      throw conflict('Review Artifact path leaves the runtime artifact root');
+    }
+
+    let descriptor = null;
+    try {
+      const linkStatus = fs.lstatSync(artifactPath);
+      if (linkStatus.isSymbolicLink() || !linkStatus.isFile()) {
+        throw conflict('Review Artifact must be one regular non-symlink file');
+      }
+      if (
+        linkStatus.size < 1 ||
+        linkStatus.size > MAX_REVIEW_ARTIFACT_BYTES
+      ) {
+        throw conflict('Review Artifact exceeds the 64 KiB pre-read byte cap');
+      }
+      const openFlags =
+        fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0);
+      descriptor = fs.openSync(artifactPath, openFlags);
+      const openStatus = fs.fstatSync(descriptor);
+      if (
+        !openStatus.isFile() ||
+        openStatus.size !== linkStatus.size ||
+        openStatus.size > MAX_REVIEW_ARTIFACT_BYTES
+      ) {
+        throw conflict('Review Artifact changed during bounded inspection');
+      }
+      const bytes = fs.readFileSync(descriptor);
+      if (
+        bytes.length !== openStatus.size ||
+        bytes.length > MAX_REVIEW_ARTIFACT_BYTES
+      ) {
+        throw conflict('Review Artifact changed during bounded read');
+      }
+      return bytes;
+    } catch (error) {
+      if (error.statusCode) throw error;
+      throw conflict(`Review Artifact cannot be inspected safely: ${error.message}`);
+    } finally {
+      if (descriptor !== null) fs.closeSync(descriptor);
+    }
+  }
+
+  function getReviewerReworkPlanPreview(input) {
+    let request;
+    try {
+      request = normalizeReviewerReworkPreviewRequest(input);
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReviewerReworkPlanPreview requires supported state: ${error.message}`,
+      );
+    }
+    const executionPlan = state.executionPlans?.[request.executionPlanId];
+    const reviewerWorkOrder = state.workOrders?.[request.reviewerWorkOrderId];
+    const reviewerAttempt = state.workOrderAttempts?.[request.reviewerAttemptId];
+    const reviewerRun = state.runs?.[request.reviewerRunId];
+    const reviewArtifact = state.artifacts?.[request.reviewArtifactId];
+    if (!executionPlan) {
+      throw reviewerReworkNotFound('ExecutionPlan not found');
+    }
+    if (!reviewerWorkOrder) {
+      throw reviewerReworkNotFound('Reviewer WorkOrder not found');
+    }
+    if (!reviewerAttempt) {
+      throw reviewerReworkNotFound('Reviewer WorkOrderAttempt not found');
+    }
+    if (!reviewerRun) {
+      throw reviewerReworkNotFound('Reviewer Run not found');
+    }
+    if (!reviewArtifact) {
+      throw reviewerReworkNotFound('Review Artifact not found');
+    }
+
+    const bundle = getReviewedDeliveryRoleBundle(state, executionPlan.id);
+    const { byRole, councilSession, mission } = bundle;
+    const bound = assertBoundStaffingSchedulerSourceCurrent(
+      state,
+      councilSession,
+      { executionPlan },
+    );
+    if (!bound) {
+      throw conflict('ReviewerReworkPlanPreview requires StaffingEntry binding');
+    }
+    assertReviewedDeliveryPlanApproval(bundle);
+    try {
+      assertWorkOrderAttemptRecord(reviewerAttempt);
+    } catch (error) {
+      throw conflict(`Reviewer WorkOrderAttempt is invalid: ${error.message}`);
+    }
+
+    const planAttempts = bundle.workOrderAttempts;
+    const qaAttempts = planAttempts.filter(
+      (attempt) =>
+        attempt.workOrderId === byRole.qa.id ||
+        attempt.action === WORK_ORDER_ATTEMPT_ACTION.RUN_QA,
+    );
+    if (
+      executionPlan.status !== EXECUTION_PLAN_STATUS.BLOCKED ||
+      executionPlan.stopReason !== 'reviewer-changes-requested' ||
+      executionPlan.stoppedAt !== 'reviewer' ||
+      executionPlan.activeWorkOrderId !== null ||
+      byRole.builder.status !== WORK_ORDER_STATUS.COMPLETED ||
+      byRole.reviewer.id !== reviewerWorkOrder.id ||
+      byRole.reviewer.status !== WORK_ORDER_STATUS.CHANGES_REQUESTED ||
+      byRole.qa.status !== WORK_ORDER_STATUS.BLOCKED_DEPENDENCY ||
+      qaAttempts.length !== 0 ||
+      bundle.latestWorkOrderAttempt?.id !== reviewerAttempt.id ||
+      reviewerAttempt.executionPlanId !== executionPlan.id ||
+      reviewerAttempt.workOrderId !== reviewerWorkOrder.id ||
+      reviewerAttempt.role !== 'reviewer' ||
+      reviewerAttempt.action !== WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER ||
+      reviewerAttempt.status !== WORK_ORDER_ATTEMPT_STATUS.CHANGES_REQUESTED ||
+      reviewerAttempt.stopReason !== 'reviewer-changes-requested' ||
+      reviewerAttempt.attemptNumber !== 1 ||
+      reviewerAttempt.sourceDigest !== executionPlan.sourceDigest ||
+      reviewerAttempt.missionId !== mission.id ||
+      reviewerAttempt.projectId !== executionPlan.projectId ||
+      reviewerAttempt.staffingPlanId !== bound.staffingPlan.id ||
+      reviewerAttempt.staffingEntryId !== bound.staffingEntry.id ||
+      reviewerAttempt.councilSessionId !== councilSession.id
+    ) {
+      throw conflict(
+        'ReviewerReworkPlanPreview requires the latest exact changes-requested stop',
+      );
+    }
+
+    const reviewerDependencies = reviewerWorkOrder.dependencyIds.map(
+      (dependencyId) => {
+        const dependency = assertWorkOrder(dependencyId, state);
+        return { id: dependency.id, status: dependency.status };
+      },
+    );
+    if (
+      reviewerAttempt.dependencyDigest !==
+        computeWorkOrderAttemptDependencyDigest({
+          executionPlanId: executionPlan.id,
+          workOrderId: reviewerWorkOrder.id,
+          dependencies: reviewerDependencies,
+        }) ||
+      !executionPlan.workOrderIds.includes(reviewerWorkOrder.id)
+    ) {
+      throw conflict('Reviewer WorkOrderAttempt dependency lineage is stale');
+    }
+
+    const builderRun = state.runs?.[byRole.builder.completionRunId];
+    if (!builderRun) {
+      throw conflict('Builder completion Run is missing');
+    }
+    const reviewContentBytes = readBoundReviewArtifactBytes(reviewArtifact);
+    let parsedReview;
+    try {
+      parsedReview = parseReviewerArtifactContent(reviewContentBytes.toString('utf8'));
+    } catch (error) {
+      throw conflict(`Review Artifact is malformed: ${error.message}`);
+    }
+    if (
+      reviewerWorkOrder.completionRunId !== reviewerRun.id ||
+      reviewerWorkOrder.reviewArtifactId !== reviewArtifact.id ||
+      !reviewerWorkOrder.runRefs.includes(reviewerRun.id) ||
+      !reviewerWorkOrder.artifactRefs.includes(reviewArtifact.id) ||
+      !reviewerAttempt.runRefs.includes(reviewerRun.id) ||
+      !reviewerAttempt.artifactRefs.includes(reviewArtifact.id) ||
+      reviewerRun.taskId !== executionPlan.controlTaskId ||
+      reviewerRun.role !== 'reviewer' ||
+      reviewerRun.status !== RUN_STATUS.COMPLETED ||
+      reviewerRun.summary?.sourceRunId !== builderRun.id ||
+      reviewerRun.summary?.mappedReviewStatus !== REVIEW_STATUS.CHANGES_REQUESTED ||
+      reviewerRun.summary?.rawVerdict !== 'changes_requested' ||
+      reviewerRun.summary?.terminal !== true ||
+      reviewerRun.summary?.reviewArtifactId !== reviewArtifact.id ||
+      reviewArtifact.type !== ARTIFACT_TYPE.REVIEW ||
+      reviewArtifact.taskId !== executionPlan.controlTaskId ||
+      reviewArtifact.runId !== reviewerRun.id ||
+      parsedReview.verdict !== 'changes_requested' ||
+      parsedReview.sourceBuilderRunId !== builderRun.id ||
+      reviewerRun.summary?.findingsCount !== parsedReview.findings.length
+    ) {
+      throw conflict('Reviewer Run or Artifact lineage is stale');
+    }
+    if (
+      byRole.builder.completionRunId !== builderRun.id ||
+      !byRole.builder.runRefs.includes(builderRun.id) ||
+      builderRun.taskId !== executionPlan.controlTaskId ||
+      builderRun.role !== 'builder' ||
+      builderRun.status !== RUN_STATUS.COMPLETED ||
+      !sameExactStringArrays(
+        builderRun.summary?.changedFiles || [],
+        byRole.builder.changedFiles || [],
+      )
+    ) {
+      throw conflict('Builder completion lineage is stale');
+    }
+
+    const targetPathAllowlist = byRole.builder.targetPathAllowlist || [];
+    const verificationCommands = byRole.builder.verificationCommands || [];
+    if (
+      !sameExactStringArrays(
+        targetPathAllowlist,
+        byRole.reviewer.targetPathAllowlist || [],
+      ) ||
+      !sameExactStringArrays(
+        targetPathAllowlist,
+        byRole.qa.targetPathAllowlist || [],
+      ) ||
+      !sameExactStringArrays(
+        verificationCommands,
+        byRole.reviewer.verificationCommands || [],
+      ) ||
+      !sameExactStringArrays(
+        verificationCommands,
+        byRole.qa.verificationCommands || [],
+      ) ||
+      !sameExactStringArrays(
+        verificationCommands,
+        executionPlan.verificationPlan || [],
+      )
+    ) {
+      throw conflict('Reviewer rework target or verification scope diverged');
+    }
+
+    const decisionInboxItemRefs = [
+      ...new Set([
+        ...(reviewerWorkOrder.inboxItemRefs || []),
+        ...(reviewerAttempt.decisionInboxItemRefs || []),
+      ]),
+    ];
+    for (const itemId of decisionInboxItemRefs) {
+      const item = state.decisionInboxItems?.[itemId];
+      if (
+        !item ||
+        item.taskId !== executionPlan.controlTaskId ||
+        item.sourceType !== DECISION_INBOX_SOURCE_TYPE.REVIEW ||
+        item.sourceId !== reviewArtifact.id ||
+        item.status !== DECISION_INBOX_STATUS.PENDING ||
+        item.blocksTask !== true
+      ) {
+        throw conflict('Reviewer Decision Inbox lineage is stale');
+      }
+    }
+
+    return buildReviewerReworkPlanPreview(
+      request,
+      {
+        executionPlanDigest: computeExecutionPlanRecordDigest(executionPlan),
+        attemptRecordDigest: reviewerAttempt.recordDigest,
+        reviewerCompletedAt: reviewerAttempt.completedAt,
+        reviewArtifact: {
+          artifactId: reviewArtifact.id,
+          artifactType: reviewArtifact.type,
+          artifactTaskId: reviewArtifact.taskId,
+          artifactRunId: reviewArtifact.runId,
+        },
+        reviewArtifactBytes: reviewContentBytes,
+        builderRunId: builderRun.id,
+        builderChangedFiles: [...byRole.builder.changedFiles],
+        builderArtifactRefs: [...byRole.builder.artifactRefs],
+        targetPathAllowlist: [...targetPathAllowlist],
+        verificationCommands: [...verificationCommands],
+        evidenceRefs: {
+          missionRef: mission.id,
+          staffingPlanRef: bound.staffingPlan.id,
+          staffingEntryRef: bound.staffingEntry.id,
+          councilSessionRef: councilSession.id,
+          builderWorkOrderRef: byRole.builder.id,
+          builderRunRef: builderRun.id,
+          reviewerWorkOrderRef: reviewerWorkOrder.id,
+          reviewerAttemptRef: reviewerAttempt.id,
+          reviewerRunRef: reviewerRun.id,
+          reviewArtifactRef: reviewArtifact.id,
+          decisionInboxItemRefs,
+        },
+      },
+      { now: reviewerReworkNowIso() },
+    );
   }
 
   function opsSupervisionNowIso() {
@@ -9411,6 +9732,7 @@ function createRuntimeService(options = {}) {
     getMissionEvidenceGraph,
     getTaskExecutionProvenance,
     getOpsSupervisionPreview,
+    getReviewerReworkPlanPreview,
     getMissionCloseOut,
     getMissionLearningCandidate,
     getLearningCandidateReview,

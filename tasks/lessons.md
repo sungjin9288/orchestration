@@ -1,5 +1,6 @@
 # lessons
 
+- A shared parser that deduplicates lists is not suitable when source observations must preserve order and multiplicity. Reuse it for stable verdict and provenance fields, but parse the bounded Findings section separately, reject raw or sensitive content before output, and bind each one-based occurrence into its own digest.
 - Reviewer rework planning must make the no-progress stop observable before mutation authority opens. Bind one exact changes-requested review to a canonical progress digest, preserve duplicate findings and the original target and verification scope, cap the next attempt explicitly, and keep the preview actionless until a later decision authorizes append, approval, and execution.
 - A durable failed-cell retry needs a separate append-only authority lineage, not a rewrite of the source batch or first attempt. Validate source/retry attempt role, cell, profile, position, spec, source, path, and input digests again at the coordinator boundary so direct invocation cannot bypass file-store lineage checks.
 - Exact idempotent replay should bind the complete normalized retry request and run before source-current recomputation. That permits a previously accepted command to return its durable evidence after later source drift without invoking the worker again, while every non-identical request still fails closed against fresh source.

@@ -53,7 +53,7 @@ assert.match(plan, /`DEC-182` implements the schema-v21 path/);
 assert.match(plan, /### Stage 5: Reviewer Rework/);
 assert.match(plan, /Planning-only `DEC-186`/);
 assert.match(plan, /`DEC-187` records its complete fielded implementation handoff/);
-assert.match(plan, /reserved for an exact `DEC-188` decision/);
+assert.match(plan, /`DEC-188` implements only that exact response-only runtime\/API\/UI boundary/);
 assert.match(plan, /source progress digest/);
 assert.match(plan, /allowedActions=\[\]/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
@@ -149,12 +149,13 @@ for (const decisionId of [
   'DEC-185',
   'DEC-186',
   'DEC-187',
+  'DEC-188',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-187`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-188`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -237,6 +238,7 @@ process.stdout.write(
         opsSupervisionPreviewImplementation: 'accepted-dec-185',
         reviewerReworkPreviewPlanning: 'accepted-dec-186',
         reviewerReworkPreviewHandoff: 'documented-dec-187',
+        reviewerReworkPreviewImplementation: 'accepted-dec-188',
       },
       currentRuntime: {
         schemaVersion: 21,
@@ -246,15 +248,16 @@ process.stdout.write(
         operatorSteppedScheduler: true,
         specialistBatchPreview: true,
         durableSpecialistBatch: true,
+        reviewerReworkPreview: true,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
         stage: '5',
-        object: 'reviewer-rework-plan-preview',
+        object: 'durable-reviewer-rework-append-planning',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-188',
+        nextDecisionLogEntry: null,
       },
       authority: {
         documentationAllowed: true,
@@ -274,7 +277,7 @@ process.stdout.write(
         opsSupervisionPreviewPlanningAllowed: true,
         opsSupervisionPreviewImplementationAllowed: true,
         reviewerReworkPreviewPlanningAllowed: true,
-        reviewerReworkPreviewImplementationAllowed: false,
+        reviewerReworkPreviewImplementationAllowed: true,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

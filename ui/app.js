@@ -139,6 +139,7 @@ import {
   getLatestRealCouncilPositions,
   getMissionStaffingPlanSummary,
   getOpsSupervisionTarget,
+  getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
   getMissionExecutionPlanBundle,
@@ -432,6 +433,7 @@ const state = {
   councilSpecialistBatchPreview: null,
   councilSpecialistBatch: null,
   opsSupervisionPreview: null,
+  reviewerReworkPlanPreview: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5131,6 +5133,7 @@ function applySnapshotPayload(payload) {
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.opsSupervisionPreview = null;
+    state.reviewerReworkPlanPreview = null;
   }
 
   state.payload = {
@@ -5712,6 +5715,7 @@ function syncSelectionsFromTask(taskId, options = {}) {
   if (state.selectedTaskId !== taskId) {
     resetExecutionProvenance();
     state.opsSupervisionPreview = null;
+    state.reviewerReworkPlanPreview = null;
   }
   state.selectedTaskId = taskId;
   state.selectionSeeded = true;
@@ -5764,6 +5768,7 @@ function syncSelectionsFromMission(missionId) {
     state.councilSpecialistBatchPreview = null;
     state.councilSpecialistBatch = null;
     state.opsSupervisionPreview = null;
+    state.reviewerReworkPlanPreview = null;
     state.missionEvidenceGraph = null;
     state.missionEvidenceGraphError = null;
     state.missionEvidenceGraphLoading = false;
@@ -5851,6 +5856,7 @@ function restoreMissionComposerFocus(targetName = 'missionTitle', selection = nu
 }
 
 function startNewMissionDraft() {
+  state.reviewerReworkPlanPreview = null;
   state.menuGroup = getNavGroupForSurface('mission');
   state.surface = 'mission';
   state.missionComposerExpanded = true;
@@ -5870,6 +5876,9 @@ function closeMissionComposer() {
 }
 
 async function handleSurfaceChange(surface) {
+  if (surface !== state.surface) {
+    state.reviewerReworkPlanPreview = null;
+  }
   state.menuGroup = getNavGroupForSurface(surface);
   state.surface = surface;
   rememberSurfaceVisit(surface);
@@ -5883,6 +5892,7 @@ async function handleNavGroupChange(groupId) {
   state.menuGroup = groupId;
 
   if (!group.surfaces.includes(state.surface)) {
+    state.reviewerReworkPlanPreview = null;
     state.surface = group.defaultSurface;
     rememberSurfaceVisit(state.surface);
   }
@@ -7206,6 +7216,74 @@ async function inspectOpsSupervision(actionButton) {
   state.opsSupervisionPreview = payload;
   elements.refreshStatus.textContent =
     `${payload.targetId} ${payload.timeClassification}`;
+  render();
+}
+
+function getReviewerReworkSource(executionPlanId) {
+  const snapshot = getDerived().snapshot;
+  const executionPlan = snapshot.executionPlans?.[executionPlanId] || null;
+  const bundle = executionPlan
+    ? getMissionExecutionPlanBundle(snapshot, executionPlan.councilSessionId)
+    : null;
+  return {
+    bundle,
+    request: getReviewerReworkPreviewTarget(bundle),
+  };
+}
+
+async function previewReviewerReworkPlan(actionButton) {
+  state.reviewerReworkPlanPreview = null;
+  const executionPlanId = String(actionButton?.dataset.id || '').trim();
+  const source = getReviewerReworkSource(executionPlanId);
+  if (!source.request || source.bundle?.executionPlan.id !== executionPlanId) {
+    throw new Error(
+      '현재 화면의 exact Reviewer changes-requested evidence가 필요합니다.',
+    );
+  }
+
+  const request = {
+    ...source.request,
+    expectedExecutionPlanDigest: await computeExecutionPlanRecordDigest(
+      source.bundle.executionPlan,
+    ),
+    evaluatedAt: new Date().toISOString(),
+  };
+  const query = new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(request).filter(([key]) => key !== 'executionPlanId'),
+    ),
+  );
+  const response = await fetch(
+    `/api/execution-plans/${encodeURIComponent(executionPlanId)}/reviewer-rework-preview?${query}`,
+    { headers: { Accept: 'application/json' } },
+  );
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(
+      payload.error ||
+        `Reviewer rework preview 조회가 실패했습니다: ${response.status}`,
+    );
+  }
+  if (
+    payload.executionPlanId !== request.executionPlanId ||
+    payload.reviewerWorkOrderId !== request.reviewerWorkOrderId ||
+    payload.reviewerAttemptId !== request.reviewerAttemptId ||
+    payload.reviewerRunId !== request.reviewerRunId ||
+    payload.reviewArtifactId !== request.reviewArtifactId ||
+    payload.executionPlanDigest !== request.expectedExecutionPlanDigest ||
+    payload.attemptRecordDigest !== request.expectedAttemptRecordDigest ||
+    payload.persisted !== false ||
+    payload.status !== 'rework-review-required' ||
+    payload.allowedActions?.length !== 0
+  ) {
+    throw new Error(
+      'Reviewer rework preview 응답이 요청한 exact source와 다릅니다.',
+    );
+  }
+
+  state.reviewerReworkPlanPreview = payload;
+  elements.refreshStatus.textContent =
+    `${payload.reviewerAttemptId} rework review required`;
   render();
 }
 
@@ -13249,6 +13327,91 @@ function renderOpsSupervisionButton(targetType, target, parent) {
   `;
 }
 
+function renderReviewerReworkPreviewButton(bundle, attempt) {
+  const source = getReviewerReworkPreviewTarget(bundle);
+  if (!source || source.reviewerAttemptId !== attempt.id) return '';
+  return `
+    <button
+      class="secondary-button reviewer-rework-preview-action"
+      type="button"
+      data-action="preview-reviewer-rework-plan"
+      data-id="${escapeHtml(source.executionPlanId)}"
+      ${state.loading || state.mutating ? 'disabled' : ''}
+    >
+      Preview rework plan
+    </button>
+  `;
+}
+
+function renderReviewerReworkPlanPreview(executionPlanId) {
+  const preview = state.reviewerReworkPlanPreview;
+  if (!preview || preview.executionPlanId !== executionPlanId) return '';
+  const findingRows = (preview.findings || [])
+    .map(
+      (finding) => `
+        <li class="reviewer-rework-finding">
+          <span>${escapeHtml(finding.findingId)}</span>
+          <strong>${escapeHtml(finding.text)}</strong>
+        </li>
+      `,
+    )
+    .join('');
+  const pathRows = (preview.targetPathAllowlist || [])
+    .map((entry) => `<li><code>${escapeHtml(entry)}</code></li>`)
+    .join('');
+  const commandRows = (preview.verificationCommands || [])
+    .map((entry) => `<li><code>${escapeHtml(entry)}</code></li>`)
+    .join('');
+  const evidenceRows = Object.entries(preview.evidenceRefs || {})
+    .map(([key, value]) => {
+      const display = Array.isArray(value)
+        ? value.join(', ') || 'none'
+        : value;
+      return `
+        <div>
+          <dt>${escapeHtml(key)}</dt>
+          <dd>${escapeHtml(display)}</dd>
+        </div>
+      `;
+    })
+    .join('');
+
+  return `
+    <section
+      class="reviewer-rework-preview"
+      aria-label="Reviewer rework plan preview"
+      data-reviewer-rework-preview-id="${escapeHtml(preview.id)}"
+    >
+      <div class="card-title-row card-title-row-tight">
+        <strong>Reviewer rework plan</strong>
+        ${createToken('response-only', 'accent')}
+        ${createToken(`next attempt:${preview.nextAttemptNumber}`, 'warning')}
+        ${createToken(`cap:${preview.maxAdditionalBuilderAttempts}`, 'neutral')}
+      </div>
+      <p class="detail-copy detail-copy-compact">
+        Reviewer findings와 기존 실행 범위를 그대로 묶은 inspection 결과입니다. 실행 권한은 열리지 않았습니다.
+      </p>
+      <ol class="reviewer-rework-findings">${findingRows}</ol>
+      <div class="reviewer-rework-scope">
+        <div>
+          <strong>Target paths</strong>
+          <ul>${pathRows}</ul>
+        </div>
+        <div>
+          <strong>Verification</strong>
+          <ul>${commandRows}</ul>
+        </div>
+      </div>
+      <dl class="reviewer-rework-evidence">${evidenceRows}</dl>
+      <div class="reviewer-rework-blocked" aria-label="Blocked rework actions">
+        ${(preview.blockedActions || [])
+          .map((action) => createToken(action, 'neutral'))
+          .join('')}
+      </div>
+    </section>
+  `;
+}
+
 function renderSpecialistBatchPreview(councilSession) {
   const data = getDerived();
   const mission = data.missionMap.get(councilSession?.missionId) || null;
@@ -13890,6 +14053,12 @@ function renderMissionExecutionPlan(bundle, recovery) {
               }
               ${renderOpsSupervisionButton('work-order-attempt', attempt, executionPlan)}
               ${renderOpsSupervisionPreview(attempt.id)}
+              ${renderReviewerReworkPreviewButton(bundle, attempt)}
+              ${
+                state.reviewerReworkPlanPreview?.reviewerAttemptId === attempt.id
+                  ? renderReviewerReworkPlanPreview(executionPlan.id)
+                  : ''
+              }
             </div>
           `,
         )
@@ -22172,6 +22341,9 @@ document.addEventListener('click', async (event) => {
 
   if (actionButton?.dataset.action === 'open-company-seat') {
     const targetSurface = actionButton.dataset.targetSurface || 'mission';
+    if (targetSurface !== state.surface) {
+      state.reviewerReworkPlanPreview = null;
+    }
     state.menuGroup = getNavGroupForSurface(targetSurface);
     state.surface = targetSurface;
     rememberSurfaceVisit(targetSurface);
@@ -22312,6 +22484,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'inspect-ops-supervision') {
         await inspectOpsSupervision(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'preview-reviewer-rework-plan') {
+        await previewReviewerReworkPlan(actionButton);
         return;
       }
 

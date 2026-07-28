@@ -436,12 +436,11 @@ alignment or execution. Broad parallel StaffingPlan mode remains disabled, and n
 exposure, active-attempt recovery mutation, automatic or repeated retry, retries beyond attempt #2,
 provider call, result application, or downstream Council behavior opens.
 
-Planning-only `DEC-186` and handoff-only `DEC-187` define one later response-only Reviewer
-rework preview over a source-current StaffingEntry-bound Council delivery path. The preview may
-normalize exact `changes-requested` findings and inherited execution scope, but it cannot revise the
-Council synthesis, change alignment, append a Builder attempt, resolve an approval, or execute any
-role. Those authorities remain blocked pending the exact `DEC-188` implementation decision and
-later downstream decisions.
+Planning-only `DEC-186` and handoff-only `DEC-187` define one response-only Reviewer rework preview
+over a source-current StaffingEntry-bound Council delivery path. `DEC-188` implements only that
+exact inspection path: it normalizes `changes-requested` findings and inherited execution scope but
+cannot revise the Council synthesis, change alignment, append a Builder attempt, resolve an
+approval, or execute any role. Those authorities remain blocked pending later downstream decisions.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

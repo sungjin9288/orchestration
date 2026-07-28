@@ -44,7 +44,7 @@ assertHasAll(plan, [
   /approve-ai-company-reviewer-rework-preview-planning-only/,
   /planning authority is recorded as `DEC-186`/,
   /implementation handoff is\s+recorded separately as `DEC-187`/,
-  /reserved for a later exact\s+`DEC-188` decision/,
+  /implementation decision is accepted as\s+`DEC-188`/,
   /schema-v21 operator-stepped WorkOrder path/,
   /response-only `ReviewerReworkPlanPreview`/,
   /ExecutionPlan has `status=blocked`, `stopReason=reviewer-changes-requested`/,
@@ -80,7 +80,9 @@ assertHasAll(plan, [
   /Create no approval, Decision Inbox item, Run, Artifact, WorkflowCheckpoint, WorkOrder/,
   /src\/runtime\/reviewer-rework-preview\.js/,
   /scripts\/smoke-ui-slice-703\.mjs/,
-  /Runtime\/API\/UI implementation requires the complete fielded decision/,
+  /^## Implemented Status$/m,
+  /`DEC-188` consumes the exact fielded handoff/,
+  /GET \/api\/execution-plans\/:executionPlanId\/reviewer-rework-preview/,
   /Schema-v22,\s+durable ReworkPlan/,
 ]);
 
@@ -109,7 +111,8 @@ assertHasAll(handoff, [
   /^# AI Company Reviewer Rework Preview Implementation Decision Handoff$/m,
   /Planning-only decision: accepted as `DEC-186`/,
   /Implementation handoff: recorded as `DEC-187`/,
-  /reserved for `DEC-188`/,
+  /Complete fielded implementation decision: accepted as `DEC-188`/,
+  /Implementation authority: consumed/,
   /decisionId=operator-decision-ai-company-reviewer-rework-preview-implementation-001/,
   /decisionStatus=approve-ai-company-reviewer-rework-preview-implementation-slice/,
   /exact seven-key GET query/,
@@ -121,10 +124,10 @@ assertHasAll(handoff, [
   /scripts\/smoke-ui-slice-703\.mjs/,
   /schema-v22 migration, durable ReworkPlan or rework decision records/,
   /does not approve schema migration durable ReworkPlan new WorkOrder or attempt retry/,
-  /implementation remains blocked/,
+  /valid approval outcome has been supplied and consumed as `DEC-188`/,
 ]);
 
-for (const decisionId of ['DEC-185', 'DEC-186', 'DEC-187']) {
+for (const decisionId of ['DEC-185', 'DEC-186', 'DEC-187', 'DEC-188']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -134,6 +137,10 @@ assert.match(
 assert.match(
   decisionLog,
   /### DEC-187[\s\S]*Status: `Accepted`[\s\S]*No implementation authority is recorded[\s\S]*reserved for `DEC-188`/,
+);
+assert.match(
+  decisionLog,
+  /### DEC-188[\s\S]*Status: `Accepted`[\s\S]*schema-v21-preserving response-only `ReviewerReworkPlanPreview`/,
 );
 
 for (const text of [
@@ -150,6 +157,10 @@ for (const text of [
 }
 
 assert.match(inventory, /AI Company ReviewerReworkPlanPreview planning \| pass/);
+assert.match(
+  inventory,
+  /AI Company ReviewerReworkPlanPreview implementation \| pass/,
+);
 assert.match(readme, /docs\/127_ai-company-reviewer-rework-preview-plan\.md/);
 assert.match(
   readme,
@@ -157,7 +168,7 @@ assert.match(
 );
 assert.match(
   taskLedger,
-  /ai-company-reviewer-rework-preview-planning-post-m7-2022/,
+  /ai-company-reviewer-rework-preview-implementation-post-m7-2023/,
 );
 assert.match(
   lessons,
@@ -171,11 +182,19 @@ assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-reviewer-rework-preview-planning\.mjs'/,
 );
+assert.match(
+  verification,
+  /script: 'scripts\/smoke-ai-company-reviewer-rework-preview\.mjs'/,
+);
 
 assert.match(contracts, /const STATE_SCHEMA_VERSION = 21/);
 assert.match(workOrderAttempts, /CHANGES_REQUESTED: 'changes-requested'/);
 assert.match(workOrderAttempts, /RUN_REVIEWER: 'run-reviewer'/);
 assertHasAll(runtimeService, [
+  /function getReviewerReworkPlanPreview\(input\)/,
+  /store\.loadStateSupportedReadonly\(\)/,
+  /MAX_REVIEW_ARTIFACT_BYTES/,
+  /buildReviewerReworkPlanPreview/,
   /byRole\.reviewer\.status = WORK_ORDER_STATUS\.CHANGES_REQUESTED/,
   /executionPlan\.status = EXECUTION_PLAN_STATUS\.BLOCKED/,
   /executionPlan\.activeWorkOrderId = null/,
@@ -201,8 +220,8 @@ for (const implementationPath of [
 ]) {
   assert.equal(
     fs.existsSync(path.join(repoRoot, implementationPath)),
-    false,
-    `${implementationPath} must remain absent before DEC-188`,
+    true,
+    `${implementationPath} must exist after DEC-188`,
   );
 }
 
@@ -212,10 +231,10 @@ const smokeCount = fs
 const uiSmokeCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
-assert.equal(smokeCount, 970);
-assert.equal(uiSmokeCount, 702);
-assert.match(readme, /970 smoke files/);
-assert.match(readme, /702 UI smoke files/);
+assert.equal(smokeCount, 972);
+assert.equal(uiSmokeCount, 703);
+assert.match(readme, /972 smoke files/);
+assert.match(readme, /703 UI smoke files/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -226,15 +245,16 @@ process.stdout.write(
       smokeFiles: smokeCount,
       uiSmokeFiles: uiSmokeCount,
       planningAllowed: true,
-      implementationAllowed: false,
+      implementationAllowed: true,
       schemaMigrationAllowed: false,
       durableReworkAllowed: false,
       workOrderAppendAllowed: false,
       mutationAllowed: false,
       planningDecision: 'accepted-dec-186',
       handoffDecision: 'accepted-dec-187',
+      implementationDecision: 'accepted-dec-188',
       nextRequiredDecision:
-        'operator-decision-ai-company-reviewer-rework-preview-implementation-001',
+        'durable-reviewer-rework-append-planning-decision',
     },
     null,
     2,

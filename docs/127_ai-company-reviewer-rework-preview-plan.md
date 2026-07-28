@@ -30,8 +30,8 @@ schema, project source는 변경하지 않는다.
 | `approvalStatement` | The operator approves planning only for one exact response-only Reviewer rework preview. Runtime, API, UI, schema, durable rework, retry, execution, mutation, approval, scheduling, and every downstream authority require a later complete fielded decision. |
 
 This planning authority is recorded as `DEC-186`. The complete fielded implementation handoff is
-recorded separately as `DEC-187`. Runtime/API/UI implementation is reserved for a later exact
-`DEC-188` decision.
+recorded separately as `DEC-187`. The exact fielded implementation decision is accepted as
+`DEC-188`.
 
 ## Current Baseline Evidence
 
@@ -356,11 +356,25 @@ fit.
     and policy behavior remains compatible.
 13. Focused runtime/API/UI, UI QA, and aggregate verification pass.
 
+## Implemented Status
+
+`DEC-188` consumes the exact fielded handoff and implements only this response-only boundary:
+
+- `src/runtime/reviewer-rework-preview.js` owns exact request/source/response keys, bounded
+  source-ordered duplicate-preserving findings, canonical digests, attempt cap, and deep freeze.
+- `src/runtime/runtime-service.js` loads supported schema-v21 state without migration, validates the
+  complete source-current bound lineage, enforces a regular non-symlink 64 KiB pre-read Artifact
+  cap, and performs no save.
+- `GET /api/execution-plans/:executionPlanId/reviewer-rework-preview` requires the exact seven query
+  keys once and returns bounded `200`, `400`, `404`, or `409` evidence.
+- The UI exposes only `Preview rework plan` on the exact Reviewer stop and clears response-only
+  browser memory on refresh, Mission/task/surface change, source change, or failure.
+- `scripts/smoke-ai-company-reviewer-rework-preview.mjs` and
+  `scripts/smoke-ui-slice-703.mjs` prove the focused runtime/API/UI boundary.
+
 ## Still Blocked
 
-Runtime/API/UI implementation requires the complete fielded decision in
-`docs/128_ai-company-reviewer-rework-preview-implementation-decision-handoff.md`. Schema-v22,
-durable ReworkPlan, Builder WorkOrder or WorkOrderAttempt append, retry, rework start, preflight,
-approval, source mutation, Reviewer/QA execution, automatic scheduling, providers, memory,
-runtime-agent Git/release, policy mutation, approval bypass, collections, and connectors remain
-separately gated.
+Schema-v22, durable ReworkPlan, Builder WorkOrder or WorkOrderAttempt append, retry, rework start,
+preflight, approval, source mutation, Reviewer/QA execution, automatic scheduling, providers,
+memory, runtime-agent Git/release, policy mutation, approval bypass, collections, and connectors
+remain separately gated.
