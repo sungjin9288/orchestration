@@ -437,6 +437,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 5 runtime and API prove one exact source-current StaffingEntry-bound Reviewer changes-requested stop, canonical response-only rework evidence, duplicate-preserving bounded findings, inherited target and verification scope, 64 KiB pre-read Artifact protection, exact 200 400 404 and 409 transport, zero writes, and blocked retry execution provider source Git memory policy collection bypass and connector authority',
   },
   {
+    id: 'ai-company-durable-reviewer-rework-plan',
+    script: 'scripts/smoke-ai-company-durable-reviewer-rework-plan.mjs',
+    purpose: 'AI Company Stage 5B runtime and API prove atomic schema-v21 to v22 migration plus one immutable review-required ReworkPlan, exact DEC-188 recomputation and operator approval binding, canonical digests, no-write replay, exact inspection, snapshot exclusion, source-drift retention, and zero downstream execution authority',
+  },
+  {
     id: 'ai-company-ops-supervision-preview-planning',
     script: 'scripts/smoke-ai-company-ops-supervision-preview-planning.mjs',
     purpose: 'AI Company Stage 6A planning source-checks consumed DEC-183 through DEC-185 provenance, the schema-v21-preserving exact active-attempt OpsSupervisionPreview contract, six-key GET transport, deterministic deadline and lineage classification, allowedActions empty, zero writes, rollback, and still-blocked recovery authority',
@@ -454,7 +459,7 @@ const informationalChecks = [
   {
     id: 'ai-company-durable-specialist-batch',
     script: 'scripts/smoke-ai-company-durable-specialist-batch.mjs',
-    purpose: 'AI Company Stage 4B runtime and API preserve one exact immutable schema-v20 SpecialistBatch lineage under current schema v21, with two active-before-execution fixed local first attempts, concurrent worker starts, serial durable settlement, exact replay and inspection, generic snapshot exclusion, additive migration, and no downstream provider source Git memory scheduling or policy authority',
+    purpose: 'AI Company Stage 4B runtime and API preserve one exact immutable schema-v20 SpecialistBatch lineage under current schema v22, with two active-before-execution fixed local first attempts, concurrent worker starts, serial durable settlement, exact replay and inspection, generic snapshot exclusion, additive migration, and no downstream provider source Git memory scheduling or policy authority',
   },
   {
     id: 'ai-company-specialist-cell-retry',

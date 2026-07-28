@@ -8966,6 +8966,25 @@ h3 {
   min-width: 0;
 }
 
+.reviewer-rework-record-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.reviewer-rework-record {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin-top: 10px;
+  padding: 12px 0 12px 12px;
+  border-left: 3px solid var(--warning);
+}
+
 .verification-approval-form,
 .verification-proof-form {
   display: grid;
@@ -10685,6 +10704,14 @@ body[data-evidence-density='compact'] .control-overview-stack {
   .reviewer-rework-evidence,
   .reviewer-rework-scope {
     grid-template-columns: 1fr;
+  }
+
+  .reviewer-rework-record-form {
+    grid-template-columns: 1fr;
+  }
+
+  .reviewer-rework-record-form .primary-button {
+    width: 100%;
   }
 
   .reviewer-rework-finding {

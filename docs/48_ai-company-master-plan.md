@@ -61,7 +61,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
   runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
   envelope로 노출된다.
-- Persisted runtime은 schema v21이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
+- Persisted runtime은 schema v22이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
   WorkflowCheckpoint, DeliveryPackage, acceptance, MissionCloseOut, LearningCandidate, MemoryItem,
   MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan, StaffingEntry, and
   WorkOrderAttempt, SpecialistBatch, SpecialistCellAttempt, and SpecialistCellRetry evidence를
@@ -87,8 +87,8 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   implementation handoff; `DEC-185` implements the exact response-only runtime/API/UI path.
   `DEC-186` and `DEC-187` define the response-only ReviewerReworkPlanPreview plan and complete
   fielded implementation handoff; `DEC-188` implements the exact no-write runtime/API/UI path.
-  `DEC-189` plans one immutable schema-v22 ReworkPlan record, and `DEC-190` records its complete
-  fielded implementation handoff without opening schema or persistence authority.
+  `DEC-189` plans one immutable schema-v22 ReworkPlan record, `DEC-190` records its complete
+  fielded implementation handoff, and `DEC-191` implements the bounded record-and-inspect path.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, durable Reviewer rework implementation,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
@@ -132,7 +132,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-190`
+- Recorded decisions: `DEC-163` through `DEC-191`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -175,7 +175,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Stage 5B planning: `DEC-189` fixes one schema-v22 immutable `review-required` ReworkPlan append
   from the exact recomputed DEC-188 preview and separate record approval; `DEC-190` records the
   complete fielded implementation handoff
-- Next gate: exact DEC-191 durable ReworkPlan implementation decision; solo remains deferred
+- Stage 5B implementation: `DEC-191` adds the sequence/map-only schema-v22 migration, one immutable
+  record, no-write exact replay, exact-id/current-chain inspection, snapshot exclusion, and a
+  rationale-gated record-only UI
+- Next gate: a separately fielded ReworkPlan decision or Builder append slice; solo remains deferred
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -514,7 +517,8 @@ schema-v21-preserving response-only OpsSupervisionPreview, and `DEC-185` impleme
 inspect path with `allowedActions=[]`. Planning-only `DEC-186` and handoff-only `DEC-187` define one
 exact response-only ReviewerReworkPlanPreview, and `DEC-188` implements only its exact no-write
 runtime/API/UI path. Planning-only `DEC-189` and handoff-only `DEC-190` define one immutable
-schema-v22 ReworkPlan record and exact inspection boundary without opening implementation.
+schema-v22 ReworkPlan record and exact inspection boundary, and `DEC-191` implements only that
+record-and-inspect path with no downstream execution authority.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

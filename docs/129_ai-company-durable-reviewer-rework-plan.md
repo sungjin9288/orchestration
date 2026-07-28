@@ -30,8 +30,14 @@ proven by the preview. A separate operator-owned record approval authorizes only
 
 `DEC-189` records this planning-only boundary. `DEC-190` records the complete fielded implementation
 handoff in `docs/130_ai-company-durable-reviewer-rework-plan-implementation-decision-handoff.md`.
-Neither decision authorizes schema migration or record creation. One complete valid implementation
-decision is reserved for `DEC-191`.
+Neither decision alone authorizes schema migration or record creation. The exact complete
+implementation decision is consumed as `DEC-191`.
+
+## Accepted Implementation Decision
+
+`DEC-191` accepts the exact complete fielded decision in
+`docs/130_ai-company-durable-reviewer-rework-plan-implementation-decision-handoff.md`. Its authority
+is limited to the schema-v22 immutable record, exact inspection, and record-only UI described here.
 
 ## Current Evidence And Gap
 
@@ -314,10 +320,18 @@ The UI smoke must prove exact-gated record action, required rationale, safe fail
 hydration through the bounded locator, immutable read-only rendering, unchanged preview action,
 absent downstream controls, and desktop/mobile fit.
 
+## Implemented Status
+
+`DEC-191` implements schema v22 with only `sequences.reworkPlan` and `reworkPlans`. Runtime
+recomputes DEC-188 from one loaded source snapshot before the first append, requires the exact
+preview and separate record approval, performs one atomic migration-plus-append save, and returns
+exact replay without saving. Exact-id and bounded ExecutionPlan current-chain GETs expose the
+immutable record; the generic snapshot excludes it. The UI retains `Preview rework plan`, adds one
+required-rationale `Record rework plan` command, hydrates only through the current-chain locator,
+and exposes no execution action.
+
 ## Still Blocked
 
-Schema-v22 runtime implementation remains blocked until the operator supplies the complete decision
-in `docs/130_ai-company-durable-reviewer-rework-plan-implementation-decision-handoff.md`.
 ReworkPlan acceptance, rejection, changes-requested, supersession, deletion, Builder WorkOrder or
 WorkOrderAttempt append, retry, rework start, preflight, approval creation or resolution, mutation,
 Reviewer/QA execution, scheduling, providers, result or memory application, source/Git/release,

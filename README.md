@@ -128,6 +128,10 @@ Planning source files:
 - `docs/124_ai-company-specialist-cell-retry-implementation-decision-handoff.md`
 - `docs/125_ai-company-ops-supervision-preview-plan.md`
 - `docs/126_ai-company-ops-supervision-preview-implementation-decision-handoff.md`
+- `docs/127_ai-company-reviewer-rework-preview-plan.md`
+- `docs/128_ai-company-reviewer-rework-preview-implementation-decision-handoff.md`
+- `docs/129_ai-company-durable-reviewer-rework-plan.md`
+- `docs/130_ai-company-durable-reviewer-rework-plan-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -141,7 +145,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v21 after the additive SpecialistCellRetry migration, while
+execution state is schema v22 after the additive immutable ReworkPlan migration, while
 `companyRuntime` remains an additive read-only snapshot on the configured local server path. The
 editable company roster remains browser presentation only.
 
@@ -222,11 +226,12 @@ mutation, Reviewer/QA execution, scheduling, and providers remain blocked.
 Planning-only `DEC-189` now defines the next record-only Stage 5B boundary in
 `docs/129_ai-company-durable-reviewer-rework-plan.md`, and `DEC-190` records its complete fielded
 implementation handoff in
-`docs/130_ai-company-durable-reviewer-rework-plan-implementation-decision-handoff.md`. The planned
-schema-v22 path may append one immutable `ReworkPlan(status=review-required)` only after recomputing
-the exact DEC-188 preview and validating a separate record approval. Current schema remains v21;
-no durable ReworkPlan, rework decision, Builder append, retry, preflight, approval, mutation,
-Reviewer/QA execution, scheduling, or provider authority is implemented before DEC-191.
+`docs/130_ai-company-durable-reviewer-rework-plan-implementation-decision-handoff.md`. `DEC-191`
+implements one schema-v22 immutable `ReworkPlan(status=review-required)` after recomputing the exact
+DEC-188 preview and validating a separate record approval. Exact replay is no-write, exact-id and
+current-chain GETs expose only the retained evidence, and the generic snapshot excludes the record
+map. Rework decisions, Builder append, retry, preflight, approval, mutation, Reviewer/QA execution,
+scheduling, and provider authority remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -724,8 +729,8 @@ evidence plus DEC-177 through DEC-179 Stage 4B planning, handoff, and fixed firs
 implementation evidence plus DEC-180 through DEC-182 Stage 4C retry planning, handoff, and exact
 implementation evidence plus DEC-183 through DEC-185 Stage 6A inspect-only planning, handoff, and
 implementation evidence plus DEC-186 through DEC-188 Stage 5 Reviewer rework preview planning,
-handoff, and response-only implementation evidence plus DEC-189 through DEC-190 Stage 5B durable
-ReworkPlan planning and fielded handoff
+handoff, and response-only implementation evidence plus DEC-189 through DEC-191 Stage 5B durable
+ReworkPlan planning, fielded handoff, and record-only implementation
 evidence pass the aggregate and UI QA gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
@@ -2386,9 +2391,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 973 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 975 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 703 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 704 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2979,14 +2984,14 @@ Playwright CLI:
   selection is implemented.
 - `DEC-186` and `DEC-187` are consumed planning and handoff evidence for the exact response-only
   ReviewerReworkPlanPreview implemented by `DEC-188`. The runtime module, exact seven-key GET, and
-  browser-memory inspection action exist; no schema migration, durable ReworkPlan, Builder
-  WorkOrder or attempt append, retry, preflight, approval, source mutation, Reviewer/QA execution,
-  scheduling, provider execution, or automatic selection is implemented.
-- `DEC-189` and `DEC-190` are planning and complete fielded handoff evidence only for one future
-  schema-v22 immutable `ReworkPlan(status=review-required)`. Current schema remains v21 and no
-  ReworkPlan record, record route, durable UI, rework decision, Builder append, retry, preflight,
-  approval, source mutation, role execution, scheduling, provider, memory, Git/release, policy,
-  collection, bypass, or connector authority is implemented before DEC-191.
+  browser-memory inspection action remain no-write; that preview path does not itself migrate state,
+  append Builder work, retry, preflight, approve, mutate source, execute Reviewer/QA, schedule,
+  invoke a provider, or select work automatically.
+- `DEC-189` and `DEC-190` are consumed planning and fielded handoff evidence for the schema-v22
+  immutable `ReworkPlan(status=review-required)` implemented by `DEC-191`. One exact record, record
+  route, current-chain hydration, and read-only UI evidence exist; ReworkPlan decisions, Builder
+  append, retry, preflight, approval, source mutation, role execution, scheduling, provider, memory,
+  Git/release, policy, collection, bypass, and connector authority remain unimplemented.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.
@@ -3218,8 +3223,8 @@ Playwright CLI:
   the exact no-write inspection path. `DEC-186` plans one exact ReviewerReworkPlanPreview and
   `DEC-187` records its complete fielded implementation handoff; `DEC-188` implements only its exact
   no-write runtime/API/UI behavior. `DEC-189` plans one immutable schema-v22 durable ReworkPlan
-  record, and `DEC-190` records its complete fielded implementation handoff without opening
-  implementation. Dynamic or additional cells, bound
+  record, `DEC-190` records its complete fielded implementation handoff, and `DEC-191` implements
+  only the immutable record-and-inspect boundary. Dynamic or additional cells, bound
   Council revision/resume/auto-chain, automatic or repeated retry/rework, interrupted-attempt
   recovery, memory application,
   provider/background WorkOrders, source/Git/release, policy, bypass, and connector authority remain

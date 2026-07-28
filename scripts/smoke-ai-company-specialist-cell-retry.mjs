@@ -62,7 +62,9 @@ function downgradeStateToV20(statePath) {
   const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
   state.schemaVersion = 20;
   delete state.sequences.specialistCellRetry;
+  delete state.sequences.reworkPlan;
   delete state.specialistCellRetries;
+  delete state.reworkPlans;
   fs.writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`);
 }
 
@@ -219,7 +221,7 @@ async function main() {
       const state = JSON.parse(fs.readFileSync(primary.statePath, 'utf8'));
       const retry = Object.values(state.specialistCellRetries)[0];
       const retryAttempt = state.specialistCellAttempts[retry.retryCellAttemptId];
-      assert.equal(state.schemaVersion, 21);
+      assert.equal(state.schemaVersion, 22);
       assert.equal(retry.status, 'active');
       assert.equal(retryAttempt.status, 'active');
       assert.equal(retryAttempt.attemptNumber, 2);
@@ -279,7 +281,7 @@ async function main() {
   assert.equal(primary.getQaCalls(), 2);
 
   const primaryState = JSON.parse(fs.readFileSync(primary.statePath, 'utf8'));
-  assert.equal(primaryState.schemaVersion, 21);
+  assert.equal(primaryState.schemaVersion, 22);
   assert.equal(Object.keys(primaryState.specialistCellRetries).length, 1);
   assert.equal(Object.keys(primaryState.specialistCellAttempts).length, 3);
   assert.deepEqual(

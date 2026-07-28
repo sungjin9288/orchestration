@@ -40,6 +40,7 @@ const {
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
+  REWORK_PLAN_STATE_SCHEMA_VERSION,
   RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
   SPECIALIST_BATCH_STATE_SCHEMA_VERSION,
@@ -132,6 +133,9 @@ const {
   SPECIALIST_CELL_RETRY_STATUS,
   assertSpecialistCellRetryRecord,
 } = require('./specialist-cell-retries');
+const {
+  assertReworkPlanRecord,
+} = require('./rework-plans');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 const {
   BLOCKED_ACTIONS: VERIFICATION_PROOF_BLOCKED_ACTIONS,
@@ -2352,6 +2356,123 @@ function validateSpecialistBatchRecords(state) {
   }
 }
 
+function validateReworkPlanRecords(state) {
+  const executionPlanIds = new Set();
+  const reviewerAttemptIds = new Set();
+  const reviewArtifactIds = new Set();
+  const previewIds = new Set();
+  const sourceProgressDigests = new Set();
+
+  for (const [key, reworkPlan] of Object.entries(state.reworkPlans)) {
+    const label = `ReworkPlan ${key}`;
+    if (
+      !reworkPlan ||
+      typeof reworkPlan !== 'object' ||
+      Array.isArray(reworkPlan) ||
+      reworkPlan.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertReworkPlanRecord(reworkPlan);
+
+    const project = state.projects[reworkPlan.projectId];
+    const mission = state.missions[reworkPlan.missionId];
+    const staffingPlan = state.staffingPlans[reworkPlan.staffingPlanId];
+    const staffingEntry = state.staffingEntries[reworkPlan.staffingEntryId];
+    const councilSession = state.councilSessions[reworkPlan.councilSessionId];
+    const executionPlan = state.executionPlans[reworkPlan.executionPlanId];
+    const reviewerWorkOrder = state.workOrders[reworkPlan.reviewerWorkOrderId];
+    const reviewerAttempt = state.workOrderAttempts[reworkPlan.reviewerAttemptId];
+    const reviewerRun = state.runs[reworkPlan.reviewerRunId];
+    const reviewArtifact = state.artifacts[reworkPlan.reviewArtifactId];
+    const builderWorkOrder =
+      state.workOrders[reworkPlan.evidenceRefs.builderWorkOrderRef];
+    const builderRun = state.runs[reworkPlan.evidenceRefs.builderRunRef];
+
+    if (
+      !project ||
+      !mission ||
+      mission.projectId !== project.id ||
+      !staffingPlan ||
+      staffingPlan.projectId !== project.id ||
+      staffingPlan.missionId !== mission.id ||
+      !staffingEntry ||
+      staffingEntry.projectId !== project.id ||
+      staffingEntry.missionId !== mission.id ||
+      staffingEntry.staffingPlanId !== staffingPlan.id ||
+      !councilSession ||
+      councilSession.missionId !== mission.id ||
+      councilSession.staffingEntryRef?.staffingEntryId !== staffingEntry.id ||
+      councilSession.staffingEntryRef?.staffingPlanId !== staffingPlan.id ||
+      councilSession.staffingEntryRef?.staffingPlanRecordDigest !==
+        staffingPlan.recordDigest ||
+      !executionPlan ||
+      executionPlan.projectId !== project.id ||
+      executionPlan.missionId !== mission.id ||
+      executionPlan.councilSessionId !== councilSession.id
+    ) {
+      throw new Error(`${label} has invalid project or planning lineage`);
+    }
+    if (
+      !reviewerWorkOrder ||
+      reviewerWorkOrder.executionPlanId !== executionPlan.id ||
+      reviewerWorkOrder.role !== 'reviewer' ||
+      !executionPlan.workOrderIds.includes(reviewerWorkOrder.id) ||
+      !reviewerAttempt ||
+      reviewerAttempt.executionPlanId !== executionPlan.id ||
+      reviewerAttempt.workOrderId !== reviewerWorkOrder.id ||
+      reviewerAttempt.recordDigest !== reworkPlan.sourceAttemptRecordDigest ||
+      !reviewerRun ||
+      reviewerRun.taskId !== executionPlan.controlTaskId ||
+      reviewerRun.role !== 'reviewer' ||
+      !reviewArtifact ||
+      reviewArtifact.taskId !== executionPlan.controlTaskId ||
+      reviewArtifact.runId !== reviewerRun.id ||
+      reviewArtifact.type !== ARTIFACT_TYPE.REVIEW
+    ) {
+      throw new Error(`${label} has invalid Reviewer lineage`);
+    }
+    if (
+      !builderWorkOrder ||
+      builderWorkOrder.executionPlanId !== executionPlan.id ||
+      builderWorkOrder.role !== 'builder' ||
+      !builderRun ||
+      builderRun.taskId !== executionPlan.controlTaskId ||
+      builderRun.role !== 'builder'
+    ) {
+      throw new Error(`${label} has invalid Builder evidence lineage`);
+    }
+    if (
+      reworkPlan.evidenceRefs.missionRef !== mission.id ||
+      reworkPlan.evidenceRefs.staffingPlanRef !== staffingPlan.id ||
+      reworkPlan.evidenceRefs.staffingEntryRef !== staffingEntry.id ||
+      reworkPlan.evidenceRefs.councilSessionRef !== councilSession.id ||
+      reworkPlan.evidenceRefs.reviewerWorkOrderRef !== reviewerWorkOrder.id ||
+      reworkPlan.evidenceRefs.reviewerAttemptRef !== reviewerAttempt.id ||
+      reworkPlan.evidenceRefs.reviewerRunRef !== reviewerRun.id ||
+      reworkPlan.evidenceRefs.reviewArtifactRef !== reviewArtifact.id ||
+      reworkPlan.evidenceRefs.decisionInboxItemRefs.some(
+        (itemId) => !state.decisionInboxItems[itemId],
+      )
+    ) {
+      throw new Error(`${label} has invalid exact evidence references`);
+    }
+
+    for (const [set, value, name] of [
+      [executionPlanIds, executionPlan.id, 'ExecutionPlan'],
+      [reviewerAttemptIds, reviewerAttempt.id, 'Reviewer attempt'],
+      [reviewArtifactIds, reviewArtifact.id, 'Review Artifact'],
+      [previewIds, reworkPlan.previewId, 'preview'],
+      [sourceProgressDigests, reworkPlan.sourceProgressDigest, 'source progress'],
+    ]) {
+      if (set.has(value)) {
+        throw new Error(`${label} duplicates ${name} rework evidence`);
+      }
+      set.add(value);
+    }
+  }
+}
+
 function validateAcceptanceCriterionRecords(state) {
   const digestPattern = /^[a-f0-9]{64}$/;
   const sourceCriterionKeys = new Set();
@@ -2960,6 +3081,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== STAFFING_ENTRY_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== SPECIALIST_BATCH_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== SPECIALIST_CELL_RETRY_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -3187,6 +3309,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= REWORK_PLAN_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.reworkPlan) ||
+        !state.reworkPlans ||
+        typeof state.reworkPlans !== 'object' ||
+        Array.isArray(state.reworkPlans)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing ReworkPlan fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -3225,6 +3360,7 @@ function createFileStore(options = {}) {
       specialistBatches: state.specialistBatches || {},
       specialistCellAttempts: state.specialistCellAttempts || {},
       specialistCellRetries: state.specialistCellRetries || {},
+      reworkPlans: state.reworkPlans || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -3511,6 +3647,7 @@ function createFileStore(options = {}) {
     validateStaffingEntryRecords(normalizedState);
     validateWorkOrderAttemptRecords(normalizedState);
     validateSpecialistBatchRecords(normalizedState);
+    validateReworkPlanRecords(normalizedState);
     return normalizedState;
   }
 

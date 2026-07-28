@@ -74,11 +74,13 @@ function toSchemaV14(state) {
   delete previous.sequences.memoryRecall;
   delete previous.sequences.specialistCellRetry;
   delete previous.sequences.staffingPlan;
+  delete previous.sequences.reworkPlan;
   delete previous.memoryRecalls;
   delete previous.staffingPlans;
   delete previous.specialistBatches;
   delete previous.specialistCellAttempts;
   delete previous.specialistCellRetries;
+  delete previous.reworkPlans;
   return previous;
 }
 
@@ -88,11 +90,13 @@ function withoutMemoryRecallState(state) {
   delete previous.sequences.memoryRecall;
   delete previous.sequences.specialistCellRetry;
   delete previous.sequences.staffingPlan;
+  delete previous.sequences.reworkPlan;
   delete previous.memoryRecalls;
   delete previous.staffingPlans;
   delete previous.specialistBatches;
   delete previous.specialistCellAttempts;
   delete previous.specialistCellRetries;
+  delete previous.reworkPlans;
   return previous;
 }
 
@@ -246,7 +250,7 @@ async function main() {
     );
 
     const persisted = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 21);
+    assert.equal(persisted.schemaVersion, 22);
     assert.equal(persisted.sequences.memoryRecall, 1);
     assert.equal(Object.keys(persisted.memoryRecalls).length, 1);
     assert.deepEqual(withoutMemoryRecallState(persisted), schemaV14);
@@ -278,7 +282,7 @@ async function main() {
     const migrationOnlyRoot = path.join(tempRoot, 'migration-only');
     writeState(migrationOnlyRoot, schemaV14);
     const migratedOnly = createFileStore({ runtimeRoot: migrationOnlyRoot }).loadState();
-    assert.equal(migratedOnly.schemaVersion, 21);
+    assert.equal(migratedOnly.schemaVersion, 22);
     assert.equal(migratedOnly.sequences.memoryRecall, 0);
     assert.deepEqual(migratedOnly.memoryRecalls, {});
 
@@ -303,7 +307,7 @@ async function main() {
     );
 
     const futureRoot = path.join(tempRoot, 'future-schema');
-    writeState(futureRoot, { ...persisted, schemaVersion: 22 });
+    writeState(futureRoot, { ...persisted, schemaVersion: 23 });
     assertNoWrite(
       futureRoot,
       () => createFileStore({ runtimeRoot: futureRoot }).loadStateSupportedReadonly(),

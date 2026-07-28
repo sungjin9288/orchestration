@@ -262,6 +262,50 @@ export function getReviewerReworkPreviewTarget(bundle) {
   };
 }
 
+export function getReviewerReworkPlanRecordRequest(
+  preview,
+  { rationale, reviewedAt },
+) {
+  if (
+    !preview ||
+    preview.persisted !== false ||
+    preview.status !== 'rework-review-required' ||
+    !preview.executionPlanId ||
+    !preview.reviewerWorkOrderId ||
+    !preview.reviewerAttemptId ||
+    !preview.reviewerRunId ||
+    !preview.reviewArtifactId ||
+    !/^[a-f0-9]{64}$/.test(preview.executionPlanDigest || '') ||
+    !/^[a-f0-9]{64}$/.test(preview.attemptRecordDigest || '') ||
+    !/^[a-f0-9]{64}$/.test(preview.previewDigest || '') ||
+    typeof rationale !== 'string' ||
+    !rationale.trim() ||
+    typeof reviewedAt !== 'string' ||
+    Number.isNaN(Date.parse(reviewedAt)) ||
+    new Date(reviewedAt).toISOString() !== reviewedAt
+  ) {
+    return null;
+  }
+  return {
+    reviewerWorkOrderId: preview.reviewerWorkOrderId,
+    reviewerAttemptId: preview.reviewerAttemptId,
+    reviewerRunId: preview.reviewerRunId,
+    reviewArtifactId: preview.reviewArtifactId,
+    expectedExecutionPlanDigest: preview.executionPlanDigest,
+    expectedAttemptRecordDigest: preview.attemptRecordDigest,
+    evaluatedAt: preview.evaluatedAt,
+    previewId: preview.id,
+    previewDigest: preview.previewDigest,
+    recordApproval: {
+      decision: 'record-rework-plan',
+      acknowledgement:
+        'record-exact-reviewer-rework-plan-without-execution',
+      rationale: rationale.trim(),
+      reviewedAt,
+    },
+  };
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

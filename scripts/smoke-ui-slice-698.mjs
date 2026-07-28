@@ -207,7 +207,7 @@ async function main() {
 
     const initial = await fetchJson('/api/snapshot');
     assert.equal(initial.response.status, 200);
-    assert.equal(initial.payload.snapshot.schemaVersion, 21);
+    assert.equal(initial.payload.snapshot.schemaVersion, 22);
     let bundle = getMissionExecutionPlanBundle(
       initial.payload.snapshot,
       initial.payload.snapshot.missions[seeded.mission.id].councilSessionId,

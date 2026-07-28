@@ -117,6 +117,7 @@ const {
   assertMemoryItem,
   assertMemoryRecall,
   assertMissionCloseOut,
+  assertReworkPlan,
   assertRun,
   assertSpecialistBatch,
   assertSpecialistCellAttempt,
@@ -229,6 +230,12 @@ const {
   buildReviewerReworkPlanPreview,
   normalizeReviewerReworkPreviewRequest,
 } = require('./reviewer-rework-preview');
+const {
+  assertReworkPlanRecord,
+  createReworkPlan,
+  isExactReworkPlanReplay,
+  normalizeReworkPlanRequest,
+} = require('./rework-plans');
 const {
   parseReviewerArtifactContent,
 } = require('../execution/coordinator/artifact-content');
@@ -390,6 +397,11 @@ function createRuntimeService(options = {}) {
     return `specialist-cell-retry-${String(
       state.sequences.specialistCellRetry,
     ).padStart(4, '0')}`;
+  }
+
+  function nextReworkPlanId(state) {
+    state.sequences.reworkPlan += 1;
+    return `rework-plan-${String(state.sequences.reworkPlan).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -4017,23 +4029,7 @@ function createRuntimeService(options = {}) {
     }
   }
 
-  function getReviewerReworkPlanPreview(input) {
-    let request;
-    try {
-      request = normalizeReviewerReworkPreviewRequest(input);
-    } catch (error) {
-      error.statusCode = error.statusCode || 400;
-      throw error;
-    }
-
-    let state;
-    try {
-      state = store.loadStateSupportedReadonly();
-    } catch (error) {
-      throw conflict(
-        `ReviewerReworkPlanPreview requires supported state: ${error.message}`,
-      );
-    }
+  function buildReviewerReworkPlanPreviewFromState(state, request, now) {
     const executionPlan = state.executionPlans?.[request.executionPlanId];
     const reviewerWorkOrder = state.workOrders?.[request.reviewerWorkOrderId];
     const reviewerAttempt = state.workOrderAttempts?.[request.reviewerAttemptId];
@@ -4254,8 +4250,171 @@ function createRuntimeService(options = {}) {
           decisionInboxItemRefs,
         },
       },
-      { now: reviewerReworkNowIso() },
+      { now },
     );
+  }
+
+  function getReviewerReworkPlanPreview(input) {
+    let request;
+    try {
+      request = normalizeReviewerReworkPreviewRequest(input);
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReviewerReworkPlanPreview requires supported state: ${error.message}`,
+      );
+    }
+    return buildReviewerReworkPlanPreviewFromState(
+      state,
+      request,
+      reviewerReworkNowIso(),
+    );
+  }
+
+  function findReworkPlanCollision(state, request) {
+    return (
+      Object.values(state.reworkPlans || {}).find(
+        (record) =>
+          record.executionPlanId === request.executionPlanId ||
+          record.reviewerAttemptId === request.reviewerAttemptId ||
+          record.reviewArtifactId === request.reviewArtifactId ||
+          record.previewId === request.previewId,
+      ) || null
+    );
+  }
+
+  function persistReviewerReworkPlan(input) {
+    const now = reviewerReworkNowIso();
+    let request;
+    try {
+      request = normalizeReworkPlanRequest(input, { now });
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`ReworkPlan requires supported state: ${error.message}`);
+    }
+
+    const existing = findReworkPlanCollision(state, request);
+    if (existing) {
+      assertReworkPlanRecord(existing);
+      if (!isExactReworkPlanReplay(existing, request)) {
+        throw conflict(
+          'Reviewer changes-requested source already has a different ReworkPlan',
+        );
+      }
+      return {
+        idempotent: true,
+        reworkPlan: existing,
+      };
+    }
+
+    const previewRequest = normalizeReviewerReworkPreviewRequest({
+      executionPlanId: request.executionPlanId,
+      reviewerWorkOrderId: request.reviewerWorkOrderId,
+      reviewerAttemptId: request.reviewerAttemptId,
+      reviewerRunId: request.reviewerRunId,
+      reviewArtifactId: request.reviewArtifactId,
+      expectedExecutionPlanDigest: request.expectedExecutionPlanDigest,
+      expectedAttemptRecordDigest: request.expectedAttemptRecordDigest,
+      evaluatedAt: request.evaluatedAt,
+    });
+    const preview = buildReviewerReworkPlanPreviewFromState(
+      state,
+      previewRequest,
+      now,
+    );
+    if (
+      request.previewId !== preview.id ||
+      request.previewDigest !== preview.previewDigest
+    ) {
+      throw conflict('ReworkPlan preview id or digest is stale');
+    }
+
+    const prospectiveId = `rework-plan-${String(
+      state.sequences.reworkPlan + 1,
+    ).padStart(4, '0')}`;
+    let reworkPlan;
+    try {
+      reworkPlan = createReworkPlan(
+        {
+          id: prospectiveId,
+          preview,
+          recordApproval: request.recordApproval,
+        },
+        {
+          now,
+          projectId: state.executionPlans[preview.executionPlanId].projectId,
+        },
+      );
+    } catch (error) {
+      error.statusCode = error.statusCode || 409;
+      throw error;
+    }
+    const id = nextReworkPlanId(state);
+    if (id !== reworkPlan.id) {
+      throw new Error('ReworkPlan sequence is not deterministic');
+    }
+    state.reworkPlans[id] = reworkPlan;
+    store.saveState(state);
+
+    return {
+      idempotent: false,
+      reworkPlan,
+    };
+  }
+
+  function getReworkPlan(reworkPlanId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReworkPlan inspection requires supported state: ${error.message}`,
+      );
+    }
+    try {
+      const reworkPlan = assertReworkPlan(reworkPlanId, state);
+      assertReworkPlanRecord(reworkPlan);
+      return { reworkPlan };
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+  }
+
+  function getExecutionPlanReworkPlan(executionPlanId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReworkPlan inspection requires supported state: ${error.message}`,
+      );
+    }
+    if (!state.executionPlans?.[executionPlanId]) {
+      throw reviewerReworkNotFound('ExecutionPlan not found');
+    }
+    const reworkPlan = Object.values(state.reworkPlans || {}).find(
+      (record) => record.executionPlanId === executionPlanId,
+    );
+    if (!reworkPlan) {
+      throw reviewerReworkNotFound('ReworkPlan not found for ExecutionPlan');
+    }
+    assertReworkPlanRecord(reworkPlan);
+    return { reworkPlan };
   }
 
   function opsSupervisionNowIso() {
@@ -9629,6 +9788,7 @@ function createRuntimeService(options = {}) {
     delete snapshotForPublicProjection.specialistBatches;
     delete snapshotForPublicProjection.specialistCellAttempts;
     delete snapshotForPublicProjection.specialistCellRetries;
+    delete snapshotForPublicProjection.reworkPlans;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -9733,6 +9893,8 @@ function createRuntimeService(options = {}) {
     getTaskExecutionProvenance,
     getOpsSupervisionPreview,
     getReviewerReworkPlanPreview,
+    getReworkPlan,
+    getExecutionPlanReworkPlan,
     getMissionCloseOut,
     getMissionLearningCandidate,
     getLearningCandidateReview,
@@ -9762,6 +9924,7 @@ function createRuntimeService(options = {}) {
     previewMissionMemoryContext,
     previewCouncilSpecialistBatch,
     previewWorkOrderVerificationPlan,
+    persistReviewerReworkPlan,
     persistWorkOrderAcceptanceCriteria,
     recordWorkOrderVerificationProof,
     reportContextBudget,

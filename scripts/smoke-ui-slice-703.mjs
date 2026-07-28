@@ -199,7 +199,7 @@ assert.match(runtimeSource, /function getReviewerReworkPlanPreview\(input\)/);
 assert.match(runtimeSource, /store\.loadStateSupportedReadonly\(\)/);
 const runtimeSlice = runtimeSource.slice(
   runtimeSource.indexOf('function getReviewerReworkPlanPreview'),
-  runtimeSource.indexOf('function opsSupervisionNowIso'),
+  runtimeSource.indexOf('function findReworkPlanCollision'),
 );
 assert.doesNotMatch(runtimeSlice, /store\.saveState\(/);
 assert.doesNotMatch(runtimeSlice, /store\.loadState\(\)/);

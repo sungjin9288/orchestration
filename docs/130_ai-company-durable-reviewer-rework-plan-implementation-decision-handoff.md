@@ -3,10 +3,10 @@
 ## Purpose
 
 This document is the complete fielded implementation decision shape for
-`docs/129_ai-company-durable-reviewer-rework-plan.md`. `DEC-189` accepts planning only and
-`DEC-190` records this handoff only. Neither decision authorizes schema v22, durable ReworkPlan
-creation, API/UI mutation, Builder append, retry, preflight, approval, source mutation, role
-execution, scheduling, provider, memory, Git/release, policy, collection, or connector behavior.
+`docs/129_ai-company-durable-reviewer-rework-plan.md`. `DEC-189` accepts planning, `DEC-190`
+records this handoff, and `DEC-191` consumes the exact valid outcome for the bounded schema-v22
+record implementation. Builder append, retry, preflight, approval, source mutation, role execution,
+scheduling, provider, memory, Git/release, policy, collection, and connector behavior remain closed.
 
 Generic approval, broad continuation, delegated self-approval, `DEC-188` preview authority, and this
 handoff are invalid implementation shortcuts. One complete valid operator decision may be accepted
@@ -16,9 +16,9 @@ as `DEC-191`.
 
 - Planning-only decision: accepted as `DEC-189`
 - Implementation handoff: recorded as `DEC-190`
-- Complete fielded implementation decision: missing and reserved for `DEC-191`
-- Current runtime: schema v21 with response-only ReviewerReworkPlanPreview
-- Implementation authority: blocked
+- Complete fielded implementation decision: accepted as `DEC-191`
+- Current runtime: schema v22 with immutable review-required ReworkPlan evidence
+- Implementation authority: consumed by the bounded record-and-inspect slice
 
 ## Required Decision Fields
 
@@ -144,7 +144,7 @@ Implementation may begin only when one outcome supplies every required field and
 contract in `docs/129_ai-company-durable-reviewer-rework-plan.md`. Any contradiction between fields
 fails closed. The exact `Valid Approval Outcome` is the recommended implementation input.
 
-Until one exact valid outcome is supplied, implementation remains blocked. Planning and this handoff
-authorize no runtime, schema, API, UI, durable record, rework decision, Builder append, retry,
-preflight, approval, mutation, execution, scheduling, provider, memory, Git/release, policy,
-collection, bypass, or connector behavior.
+`DEC-191` supplied the exact valid outcome and consumed this gate. It authorizes only the immutable
+record and exact inspection implementation; rework decision, Builder append, retry, preflight,
+approval, mutation, execution, scheduling, provider, memory, Git/release, policy, collection,
+bypass, and connector behavior remain blocked.

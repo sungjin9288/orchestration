@@ -1250,6 +1250,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one record-and-inspect-only slice. It explicitly excludes ReworkPlan decisions or status mutation, Builder WorkOrder or WorkOrderAttempt append, retry, preflight, approval creation or resolution, source mutation, Reviewer/QA execution, scheduling, providers, memory, runtime-agent Git/release, policy mutation, collections, approval bypass, and connectors. No implementation authority is recorded.
 - Needed Before: The operator must supply every required field in one valid implementation decision. `DEC-189`, this handoff, broad approval, delegated self-approval, or continuation does not authorize schema migration or durable record creation. A valid implementation outcome is reserved for `DEC-191`.
 
+### DEC-191
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic local schema-v22 immutable `ReworkPlan(status=review-required)` from one exact source-current schema-v21 `ReviewerReworkPlanPreview` and separate operator record approval.
+- Why: `DEC-189` and `DEC-190` fixed the additive sequence/map migration, exact ten-key request, DEC-188 recomputation, immutable record and approval digests, atomic append, exact inspection, snapshot exclusion, replay, collision, rollback, and every execution authority that must remain closed. The supplied decision matches that 15-field outcome exactly.
+- Impact: Runtime now migrates valid schema-v21 state only on the first valid append, persists one immutable review-required record, returns exact replay without saving, exposes exact-id and one-ExecutionPlan current-chain inspection, and hydrates the record-only UI through that bounded locator. The generic snapshot excludes the map, and no WorkOrder, attempt, approval, run, artifact, checkpoint, source, provider, memory, Git/release, policy, collection, bypass, or connector authority changes.
+- Needed Before: ReworkPlan acceptance, rejection, status mutation, Builder WorkOrder or WorkOrderAttempt append, retry, rework start, preflight, approval creation or resolution, source mutation, Reviewer/QA execution, scheduling, provider-backed WorkOrders, result or memory application, runtime-agent Git/release, policy mutation, collections, bypass, and connectors require separate complete fielded decisions.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

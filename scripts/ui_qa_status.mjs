@@ -371,6 +371,12 @@ const smokeChecks = [
       'ReviewerReworkPlanPreview UI and API preserve exact changes-requested eligibility, browser-memory invalidation, bounded safe rendering, inherited source scope, one-attempt cap, absent retry execution approval mutation or Git controls, and responsive desktop/mobile fit',
   },
   {
+    id: 'ai-company-durable-reviewer-rework-plan-ui-api',
+    script: 'scripts/smoke-ui-slice-704.mjs',
+    purpose:
+      'Durable Reviewer ReworkPlan UI and API preserve exact preview and separate rationale-gated record creation, bounded current-chain refresh hydration, immutable evidence rendering, generic snapshot exclusion, absent downstream controls, and responsive desktop/mobile fit',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

@@ -866,4 +866,20 @@ async function main() {
   }
 }
 
-await main();
+export {
+  buildPreviewRequest,
+  createChangesRequestedFixture,
+  createRuntime,
+  projectPath,
+  runtimeRoot,
+  statePath,
+  targetPath,
+  tempRoot,
+};
+
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  await main();
+}

@@ -519,10 +519,10 @@ Reviewer/QA 실행, scheduling, provider authority는 계속 blocked다.
 `DEC-189`은 Stage 5B planning-only boundary로 one exact recomputed DEC-188 preview와 separate
 operator record approval에서 immutable schema-v22 `ReworkPlan(status=review-required)` 하나만
 append하는 계약을 고정한다. `DEC-190`은 complete fielded implementation handoff를 기록한다.
-Exact ten-key POST, atomic migration-plus-append, exact-id/current-chain inspection, generic snapshot
-exclusion, idempotency, collision, rollback, and focused verification are planned; schema migration,
-record creation, rework decision, Builder append, retry, preflight, approval, mutation, role
-execution, and scheduling remain blocked pending DEC-191.
+`DEC-191`은 exact ten-key POST, atomic migration-plus-append, exact-id/current-chain inspection,
+generic snapshot exclusion, idempotency, collision, rollback, and focused verification를 구현한다.
+ReworkPlan decision, Builder append, retry, preflight, approval, mutation, role execution, and
+scheduling remain blocked.
 
 Source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`, first durable StaffingPlan
 implementation handoff는 `DEC-164`, readiness clarification은 `DEC-165`로 기록됐다. The

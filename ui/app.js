@@ -139,6 +139,7 @@ import {
   getLatestRealCouncilPositions,
   getMissionStaffingPlanSummary,
   getOpsSupervisionTarget,
+  getReviewerReworkPlanRecordRequest,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -434,6 +435,7 @@ const state = {
   councilSpecialistBatch: null,
   opsSupervisionPreview: null,
   reviewerReworkPlanPreview: null,
+  reviewerReworkPlan: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5134,6 +5136,7 @@ function applySnapshotPayload(payload) {
   if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.opsSupervisionPreview = null;
     state.reviewerReworkPlanPreview = null;
+    state.reviewerReworkPlan = null;
   }
 
   state.payload = {
@@ -5400,6 +5403,7 @@ async function hydrateSelectedDetails() {
   state.missionMemoryContextPreview = null;
   state.workOrderVerificationPlanPreview = null;
   state.workOrderVerificationStatus = null;
+  state.reviewerReworkPlan = null;
   state.workOrderAcceptanceCriteriaRationale = '';
   state.workOrderProofDrafts = {};
   state.executionContinuationPreview = null;
@@ -5608,7 +5612,7 @@ async function hydrateSelectedDetails() {
     const builderWorkOrder = executionPlanBundle.workOrders.find(
       (workOrder) => workOrder.role === 'builder',
     );
-    const [recoveryPayload, verificationPayload] = await Promise.all([
+    const [recoveryPayload, verificationPayload, reworkPlanPayload] = await Promise.all([
       fetchJson(
         `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/recovery`,
       ),
@@ -5617,9 +5621,13 @@ async function hydrateSelectedDetails() {
             `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/work-orders/${encodeURIComponent(builderWorkOrder.id)}/verification-status`,
           )
         : Promise.resolve({ verificationStatus: null }),
+      fetchOptionalJson(
+        `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/rework-plan`,
+      ),
     ]);
     state.missionExecutionPlanRecovery = recoveryPayload.executionPlanRecovery || null;
     state.workOrderVerificationStatus = verificationPayload.verificationStatus || null;
+    state.reviewerReworkPlan = reworkPlanPayload?.reworkPlan || null;
   }
 
   if (state.missionViewMode === 'graph' && selectedMission) {
@@ -5716,6 +5724,7 @@ function syncSelectionsFromTask(taskId, options = {}) {
     resetExecutionProvenance();
     state.opsSupervisionPreview = null;
     state.reviewerReworkPlanPreview = null;
+    state.reviewerReworkPlan = null;
   }
   state.selectedTaskId = taskId;
   state.selectionSeeded = true;
@@ -5769,6 +5778,7 @@ function syncSelectionsFromMission(missionId) {
     state.councilSpecialistBatch = null;
     state.opsSupervisionPreview = null;
     state.reviewerReworkPlanPreview = null;
+    state.reviewerReworkPlan = null;
     state.missionEvidenceGraph = null;
     state.missionEvidenceGraphError = null;
     state.missionEvidenceGraphLoading = false;
@@ -5857,6 +5867,7 @@ function restoreMissionComposerFocus(targetName = 'missionTitle', selection = nu
 
 function startNewMissionDraft() {
   state.reviewerReworkPlanPreview = null;
+  state.reviewerReworkPlan = null;
   state.menuGroup = getNavGroupForSurface('mission');
   state.surface = 'mission';
   state.missionComposerExpanded = true;
@@ -5878,6 +5889,7 @@ function closeMissionComposer() {
 async function handleSurfaceChange(surface) {
   if (surface !== state.surface) {
     state.reviewerReworkPlanPreview = null;
+    state.reviewerReworkPlan = null;
   }
   state.menuGroup = getNavGroupForSurface(surface);
   state.surface = surface;
@@ -5893,6 +5905,7 @@ async function handleNavGroupChange(groupId) {
 
   if (!group.surfaces.includes(state.surface)) {
     state.reviewerReworkPlanPreview = null;
+    state.reviewerReworkPlan = null;
     state.surface = group.defaultSurface;
     rememberSurfaceVisit(state.surface);
   }
@@ -7285,6 +7298,63 @@ async function previewReviewerReworkPlan(actionButton) {
   elements.refreshStatus.textContent =
     `${payload.reviewerAttemptId} rework review required`;
   render();
+}
+
+async function recordReviewerReworkPlan(actionButton) {
+  const executionPlanId = String(actionButton?.dataset.id || '').trim();
+  const preview = state.reviewerReworkPlanPreview;
+  const form = actionButton?.closest?.(
+    '[data-form="record-reviewer-rework-plan"]',
+  );
+  if (!form) {
+    throw new Error('ReworkPlan record form을 찾을 수 없습니다.');
+  }
+  const rationale = String(new FormData(form).get('reworkRationale') || '');
+  const reviewedAt = new Date().toISOString();
+  const request = getReviewerReworkPlanRecordRequest(preview, {
+    rationale,
+    reviewedAt,
+  });
+  if (!request || preview.executionPlanId !== executionPlanId) {
+    throw new Error(
+      'source-current rework preview와 record rationale이 필요합니다.',
+    );
+  }
+
+  state.error = null;
+  state.mutating = true;
+  state.reviewerReworkPlan = null;
+  elements.refreshStatus.textContent =
+    `${preview.reviewerAttemptId} ReworkPlan을 기록하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanId)}/rework-plans`,
+      request,
+    );
+    const reworkPlan = payload.reworkPlan;
+    if (
+      reworkPlan?.executionPlanId !== executionPlanId ||
+      reworkPlan.reviewerAttemptId !== preview.reviewerAttemptId ||
+      reworkPlan.previewId !== preview.id ||
+      reworkPlan.previewDigest !== preview.previewDigest ||
+      reworkPlan.persisted !== true ||
+      reworkPlan.status !== 'review-required' ||
+      reworkPlan.allowedActions?.length !== 0
+    ) {
+      throw new Error('ReworkPlan 응답이 요청한 exact preview와 다릅니다.');
+    }
+    state.reviewerReworkPlan = reworkPlan;
+    elements.refreshStatus.textContent =
+      `${reworkPlan.id} review-required evidence를 기록했습니다`;
+  } catch (error) {
+    state.reviewerReworkPlan = null;
+    throw error;
+  } finally {
+    state.mutating = false;
+    render();
+  }
 }
 
 function findRoleSourceDigest(companyRuntime, ref) {
@@ -13408,6 +13478,76 @@ function renderReviewerReworkPlanPreview(executionPlanId) {
           .map((action) => createToken(action, 'neutral'))
           .join('')}
       </div>
+      ${
+        state.reviewerReworkPlan?.previewId === preview.id
+          ? ''
+          : `
+            <form
+              class="reviewer-rework-record-form"
+              data-form="record-reviewer-rework-plan"
+            >
+              <label class="field">
+                <span>Record rationale</span>
+                <input
+                  name="reworkRationale"
+                  type="text"
+                  maxlength="500"
+                  required
+                  placeholder="Why this exact rework evidence should be retained"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                />
+              </label>
+              <button
+                class="primary-button"
+                type="button"
+                data-action="record-reviewer-rework-plan"
+                data-id="${escapeHtml(executionPlanId)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                Record rework plan
+              </button>
+            </form>
+          `
+      }
+    </section>
+  `;
+}
+
+function renderReviewerReworkPlanRecord(executionPlanId) {
+  const record = state.reviewerReworkPlan;
+  if (!record || record.executionPlanId !== executionPlanId) return '';
+  return `
+    <section
+      class="reviewer-rework-record"
+      aria-label="Durable Reviewer ReworkPlan"
+      data-rework-plan-id="${escapeHtml(record.id)}"
+    >
+      <div class="card-title-row card-title-row-tight">
+        <strong>Durable ReworkPlan</strong>
+        ${createToken(record.status, 'warning')}
+        ${createToken('immutable evidence', 'accent')}
+      </div>
+      <dl class="reviewer-rework-evidence">
+        <div>
+          <dt>record</dt>
+          <dd>${escapeHtml(record.id)}</dd>
+        </div>
+        <div>
+          <dt>source attempt</dt>
+          <dd>${escapeHtml(record.reviewerAttemptId)}</dd>
+        </div>
+        <div>
+          <dt>preview digest</dt>
+          <dd>${escapeHtml(record.previewDigest)}</dd>
+        </div>
+        <div>
+          <dt>record digest</dt>
+          <dd>${escapeHtml(record.recordDigest)}</dd>
+        </div>
+      </dl>
+      <p class="detail-copy detail-copy-compact">
+        Exact Reviewer rework scope를 보존한 audit record입니다. 실행 권한은 포함하지 않습니다.
+      </p>
     </section>
   `;
 }
@@ -14057,6 +14197,11 @@ function renderMissionExecutionPlan(bundle, recovery) {
               ${
                 state.reviewerReworkPlanPreview?.reviewerAttemptId === attempt.id
                   ? renderReviewerReworkPlanPreview(executionPlan.id)
+                  : ''
+              }
+              ${
+                state.reviewerReworkPlan?.reviewerAttemptId === attempt.id
+                  ? renderReviewerReworkPlanRecord(executionPlan.id)
                   : ''
               }
             </div>
@@ -22343,6 +22488,7 @@ document.addEventListener('click', async (event) => {
     const targetSurface = actionButton.dataset.targetSurface || 'mission';
     if (targetSurface !== state.surface) {
       state.reviewerReworkPlanPreview = null;
+      state.reviewerReworkPlan = null;
     }
     state.menuGroup = getNavGroupForSurface(targetSurface);
     state.surface = targetSurface;
@@ -22489,6 +22635,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'preview-reviewer-rework-plan') {
         await previewReviewerReworkPlan(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'record-reviewer-rework-plan') {
+        await recordReviewerReworkPlan(actionButton);
         return;
       }
 

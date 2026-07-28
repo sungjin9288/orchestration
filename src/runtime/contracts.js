@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 21;
+const STATE_SCHEMA_VERSION = 22;
+const REWORK_PLAN_STATE_SCHEMA_VERSION = 22;
 const SPECIALIST_CELL_RETRY_STATE_SCHEMA_VERSION = 21;
 const SPECIALIST_BATCH_STATE_SCHEMA_VERSION = 20;
 const WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION = 19;
@@ -404,6 +405,7 @@ function createEmptyState() {
       specialistBatch: 0,
       specialistCellAttempt: 0,
       specialistCellRetry: 0,
+      reworkPlan: 0,
     },
     missions: {},
     councilSessions: {},
@@ -435,6 +437,7 @@ function createEmptyState() {
     specialistBatches: {},
     specialistCellAttempts: {},
     specialistCellRetries: {},
+    reworkPlans: {},
   };
 }
 
@@ -472,6 +475,7 @@ module.exports = {
   RETENTION_CONSUMER_DISPOSITION,
   RETENTION_CONSUMER_STATUS,
   RELEASE_ACTION,
+  REWORK_PLAN_STATE_SCHEMA_VERSION,
   REVIEW_STATUS,
   RUN_STATUS,
   EXECUTION_PLAN_STATUS,

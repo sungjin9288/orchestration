@@ -443,8 +443,8 @@ cannot revise the Council synthesis, change alignment, append a Builder attempt,
 approval, or execute any role. Those authorities remain blocked pending later downstream decisions.
 
 Planning-only `DEC-189` and handoff-only `DEC-190` define the next record-only boundary: one exact
-recomputed DEC-188 preview plus separate operator record approval may later become one immutable
-schema-v22 `ReworkPlan(status=review-required)`. The planned record preserves Council, StaffingEntry,
+recomputed DEC-188 preview plus separate operator record approval becomes one immutable
+schema-v22 `ReworkPlan(status=review-required)` under `DEC-191`. The record preserves Council, StaffingEntry,
 Mission, ExecutionPlan, Reviewer attempt, review Artifact, findings, target, verification, and
 progress provenance. It does not revise Council alignment or authorize a Builder attempt, retry,
 preflight, approval, mutation, Reviewer/QA execution, scheduling, or provider use.

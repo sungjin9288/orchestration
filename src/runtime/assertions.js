@@ -54,6 +54,14 @@ function assertSpecialistCellRetry(specialistCellRetryId, state) {
   return specialistCellRetry;
 }
 
+function assertReworkPlan(reworkPlanId, state) {
+  const reworkPlan = state.reworkPlans[reworkPlanId];
+  if (!reworkPlan) {
+    throw new Error(`ReworkPlan not found: ${reworkPlanId}`);
+  }
+  return reworkPlan;
+}
+
 function assertHandoffPacket(handoffPacketId, state) {
   const handoffPacket = state.handoffPackets[handoffPacketId];
   if (!handoffPacket) throw new Error(`HandoffPacket not found: ${handoffPacketId}`);
@@ -168,6 +176,7 @@ module.exports = {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertRun,
+  assertReworkPlan,
   assertSpecialistBatch,
   assertSpecialistCellAttempt,
   assertSpecialistCellRetry,

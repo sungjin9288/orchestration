@@ -374,11 +374,13 @@ fit.
 - Planning-only `DEC-189` and handoff-only `DEC-190` now define the next immutable schema-v22
   ReworkPlan record boundary in `docs/129_ai-company-durable-reviewer-rework-plan.md` and
   `docs/130_ai-company-durable-reviewer-rework-plan-implementation-decision-handoff.md`.
+- `DEC-191` implements only that immutable record-and-inspect boundary while preserving this
+  response-only preview and every blocked execution authority.
 
 ## Still Blocked
 
-Schema-v22 durable ReworkPlan implementation requires the exact DEC-191 decision. Builder WorkOrder
-or WorkOrderAttempt append, retry, rework start,
+Schema-v22 durable ReworkPlan record-and-inspect behavior is implemented by `DEC-191`. Builder
+WorkOrder or WorkOrderAttempt append, retry, rework start,
 preflight, approval, source mutation, Reviewer/QA execution, automatic scheduling, providers,
 memory, runtime-agent Git/release, policy mutation, approval bypass, collections, and connectors
 remain separately gated.

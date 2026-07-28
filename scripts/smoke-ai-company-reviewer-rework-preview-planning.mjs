@@ -83,7 +83,7 @@ assertHasAll(plan, [
   /^## Implemented Status$/m,
   /`DEC-188` consumes the exact fielded handoff/,
   /GET \/api\/execution-plans\/:executionPlanId\/reviewer-rework-preview/,
-  /Schema-v22 durable ReworkPlan implementation requires the exact DEC-191 decision/,
+  /Schema-v22 durable ReworkPlan record-and-inspect behavior is implemented by `DEC-191`/,
 ]);
 
 for (const field of [
@@ -187,7 +187,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-reviewer-rework-preview\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 21/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 22/);
 assert.match(workOrderAttempts, /CHANGES_REQUESTED: 'changes-requested'/);
 assert.match(workOrderAttempts, /RUN_REVIEWER: 'run-reviewer'/);
 assertHasAll(runtimeService, [
@@ -231,10 +231,10 @@ const smokeCount = fs
 const uiSmokeCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
-assert.equal(smokeCount, 973);
-assert.equal(uiSmokeCount, 703);
-assert.match(readme, /973 smoke files/);
-assert.match(readme, /703 UI smoke files/);
+assert.equal(smokeCount, 975);
+assert.equal(uiSmokeCount, 704);
+assert.match(readme, /975 smoke files/);
+assert.match(readme, /704 UI smoke files/);
 
 process.stdout.write(
   `${JSON.stringify(

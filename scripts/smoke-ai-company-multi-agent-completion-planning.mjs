@@ -56,6 +56,7 @@ assert.match(plan, /`DEC-187` records its complete fielded implementation handof
 assert.match(plan, /`DEC-188` implements only that exact response-only runtime\/API\/UI boundary/);
 assert.match(plan, /Planning-only `DEC-189` now fixes Stage 5B/);
 assert.match(plan, /`DEC-190` records its complete fielded implementation handoff/);
+assert.match(plan, /`DEC-191` implements/);
 assert.match(plan, /source progress digest/);
 assert.match(plan, /allowedActions=\[\]/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
@@ -154,12 +155,13 @@ for (const decisionId of [
   'DEC-188',
   'DEC-189',
   'DEC-190',
+  'DEC-191',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-190`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-191`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -201,7 +203,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 21/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 22/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -249,9 +251,10 @@ process.stdout.write(
         reviewerReworkPreviewImplementation: 'accepted-dec-188',
         durableReviewerReworkPlanPlanning: 'accepted-dec-189',
         durableReviewerReworkPlanHandoff: 'documented-dec-190',
+        durableReviewerReworkPlanImplementation: 'accepted-dec-191',
       },
       currentRuntime: {
-        schemaVersion: 21,
+        schemaVersion: 22,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,
@@ -259,16 +262,16 @@ process.stdout.write(
         specialistBatchPreview: true,
         durableSpecialistBatch: true,
         reviewerReworkPreview: true,
-        durableReviewerReworkPlan: false,
+        durableReviewerReworkPlan: true,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '5B',
-        object: 'durable-reviewer-rework-plan-implementation',
+        stage: '5C',
+        object: 'reviewer-rework-decision-or-builder-append',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-191',
+        nextDecisionLogEntry: 'fielded-separately',
       },
       authority: {
         documentationAllowed: true,
@@ -290,7 +293,7 @@ process.stdout.write(
         reviewerReworkPreviewPlanningAllowed: true,
         reviewerReworkPreviewImplementationAllowed: true,
         durableReviewerReworkPlanPlanningAllowed: true,
-        durableReviewerReworkPlanImplementationAllowed: false,
+        durableReviewerReworkPlanImplementationAllowed: true,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

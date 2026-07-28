@@ -390,7 +390,7 @@ async function main() {
   );
   assert.deepEqual(fs.readFileSync(statePath), stateBytes);
   const specialistSnapshot = context.runtime.getSnapshot();
-  assert.equal(specialistSnapshot.schemaVersion, 21);
+  assert.equal(specialistSnapshot.schemaVersion, 22);
   assert.equal(Object.hasOwn(specialistSnapshot, 'specialistBatches'), false);
   assert.equal(Object.hasOwn(specialistSnapshot, 'specialistCellAttempts'), false);
   assert.equal(
@@ -771,7 +771,7 @@ async function main() {
       {
         ok: true,
         mode: MODE,
-        schemaVersion: 21,
+        schemaVersion: 22,
         previewId: preview.id,
         cells: preview.cells.map((cell) => cell.cellId),
         stateUnchanged: true,

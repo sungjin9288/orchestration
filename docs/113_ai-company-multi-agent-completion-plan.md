@@ -175,9 +175,9 @@ Planning-only `DEC-189` now fixes Stage 5B as one immutable schema-v22
 `ReworkPlan(status=review-required)` append from one exact recomputed DEC-188 preview and separate
 operator record approval. `DEC-190` records its complete fielded implementation handoff. The plan
 adds only a sequence and map, exact-id and bounded ExecutionPlan current-chain inspection, generic
-snapshot exclusion, idempotency, collision, rollback, and focused evidence. Schema migration,
-record creation, a ReworkPlan decision, Builder append, retry, preflight, approval, mutation,
-Reviewer/QA execution, and scheduling remain blocked before DEC-191.
+snapshot exclusion, idempotency, collision, rollback, and focused evidence. `DEC-191` implements
+only that record-and-inspect boundary. A ReworkPlan decision, Builder append, retry, preflight,
+approval, mutation, Reviewer/QA execution, and scheduling remain blocked.
 
 ### Stage 6: Ops Supervision And Recovery
 

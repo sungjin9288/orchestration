@@ -2374,6 +2374,120 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const executionPlanReworkPlansMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/rework-plans$/,
+  );
+  if (executionPlanReworkPlansMatch) {
+    if (method !== 'POST') {
+      json(response, 405, { error: 'ReworkPlan persistence는 POST만 지원합니다.' });
+      return;
+    }
+    try {
+      const executionPlanId = decodeURIComponent(
+        executionPlanReworkPlansMatch[1],
+      );
+      const input = await readBoundedJsonBody(request, 16 * 1024);
+      const expectedFields = [
+        'evaluatedAt',
+        'expectedAttemptRecordDigest',
+        'expectedExecutionPlanDigest',
+        'previewDigest',
+        'previewId',
+        'recordApproval',
+        'reviewArtifactId',
+        'reviewerAttemptId',
+        'reviewerRunId',
+        'reviewerWorkOrderId',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'ReworkPlan persistence body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.persistReviewerReworkPlan({
+        executionPlanId,
+        ...input,
+      });
+      json(response, result.idempotent ? 200 : 201, {
+        generatedAt: new Date().toISOString(),
+        idempotent: result.idempotent,
+        reworkPlan: result.reworkPlan,
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: String(
+          error.message || 'ReworkPlan 기록에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
+
+  const executionPlanReworkPlanMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/rework-plan$/,
+  );
+  if (executionPlanReworkPlanMatch) {
+    if (method !== 'GET') {
+      json(response, 405, { error: 'ReworkPlan current-chain inspection은 GET만 지원합니다.' });
+      return;
+    }
+    try {
+      const executionPlanId = decodeURIComponent(
+        executionPlanReworkPlanMatch[1],
+      );
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        ...runtime.getExecutionPlanReworkPlan(executionPlanId),
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: String(
+          error.message || 'ReworkPlan current-chain inspection에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
+
+  const reworkPlanInspectMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)$/,
+  );
+  if (reworkPlanInspectMatch) {
+    if (method !== 'GET') {
+      json(response, 405, { error: 'ReworkPlan exact inspection은 GET만 지원합니다.' });
+      return;
+    }
+    try {
+      const reworkPlanId = decodeURIComponent(reworkPlanInspectMatch[1]);
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        ...runtime.getReworkPlan(reworkPlanId),
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: String(
+          error.message || 'ReworkPlan exact inspection에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
+
   const workOrderAttemptMatch = url.pathname.match(
     /^\/api\/work-order-attempts\/([^/]+)$/,
   );
