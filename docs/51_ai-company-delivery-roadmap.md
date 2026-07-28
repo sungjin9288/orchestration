@@ -508,6 +508,14 @@ handoff를 기록한다. 이 response-only classifier는 Reviewer rework나 reco
 바꾸지 않는다. `DEC-185`는 exact six-key GET과 browser-memory inspection만 구현하며
 `allowedActions=[]`로 멈춘다.
 
+`DEC-186`은 Stage 5 Reviewer rework의 첫 단계를 schema-v21-preserving response-only
+ReviewerReworkPlanPreview로 고정하고, `DEC-187`은 complete fielded implementation handoff를
+기록한다. 이 preview는 one exact bound `changes-requested` stop, bounded review Artifact,
+source-ordered findings, inherited target allowlist와 verification commands, one
+sourceProgressDigest만 다루며 `allowedActions=[]`로 멈춘다. `DEC-188` exact implementation
+decision 전에는 runtime/API/UI도 열리지 않고, durable rework, Builder attempt append, preflight,
+approval, mutation, Reviewer/QA 실행, scheduling, provider authority는 계속 blocked다.
+
 Source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`, first durable StaffingPlan
 implementation handoff는 `DEC-164`, readiness clarification은 `DEC-165`로 기록됐다. The
 clarified handoff fixes active-project binding, fresh blueprint and role-source digests, existing
@@ -586,6 +594,8 @@ immutable source evidence, `DEC-181` records its complete fielded implementation
 `DEC-182` implements only one exact same-role attempt #2. Planning-only `DEC-183` fixes one exact
 schema-v21-preserving response-only OpsSupervisionPreview, and `DEC-184` records its complete
 fielded implementation handoff; `DEC-185` implements only the exact no-write runtime/API/UI path.
+Planning-only `DEC-186` fixes one exact response-only ReviewerReworkPlanPreview, and handoff-only
+`DEC-187` reserves its runtime/API/UI implementation for `DEC-188`.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.

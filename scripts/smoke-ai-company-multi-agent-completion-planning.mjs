@@ -51,6 +51,11 @@ assert.match(plan, /Planning-only `DEC-180`/);
 assert.match(plan, /`DEC-181` records/);
 assert.match(plan, /`DEC-182` implements the schema-v21 path/);
 assert.match(plan, /### Stage 5: Reviewer Rework/);
+assert.match(plan, /Planning-only `DEC-186`/);
+assert.match(plan, /`DEC-187` records its complete fielded implementation handoff/);
+assert.match(plan, /reserved for an exact `DEC-188` decision/);
+assert.match(plan, /source progress digest/);
+assert.match(plan, /allowedActions=\[\]/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
 assert.match(plan, /Stage 6A planning-only `DEC-183`/);
 assert.match(plan, /`DEC-184`\s+records the complete fielded implementation handoff/);
@@ -142,12 +147,14 @@ for (const decisionId of [
   'DEC-183',
   'DEC-184',
   'DEC-185',
+  'DEC-186',
+  'DEC-187',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-185`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-187`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -227,6 +234,9 @@ process.stdout.write(
         specialistCellRetryImplementation: 'accepted-dec-182',
         opsSupervisionPreviewPlanning: 'accepted-dec-183',
         opsSupervisionPreviewHandoff: 'documented-dec-184',
+        opsSupervisionPreviewImplementation: 'accepted-dec-185',
+        reviewerReworkPreviewPlanning: 'accepted-dec-186',
+        reviewerReworkPreviewHandoff: 'documented-dec-187',
       },
       currentRuntime: {
         schemaVersion: 21,
@@ -241,10 +251,10 @@ process.stdout.write(
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '6B-or-5',
-        object: 'durable-recovery-or-reviewer-rework',
+        stage: '5',
+        object: 'reviewer-rework-plan-preview',
         implementationAllowed: false,
-        nextDecisionLogEntry: null,
+        nextDecisionLogEntry: 'DEC-188',
       },
       authority: {
         documentationAllowed: true,
@@ -263,6 +273,8 @@ process.stdout.write(
         specialistCellRetryImplementationAllowed: true,
         opsSupervisionPreviewPlanningAllowed: true,
         opsSupervisionPreviewImplementationAllowed: true,
+        reviewerReworkPreviewPlanningAllowed: true,
+        reviewerReworkPreviewImplementationAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

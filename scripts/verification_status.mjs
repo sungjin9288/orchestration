@@ -389,12 +389,12 @@ const informationalChecks = [
   {
     id: 'ai-company-master-plan-documentation',
     script: 'scripts/smoke-ai-company-master-plan.mjs',
-    purpose: 'AI Company source contract pins the current schema-v16 Council execution delivery learning memory proof continuation and optional research boundary plus the next still-blocked durable StaffingPlan gate',
+    purpose: 'AI Company source contract pins the current schema-v21 Council execution delivery learning memory staffing scheduler specialist and Ops boundaries plus the exact still-blocked DEC-188 Reviewer rework preview implementation gate',
   },
   {
     id: 'ai-company-multi-agent-completion-planning',
     script: 'scripts/smoke-ai-company-multi-agent-completion-planning.mjs',
-    purpose: 'AI Company multi-agent completion planning source-checks DEC-162 through DEC-165, the staged completion sequence, clarified schema-v17 StaffingPlan contract, complete fielded handoff, rollback, focused verification, and every still-blocked runtime authority',
+    purpose: 'AI Company multi-agent completion planning source-checks DEC-162 through DEC-187, the staged StaffingPlan scheduler specialist Ops and Reviewer rework sequence, current schema-v21 boundary, complete fielded handoffs, rollback, focused verification, and every still-blocked runtime authority',
   },
   {
     id: 'ai-company-staffing-entry-binding-planning',
@@ -420,6 +420,11 @@ const informationalChecks = [
     id: 'ai-company-specialist-cell-retry-planning',
     script: 'scripts/smoke-ai-company-specialist-cell-retry-planning.mjs',
     purpose: 'AI Company Stage 4C planning source-checks DEC-180 and DEC-181, immutable schema-v20 batch and first-attempt evidence, one future schema-v21 failed-cell retry relationship and attempt number two, exact source-current approval deadline replay settlement inspection rollback, and the still-blocked DEC-182 implementation authority',
+  },
+  {
+    id: 'ai-company-reviewer-rework-preview-planning',
+    script: 'scripts/smoke-ai-company-reviewer-rework-preview-planning.mjs',
+    purpose: 'AI Company Stage 5 planning source-checks DEC-186 and DEC-187, one exact schema-v21-preserving source-current Reviewer changes-requested projection, bounded review Artifact and finding normalization, inherited target and verification scope, canonical progress digest, one-attempt cap, allowedActions empty, rollback, and still-blocked DEC-188 implementation and mutation authority',
   },
   {
     id: 'ai-company-ops-supervision-preview-planning',

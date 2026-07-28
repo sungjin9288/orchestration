@@ -38,9 +38,9 @@ function assertReadmeHas(pattern) {
 const inventoryGateRows = [
   /Starting head checked before this inventory edit: `965a35b`/,
   /Planning baseline head checked before this document update: `965a35b`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `283\/283`, total `284\/284` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `284\/284`, total `285\/285` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
   /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `80\/80` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `284\/284`, UI QA `80\/80`,[\s\S]*DEC-161 Agent Operations Desk visual redesign, DEC-162 through DEC-166 StaffingPlan planning\/implementation, DEC-167 through DEC-169 StaffingEntry planning\/implementation, DEC-170 through DEC-172 operator-stepped scheduler planning\/implementation, DEC-173 through DEC-176 Stage 4A planning\/implementation, DEC-177 through DEC-179 Stage 4B planning\/handoff\/implementation, DEC-180 through DEC-182 Stage 4C retry planning\/handoff\/implementation, and DEC-183 through DEC-185 Stage 6A inspect-only planning\/handoff\/implementation\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `285\/285`, UI QA `80\/80`,[\s\S]*DEC-161 Agent Operations Desk visual redesign, DEC-162 through DEC-166 StaffingPlan planning\/implementation, DEC-167 through DEC-169 StaffingEntry planning\/implementation, DEC-170 through DEC-172 operator-stepped scheduler planning\/implementation, DEC-173 through DEC-176 Stage 4A planning\/implementation, DEC-177 through DEC-179 Stage 4B planning\/handoff\/implementation, DEC-180 through DEC-182 Stage 4C retry planning\/handoff\/implementation, DEC-183 through DEC-185 Stage 6A inspect-only planning\/handoff\/implementation, and DEC-186 through DEC-187 Stage 5 Reviewer rework preview planning\/handoff\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -124,7 +124,8 @@ const inventoryGateRows = [
   /\| AI Company SpecialistCellRetry implementation \| pass \| `DEC-182`, `src\/runtime\/specialist-cell-retries\.js`, `src\/execution\/specialist-cell-retry-coordinator\.js`, `node scripts\/smoke-ai-company-specialist-cell-retry\.mjs`, `node scripts\/smoke-ui-slice-701\.mjs` \|/,
   /\| AI Company OpsSupervisionPreview planning \| pass \| `DEC-183`, `DEC-184`, `docs\/125_ai-company-ops-supervision-preview-plan\.md`, `docs\/126_ai-company-ops-supervision-preview-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-ops-supervision-preview-planning\.mjs` \|/,
   /\| AI Company OpsSupervisionPreview implementation \| pass \| `DEC-185`, `src\/runtime\/ops-supervision-preview\.js`, `node scripts\/smoke-ai-company-ops-supervision-preview\.mjs`, `node scripts\/smoke-ui-slice-702\.mjs` \|/,
-  /The required implementation baseline is closed through `DEC-185`[\s\S]*Planning-only `DEC-177` and handoff-only `DEC-178` fix Stage 4B; `DEC-179` implements only its exact[\s\S]*schema-v20 fixed Researcher\/QA local first attempt[\s\S]*Planning-only `DEC-180` and handoff-only[\s\S]*`DEC-181` define one immutable-source failed-cell retry, and `DEC-182` implements only the exact[\s\S]*Planning-only `DEC-183` and handoff-only `DEC-184` define one[\s\S]*`DEC-185` implements only that no-write inspect path/,
+  /\| AI Company ReviewerReworkPlanPreview planning \| pass \| `DEC-186`, `DEC-187`, `docs\/127_ai-company-reviewer-rework-preview-plan\.md`, `docs\/128_ai-company-reviewer-rework-preview-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-reviewer-rework-preview-planning\.mjs` \|/,
+  /The required implementation baseline is closed through `DEC-185`; planning and handoff evidence is[\s\S]*current through `DEC-187`[\s\S]*Planning-only `DEC-177` and handoff-only `DEC-178` fix Stage 4B; `DEC-179` implements only its exact[\s\S]*schema-v20 fixed Researcher\/QA local first attempt[\s\S]*Planning-only `DEC-180` and handoff-only[\s\S]*`DEC-181` define one immutable-source failed-cell retry, and `DEC-182` implements only the exact[\s\S]*Planning-only `DEC-183` and handoff-only `DEC-184` define one[\s\S]*`DEC-185` implements only that no-write inspect path[\s\S]*Planning-only `DEC-186` and handoff-only `DEC-187` define one exact response-only[\s\S]*implementation remains blocked until `DEC-188`/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -300,6 +301,10 @@ assert.match(
   verificationStatus,
   /smoke-ai-company-ops-supervision-preview\.mjs/,
 );
+assert.match(
+  verificationStatus,
+  /smoke-ai-company-reviewer-rework-preview-planning\.mjs/,
+);
 assert.match(uiQaStatus, /smoke-ui-slice-696\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-697\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-698\.mjs/);
@@ -317,8 +322,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '283/283',
-        total: '284/284',
+        informational: '284/284',
+        total: '285/285',
       },
     },
     null,

@@ -85,8 +85,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   complete implementation handoff; `DEC-182` implements only that exact same-role attempt #2 path.
   `DEC-183` and `DEC-184` define the inspect-only schema-v21 OpsSupervisionPreview plan and
   implementation handoff; `DEC-185` implements the exact response-only runtime/API/UI path.
+  `DEC-186` and `DEC-187` define the response-only ReviewerReworkPlanPreview plan and complete
+  fielded implementation handoff without opening runtime authority.
   Solo binding, bound Council
-  revision/resume/auto-chain, dynamic specialists, Reviewer rework,
+  revision/resume/auto-chain, dynamic specialists, Reviewer rework implementation,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
   application은 아직 구현되지 않았다.
 
@@ -128,7 +130,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-185`
+- Recorded decisions: `DEC-163` through `DEC-187`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -163,7 +165,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `allowedActions=[]`, and `DEC-184` records its complete fielded implementation handoff
 - Stage 6A implementation: `DEC-185` adds one exact six-key GET and browser-memory inspection path
   without schema migration, persistence, execution, or recovery authority
-- Next gate: durable recovery or Reviewer rework planning; solo remains deferred
+- Stage 5 planning: `DEC-186` fixes one exact schema-v21-preserving response-only
+  ReviewerReworkPlanPreview, and `DEC-187` records its complete fielded implementation handoff
+- Next gate: exact `DEC-188` ReviewerReworkPlanPreview implementation decision; solo remains deferred
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -499,7 +503,9 @@ only that exact fixed local first attempt. Planning-only `DEC-180` and handoff-o
 the schema-v21 failed-cell retry boundary, and `DEC-182` implements only one exact immutable-source
 same-role attempt #2 path. Planning-only `DEC-183` and handoff-only `DEC-184` define one exact
 schema-v21-preserving response-only OpsSupervisionPreview, and `DEC-185` implements only that exact
-inspect path with `allowedActions=[]`. Collection/list exposure, cancellation, active-attempt recovery mutation,
+inspect path with `allowedActions=[]`. Planning-only `DEC-186` and handoff-only `DEC-187` define one
+exact response-only ReviewerReworkPlanPreview while implementation remains gated by `DEC-188`.
+Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.
 

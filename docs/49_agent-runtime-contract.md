@@ -469,6 +469,15 @@ cancellation, active-attempt mutation or recovery, automatic or repeated retry, 
 attempt #2, collection projection, result application, and policy changes remain outside the
 runtime contract.
 
+Planning-only `DEC-186` defines the Stage 5 response-only `ReviewerReworkPlanPreview`, and
+handoff-only `DEC-187` fixes its complete implementation decision shape. The future preview may read
+only one exact source-current StaffingEntry-bound plan stopped at Reviewer `changes-requested`,
+enforce a bounded review Artifact read, preserve ordered duplicate findings, inherit the original
+target allowlist and verification commands byte-equivalently, and return a canonical progress digest
+with `allowedActions=[]`. Schema migration, durable rework records, new WorkOrders or attempts,
+preflight, approval, mutation, execution, scheduling, and providers remain outside this planning
+contract until an exact `DEC-188` decision.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

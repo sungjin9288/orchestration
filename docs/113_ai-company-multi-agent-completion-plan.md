@@ -161,6 +161,16 @@ target allowlist, verification plan, and a bounded attempt cap.
 Every new mutation attempt repeats preflight and approval. An unchanged progress digest stops the
 loop.
 
+Planning-only `DEC-186` now fixes the first no-write boundary as one exact schema-v21-preserving
+`ReviewerReworkPlanPreview` over a source-current StaffingEntry-bound ExecutionPlan stopped at
+Reviewer `changes-requested`. `DEC-187` records its complete fielded implementation handoff.
+The preview must parse one bounded canonical review Artifact, preserve source-ordered duplicate
+findings, inherit target paths and verification commands without widening, compute one canonical
+source progress digest, cap the later Builder attempt at one, and return `allowedActions=[]`.
+Runtime/API/UI implementation remains reserved for an exact `DEC-188` decision. Durable ReworkPlan,
+Builder WorkOrder or attempt append, preflight, approval, mutation, Reviewer/QA execution, automatic
+scheduling, and provider execution remain separately gated.
+
 ### Stage 6: Ops Supervision And Recovery
 
 Expose one read-only supervision snapshot and explicit `step`, `retry-failed`, `cancel`, `quarantine`,
