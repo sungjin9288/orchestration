@@ -35,7 +35,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tempRoot = path.join(
   repoRoot,
   'var',
-  'runtime-ai-company-reviewer-rework-preview-smoke',
+  `runtime-ai-company-reviewer-rework-preview-smoke-${process.pid}`,
 );
 const runtimeRoot = path.join(tempRoot, 'runtime');
 const projectPath = path.join(tempRoot, 'project');

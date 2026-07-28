@@ -430,7 +430,7 @@ content와 derived UI preview의 source-of-truth 경계를 유지한다.
 ## Implementation Boundary
 
 `CompanyBlueprint`와 `AgentProfile` source loading은 `DEC-079`로 구현됐다. 이 path가
-schema-v6 foundation을 만들었고, current persisted runtime은 schema v22이며 company policy는 여전히 `state.json`에 저장되지 않는다.
+schema-v6 foundation을 만들었고, current persisted runtime은 schema v23이며 company policy는 여전히 `state.json`에 저장되지 않는다.
 Direct runtime caller가 blueprint path를 생략하면 기존 snapshot shape를
 유지하고, configured local server만 additive read-only `companyRuntime` envelope를 노출한다.
 One exact immutable StaffingPlan preview/accept/inspection path는 `DEC-166`으로 구현됐다.
@@ -486,14 +486,14 @@ snapshot exclusion, idempotency, collision, rollback, and focused verification c
 `DEC-191` implements only that schema-v22 record-and-inspect boundary. ReworkPlan decisions, Builder
 append, retry, preflight, approval, mutation, and execution authority remain absent.
 
-Planning-only `DEC-192` defines one future schema-v23 append-only `ReworkPlanAcceptance` from one
+Planning-only `DEC-192` defines one schema-v23 append-only `ReworkPlanAcceptance` from one
 exact source-current DEC-191 record and a freshly recomputed DEC-188 source projection.
 Handoff-only `DEC-193` fixes the complete implementation decision shape, exact path-plus-ten-key
 accept request, sequence/map-only migration, immutable acceptance and closed authority summary,
 exact ReworkPlan-bound inspection, generic snapshot exclusion, idempotency, collision, rollback, and
-focused verification contracts. No schema, record, API, UI, Builder append, retry, preflight,
-approval, mutation, or execution authority exists before the exact decision reserved for
-`DEC-194`.
+focused verification contracts. `DEC-194` implements only that accepted evidence-and-inspection
+boundary. The source ReworkPlan stays immutable and review-required; Builder append, retry,
+preflight, approval, mutation, and execution authority remain absent.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

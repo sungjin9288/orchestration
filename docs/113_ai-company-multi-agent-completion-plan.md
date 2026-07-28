@@ -179,13 +179,13 @@ snapshot exclusion, idempotency, collision, rollback, and focused evidence. `DEC
 only that record-and-inspect boundary. A ReworkPlan decision, Builder append, retry, preflight,
 approval, mutation, Reviewer/QA execution, and scheduling remain blocked.
 
-Planning-only `DEC-192` now fixes Stage 5C as one future append-only schema-v23
+Planning-only `DEC-192` now fixes Stage 5C as one append-only schema-v23
 `ReworkPlanAcceptance` from one exact source-current DEC-191 record and recomputed DEC-188 source
 projection. `DEC-193` records its complete fielded implementation handoff. The source ReworkPlan
 remains immutable `review-required`, the acceptance authority summary remains closed, and generic
-snapshot exposure is forbidden. Schema migration, acceptance creation, Builder WorkOrder or
-WorkOrderAttempt append, retry, preflight, approval, mutation, Reviewer/QA execution, and scheduling
-remain blocked pending the exact implementation decision reserved for `DEC-194`.
+snapshot exposure is forbidden. `DEC-194` implements only the exact accepted evidence append,
+no-write replay, exact inspection, and evidence-only UI. Builder WorkOrder or WorkOrderAttempt
+append, retry, preflight, approval, mutation, Reviewer/QA execution, and scheduling remain blocked.
 
 ### Stage 6: Ops Supervision And Recovery
 

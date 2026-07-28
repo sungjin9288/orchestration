@@ -41,6 +41,7 @@ const {
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   REWORK_PLAN_STATE_SCHEMA_VERSION,
+  REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION,
   RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
   SPECIALIST_BATCH_STATE_SCHEMA_VERSION,
@@ -136,6 +137,10 @@ const {
 const {
   assertReworkPlanRecord,
 } = require('./rework-plans');
+const {
+  REWORK_PLAN_ACCEPTANCE_AUTHORITY_SUMMARY,
+  assertReworkPlanAcceptanceRecord,
+} = require('./rework-plan-acceptances');
 const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
 const {
   BLOCKED_ACTIONS: VERIFICATION_PROOF_BLOCKED_ACTIONS,
@@ -2473,6 +2478,70 @@ function validateReworkPlanRecords(state) {
   }
 }
 
+function validateReworkPlanAcceptanceRecords(state) {
+  const acceptedReworkPlanIds = new Set();
+  let highestSequence = 0;
+  for (const [key, acceptance] of Object.entries(state.reworkPlanAcceptances)) {
+    const label = `ReworkPlanAcceptance ${key}`;
+    if (
+      !acceptance ||
+      typeof acceptance !== 'object' ||
+      Array.isArray(acceptance) ||
+      acceptance.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    const idMatch = /^rework-plan-acceptance-(\d+)$/.exec(key);
+    const recordSequence = idMatch ? Number(idMatch[1]) : Number.NaN;
+    if (
+      !Number.isSafeInteger(recordSequence) ||
+      recordSequence < 1 ||
+      key !==
+        `rework-plan-acceptance-${String(recordSequence).padStart(4, '0')}`
+    ) {
+      throw new Error(`${label} has an invalid sequence identity`);
+    }
+    highestSequence = Math.max(highestSequence, recordSequence);
+    assertReworkPlanAcceptanceRecord(acceptance);
+    const reworkPlan = state.reworkPlans[acceptance.reworkPlanId];
+    if (!reworkPlan) throw new Error(`${label} has no source ReworkPlan`);
+    if (acceptedReworkPlanIds.has(reworkPlan.id)) {
+      throw new Error(`${label} duplicates ReworkPlan acceptance evidence`);
+    }
+    acceptedReworkPlanIds.add(reworkPlan.id);
+    if (
+      acceptance.projectId !== reworkPlan.projectId ||
+      acceptance.missionId !== reworkPlan.missionId ||
+      acceptance.staffingPlanId !== reworkPlan.staffingPlanId ||
+      acceptance.staffingEntryId !== reworkPlan.staffingEntryId ||
+      acceptance.councilSessionId !== reworkPlan.councilSessionId ||
+      acceptance.executionPlanId !== reworkPlan.executionPlanId ||
+      acceptance.reworkPlanRecordDigest !== reworkPlan.recordDigest ||
+      acceptance.previewId !== reworkPlan.previewId ||
+      acceptance.previewDigest !== reworkPlan.previewDigest ||
+      acceptance.sourceExecutionPlanDigest !== reworkPlan.sourceExecutionPlanDigest ||
+      acceptance.sourceAttemptRecordDigest !== reworkPlan.sourceAttemptRecordDigest ||
+      acceptance.reviewEvidenceDigest !== reworkPlan.reviewEvidenceDigest ||
+      acceptance.sourceProgressDigest !== reworkPlan.sourceProgressDigest ||
+      acceptance.nextAttemptNumber !== reworkPlan.nextAttemptNumber ||
+      acceptance.maxAdditionalBuilderAttempts !== reworkPlan.maxAdditionalBuilderAttempts ||
+      Date.parse(acceptance.reviewedAt) < Date.parse(reworkPlan.createdAt) ||
+      JSON.stringify(acceptance.authoritySummary) !==
+        JSON.stringify(REWORK_PLAN_ACCEPTANCE_AUTHORITY_SUMMARY)
+    ) {
+      throw new Error(`${label} has invalid source ReworkPlan bindings`);
+    }
+  }
+  if (state.sequences.reworkPlanAcceptance !== highestSequence) {
+    throw new Error(
+      'ReworkPlanAcceptance sequence does not match retained records',
+    );
+  }
+  if (Object.keys(state.reworkPlanAcceptances).length !== highestSequence) {
+    throw new Error('ReworkPlanAcceptance sequence has a retained-record gap');
+  }
+}
+
 function validateAcceptanceCriterionRecords(state) {
   const digestPattern = /^[a-f0-9]{64}$/;
   const sourceCriterionKeys = new Set();
@@ -3082,6 +3151,8 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== SPECIALIST_BATCH_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== SPECIALIST_CELL_RETRY_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== REWORK_PLAN_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -3322,6 +3393,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.reworkPlanAcceptance) ||
+        !state.reworkPlanAcceptances ||
+        typeof state.reworkPlanAcceptances !== 'object' ||
+        Array.isArray(state.reworkPlanAcceptances)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing ReworkPlanAcceptance fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -3361,6 +3445,7 @@ function createFileStore(options = {}) {
       specialistCellAttempts: state.specialistCellAttempts || {},
       specialistCellRetries: state.specialistCellRetries || {},
       reworkPlans: state.reworkPlans || {},
+      reworkPlanAcceptances: state.reworkPlanAcceptances || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -3648,6 +3733,7 @@ function createFileStore(options = {}) {
     validateWorkOrderAttemptRecords(normalizedState);
     validateSpecialistBatchRecords(normalizedState);
     validateReworkPlanRecords(normalizedState);
+    validateReworkPlanAcceptanceRecords(normalizedState);
     return normalizedState;
   }
 

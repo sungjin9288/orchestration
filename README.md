@@ -147,7 +147,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v22 after the additive immutable ReworkPlan migration, while
+execution state is schema v23 after the additive ReworkPlanAcceptance migration, while
 `companyRuntime` remains an additive read-only snapshot on the configured local server path. The
 editable company roster remains browser presentation only.
 
@@ -238,11 +238,13 @@ scheduling, and provider authority remain blocked.
 Planning-only `DEC-192` defines the Stage 5C append-only ReworkPlanAcceptance boundary in
 `docs/131_ai-company-rework-plan-acceptance-plan.md`, and `DEC-193` records its complete fielded
 implementation handoff in
-`docs/132_ai-company-rework-plan-acceptance-implementation-decision-handoff.md`. The plan keeps the
-source ReworkPlan immutable, binds a future acceptance to the exact DEC-191 record and recomputed
-DEC-188 source evidence, and stops before Builder append or execution. Schema-v23, acceptance
-creation, API/UI behavior, Builder work, and every downstream authority remain blocked pending the
-exact decision reserved for `DEC-194`.
+`docs/132_ai-company-rework-plan-acceptance-implementation-decision-handoff.md`. `DEC-194`
+implements one schema-v23 immutable accepted fact bound to the exact DEC-191 record and recomputed
+DEC-188 source evidence. Exact replay is no-write even after source drift, exact GET inspection is
+ReworkPlan-bound, the generic snapshot excludes the acceptance map, and the UI exposes no Builder
+or execution action. ReworkPlan mutation, Builder append, retry, preflight, approval, role
+execution, scheduling, providers, source/Git/release, memory, policy, collections, bypass, and
+connectors remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -742,7 +744,7 @@ implementation evidence plus DEC-183 through DEC-185 Stage 6A inspect-only plann
 implementation evidence plus DEC-186 through DEC-188 Stage 5 Reviewer rework preview planning,
 handoff, and response-only implementation evidence plus DEC-189 through DEC-191 Stage 5B durable
 ReworkPlan planning, fielded handoff, and record-only implementation evidence plus DEC-192 through
-DEC-193 Stage 5C ReworkPlanAcceptance planning and fielded handoff
+DEC-194 Stage 5C ReworkPlanAcceptance planning, handoff, and evidence-only implementation
 evidence pass the aggregate and UI QA gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
@@ -2403,9 +2405,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 976 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 978 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 704 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 705 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -2977,8 +2979,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
-  multi-agent completion runtime slices are evidence-closed through DEC-191, while planning and
-  fielded handoff evidence is current through DEC-193. DEC-173
+  multi-agent completion runtime slices and fielded evidence are current through DEC-194. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell
@@ -3005,11 +3006,12 @@ Playwright CLI:
   route, current-chain hydration, and read-only UI evidence exist; ReworkPlan decisions, Builder
   append, retry, preflight, approval, source mutation, role execution, scheduling, provider, memory,
   Git/release, policy, collection, bypass, and connector authority remain unimplemented.
-- `DEC-192` and `DEC-193` are planning and fielded handoff evidence only for one future schema-v23
-  append-only ReworkPlanAcceptance. No schema-v23 migration, acceptance record, accept/get route, UI
-  action, ReworkPlan status mutation, Builder append, retry, preflight, approval, source mutation,
-  role execution, scheduling, provider, memory, Git/release, policy, collection, bypass, or connector
-  behavior is implemented before the exact decision reserved for `DEC-194`.
+- `DEC-192` and `DEC-193` are consumed planning and fielded handoff evidence for the schema-v23
+  append-only ReworkPlanAcceptance implemented by `DEC-194`. One exact accepted record, no-write
+  replay, ReworkPlan-bound GET, snapshot exclusion, and rationale-gated UI action exist; ReworkPlan
+  status mutation, Builder append, retry, preflight, approval, source mutation, role execution,
+  scheduling, provider, memory, Git/release, policy, collection, bypass, and connector authority
+  remain unimplemented.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.
@@ -3243,8 +3245,9 @@ Playwright CLI:
   no-write runtime/API/UI behavior. `DEC-189` plans one immutable schema-v22 durable ReworkPlan
   record, `DEC-190` records its complete fielded implementation handoff, and `DEC-191` implements
   only the immutable record-and-inspect boundary. `DEC-192` plans one append-only schema-v23
-  ReworkPlanAcceptance and `DEC-193` records its complete fielded implementation handoff without
-  opening implementation. Dynamic or additional cells, bound
+  ReworkPlanAcceptance, `DEC-193` records its complete fielded implementation handoff, and
+  `DEC-194` implements only the accepted evidence-and-inspection boundary. Dynamic or additional
+  cells, bound
   Council revision/resume/auto-chain, automatic or repeated retry/rework, interrupted-attempt
   recovery, memory application,
   provider/background WorkOrders, source/Git/release, policy, bypass, and connector authority remain

@@ -118,6 +118,7 @@ const {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertReworkPlan,
+  assertReworkPlanAcceptance,
   assertRun,
   assertSpecialistBatch,
   assertSpecialistCellAttempt,
@@ -236,6 +237,12 @@ const {
   isExactReworkPlanReplay,
   normalizeReworkPlanRequest,
 } = require('./rework-plans');
+const {
+  assertReworkPlanAcceptanceRecord,
+  createReworkPlanAcceptance,
+  isExactReworkPlanAcceptanceReplay,
+  normalizeReworkPlanAcceptanceRequest,
+} = require('./rework-plan-acceptances');
 const {
   parseReviewerArtifactContent,
 } = require('../execution/coordinator/artifact-content');
@@ -402,6 +409,13 @@ function createRuntimeService(options = {}) {
   function nextReworkPlanId(state) {
     state.sequences.reworkPlan += 1;
     return `rework-plan-${String(state.sequences.reworkPlan).padStart(4, '0')}`;
+  }
+
+  function nextReworkPlanAcceptanceId(state) {
+    state.sequences.reworkPlanAcceptance += 1;
+    return `rework-plan-acceptance-${String(
+      state.sequences.reworkPlanAcceptance,
+    ).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -4415,6 +4429,163 @@ function createRuntimeService(options = {}) {
     }
     assertReworkPlanRecord(reworkPlan);
     return { reworkPlan };
+  }
+
+  function findReworkPlanAcceptance(state, reworkPlanId) {
+    return (
+      Object.values(state.reworkPlanAcceptances || {}).find(
+        (record) => record.reworkPlanId === reworkPlanId,
+      ) || null
+    );
+  }
+
+  function assertReworkPlanAcceptanceRequestMatchesPlan(request, reworkPlan) {
+    const bindings = [
+      ['reworkPlanRecordDigest', reworkPlan.recordDigest],
+      ['previewId', reworkPlan.previewId],
+      ['previewDigest', reworkPlan.previewDigest],
+      ['sourceExecutionPlanDigest', reworkPlan.sourceExecutionPlanDigest],
+      ['sourceAttemptRecordDigest', reworkPlan.sourceAttemptRecordDigest],
+      ['sourceProgressDigest', reworkPlan.sourceProgressDigest],
+    ];
+    for (const [field, expected] of bindings) {
+      if (request[field] !== expected) {
+        throw conflict(`ReworkPlanAcceptance ${field} does not match source evidence`);
+      }
+    }
+    if (Date.parse(request.reviewedAt) < Date.parse(reworkPlan.createdAt)) {
+      throw conflict('ReworkPlanAcceptance reviewedAt predates the source ReworkPlan');
+    }
+  }
+
+  function assertCurrentReworkPlanProjection(state, reworkPlan, now) {
+    if (reworkPlan.status !== 'review-required') {
+      throw conflict('ReworkPlanAcceptance requires a review-required ReworkPlan');
+    }
+    const preview = buildReviewerReworkPlanPreviewFromState(
+      state,
+      {
+        executionPlanId: reworkPlan.executionPlanId,
+        reviewerWorkOrderId: reworkPlan.reviewerWorkOrderId,
+        reviewerAttemptId: reworkPlan.reviewerAttemptId,
+        reviewerRunId: reworkPlan.reviewerRunId,
+        reviewArtifactId: reworkPlan.reviewArtifactId,
+        expectedExecutionPlanDigest: reworkPlan.sourceExecutionPlanDigest,
+        expectedAttemptRecordDigest: reworkPlan.sourceAttemptRecordDigest,
+        evaluatedAt: reworkPlan.previewEvaluatedAt,
+      },
+      now,
+    );
+    const projection = {
+      previewId: preview.id,
+      previewDigest: preview.previewDigest,
+      sourceExecutionPlanDigest: preview.executionPlanDigest,
+      sourceAttemptRecordDigest: preview.attemptRecordDigest,
+      reviewEvidenceDigest: preview.reviewEvidenceDigest,
+      sourceProgressDigest: preview.sourceProgressDigest,
+      nextAttemptNumber: preview.nextAttemptNumber,
+      maxAdditionalBuilderAttempts: preview.maxAdditionalBuilderAttempts,
+      targetPathAllowlist: preview.targetPathAllowlist,
+      verificationCommands: preview.verificationCommands,
+      findings: preview.findings,
+      evidenceRefs: preview.evidenceRefs,
+      allowedActions: preview.allowedActions,
+      blockedActions: preview.blockedActions,
+    };
+    const recordProjection = {
+      previewId: reworkPlan.previewId,
+      previewDigest: reworkPlan.previewDigest,
+      sourceExecutionPlanDigest: reworkPlan.sourceExecutionPlanDigest,
+      sourceAttemptRecordDigest: reworkPlan.sourceAttemptRecordDigest,
+      reviewEvidenceDigest: reworkPlan.reviewEvidenceDigest,
+      sourceProgressDigest: reworkPlan.sourceProgressDigest,
+      nextAttemptNumber: reworkPlan.nextAttemptNumber,
+      maxAdditionalBuilderAttempts: reworkPlan.maxAdditionalBuilderAttempts,
+      targetPathAllowlist: reworkPlan.targetPathAllowlist,
+      verificationCommands: reworkPlan.verificationCommands,
+      findings: reworkPlan.findings,
+      evidenceRefs: reworkPlan.evidenceRefs,
+      allowedActions: reworkPlan.allowedActions,
+      blockedActions: reworkPlan.blockedActions,
+    };
+    if (JSON.stringify(projection) !== JSON.stringify(recordProjection)) {
+      throw conflict('ReworkPlanAcceptance source projection is stale');
+    }
+  }
+
+  function acceptReworkPlan(input) {
+    const now = reviewerReworkNowIso();
+    const { reworkPlanId, ...requestInput } = input || {};
+    let request;
+    try {
+      request = normalizeReworkPlanAcceptanceRequest(requestInput, { now });
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`ReworkPlanAcceptance requires supported state: ${error.message}`);
+    }
+
+    let reworkPlan;
+    try {
+      reworkPlan = assertReworkPlan(reworkPlanId, state);
+      assertReworkPlanRecord(reworkPlan);
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+
+    const existing = findReworkPlanAcceptance(state, reworkPlan.id);
+    if (existing) {
+      assertReworkPlanAcceptanceRecord(existing);
+      if (!isExactReworkPlanAcceptanceReplay(existing, request)) {
+        throw conflict(`ReworkPlan ${reworkPlan.id} already has a different acceptance`);
+      }
+      return { idempotent: true, reworkPlanAcceptance: existing };
+    }
+
+    assertReworkPlanAcceptanceRequestMatchesPlan(request, reworkPlan);
+    assertCurrentReworkPlanProjection(state, reworkPlan, now);
+    const acceptance = createReworkPlanAcceptance({
+      id: nextReworkPlanAcceptanceId(state),
+      reworkPlan,
+      request,
+    });
+    if (state.reworkPlanAcceptances[acceptance.id]) {
+      throw conflict(`ReworkPlanAcceptance id already exists: ${acceptance.id}`);
+    }
+    state.reworkPlanAcceptances[acceptance.id] = acceptance;
+    store.saveState(state);
+    return { idempotent: false, reworkPlanAcceptance: acceptance };
+  }
+
+  function getReworkPlanAcceptance(reworkPlanId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReworkPlanAcceptance inspection requires supported state: ${error.message}`,
+      );
+    }
+    try {
+      assertReworkPlan(reworkPlanId, state);
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+    const acceptance = findReworkPlanAcceptance(state, reworkPlanId);
+    if (!acceptance) {
+      throw reviewerReworkNotFound('ReworkPlanAcceptance not found');
+    }
+    assertReworkPlanAcceptance(acceptance.id, state);
+    assertReworkPlanAcceptanceRecord(acceptance);
+    return { reworkPlanAcceptance: acceptance };
   }
 
   function opsSupervisionNowIso() {
@@ -9789,6 +9960,7 @@ function createRuntimeService(options = {}) {
     delete snapshotForPublicProjection.specialistCellAttempts;
     delete snapshotForPublicProjection.specialistCellRetries;
     delete snapshotForPublicProjection.reworkPlans;
+    delete snapshotForPublicProjection.reworkPlanAcceptances;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -9841,6 +10013,7 @@ function createRuntimeService(options = {}) {
   return {
     appendLog,
     acceptDeliveryPackage,
+    acceptReworkPlan,
     acceptMissionStaffingPlan,
     approveCouncilRecommendation,
     assertTaskCanRunBuilderLiveMutation,
@@ -9894,6 +10067,7 @@ function createRuntimeService(options = {}) {
     getOpsSupervisionPreview,
     getReviewerReworkPlanPreview,
     getReworkPlan,
+    getReworkPlanAcceptance,
     getExecutionPlanReworkPlan,
     getMissionCloseOut,
     getMissionLearningCandidate,

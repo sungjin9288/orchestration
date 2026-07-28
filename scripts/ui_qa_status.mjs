@@ -377,6 +377,12 @@ const smokeChecks = [
       'Durable Reviewer ReworkPlan UI and API preserve exact preview and separate rationale-gated record creation, bounded current-chain refresh hydration, immutable evidence rendering, generic snapshot exclusion, absent downstream controls, and responsive desktop/mobile fit',
   },
   {
+    id: 'ai-company-rework-plan-acceptance-ui-api',
+    script: 'scripts/smoke-ui-slice-705.mjs',
+    purpose:
+      'ReworkPlanAcceptance UI and API preserve exact rationale-gated evidence-only acceptance, bounded exact hydration, immutable rendering, responsive fit, and absent Builder append retry execution or scheduling controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

@@ -450,11 +450,11 @@ progress provenance. It does not revise Council alignment or authorize a Builder
 preflight, approval, mutation, Reviewer/QA execution, scheduling, or provider use.
 
 Planning-only `DEC-192` and handoff-only `DEC-193` define the next evidence-only boundary as one
-future append-only schema-v23 ReworkPlanAcceptance. Acceptance must bind the exact DEC-191 record
+append-only schema-v23 ReworkPlanAcceptance. Acceptance must bind the exact DEC-191 record
 and recomputed DEC-188 source evidence while leaving Council synthesis, alignment, ReworkPlan status,
 Builder append, retry, preflight, approval, source mutation, role execution, scheduling, and provider
-use unchanged. Implementation remains blocked pending the exact fielded decision reserved for
-`DEC-194`.
+use unchanged. `DEC-194` implements only that exact acceptance fact and exact inspection; it opens
+no Builder or execution authority.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

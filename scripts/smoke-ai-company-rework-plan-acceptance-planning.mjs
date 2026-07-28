@@ -87,7 +87,7 @@ assertHasAll(plan, [
   /expose no reject, changes-requested, Start rework, Retry/,
   /scripts\/smoke-ai-company-rework-plan-acceptance\.mjs/,
   /scripts\/smoke-ui-slice-705\.mjs/,
-  /Schema\/runtime\/API\/UI implementation: blocked/,
+  /Schema\/runtime\/API\/UI implementation: completed under `DEC-194`/,
 ]);
 
 const decisionFields = [
@@ -205,9 +205,9 @@ assertHasAll(handoff, [
   /^# AI Company ReworkPlan Acceptance Implementation Decision Handoff$/m,
   /Planning-only decision: accepted as `DEC-192`/,
   /Implementation handoff: recorded as `DEC-193`/,
-  /Complete fielded implementation decision: not accepted/,
-  /Current runtime: schema v22/,
-  /Reserved implementation decision: `DEC-194`/,
+  /Complete fielded implementation decision: accepted as `DEC-194`/,
+  /Current runtime: schema v23/,
+  /Implementation decision: `DEC-194`/,
   /decisionId=operator-decision-ai-company-rework-plan-acceptance-implementation-001/,
   /decisionStatus=approve-ai-company-rework-plan-acceptance-implementation-slice/,
   /one deterministic local schema-v23 append-only ReworkPlanAcceptance/,
@@ -221,10 +221,10 @@ assertHasAll(handoff, [
   /Builder WorkOrder or WorkOrderAttempt append/,
   /permits acceptance evidence creation and exact inspection only/,
   /Generic approval, broad continuation, delegated self-approval/,
-  /recommended implementation input reserved\s+for `DEC-194`/,
+  /operator supplied the exact `Valid Approval Outcome`, accepted as `DEC-194`/,
 ]);
 
-for (const decisionId of ['DEC-191', 'DEC-192', 'DEC-193']) {
+for (const decisionId of ['DEC-191', 'DEC-192', 'DEC-193', 'DEC-194']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -234,6 +234,10 @@ assert.match(
 assert.match(
   decisionLog,
   /### DEC-193[\s\S]*Status: `Accepted`[\s\S]*No implementation authority is recorded[\s\S]*reserved for `DEC-194`/,
+);
+assert.match(
+  decisionLog,
+  /### DEC-194[\s\S]*Status: `Accepted`[\s\S]*schema-v23 append-only `ReworkPlanAcceptance\(decision=accepted\)`/,
 );
 
 for (const text of [
@@ -277,12 +281,12 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-rework-plan-acceptance-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 22/);
-assert.doesNotMatch(contracts, /REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 23/);
+assert.match(contracts, /const REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION = 23/);
 assert.match(reworkPlans, /const REWORK_PLAN_STATUS = 'review-required'/);
 assert.match(reworkPlans, /record\.allowedActions\.length !== 0/);
 assert.match(runtimeService, /function getReworkPlan\(reworkPlanId\)/);
-assert.doesNotMatch(runtimeService, /function acceptReworkPlan\(/);
+assert.match(runtimeService, /function acceptReworkPlan\(/);
 
 for (const implementationPath of [
   'src/runtime/rework-plan-acceptances.js',
@@ -291,8 +295,8 @@ for (const implementationPath of [
 ]) {
   assert.equal(
     fs.existsSync(path.join(repoRoot, implementationPath)),
-    false,
-    `${implementationPath} must remain absent before DEC-194`,
+    true,
+    `${implementationPath} must exist after DEC-194`,
   );
 }
 
@@ -302,28 +306,28 @@ const smokeCount = fs
 const uiSmokeCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
-assert.equal(smokeCount, 976);
-assert.equal(uiSmokeCount, 704);
-assert.match(readme, /976 smoke files/);
-assert.match(readme, /704 UI smoke files/);
+assert.equal(smokeCount, 978);
+assert.equal(uiSmokeCount, 705);
+assert.match(readme, /978 smoke files/);
+assert.match(readme, /705 UI smoke files/);
 
 process.stdout.write(
   `${JSON.stringify(
     {
       ok: true,
       mode,
-      schemaVersion: 22,
+      schemaVersion: 23,
       smokeFiles: smokeCount,
       uiSmokeFiles: uiSmokeCount,
       planningAllowed: true,
-      implementationAllowed: false,
-      schemaMigrationAllowed: false,
-      acceptanceRecordAllowed: false,
+      implementationAllowed: true,
+      schemaMigrationAllowed: true,
+      acceptanceRecordAllowed: true,
       workOrderAppendAllowed: false,
       reworkExecutionAllowed: false,
       planningDecision: 'accepted-dec-192',
-      handoffDecision: 'documented-dec-193',
-      implementationDecision: 'required-dec-194',
+      handoffDecision: 'accepted-dec-193',
+      implementationDecision: 'accepted-dec-194',
     },
     null,
     2,

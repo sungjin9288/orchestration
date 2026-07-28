@@ -140,6 +140,7 @@ import {
   getMissionStaffingPlanSummary,
   getOpsSupervisionTarget,
   getReviewerReworkPlanRecordRequest,
+  getReworkPlanAcceptanceRequest,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -436,6 +437,7 @@ const state = {
   opsSupervisionPreview: null,
   reviewerReworkPlanPreview: null,
   reviewerReworkPlan: null,
+  reviewerReworkPlanAcceptance: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5404,6 +5406,7 @@ async function hydrateSelectedDetails() {
   state.workOrderVerificationPlanPreview = null;
   state.workOrderVerificationStatus = null;
   state.reviewerReworkPlan = null;
+  state.reviewerReworkPlanAcceptance = null;
   state.workOrderAcceptanceCriteriaRationale = '';
   state.workOrderProofDrafts = {};
   state.executionContinuationPreview = null;
@@ -5628,6 +5631,13 @@ async function hydrateSelectedDetails() {
     state.missionExecutionPlanRecovery = recoveryPayload.executionPlanRecovery || null;
     state.workOrderVerificationStatus = verificationPayload.verificationStatus || null;
     state.reviewerReworkPlan = reworkPlanPayload?.reworkPlan || null;
+    if (state.reviewerReworkPlan) {
+      const acceptancePayload = await fetchOptionalJson(
+        `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/acceptance`,
+      );
+      state.reviewerReworkPlanAcceptance =
+        acceptancePayload?.reworkPlanAcceptance || null;
+    }
   }
 
   if (state.missionViewMode === 'graph' && selectedMission) {
@@ -7351,6 +7361,47 @@ async function recordReviewerReworkPlan(actionButton) {
   } catch (error) {
     state.reviewerReworkPlan = null;
     throw error;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function acceptReviewerReworkPlan(actionButton) {
+  const record = state.reviewerReworkPlan;
+  const form = actionButton?.closest?.('[data-form="accept-reviewer-rework-plan"]');
+  if (!record || !form) {
+    throw new Error('ReworkPlan acceptance form을 찾을 수 없습니다.');
+  }
+  const request = getReworkPlanAcceptanceRequest(record, {
+    rationale: String(new FormData(form).get('reworkAcceptanceRationale') || ''),
+    reviewedAt: new Date().toISOString(),
+  });
+  if (!request) {
+    throw new Error('exact ReworkPlan evidence와 acceptance rationale이 필요합니다.');
+  }
+  state.error = null;
+  state.reviewerReworkPlanAcceptance = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${record.id} acceptance를 기록하는 중…`;
+  render();
+  try {
+    const payload = await postJson(
+      `/api/rework-plans/${encodeURIComponent(record.id)}/accept`,
+      request,
+    );
+    const acceptance = payload.reworkPlanAcceptance;
+    if (
+      acceptance?.reworkPlanId !== record.id ||
+      acceptance.reworkPlanRecordDigest !== record.recordDigest ||
+      acceptance.previewDigest !== record.previewDigest ||
+      acceptance.persisted !== true ||
+      acceptance.decision !== 'accepted'
+    ) {
+      throw new Error('ReworkPlanAcceptance 응답이 exact evidence와 다릅니다.');
+    }
+    state.reviewerReworkPlanAcceptance = acceptance;
+    elements.refreshStatus.textContent = `${acceptance.id} accepted evidence를 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -13516,6 +13567,7 @@ function renderReviewerReworkPlanPreview(executionPlanId) {
 function renderReviewerReworkPlanRecord(executionPlanId) {
   const record = state.reviewerReworkPlan;
   if (!record || record.executionPlanId !== executionPlanId) return '';
+  const acceptance = state.reviewerReworkPlanAcceptance;
   return `
     <section
       class="reviewer-rework-record"
@@ -13548,6 +13600,40 @@ function renderReviewerReworkPlanRecord(executionPlanId) {
       <p class="detail-copy detail-copy-compact">
         Exact Reviewer rework scope를 보존한 audit record입니다. 실행 권한은 포함하지 않습니다.
       </p>
+      ${
+        acceptance?.reworkPlanId === record.id
+          ? `
+            <div class="reviewer-rework-acceptance" aria-label="ReworkPlan acceptance evidence">
+              <strong>Accepted evidence</strong>
+              <span>${escapeHtml(acceptance.id)}</span>
+              <code>${escapeHtml(acceptance.acceptanceDigest)}</code>
+            </div>
+          `
+          : `
+            <form class="reviewer-rework-record-form" data-form="accept-reviewer-rework-plan">
+              <label class="field">
+                <span>Acceptance rationale</span>
+                <input
+                  name="reworkAcceptanceRationale"
+                  type="text"
+                  maxlength="500"
+                  required
+                  placeholder="Why this exact rework scope is accepted for evidence only"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                />
+              </label>
+              <button
+                class="primary-button"
+                type="button"
+                data-action="accept-reviewer-rework-plan"
+                data-id="${escapeHtml(record.id)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                Accept rework plan
+              </button>
+            </form>
+          `
+      }
     </section>
   `;
 }
@@ -22640,6 +22726,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'record-reviewer-rework-plan') {
         await recordReviewerReworkPlan(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'accept-reviewer-rework-plan') {
+        await acceptReviewerReworkPlan(actionButton);
         return;
       }
 

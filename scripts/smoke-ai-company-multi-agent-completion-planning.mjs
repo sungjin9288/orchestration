@@ -59,7 +59,7 @@ assert.match(plan, /`DEC-190` records its complete fielded implementation handof
 assert.match(plan, /`DEC-191` implements/);
 assert.match(plan, /Planning-only `DEC-192` now fixes Stage 5C/);
 assert.match(plan, /`DEC-193` records its complete fielded implementation handoff/);
-assert.match(plan, /reserved for `DEC-194`/);
+assert.match(plan, /`DEC-194` implements only the exact accepted evidence append/);
 assert.match(plan, /source progress digest/);
 assert.match(plan, /allowedActions=\[\]/);
 assert.match(plan, /### Stage 6: Ops Supervision And Recovery/);
@@ -161,12 +161,13 @@ for (const decisionId of [
   'DEC-191',
   'DEC-192',
   'DEC-193',
+  'DEC-194',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-193`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-194`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -178,7 +179,8 @@ assert.match(runtimeContract, /Planning-only `DEC-189` defines one schema-v22 im
 assert.match(councilProtocol, /Planning-only `DEC-189` and handoff-only `DEC-190`/);
 assert.match(deliveryRoadmap, /`DEC-189`[\s\S]*`DEC-190`/);
 assert.match(masterPlan, /Stage 5C planning: `DEC-192`/);
-assert.match(runtimeContract, /Planning-only `DEC-192` defines one future schema-v23/);
+assert.match(masterPlan, /Stage 5C implementation: `DEC-194`/);
+assert.match(runtimeContract, /Planning-only `DEC-192` defines one schema-v23/);
 assert.match(councilProtocol, /Planning-only `DEC-192` and handoff-only `DEC-193`/);
 assert.match(deliveryRoadmap, /`DEC-192`[\s\S]*`DEC-193`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
@@ -212,7 +214,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 22/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 23/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -263,9 +265,10 @@ process.stdout.write(
         durableReviewerReworkPlanImplementation: 'accepted-dec-191',
         reworkPlanAcceptancePlanning: 'accepted-dec-192',
         reworkPlanAcceptanceHandoff: 'documented-dec-193',
+        reworkPlanAcceptanceImplementation: 'accepted-dec-194',
       },
       currentRuntime: {
-        schemaVersion: 22,
+        schemaVersion: 23,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,
@@ -274,15 +277,16 @@ process.stdout.write(
         durableSpecialistBatch: true,
         reviewerReworkPreview: true,
         durableReviewerReworkPlan: true,
+        reworkPlanAcceptance: true,
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '5C',
-        object: 'rework-plan-acceptance',
+        stage: '5D',
+        object: 'builder-rework-append-and-execution',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'reserved-dec-194',
+        nextDecisionLogEntry: 'complete-fielded-decision-required',
       },
       authority: {
         documentationAllowed: true,
@@ -306,7 +310,7 @@ process.stdout.write(
         durableReviewerReworkPlanPlanningAllowed: true,
         durableReviewerReworkPlanImplementationAllowed: true,
         reworkPlanAcceptancePlanningAllowed: true,
-        reworkPlanAcceptanceImplementationAllowed: false,
+        reworkPlanAcceptanceImplementationAllowed: true,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

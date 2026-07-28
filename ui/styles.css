@@ -8985,6 +8985,20 @@ h3 {
   border-left: 3px solid var(--warning);
 }
 
+.reviewer-rework-acceptance {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.reviewer-rework-acceptance span,
+.reviewer-rework-acceptance code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .verification-approval-form,
 .verification-proof-form {
   display: grid;

@@ -16,10 +16,10 @@ and connector behavior remain closed.
 
 - Planning-only decision: accepted as `DEC-192`
 - Implementation handoff: recorded as `DEC-193`
-- Complete fielded implementation decision: not accepted
-- Current runtime: schema v22 with immutable review-required ReworkPlan evidence
-- Implementation authority: blocked
-- Reserved implementation decision: `DEC-194`
+- Complete fielded implementation decision: accepted as `DEC-194`
+- Current runtime: schema v23 with immutable review-required ReworkPlan and append-only acceptance evidence
+- Implementation authority: consumed by the bounded record-and-inspect-only slice
+- Implementation decision: `DEC-194`
 
 ## Required Decision Fields
 
@@ -143,5 +143,4 @@ None of these authorize implementation:
 
 Implementation may begin only when one outcome supplies every required field and matches the bounded
 contract in `docs/131_ai-company-rework-plan-acceptance-plan.md`. Any contradiction between fields
-fails closed. The exact `Valid Approval Outcome` is the recommended implementation input reserved
-for `DEC-194`.
+fails closed. The operator supplied the exact `Valid Approval Outcome`, accepted as `DEC-194`.

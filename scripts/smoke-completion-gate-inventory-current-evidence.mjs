@@ -38,9 +38,9 @@ function assertReadmeHas(pattern) {
 const inventoryGateRows = [
   /Starting head checked before this inventory edit: `965a35b`/,
   /Planning baseline head checked before this document update: `965a35b`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `288\/288`, total `289\/289` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `82\/82` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `289\/289`, UI QA `82\/82`,[\s\S]*DEC-161 Agent Operations Desk visual redesign, DEC-162 through DEC-166 StaffingPlan planning\/implementation, DEC-167 through DEC-169 StaffingEntry planning\/implementation, DEC-170 through DEC-172 operator-stepped scheduler planning\/implementation, DEC-173 through DEC-176 Stage 4A planning\/implementation, DEC-177 through DEC-179 Stage 4B planning\/handoff\/implementation, DEC-180 through DEC-182 Stage 4C retry planning\/handoff\/implementation, DEC-183 through DEC-185 Stage 6A inspect-only planning\/handoff\/implementation, DEC-186 through DEC-188 Stage 5 Reviewer rework preview planning\/handoff\/implementation, DEC-189 through DEC-191 Stage 5B durable ReworkPlan planning\/handoff\/implementation, and DEC-192 through DEC-193 Stage 5C ReworkPlanAcceptance planning\/handoff\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `289\/289`, total `290\/290` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `83\/83` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `290\/290`, UI QA `83\/83`,[\s\S]*DEC-161 Agent Operations Desk visual redesign, DEC-162 through DEC-166 StaffingPlan planning\/implementation, DEC-167 through DEC-169 StaffingEntry planning\/implementation, DEC-170 through DEC-172 operator-stepped scheduler planning\/implementation, DEC-173 through DEC-176 Stage 4A planning\/implementation, DEC-177 through DEC-179 Stage 4B planning\/handoff\/implementation, DEC-180 through DEC-182 Stage 4C retry planning\/handoff\/implementation, DEC-183 through DEC-185 Stage 6A inspect-only planning\/handoff\/implementation, DEC-186 through DEC-188 Stage 5 Reviewer rework preview planning\/handoff\/implementation, DEC-189 through DEC-191 Stage 5B durable ReworkPlan planning\/handoff\/implementation, and DEC-192 through DEC-194 Stage 5C ReworkPlanAcceptance planning\/handoff\/implementation\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -129,7 +129,8 @@ const inventoryGateRows = [
   /\| AI Company durable Reviewer ReworkPlan planning \| pass \| `DEC-189`, `DEC-190`, `docs\/129_ai-company-durable-reviewer-rework-plan\.md`, `docs\/130_ai-company-durable-reviewer-rework-plan-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-durable-reviewer-rework-plan-planning\.mjs` \|/,
   /\| AI Company durable Reviewer ReworkPlan implementation \| pass \| `DEC-191`, `src\/runtime\/rework-plans\.js`, `node scripts\/smoke-ai-company-durable-reviewer-rework-plan\.mjs`, `node scripts\/smoke-ui-slice-704\.mjs` \|/,
   /\| AI Company ReworkPlanAcceptance planning \| pass \| `DEC-192`, `DEC-193`, `docs\/131_ai-company-rework-plan-acceptance-plan\.md`, `docs\/132_ai-company-rework-plan-acceptance-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-rework-plan-acceptance-planning\.mjs` \|/,
-  /The required implementation baseline and planning\/handoff evidence are current through `DEC-193`[\s\S]*Planning-only `DEC-177` and handoff-only `DEC-178` fix Stage 4B; `DEC-179` implements only its exact[\s\S]*schema-v20 fixed Researcher\/QA local first attempt[\s\S]*Planning-only `DEC-180` and handoff-only[\s\S]*`DEC-181` define one immutable-source failed-cell retry, and `DEC-182` implements only the exact[\s\S]*Planning-only `DEC-183` and handoff-only `DEC-184` define one[\s\S]*`DEC-185` implements only that no-write inspect path[\s\S]*Planning-only `DEC-186` and handoff-only `DEC-187` define one exact response-only[\s\S]*`DEC-188` implements only that exact no-write runtime\/API\/UI path[\s\S]*Planning-only `DEC-189` and handoff-only `DEC-190` define one immutable[\s\S]*`DEC-191` implements only its bounded append[\s\S]*Planning-only `DEC-192` and handoff-only `DEC-193` define one future append-only/,
+  /\| AI Company ReworkPlanAcceptance implementation \| pass \| `DEC-194`, `src\/runtime\/rework-plan-acceptances\.js`, `node scripts\/smoke-ai-company-rework-plan-acceptance\.mjs`, `node scripts\/smoke-ui-slice-705\.mjs` \|/,
+  /The required implementation baseline and planning\/handoff evidence are current through `DEC-194`[\s\S]*Planning-only `DEC-177` and handoff-only `DEC-178` fix Stage 4B; `DEC-179` implements only its exact[\s\S]*schema-v20 fixed Researcher\/QA local first attempt[\s\S]*Planning-only `DEC-180` and handoff-only[\s\S]*`DEC-181` define one immutable-source failed-cell retry, and `DEC-182` implements only the exact[\s\S]*Planning-only `DEC-183` and handoff-only `DEC-184` define one[\s\S]*`DEC-185` implements only that no-write inspect path[\s\S]*Planning-only `DEC-186` and handoff-only `DEC-187` define one exact response-only[\s\S]*`DEC-188` implements only that exact no-write runtime\/API\/UI path[\s\S]*Planning-only `DEC-189` and handoff-only `DEC-190` define one immutable[\s\S]*`DEC-191` implements only its bounded append[\s\S]*Planning-only `DEC-192` and handoff-only `DEC-193` define one append-only/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -326,6 +327,7 @@ assert.match(uiQaStatus, /smoke-ui-slice-701\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-702\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-703\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-704\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-705\.mjs/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -336,8 +338,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '288/288',
-        total: '289/289',
+        informational: '289/289',
+        total: '290/290',
       },
     },
     null,

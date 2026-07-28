@@ -84,7 +84,9 @@ function withoutReworkDomain(state) {
   const copy = structuredClone(state);
   delete copy.schemaVersion;
   delete copy.sequences.reworkPlan;
+  delete copy.sequences.reworkPlanAcceptance;
   delete copy.reworkPlans;
+  delete copy.reworkPlanAcceptances;
   return copy;
 }
 
@@ -162,7 +164,7 @@ async function main() {
     const v21Bytes = fs.readFileSync(statePath);
     const sourceBytes = fs.readFileSync(path.join(projectPath, targetPath));
     const runtime = createRuntime();
-    assert.equal(runtime.getSnapshot().schemaVersion, 22);
+    assert.equal(runtime.getSnapshot().schemaVersion, 23);
     assert.deepEqual(fs.readFileSync(statePath), v21Bytes);
 
     const reviewedAt = new Date(
@@ -230,9 +232,11 @@ async function main() {
     assertReworkPlanRecord(record);
 
     const persistedState = readState();
-    assert.equal(persistedState.schemaVersion, 22);
+    assert.equal(persistedState.schemaVersion, 23);
     assert.equal(persistedState.sequences.reworkPlan, 1);
+    assert.equal(persistedState.sequences.reworkPlanAcceptance, 0);
     assert.deepEqual(Object.keys(persistedState.reworkPlans), [record.id]);
+    assert.deepEqual(persistedState.reworkPlanAcceptances, {});
     assert.deepEqual(withoutReworkDomain(persistedState), withoutReworkDomain(v21State));
     assertNoExecutionExpansion(v21State, persistedState);
     assert.deepEqual(fs.readFileSync(path.join(projectPath, targetPath)), sourceBytes);
@@ -270,7 +274,7 @@ async function main() {
     assert.deepEqual(fs.readFileSync(statePath), persistedBytes);
     assert.deepEqual(createRuntime().getReworkPlan(record.id).reworkPlan, record);
 
-    const partialRoot = copyRuntime('partial-v22');
+    const partialRoot = copyRuntime('partial-v23');
     const partialState = readState(partialRoot);
     delete partialState.reworkPlans;
     writeState(partialRoot, partialState);
@@ -278,7 +282,7 @@ async function main() {
 
     const futureRoot = copyRuntime('future-schema');
     const futureState = readState(futureRoot);
-    futureState.schemaVersion = 23;
+    futureState.schemaVersion = 24;
     writeState(futureRoot, futureState);
     assert.throws(() => createRuntime(futureRoot).getSnapshot(), /Unsupported runtime state/);
 

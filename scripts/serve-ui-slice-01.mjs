@@ -2464,6 +2464,83 @@ const server = createServer(async (request, response) => {
   const reworkPlanInspectMatch = url.pathname.match(
     /^\/api\/rework-plans\/([^/]+)$/,
   );
+
+  const reworkPlanAcceptanceMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/acceptance$/,
+  );
+  if (reworkPlanAcceptanceMatch) {
+    if (method === 'GET') {
+      try {
+        const reworkPlanId = decodeURIComponent(reworkPlanAcceptanceMatch[1]);
+        json(response, 200, {
+          generatedAt: new Date().toISOString(),
+          ...runtime.getReworkPlanAcceptance(reworkPlanId),
+        });
+        return;
+      } catch (error) {
+        const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+        json(response, statusCode, {
+          error: String(error.message || 'ReworkPlanAcceptance 조회에 실패했습니다.').slice(0, 240),
+        });
+        return;
+      }
+    }
+    json(response, 405, { error: 'ReworkPlanAcceptance inspection은 GET만 지원합니다.' });
+    return;
+  }
+
+  const reworkPlanAcceptMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/accept$/,
+  );
+  if (reworkPlanAcceptMatch) {
+    if (method !== 'POST') {
+      json(response, 405, { error: 'ReworkPlanAcceptance는 POST만 지원합니다.' });
+      return;
+    }
+    try {
+      const input = await readBoundedJsonBody(request, 8 * 1024);
+      const expectedFields = [
+        'acknowledgement',
+        'decision',
+        'previewDigest',
+        'previewId',
+        'rationale',
+        'reviewedAt',
+        'reworkPlanRecordDigest',
+        'sourceAttemptRecordDigest',
+        'sourceExecutionPlanDigest',
+        'sourceProgressDigest',
+      ];
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'ReworkPlanAcceptance body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.acceptReworkPlan({
+        reworkPlanId: decodeURIComponent(reworkPlanAcceptMatch[1]),
+        ...input,
+      });
+      json(response, result.idempotent ? 200 : 201, {
+        generatedAt: new Date().toISOString(),
+        idempotent: result.idempotent,
+        reworkPlanAcceptance: result.reworkPlanAcceptance,
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: String(error.message || 'ReworkPlanAcceptance 기록에 실패했습니다.').slice(0, 240),
+      });
+      return;
+    }
+  }
+
   if (reworkPlanInspectMatch) {
     if (method !== 'GET') {
       json(response, 405, { error: 'ReworkPlan exact inspection은 GET만 지원합니다.' });

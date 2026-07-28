@@ -248,6 +248,7 @@ assert.match(decisionLog, /^### DEC-190$/m);
 assert.match(decisionLog, /^### DEC-191$/m);
 assert.match(decisionLog, /^### DEC-192$/m);
 assert.match(decisionLog, /^### DEC-193$/m);
+assert.match(decisionLog, /^### DEC-194$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -286,7 +287,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-193`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-194`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -316,7 +317,8 @@ assert.match(runtimeContractText, /Planning-only `DEC-189` defines one schema-v2
 assert.match(councilProtocolText, /Planning-only `DEC-189` and handoff-only `DEC-190`/);
 assert.match(deliveryRoadmapText, /`DEC-189`[\s\S]*`DEC-190`/);
 assert.match(masterPlanText, /Stage 5C planning: `DEC-192`/);
-assert.match(runtimeContractText, /Planning-only `DEC-192` defines one future schema-v23/);
+assert.match(masterPlanText, /Stage 5C implementation: `DEC-194`/);
+assert.match(runtimeContractText, /Planning-only `DEC-192` defines one schema-v23/);
 assert.match(councilProtocolText, /Planning-only `DEC-192` and handoff-only `DEC-193`/);
 assert.match(deliveryRoadmapText, /`DEC-192`[\s\S]*`DEC-193`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
@@ -332,7 +334,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 22/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 23/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -446,9 +448,10 @@ const report = {
         'DEC-191',
         'DEC-192',
         'DEC-193',
+        'DEC-194',
       ],
       currentRuntime: {
-        schemaVersion: 22,
+        schemaVersion: 23,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -481,6 +484,7 @@ const report = {
         opsSupervisionPreview: 'schema-v21-response-only-exact-active-attempt-inspection',
         reviewerReworkPreview: 'schema-v21-response-only-exact-changes-requested-inspection',
         durableReviewerReworkPlan: 'schema-v22-exact-review-required-record',
+        reworkPlanAcceptance: 'schema-v23-exact-append-only-accepted-record',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -544,7 +548,7 @@ const report = {
         durableReviewerReworkPlanPlanningAllowed: true,
         durableReviewerReworkPlanImplementationAllowed: true,
         reworkPlanAcceptancePlanningAllowed: true,
-        reworkPlanAcceptanceImplementationAllowed: false,
+        reworkPlanAcceptanceImplementationAllowed: true,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
         providerRoleExpansionAllowed: false,
@@ -556,7 +560,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'exact schema-v23 ReworkPlanAcceptance implementation decision reserved for DEC-194; Builder append and solo remain deferred',
+      'Builder rework append and execution require a separate complete fielded decision; solo remains deferred',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -569,12 +573,12 @@ assert.equal(report.authority.reviewerReworkPreviewImplementationAllowed, true);
 assert.equal(report.authority.durableReviewerReworkPlanPlanningAllowed, true);
 assert.equal(report.authority.durableReviewerReworkPlanImplementationAllowed, true);
 assert.equal(report.authority.reworkPlanAcceptancePlanningAllowed, true);
-assert.equal(report.authority.reworkPlanAcceptanceImplementationAllowed, false);
+assert.equal(report.authority.reworkPlanAcceptanceImplementationAllowed, true);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /ReworkPlanAcceptance implementation decision reserved for DEC-194/,
+  /Builder rework append and execution require a separate complete fielded decision/,
 );
 
 process.stdout.write(

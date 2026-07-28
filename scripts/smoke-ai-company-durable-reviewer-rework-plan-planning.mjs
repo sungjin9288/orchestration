@@ -180,7 +180,8 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-reviewer-rework-plan\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 22/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 23/);
+assert.match(contracts, /const REWORK_PLAN_STATE_SCHEMA_VERSION = 22/);
 assert.match(runtimeService, /function getReviewerReworkPlanPreview\(input\)/);
 assert.match(reviewerPreview, /status: 'rework-review-required'/);
 assert.match(reviewerPreview, /allowedActions: \[\]/);
@@ -203,17 +204,17 @@ const smokeCount = fs
 const uiSmokeCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
-assert.equal(smokeCount, 976);
-assert.equal(uiSmokeCount, 704);
-assert.match(readme, /976 smoke files/);
-assert.match(readme, /704 UI smoke files/);
+assert.equal(smokeCount, 978);
+assert.equal(uiSmokeCount, 705);
+assert.match(readme, /978 smoke files/);
+assert.match(readme, /705 UI smoke files/);
 
 process.stdout.write(
   `${JSON.stringify(
     {
       ok: true,
       mode,
-      schemaVersion: 22,
+      schemaVersion: 23,
       smokeFiles: smokeCount,
       uiSmokeFiles: uiSmokeCount,
       planningAllowed: true,

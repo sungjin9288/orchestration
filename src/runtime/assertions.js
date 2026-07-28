@@ -62,6 +62,14 @@ function assertReworkPlan(reworkPlanId, state) {
   return reworkPlan;
 }
 
+function assertReworkPlanAcceptance(reworkPlanAcceptanceId, state) {
+  const acceptance = state.reworkPlanAcceptances[reworkPlanAcceptanceId];
+  if (!acceptance) {
+    throw new Error(`ReworkPlanAcceptance not found: ${reworkPlanAcceptanceId}`);
+  }
+  return acceptance;
+}
+
 function assertHandoffPacket(handoffPacketId, state) {
   const handoffPacket = state.handoffPackets[handoffPacketId];
   if (!handoffPacket) throw new Error(`HandoffPacket not found: ${handoffPacketId}`);
@@ -177,6 +185,7 @@ module.exports = {
   assertMissionCloseOut,
   assertRun,
   assertReworkPlan,
+  assertReworkPlanAcceptance,
   assertSpecialistBatch,
   assertSpecialistCellAttempt,
   assertSpecialistCellRetry,

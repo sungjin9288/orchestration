@@ -368,9 +368,13 @@ scripts/ui_qa_status.mjs
    Git/release, policy, collection, bypass, or connector authority opens.
 8. Focused runtime/API/UI, compatibility, README inventory, UI QA, and aggregate verification pass.
 
-## Planning Status
+## Implementation Status
 
 - Planning-only authority: accepted as `DEC-192`.
 - Complete fielded implementation handoff: documented as `DEC-193`.
-- Schema/runtime/API/UI implementation: blocked pending the exact complete decision reserved for
-  `DEC-194`.
+- Exact fielded implementation authority: accepted as `DEC-194`.
+- Schema/runtime/API/UI implementation: completed under `DEC-194`.
+- Focused runtime/API/UI, UI QA required `83/83`, and aggregate `290/290` verification: passed.
+- ReworkPlan mutation, Builder WorkOrder or WorkOrderAttempt append, retry, preflight, approval,
+  source mutation, role execution, scheduling, provider, memory, Git/release, policy, collection,
+  bypass, and connector authority remain blocked.

@@ -306,6 +306,40 @@ export function getReviewerReworkPlanRecordRequest(
   };
 }
 
+export function getReworkPlanAcceptanceRequest(record, { rationale, reviewedAt }) {
+  if (
+    !record ||
+    record.persisted !== true ||
+    record.status !== 'review-required' ||
+    !record.id ||
+    !/^[a-f0-9]{64}$/.test(record.recordDigest || '') ||
+    !record.previewId ||
+    !/^[a-f0-9]{64}$/.test(record.previewDigest || '') ||
+    !/^[a-f0-9]{64}$/.test(record.sourceExecutionPlanDigest || '') ||
+    !/^[a-f0-9]{64}$/.test(record.sourceAttemptRecordDigest || '') ||
+    !/^[a-f0-9]{64}$/.test(record.sourceProgressDigest || '') ||
+    typeof rationale !== 'string' ||
+    !rationale.trim() ||
+    typeof reviewedAt !== 'string' ||
+    Number.isNaN(Date.parse(reviewedAt)) ||
+    new Date(reviewedAt).toISOString() !== reviewedAt
+  ) {
+    return null;
+  }
+  return {
+    reworkPlanRecordDigest: record.recordDigest,
+    previewId: record.previewId,
+    previewDigest: record.previewDigest,
+    sourceExecutionPlanDigest: record.sourceExecutionPlanDigest,
+    sourceAttemptRecordDigest: record.sourceAttemptRecordDigest,
+    sourceProgressDigest: record.sourceProgressDigest,
+    decision: 'accept',
+    acknowledgement: 'accept-exact-rework-plan-without-execution',
+    rationale: rationale.trim(),
+    reviewedAt,
+  };
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,
