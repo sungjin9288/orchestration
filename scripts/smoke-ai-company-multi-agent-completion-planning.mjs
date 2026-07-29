@@ -167,12 +167,15 @@ for (const decisionId of [
   'DEC-197',
   'DEC-198',
   'DEC-199',
+  'DEC-200',
+  'DEC-201',
+  'DEC-202',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-199`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-202`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -197,6 +200,10 @@ assert.match(masterPlan, /Stage 5E planning: `DEC-198`/);
 assert.match(runtimeContract, /Planning-only `DEC-198` defines Stage 5E/);
 assert.match(councilProtocol, /Planning-only `DEC-198` and handoff-only `DEC-199`/);
 assert.match(deliveryRoadmap, /Stage 5E planning-only `DEC-198`/);
+assert.match(masterPlan, /Stage 5F planning: `DEC-201`/);
+assert.match(runtimeContract, /Planning-only `DEC-201` and handoff-only `DEC-202`/);
+assert.match(councilProtocol, /Planning-only `DEC-201` and handoff-only `DEC-202`/);
+assert.match(deliveryRoadmap, /Stage 5F planning-only `DEC-201`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
@@ -285,6 +292,9 @@ process.stdout.write(
         builderReworkPreflightImplementation: 'accepted-dec-197',
         builderReworkMutationApprovalPlanning: 'accepted-dec-198',
         builderReworkMutationApprovalHandoff: 'documented-dec-199',
+        builderReworkMutationApprovalImplementation: 'accepted-dec-200',
+        builderReworkSourceMutationPlanning: 'accepted-dec-201',
+        builderReworkSourceMutationHandoff: 'documented-dec-202',
       },
       currentRuntime: {
         schemaVersion: 24,
@@ -298,16 +308,17 @@ process.stdout.write(
         durableReviewerReworkPlan: true,
         reworkPlanAcceptance: true,
         builderReworkPreflight: true,
-        builderReworkMutationApproval: 'planning-and-handoff-only',
+        builderReworkMutationApproval: true,
+        builderReworkSourceMutation: 'planning-and-handoff-only',
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '5E',
-        object: 'builder-rework-mutation-approval',
+        stage: '5F',
+        object: 'builder-rework-source-mutation',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-200',
+        nextDecisionLogEntry: 'DEC-203',
       },
       authority: {
         documentationAllowed: true,
@@ -334,6 +345,9 @@ process.stdout.write(
         reworkPlanAcceptanceImplementationAllowed: true,
         builderReworkPreflightPlanningAllowed: true,
         builderReworkPreflightImplementationAllowed: true,
+        builderReworkMutationApprovalImplementationAllowed: true,
+        builderReworkSourceMutationPlanningAllowed: true,
+        builderReworkSourceMutationImplementationAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

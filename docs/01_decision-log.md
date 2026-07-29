@@ -1320,6 +1320,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation may add only the existing Approval and Decision Inbox evidence boundary described in `docs/135_ai-company-builder-rework-mutation-approval-plan.md`. Schema stays v24; exact replay is no-write, approved and rejected outcomes remain evidence-only, and the fixed ExecutionPlan, WorkOrders, attempt #3, dispatch, Run, Artifact, checkpoint, provider, and source stay unchanged.
 - Needed Before: Builder source mutation, another attempt or WorkOrder, Reviewer/QA execution, retry, recovery, resume, checkpoint or graph transition, scheduling, provider-backed execution, result or memory application, runtime-agent Git/release, policy mutation, approval bypass, and connectors require separate complete fielded decisions.
 
+### DEC-201
+- Status: `Accepted`
+- Decision: Accept `docs/137_ai-company-builder-rework-source-mutation-plan.md` as planning-only authority for one future explicit local-stub Builder rework source mutation from one exact source-current schema-v24 DEC-200 approved mutation Approval.
+- Why: DEC-200 proves exact authorization evidence but deliberately performs no source write. The next boundary must separate immutable Approval authority from attempt, Run, Artifact, and file-mutation lifecycle evidence while preserving the fixed three-WorkOrder graph and the one-additional-attempt cap.
+- Impact: The plan fixes one dedicated path-plus-fourteen-key request, exact approval and preflight lineage revalidation, reuse of WorkOrderAttempt #3, action-specific waiting-gate-to-active transition, active-before-worker persistence, one local-stub rework-live-mutation request, immutable source-derived target paths, baseline/realpath/symlink/byte guards, backup and rollback, completed/failed/interrupted evidence, exact replay, UI limits, and a stop before Reviewer or QA re-execution. This decision changes no runtime, schema, API, UI, state, record, attempt, worker, provider, source, Git/release, memory, policy, bypass, or connector behavior.
+- Needed Before: Runtime/API/UI/source implementation requires the complete fielded decision in `docs/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff.md`. Reviewer/QA re-execution, another attempt, retry, recovery, provider-backed execution, Git/release, memory, scheduling, policy mutation, bypass, and connectors remain separately gated.
+
+### DEC-202
+- Status: `Accepted`
+- Decision: Record `docs/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff.md` as the complete 15-field input shape for one schema-v24 local-stub Builder rework source mutation implementation gate.
+- Why: Generic continuation and the generic Builder live-mutation path cannot choose or enforce the exact approved rework lineage, immutable Approval behavior, existing attempt #3 lifecycle, local-only worker, source containment, rollback, replay, failure, interruption, UI, and downstream stop conditions.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one exact Stage 5F mutation-and-evidence slice. It explicitly excludes schema migration, another attempt or WorkOrder, Reviewer/QA execution, retry, recovery, provider-backed execution, checkpoint or graph transition, result or memory application, runtime-agent Git/release, scheduling, policy mutation, approval bypass, and connectors. No implementation or source-write authority is recorded.
+- Needed Before: The operator must supply every required field in one valid implementation decision. `DEC-201`, this handoff, broad approval, delegated self-approval, or continuation does not authorize runtime, API, UI, worker, or source behavior. A valid implementation outcome is reserved for `DEC-203`.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

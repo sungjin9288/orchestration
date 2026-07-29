@@ -447,6 +447,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 5E planning fixes dedicated source-bound existing Approval and Decision Inbox wrappers, strict schema-v24 metadata binding, one-way decision evidence, Reviewer priority, and a stop before Builder source mutation',
   },
   {
+    id: 'ai-company-builder-rework-source-mutation-planning',
+    script: 'scripts/smoke-ai-company-builder-rework-source-mutation-planning.mjs',
+    purpose: 'AI Company Stage 5F planning preserves schema v24 while fixing one dedicated local-stub Builder rework source mutation over immutable targets, attempt number three lifecycle evidence, complete rollback, exact replay, and a stop before Reviewer or QA',
+  },
+  {
     id: 'ai-company-builder-rework-preflight',
     script: 'scripts/smoke-ai-company-builder-rework-preflight.mjs',
     purpose: 'AI Company Stage 5D runtime proves one schema-v23 to v24 BuilderReworkDispatch and existing Builder WorkOrderAttempt append, replay-safe exact inspection, sidecar-only lifecycle, snapshot exclusion, and blocked mutation authority',

@@ -1,5 +1,10 @@
 # lessons
 
+- Mutation authorization evidence and mutation execution evidence need separate owners. Keep the
+  approved source-bound Approval immutable; record the actual start, completion, failure, and
+  interruption in the existing WorkOrderAttempt, Run, and Artifact lifecycle. A dedicated rework
+  path may reuse low-level backup and changed-set helpers, but it must not inherit generic approval
+  mutation, provider breadth, or preflight parsing semantics.
 - A post-preflight approval cannot reuse a source projection validator that assumes the Reviewer attempt is permanently latest. Preserve the original Reviewer attempt and digest checks, but explicitly admit only the one dispatch-bound Builder rework attempt #3 as the newer terminal or waiting source; otherwise a valid DEC-197 waiting-gate cannot be revalidated without weakening lineage.
 - Builder rework mutation Approval must bind the exact waiting-gate lineage through dedicated source-bound create/resolve wrappers, not generic Approval composition. Revalidate dispatch, attempt, Run, Artifact, DEC-188/DEC-191/DEC-194, provider, and any referenced Reviewer Decision on creation and each terminal transition; preserve an empty source Decision ref list, keep task blocked/waitingDecision unchanged while only waitingApproval toggles, reject sequence collisions before write, and keep source mutation as a later gate.
 

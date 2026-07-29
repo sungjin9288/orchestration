@@ -512,6 +512,13 @@ DEC-194/provider/Reviewer Decision revalidation. Handoff-only `DEC-199` fixes th
 `DEC-200` implements only that Approval evidence path. Source mutation and every worker or graph
 transition remain closed.
 
+Planning-only `DEC-201` and handoff-only `DEC-202` define the next Stage 5F contract without a
+schema change. One future dedicated local-stub mutation must reuse WorkOrderAttempt #3, preserve the
+DEC-200 Approval byte-equivalent, derive targets from the immutable ReworkPlan, persist active
+attempt and Run evidence before the worker, enforce baseline/realpath/symlink/byte guards and full
+rollback, and stop after mutation Artifacts before Reviewer/QA. No runtime implementation exists
+until an exact `DEC-203`.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-199`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-202`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -335,6 +335,10 @@ assert.match(masterPlanText, /Stage 5E planning: `DEC-198`/);
 assert.match(runtimeContractText, /Planning-only `DEC-198` defines Stage 5E/);
 assert.match(councilProtocolText, /Planning-only `DEC-198` and handoff-only `DEC-199`/);
 assert.match(deliveryRoadmapText, /Stage 5E planning-only `DEC-198`/);
+assert.match(masterPlanText, /Stage 5F planning: `DEC-201`/);
+assert.match(runtimeContractText, /Planning-only `DEC-201` and handoff-only `DEC-202`/);
+assert.match(councilProtocolText, /Planning-only `DEC-201` and handoff-only `DEC-202`/);
+assert.match(deliveryRoadmapText, /Stage 5F planning-only `DEC-201`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -468,6 +472,9 @@ const report = {
         'DEC-197',
         'DEC-198',
         'DEC-199',
+        'DEC-200',
+        'DEC-201',
+        'DEC-202',
       ],
       currentRuntime: {
         schemaVersion: 24,
@@ -505,7 +512,8 @@ const report = {
         durableReviewerReworkPlan: 'schema-v22-exact-review-required-record',
         reworkPlanAcceptance: 'schema-v23-exact-append-only-accepted-record',
         builderReworkPreflight: 'schema-v24-exact-local-stub-sidecar-preflight',
-        builderReworkMutationApproval: 'planning-and-handoff-only-before-source-mutation',
+        builderReworkMutationApproval: 'schema-v24-exact-source-bound-evidence-only',
+        builderReworkSourceMutation: 'planning-and-handoff-only-pending-dec-203',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -572,6 +580,9 @@ const report = {
         reworkPlanAcceptanceImplementationAllowed: true,
         builderReworkPreflightPlanningAllowed: true,
         builderReworkPreflightImplementationAllowed: true,
+        builderReworkMutationApprovalImplementationAllowed: true,
+        builderReworkSourceMutationPlanningAllowed: true,
+        builderReworkSourceMutationImplementationAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
         providerRoleExpansionAllowed: false,
@@ -583,7 +594,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'Builder rework mutation Approval requires a later exact decision; source mutation and solo remain deferred',
+      'Builder rework source mutation requires exact DEC-203; Reviewer QA and solo remain deferred',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -599,11 +610,14 @@ assert.equal(report.authority.reworkPlanAcceptancePlanningAllowed, true);
 assert.equal(report.authority.reworkPlanAcceptanceImplementationAllowed, true);
 assert.equal(report.authority.builderReworkPreflightPlanningAllowed, true);
 assert.equal(report.authority.builderReworkPreflightImplementationAllowed, true);
+assert.equal(report.authority.builderReworkMutationApprovalImplementationAllowed, true);
+assert.equal(report.authority.builderReworkSourceMutationPlanningAllowed, true);
+assert.equal(report.authority.builderReworkSourceMutationImplementationAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /Builder rework mutation Approval requires a later exact decision/,
+  /Builder rework source mutation requires exact DEC-203/,
 );
 
 process.stdout.write(

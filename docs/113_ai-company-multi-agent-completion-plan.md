@@ -203,6 +203,12 @@ schema v24 and requires dedicated source-bound wrappers, strict dispatch/attempt
 binding, one-way decisions, Reviewer Decision priority, and source-current revalidation. `DEC-200`
 implements only that evidence path; source mutation and downstream role execution remain closed.
 
+Planning-only `DEC-201` fixes Stage 5F as one dedicated local-stub Builder rework source mutation
+from the exact DEC-200 approved evidence. Handoff-only `DEC-202` requires immutable Approval
+evidence, reuse of WorkOrderAttempt #3, active-before-worker persistence, source-derived targets,
+baseline and containment guards, full rollback, exact replay, and a stop after mutation Artifacts
+before Reviewer/QA. Exact `DEC-203` remains required; no source mutation implementation is open.
+
 ### Stage 6: Ops Supervision And Recovery
 
 Expose one read-only supervision snapshot and explicit `step`, `retry-failed`, `cancel`, `quarantine`,

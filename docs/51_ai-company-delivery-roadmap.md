@@ -632,6 +632,12 @@ Approval and Decision Inbox boundary after the exact DEC-197 waiting-gate. Hando
 requires dedicated source-bound create/resolve wrappers, strict metadata binding digest, one-way
 decisions, collision refusal, and a Reviewer-priority UI while retaining schema v24. `DEC-200`
 implements only that evidence boundary; Builder source mutation remains a later separate gate.
+
+Stage 5F planning-only `DEC-201` and handoff-only `DEC-202` define that later gate as one dedicated
+schema-v24-preserving local-stub mutation over immutable ReworkPlan targets. It reuses
+WorkOrderAttempt #3, records active/completed/failed/interrupted evidence through existing Run and
+Artifact contracts, keeps the DEC-200 Approval immutable, and stops before Reviewer/QA. Runtime,
+API, UI, worker, and source implementation remain blocked pending exact `DEC-203`.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.

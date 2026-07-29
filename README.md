@@ -270,6 +270,15 @@ metadata digests, generic-action collision refusal, one-way decisions, reference
 priority, and exact DEC-197 waiting-gate lineage revalidation. Approved or rejected outcomes do not
 run Builder mutation; source mutation and all downstream execution remain blocked.
 
+Planning-only `DEC-201` defines the Stage 5F Builder rework source mutation contract in
+`docs/137_ai-company-builder-rework-source-mutation-plan.md`, and `DEC-202` records its complete
+fielded implementation handoff in
+`docs/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff.md`. The
+contract requires one dedicated local-stub path, immutable DEC-200 Approval evidence, reuse of
+WorkOrderAttempt #3, active-before-worker persistence, source-derived targets, baseline and
+containment guards, complete rollback, exact replay, and a stop before Reviewer/QA. No runtime,
+API, UI, worker, or source mutation implementation exists until an exact `DEC-203`.
+
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
 reading model and offers an explicit `Graph` view backed by one exact
@@ -2430,7 +2439,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 984 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 985 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 707 UI smoke files
 ```
@@ -3004,14 +3013,15 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
-  multi-agent completion runtime slices are current through DEC-197. DEC-173
+  multi-agent completion implementation slices are current through DEC-200, while Stage 5F has
+  planning and handoff evidence only through DEC-202. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell
   retry and DEC-182 implements only the exact same-role attempt #2 path. DEC-169 implements
   Council-first StaffingEntry binding; DEC-172 implements only the exact schema-v19 operator-stepped
   local Builder/Reviewer/QA path. Broad parallel StaffingPlan mode, active-attempt recovery,
-  automatic or repeated retry, provider/
+  Builder rework source mutation, Reviewer/QA re-execution, automatic or repeated retry, provider/
   background WorkOrders, memory application, source/Git/release, policy bypass, and connectors remain
   blocked. This is not a claim of hosted production readiness. Focused source and compatibility
   checks, the local browser matrix, UI QA, and aggregate verification pass. This remains local
@@ -3047,6 +3057,11 @@ Playwright CLI:
   Reviewer-priority evidence, and rationale-gated UI action exist; Builder source mutation,
   Reviewer/QA execution, another rework, retry, recovery, scheduling, provider-backed execution,
   memory, Git/release, policy, collection, bypass, and connector authority remain unimplemented.
+- `DEC-201` and `DEC-202` are planning and fielded handoff evidence only for one dedicated
+  local-stub Builder rework source mutation. The plan preserves schema v24 and DEC-200 Approval
+  evidence, reuses WorkOrderAttempt #3, and fixes source guards, rollback, replay, and the
+  Reviewer/QA stop. Exact `DEC-203` implementation approval and all runtime/API/UI/source behavior
+  remain absent.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.
