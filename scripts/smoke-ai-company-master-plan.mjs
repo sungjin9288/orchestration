@@ -252,6 +252,8 @@ assert.match(decisionLog, /^### DEC-194$/m);
 assert.match(decisionLog, /^### DEC-195$/m);
 assert.match(decisionLog, /^### DEC-196$/m);
 assert.match(decisionLog, /^### DEC-197$/m);
+assert.match(decisionLog, /^### DEC-198$/m);
+assert.match(decisionLog, /^### DEC-199$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -290,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-197`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-199`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -329,6 +331,10 @@ assert.match(masterPlanText, /Stage 5D implementation: `DEC-197`/);
 assert.match(runtimeContractText, /Planning-only `DEC-195` defines one future schema-v24/);
 assert.match(councilProtocolText, /Planning-only `DEC-195` and handoff-only `DEC-196`/);
 assert.match(deliveryRoadmapText, /`DEC-195`[\s\S]*`DEC-196`/);
+assert.match(masterPlanText, /Stage 5E planning: `DEC-198`/);
+assert.match(runtimeContractText, /Planning-only `DEC-198` defines Stage 5E/);
+assert.match(councilProtocolText, /Planning-only `DEC-198` and handoff-only `DEC-199`/);
+assert.match(deliveryRoadmapText, /Stage 5E planning-only `DEC-198`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -460,6 +466,8 @@ const report = {
         'DEC-195',
         'DEC-196',
         'DEC-197',
+        'DEC-198',
+        'DEC-199',
       ],
       currentRuntime: {
         schemaVersion: 24,
@@ -497,6 +505,7 @@ const report = {
         durableReviewerReworkPlan: 'schema-v22-exact-review-required-record',
         reworkPlanAcceptance: 'schema-v23-exact-append-only-accepted-record',
         builderReworkPreflight: 'schema-v24-exact-local-stub-sidecar-preflight',
+        builderReworkMutationApproval: 'planning-and-handoff-only-before-source-mutation',
         companyRoster: 'browser-presentation-config',
       },
       authority: {

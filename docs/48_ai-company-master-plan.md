@@ -94,7 +94,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   evidence-and-inspection path.
   `DEC-195` plans one schema-v24 BuilderReworkDispatch plus an existing-Builder WorkOrderAttempt #3
   no-write preflight, `DEC-196` records its complete fielded implementation handoff, and `DEC-197`
-  implements only that bounded local-stub dispatch-and-preflight path.
+  implements only that bounded local-stub dispatch-and-preflight path. `DEC-198` plans one future
+  existing-Approval-and-Inbox mutation evidence boundary, while `DEC-199` records its handoff and
+  reserves exact implementation for `DEC-200`.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, durable Reviewer rework implementation,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
@@ -138,7 +140,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-197`
+- Recorded decisions: `DEC-163` through `DEC-199`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -196,7 +198,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Stage 5D implementation: `DEC-197` adds only the dispatch sequence/map, existing-Builder attempt
   #3, one local-stub no-write preflight, exact inspection, terminal no-retry failure, and a
   rationale-gated UI that stops before mutation Approval
-- Next gate: a separate complete fielded decision for mutation Approval; source mutation and
+- Stage 5E planning: `DEC-198` fixes one future task-owned `builder-rework` Approval and Decision
+  Inbox binding from the exact DEC-197 waiting-gate; `DEC-199` records the complete fielded handoff
+  and reserves implementation for `DEC-200`
+- Next gate: a separate complete fielded `DEC-200` decision for mutation Approval; source mutation and
   downstream role execution remain closed
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,

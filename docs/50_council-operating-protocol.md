@@ -464,6 +464,12 @@ create a mutation Approval, mutate source, or execute Reviewer/QA. `DEC-197` imp
 local-stub no-write dispatch and existing-Builder attempt boundary; every later mutation or role
 transition still requires separate authority.
 
+Planning-only `DEC-198` and handoff-only `DEC-199` define Stage 5E as a future exact Builder-rework
+Approval and Decision Inbox evidence boundary, not a Council, Builder, or source execution path.
+Dedicated source-bound wrappers retain Reviewer Decision priority, strict binding-digest validation,
+one-way decisions, and complete DEC-197/DEC-188/DEC-191/DEC-194/provider lineage revalidation.
+`DEC-200` is reserved for implementation; no graph transition or role execution opens.
+
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한

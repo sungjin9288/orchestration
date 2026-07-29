@@ -136,6 +136,8 @@ Planning source files:
 - `docs/132_ai-company-rework-plan-acceptance-implementation-decision-handoff.md`
 - `docs/133_ai-company-builder-rework-preflight-plan.md`
 - `docs/134_ai-company-builder-rework-preflight-implementation-decision-handoff.md`
+- `docs/135_ai-company-builder-rework-mutation-approval-plan.md`
+- `docs/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -257,6 +259,15 @@ worker persistence, one local-stub no-write preflight, and exact inspection whil
 three-WorkOrder graph blocked at Reviewer changes-requested. Mutation Approval, source mutation,
 Reviewer/QA execution, retry, recovery, scheduling, and provider-backed execution remain
 unimplemented.
+
+Planning-only `DEC-198` defines the Stage 5E Builder rework mutation Approval boundary in
+`docs/135_ai-company-builder-rework-mutation-approval-plan.md`, and `DEC-199` records its complete
+fielded handoff in
+`docs/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff.md`. The
+future schema-v24 path reuses Approval and Decision Inbox only through dedicated source-bound
+wrappers, strict immutable binding digests, one-way decisions, referenced Reviewer Decision priority,
+and exact DEC-197 waiting-gate lineage revalidation. `DEC-200` is reserved for implementation;
+Builder source mutation and all downstream execution remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -2418,7 +2429,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 981 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 982 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 706 UI smoke files
 ```

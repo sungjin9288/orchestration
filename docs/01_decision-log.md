@@ -1299,6 +1299,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation may add only the dispatch-and-preflight boundary described in `docs/133_ai-company-builder-rework-preflight-plan.md`. The exact three-WorkOrder graph stays blocked at Reviewer changes-requested, success stops at a separate mutation-approval gate, failure is terminal without retry, and no Approval, Decision Inbox item, WorkflowCheckpoint, source mutation, Reviewer/QA execution, provider-backed WorkOrder, scheduling, memory application, Git/release, policy mutation, collection, bypass, or connector authority opens.
 - Needed Before: Mutation Approval creation or resolution, Builder source mutation, Reviewer or QA execution, another rework, retry, recovery, resume, checkpoint creation, scheduling, provider-backed execution, result or memory application, runtime-agent Git/release, policy mutation, collections, approval bypass, and connectors require separate complete fielded decisions.
 
+### DEC-198
+- Status: `Accepted`
+- Decision: Accept `docs/135_ai-company-builder-rework-mutation-approval-plan.md` as planning-only authority for one existing task-owned Builder rework mutation Approval and Decision Inbox item from one exact source-current schema-v24 DEC-197 waiting-gate dispatch.
+- Why: DEC-197 proves a bounded no-write preflight but does not authorize source mutation. A separate exact Approval boundary must bind the dispatch, attempt #3, Run, Artifact, DEC-188/DEC-191/DEC-194 lineage, provider, and any referenced Reviewer Decision without changing the fixed graph or starting mutation work.
+- Impact: The plan fixes dedicated source-bound creation/resolution wrappers, strict metadata binding digest, one-way decisions, collision/replay rules, file-store validation, and Reviewer-first UI requirements. It changes no runtime, schema, API, UI, Approval, Inbox, dispatch, attempt, Run, Artifact, checkpoint, provider, graph, source, or worker behavior.
+- Needed Before: Runtime/API/UI implementation requires the complete fielded decision in `docs/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff.md`. Source mutation and every downstream authority remain separately gated.
+
+### DEC-199
+- Status: `Accepted`
+- Decision: Record `docs/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff.md` as the complete 15-field input shape for one Stage 5E exact existing-Approval-and-Inbox implementation gate.
+- Why: Generic continuation, generic Approval creation, and generic resolution cannot enforce source-bound lineage, one-way decision state, strict nested metadata validation, task/Reviewer compatibility, collision prevention, or closed downstream authority.
+- Impact: The handoff defines the only matching DEC-200 approval shape and explicitly excludes schema migration, source mutation, worker/provider calls, Run/Artifact/checkpoint activity, graph/dispatch/attempt mutation, Reviewer/QA, scheduling, Git/release, policy mutation, bypass, and connectors. No implementation authority is recorded.
+- Needed Before: All fifteen fields must match in one valid operator decision. DEC-198, this handoff, broad approval, delegated self-approval, or continuation do not authorize creation, resolution, or source mutation. A valid implementation outcome is reserved for `DEC-200`.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
