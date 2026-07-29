@@ -231,9 +231,9 @@ const smokeCount = fs
 const uiSmokeCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
-assert.equal(smokeCount, 990);
+assert.equal(smokeCount, 991);
 assert.equal(uiSmokeCount, 709);
-assert.match(readme, /990 smoke files/);
+assert.match(readme, /991 smoke files/);
 assert.match(readme, /709 UI smoke files/);
 
 process.stdout.write(

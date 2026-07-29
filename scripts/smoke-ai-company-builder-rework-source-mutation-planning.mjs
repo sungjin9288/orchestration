@@ -117,13 +117,13 @@ for (const text of [
 
 assert.match(inventory, /AI Company Builder rework source mutation planning/);
 assert.match(inventory, /AI Company Builder rework source mutation implementation/);
-assert.match(inventory, /informational `297\/297`, total `298\/298`/);
+assert.match(inventory, /informational `298\/298`, total `299\/299`/);
 assert.match(readme, /docs\/137_ai-company-builder-rework-source-mutation-plan\.md/);
 assert.match(
   readme,
   /docs\/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /990 smoke files/);
+assert.match(readme, /991 smoke files/);
 assert.match(readme, /709 UI smoke files/);
 assert.match(todo, /ai-company-builder-rework-source-mutation-implementation-post-m7-2035/);
 assert.match(
@@ -153,7 +153,7 @@ assert.equal(
 );
 assert.match(app, /run-builder-rework-source-mutation/);
 
-assert.equal(countFiles(/^smoke-.*\.mjs$/), 990);
+assert.equal(countFiles(/^smoke-.*\.mjs$/), 991);
 assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 709);
 
 process.stdout.write(`${JSON.stringify({
@@ -165,6 +165,6 @@ process.stdout.write(`${JSON.stringify({
   schemaVersion: 24,
   sourceMutationAllowed: true,
   reviewerQaExecutionAllowed: false,
-  smokeFileCount: 990,
+  smokeFileCount: 991,
   uiSmokeFileCount: 709,
 }, null, 2)}\n`);

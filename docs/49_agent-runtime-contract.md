@@ -526,6 +526,14 @@ separate decision, while reload recomputes
 the mutation evidence from exact Artifact bytes. QA execution and every later authority remain
 separately blocked.
 
+Planning-only `DEC-207` and handoff-only `DEC-208` define the separate Stage 5H contract. One future
+dedicated path may reuse the existing QA WorkOrder and append WorkOrderAttempt #1 only after exact
+DEC-206 attempt, Run, review Artifact raw bytes, mutation evidence, current source bytes, and the
+actionless `QA_READY` checkpoint all match. The candidate state must save the active attempt and
+running `rework-qa-node-check` Run atomically before one source-bound shell-free worker, then stop at
+`DELIVERY_READY` on pass or QA blocked on failure. No implementation authority is recorded before
+`DEC-209`, and no DeliveryPackage may be composed in the same request.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

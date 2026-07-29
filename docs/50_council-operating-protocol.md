@@ -479,6 +479,13 @@ not reopen Council revision and does not authorize QA execution or any broader g
 that Stage 5G checkpoint must retain an empty durable action set, and the generic QA step and
 recovery surfaces remain disabled.
 
+Planning-only `DEC-207` and handoff-only `DEC-208` keep the future Stage 5H QA boundary outside
+Council authority. The proposed path is one exact local shell-free use of the existing QA
+WorkOrderAttempt #1 after DEC-206 pass evidence and current source bytes are proven. It may stop at
+`DELIVERY_READY` only; it cannot revise Council output, compose a DeliveryPackage, close Mission or
+task state, call a provider, mutate source, or open retry or recovery. Implementation remains
+reserved for `DEC-209`.
+
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한

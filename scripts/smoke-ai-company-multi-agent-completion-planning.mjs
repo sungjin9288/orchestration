@@ -174,12 +174,14 @@ for (const decisionId of [
   'DEC-204',
   'DEC-205',
   'DEC-206',
+  'DEC-207',
+  'DEC-208',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-206`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-208`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -222,6 +224,10 @@ assert.match(
   /Planning-only `DEC-204`, handoff-only `DEC-205`, and implementation `DEC-206`/,
 );
 assert.match(deliveryRoadmap, /Stage 5G planning-only `DEC-204`/);
+assert.match(masterPlan, /Stage 5H planning: `DEC-207`/);
+assert.match(runtimeContract, /Planning-only `DEC-207` and handoff-only `DEC-208`/);
+assert.match(councilProtocol, /Planning-only `DEC-207` and handoff-only `DEC-208`/);
+assert.match(deliveryRoadmap, /Stage 5H planning-only `DEC-207`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
@@ -317,6 +323,8 @@ process.stdout.write(
         reviewerReexecutionPlanning: 'accepted-dec-204',
         reviewerReexecutionHandoff: 'documented-dec-205',
         reviewerReexecutionImplementation: 'accepted-dec-206',
+        reworkQaExecutionPlanning: 'accepted-dec-207',
+        reworkQaExecutionHandoff: 'documented-dec-208',
       },
       currentRuntime: {
         schemaVersion: 24,
@@ -341,7 +349,7 @@ process.stdout.write(
         stage: '5H',
         object: 'qa-execution',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'unassigned',
+        nextDecisionLogEntry: 'DEC-209',
       },
       authority: {
         documentationAllowed: true,
@@ -373,6 +381,8 @@ process.stdout.write(
         builderReworkSourceMutationImplementationAllowed: true,
         reviewerReexecutionPlanningAllowed: true,
         reviewerReexecutionImplementationAllowed: true,
+        reworkQaExecutionPlanningAllowed: true,
+        reworkQaExecutionImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

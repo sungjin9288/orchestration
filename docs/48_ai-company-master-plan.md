@@ -101,7 +101,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `DEC-202` records its complete fielded implementation handoff, and `DEC-203` implements only that
   bounded schema-v24 path. `DEC-204` plans one exact Reviewer re-execution, `DEC-205` records its
   complete fielded handoff, and `DEC-206` implements the existing-Reviewer WorkOrderAttempt #2
-  local-stub path with a stop before QA.
+  local-stub path with a stop before QA. `DEC-207` plans one exact source-bound shell-free QA
+  execution, and `DEC-208` records its complete fielded implementation handoff while reserving all
+  runtime authority for `DEC-209`.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, QA execution, interrupted-attempt recovery,
   provider/background WorkOrders, Ops commands, and Mission context application은 아직 구현되지
@@ -145,7 +147,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-206`
+- Recorded decisions: `DEC-163` through `DEC-208`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -221,6 +223,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   provenance, persists one Reviewer attempt #2 and running local-stub Reviewer Run before worker
   invocation, preserves attempt-specific evidence, and stops before QA at `QA_READY` on pass or
   terminal changes-requested/failure
+- Stage 5H planning: `DEC-207` fixes one existing-QA WorkOrderAttempt #1 over exact DEC-206
+  Reviewer and current-source evidence, atomic attempt-plus-Run persistence, source-bound
+  shell-free checks, and a pass-side stop at `DELIVERY_READY`; `DEC-208` records the complete
+  fielded implementation handoff while implementation remains reserved for `DEC-209`
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -571,8 +577,10 @@ Planning-only `DEC-201`, handoff-only `DEC-202`, and implementation `DEC-203` de
 schema-v24-preserving local-stub Builder rework source mutation path that reuses attempt #3 and
 stops before Reviewer/QA. Planning-only `DEC-204`, handoff-only `DEC-205`, and implementation
 `DEC-206` define one exact local-stub Reviewer re-execution over the DEC-203 mutation evidence,
-using Reviewer attempt #2 and stopping at `QA_READY` on pass. QA execution remains separately
-blocked.
+using Reviewer attempt #2 and stopping at `QA_READY` on pass. Planning-only `DEC-207` and
+handoff-only `DEC-208` define one future exact source-bound QA attempt #1 that would stop at
+`DELIVERY_READY` without composing a DeliveryPackage. QA implementation remains reserved for
+`DEC-209`.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

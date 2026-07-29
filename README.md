@@ -140,6 +140,10 @@ Planning source files:
 - `docs/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff.md`
 - `docs/137_ai-company-builder-rework-source-mutation-plan.md`
 - `docs/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff.md`
+- `docs/139_ai-company-reviewer-reexecution-plan.md`
+- `docs/140_ai-company-reviewer-reexecution-implementation-decision-handoff.md`
+- `docs/141_ai-company-rework-qa-execution-plan.md`
+- `docs/142_ai-company-rework-qa-execution-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -298,6 +302,18 @@ remains blocked at Reviewer. QA
 execution, another retry or rework, provider-backed
 WorkOrders, source mutation expansion, Git/release, memory, scheduling, policy bypass, and
 connectors remain separate decisions.
+
+Planning-only `DEC-207` defines the Stage 5H rework QA boundary in
+`docs/141_ai-company-rework-qa-execution-plan.md`, and `DEC-208` records its complete fielded
+implementation handoff in
+`docs/142_ai-company-rework-qa-execution-implementation-decision-handoff.md`. The planned path
+keeps schema v24 and the fixed graph, reuses the existing QA WorkOrder as WorkOrderAttempt #1,
+atomically persists that attempt and its running Run, binds exact DEC-206 Reviewer and current
+source-byte evidence, runs only shell-free source-bound Node syntax checks, and stops at
+`DELIVERY_READY` without composing a DeliveryPackage. Runtime/API/UI/worker implementation remains
+reserved for exact `DEC-209`; QA execution, retry, recovery, DeliveryPackage, Mission/task
+close-out, provider/source mutation, Git/release, memory, scheduling, policy bypass, and connectors
+remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -801,7 +817,8 @@ DEC-194 Stage 5C ReworkPlanAcceptance planning, handoff, and evidence-only imple
 plus DEC-195 through DEC-197 Stage 5D Builder rework preflight planning, fielded handoff, and
 bounded implementation evidence plus DEC-198 through DEC-200 Stage 5E mutation Approval,
 DEC-201 through DEC-203 Stage 5F source mutation, and DEC-204 through DEC-206 Stage 5G Reviewer
-re-execution planning, handoff, and bounded implementation evidence pass the aggregate and UI QA
+re-execution planning, handoff, and bounded implementation evidence plus DEC-207 and DEC-208
+Stage 5H rework QA planning and fielded handoff evidence pass the aggregate and UI QA
 gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
@@ -2473,7 +2490,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 990 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 991 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 709 UI smoke files
 ```

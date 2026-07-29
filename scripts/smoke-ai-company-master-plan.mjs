@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-206`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-208`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -353,6 +353,10 @@ assert.match(
   /Planning-only `DEC-204`, handoff-only `DEC-205`, and implementation `DEC-206`/,
 );
 assert.match(deliveryRoadmapText, /Stage 5G planning-only `DEC-204`/);
+assert.match(masterPlanText, /Stage 5H planning: `DEC-207`/);
+assert.match(runtimeContractText, /Planning-only `DEC-207` and handoff-only `DEC-208`/);
+assert.match(councilProtocolText, /Planning-only `DEC-207` and handoff-only `DEC-208`/);
+assert.match(deliveryRoadmapText, /Stage 5H planning-only `DEC-207`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -493,6 +497,8 @@ const report = {
         'DEC-204',
         'DEC-205',
         'DEC-206',
+        'DEC-207',
+        'DEC-208',
       ],
       currentRuntime: {
         schemaVersion: 24,
@@ -604,6 +610,8 @@ const report = {
         builderReworkSourceMutationImplementationAllowed: true,
         reviewerReexecutionPlanningAllowed: true,
         reviewerReexecutionImplementationAllowed: true,
+        reworkQaExecutionPlanningAllowed: true,
+        reworkQaExecutionImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
@@ -616,7 +624,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'Reviewer re-execution is implemented by DEC-206; QA and solo remain deferred',
+      'Rework QA execution is planned by DEC-207 and DEC-208; implementation requires DEC-209',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -637,12 +645,14 @@ assert.equal(report.authority.builderReworkSourceMutationPlanningAllowed, true);
 assert.equal(report.authority.builderReworkSourceMutationImplementationAllowed, true);
 assert.equal(report.authority.reviewerReexecutionPlanningAllowed, true);
 assert.equal(report.authority.reviewerReexecutionImplementationAllowed, true);
+assert.equal(report.authority.reworkQaExecutionPlanningAllowed, true);
+assert.equal(report.authority.reworkQaExecutionImplementationAllowed, false);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /Reviewer re-execution is implemented by DEC-206/,
+  /Rework QA execution is planned by DEC-207 and DEC-208/,
 );
 
 process.stdout.write(

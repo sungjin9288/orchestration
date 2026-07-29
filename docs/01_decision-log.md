@@ -1362,6 +1362,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation may change only the named Stage 5G runtime, execution, API, UI, smoke, and coupled evidence surfaces. Schema stays v24, the fixed three-WorkOrder graph remains unchanged, and no new durable domain record is added. QA execution, another Reviewer or Builder attempt, a second rework, retry, recovery, provider-backed WorkOrders, source mutation expansion, Git/release authority, memory, scheduling, policy mutation, bypass, and connectors remain blocked.
 - Needed Before: Every Stage 5G start must prove the exact DEC-203 mutation tuple and current source bytes, persist attempt #2 and its running Run atomically before the worker, and stop at `QA_READY` or a terminal Reviewer block. Any later QA execution or recovery requires a separate complete fielded decision.
 
+### DEC-207
+- Status: `Accepted`
+- Decision: Accept `docs/141_ai-company-rework-qa-execution-plan.md` as planning-only authority for one exact source-bound shell-free QA execution after a source-current passed DEC-206 Reviewer re-execution.
+- Why: DEC-206 intentionally leaves an actionless `QA_READY` checkpoint. The generic QA path saves the active attempt and QA Run separately, does not bind Reviewer attempt #2 or review Artifact raw bytes, conflicts with the strict Stage 5G file-store branch, and composes a DeliveryPackage preview after pass. Those gaps require one dedicated boundary rather than reopening generic `run-qa`.
+- Impact: The plan keeps schema v24 and the fixed three WorkOrders, fixes the exact fifteen-key request, canonical Reviewer and QA-input evidence, one existing-QA WorkOrderAttempt #1, atomic attempt-plus-running-Run persistence, source-bound shell-free checks, pass-to-`DELIVERY_READY`, terminal failure, replay, interruption, rollback, UI, and focused verification requirements. It changes no runtime, schema, API, UI, state, Run, Artifact, attempt, checkpoint, source, provider, DeliveryPackage, Mission/task, Git/release, memory, policy, bypass, or connector behavior.
+- Needed Before: Runtime/API/UI/worker implementation requires the complete fielded decision in `docs/142_ai-company-rework-qa-execution-implementation-decision-handoff.md`. QA execution and every later authority remain separately gated.
+
+### DEC-208
+- Status: `Accepted`
+- Decision: Record `docs/142_ai-company-rework-qa-execution-implementation-decision-handoff.md` as the complete 15-field input shape for the Stage 5H exact rework-QA implementation gate.
+- Why: Generic continuation cannot decide the DEC-206 source tuple, raw review evidence, checkpoint authority, exact current bytes, atomic attempt-plus-Run start, source-bound worker, pass/failure settlement, DeliveryPackage stop, replay, interruption, rollback, focused smoke, or every downstream authority that must remain closed.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one existing-QA local shell-free attempt #1 that stops at `DELIVERY_READY` on pass. It explicitly excludes another QA attempt, retry, recovery, DeliveryPackage composition, Mission/task close-out, provider or source mutation, Git/release, memory, scheduling, policy mutation, approval bypass, and connectors. No implementation authority is recorded.
+- Needed Before: The operator must supply every required field in one valid architecture-sensitive implementation decision. `DEC-207`, this handoff, broad approval, delegated self-approval, or continuation does not authorize implementation. A matching implementation outcome is reserved for `DEC-209`.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
