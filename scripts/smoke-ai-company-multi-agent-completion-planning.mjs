@@ -162,12 +162,14 @@ for (const decisionId of [
   'DEC-192',
   'DEC-193',
   'DEC-194',
+  'DEC-195',
+  'DEC-196',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-194`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-196`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -183,6 +185,10 @@ assert.match(masterPlan, /Stage 5C implementation: `DEC-194`/);
 assert.match(runtimeContract, /Planning-only `DEC-192` defines one schema-v23/);
 assert.match(councilProtocol, /Planning-only `DEC-192` and handoff-only `DEC-193`/);
 assert.match(deliveryRoadmap, /`DEC-192`[\s\S]*`DEC-193`/);
+assert.match(masterPlan, /Stage 5D planning: `DEC-195`/);
+assert.match(runtimeContract, /Planning-only `DEC-195` defines one future schema-v24/);
+assert.match(councilProtocol, /Planning-only `DEC-195` and handoff-only `DEC-196`/);
+assert.match(deliveryRoadmap, /`DEC-195`[\s\S]*`DEC-196`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
@@ -266,6 +272,8 @@ process.stdout.write(
         reworkPlanAcceptancePlanning: 'accepted-dec-192',
         reworkPlanAcceptanceHandoff: 'documented-dec-193',
         reworkPlanAcceptanceImplementation: 'accepted-dec-194',
+        builderReworkPreflightPlanning: 'accepted-dec-195',
+        builderReworkPreflightHandoff: 'documented-dec-196',
       },
       currentRuntime: {
         schemaVersion: 23,
@@ -284,9 +292,9 @@ process.stdout.write(
       },
       nextImplementationTarget: {
         stage: '5D',
-        object: 'builder-rework-append-and-execution',
+        object: 'builder-rework-preflight-dispatch',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'complete-fielded-decision-required',
+        nextDecisionLogEntry: 'reserved-dec-197',
       },
       authority: {
         documentationAllowed: true,
@@ -311,6 +319,8 @@ process.stdout.write(
         durableReviewerReworkPlanImplementationAllowed: true,
         reworkPlanAcceptancePlanningAllowed: true,
         reworkPlanAcceptanceImplementationAllowed: true,
+        builderReworkPreflightPlanningAllowed: true,
+        builderReworkPreflightImplementationAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,
         parallelExecutionAllowed: false,

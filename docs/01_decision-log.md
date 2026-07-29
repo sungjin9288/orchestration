@@ -1278,6 +1278,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation may add only the acceptance evidence and exact inspection boundary described in `docs/131_ai-company-rework-plan-acceptance-plan.md`. The source ReworkPlan stays immutable, and no Builder WorkOrder or WorkOrderAttempt append, retry, preflight, approval, source mutation, Builder/Reviewer/QA execution, scheduling, provider, memory, Git/release, policy, collection, bypass, or connector authority opens.
 - Needed Before: ReworkPlan rejection, changes-requested, supersession, deletion, replacement, quarantine, status mutation, Builder append or execution, retry, preflight, approval creation or resolution, scheduling, provider-backed WorkOrders, result or memory application, runtime-agent Git/release, policy mutation, collections, bypass, and connectors require separate complete fielded decisions.
 
+### DEC-195
+- Status: `Accepted`
+- Decision: Accept `docs/133_ai-company-builder-rework-preflight-plan.md` as planning-only authority for one exact accepted ReworkPlan to one bounded local Builder rework preflight dispatch using the existing Builder WorkOrder.
+- Why: `DEC-194` proves exact operator acceptance but intentionally opens no execution path. The next safe boundary must preserve the fixed three-WorkOrder graph and historical WorkOrderAttempt digests while distinguishing logical rework round #2 from the existing Builder WorkOrder's next durable attempt #3.
+- Impact: The plan fixes one future schema-v24 immutable `BuilderReworkDispatch`, one additive `start-builder-rework-preflight` attempt action, active-before-worker persistence, one local-stub no-write preflight, exact inspection, interruption evidence, cap consumption, rollback, and focused verification. It changes no runtime, schema, API, UI, state, record, attempt, worker, Approval, Decision Inbox item, checkpoint, source, provider, Git/release, memory, policy, collection, bypass, or connector behavior.
+- Needed Before: Runtime/schema/API/UI/worker implementation requires the complete fielded decision in `docs/134_ai-company-builder-rework-preflight-implementation-decision-handoff.md`. Mutation Approval, source mutation, Reviewer/QA execution, retry, recovery, scheduling, and every downstream authority remain separately gated.
+
+### DEC-196
+- Status: `Accepted`
+- Decision: Record `docs/134_ai-company-builder-rework-preflight-implementation-decision-handoff.md` as the complete 15-field input shape for one schema-v24 Builder rework preflight implementation gate.
+- Why: Generic continuation cannot choose the exact source tuple, dispatch approval, logical and durable attempt numbering, active-before-worker save, immutable sidecar shape, local-only coordinator request, success/failure settlement, replay, interruption, rollback, focused smoke, or every downstream authority that must remain closed.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one dispatch-and-preflight-only slice. It explicitly excludes another WorkOrder, mutation Approval creation or resolution, source mutation, Reviewer/QA execution, second rework, retry, recovery, resume, checkpoint creation, scheduling, provider-backed execution, memory, runtime-agent Git/release, policy mutation, collections, bypass, and connectors. No implementation authority is recorded.
+- Needed Before: The operator must supply every required field in one valid implementation decision. `DEC-195`, this handoff, broad approval, delegated self-approval, or continuation does not authorize schema migration, attempt append, or worker execution. A valid implementation outcome is reserved for `DEC-197`.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

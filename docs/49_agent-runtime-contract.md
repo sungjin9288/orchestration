@@ -495,6 +495,15 @@ focused verification contracts. `DEC-194` implements only that accepted evidence
 boundary. The source ReworkPlan stays immutable and review-required; Builder append, retry,
 preflight, approval, mutation, and execution authority remain absent.
 
+Planning-only `DEC-195` defines one future schema-v24 immutable `BuilderReworkDispatch` from the
+exact `DEC-194` acceptance plus one additive existing-Builder
+`WorkOrderAttempt(action=start-builder-rework-preflight, attemptNumber=3)`. Handoff-only `DEC-196`
+fixes the complete implementation decision shape, active-before-worker save, logical rework round
+#2 versus durable attempt #3, one local-stub no-write preflight, success/failure settlement, exact
+inspection, replay, interruption, rollback, and focused verification contracts. No implementation
+authority exists until `DEC-197`; another WorkOrder, mutation Approval, source mutation,
+Reviewer/QA execution, retry, recovery, scheduling, and provider-backed execution remain absent.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

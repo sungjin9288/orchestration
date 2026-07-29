@@ -92,6 +92,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `DEC-192` plans one append-only schema-v23 ReworkPlanAcceptance fact, `DEC-193` records its
   complete fielded implementation handoff, and `DEC-194` implements only the exact accepted
   evidence-and-inspection path.
+  `DEC-195` plans one schema-v24 BuilderReworkDispatch plus an existing-Builder WorkOrderAttempt #3
+  no-write preflight, and `DEC-196` records its complete fielded implementation handoff. Runtime
+  implementation remains blocked pending `DEC-197`.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, durable Reviewer rework implementation,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
@@ -135,7 +138,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-194`
+- Recorded decisions: `DEC-163` through `DEC-196`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -187,8 +190,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Stage 5C implementation: `DEC-194` adds only the acceptance sequence/map, one immutable accepted
   fact, no-write exact replay, exact ReworkPlan-bound inspection, snapshot exclusion, and a
   rationale-gated evidence-only UI
-- Next gate: Builder WorkOrder or WorkOrderAttempt append and rework execution remain a later
-  separate boundary
+- Stage 5D planning: `DEC-195` fixes one future schema-v24 immutable BuilderReworkDispatch plus one
+  existing-Builder `start-builder-rework-preflight` WorkOrderAttempt #3; `DEC-196` records the
+  complete fielded implementation handoff
+- Next gate: `DEC-197` exact operator implementation decision; no runtime/schema/API/UI/worker
+  authority is open yet
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -531,7 +537,9 @@ schema-v22 ReworkPlan record and exact inspection boundary, and `DEC-191` implem
 record-and-inspect path with no downstream execution authority. Planning-only `DEC-192` and
 handoff-only `DEC-193` define one append-only schema-v23 ReworkPlanAcceptance fact, and `DEC-194`
 implements only its exact accepted evidence-and-inspection path. Builder append and execution
-remain blocked.
+remain blocked. Planning-only `DEC-195` and handoff-only `DEC-196` define one future schema-v24
+BuilderReworkDispatch and existing-Builder WorkOrderAttempt #3 no-write preflight boundary. They do
+not authorize implementation; mutation Approval and source mutation remain separately blocked.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

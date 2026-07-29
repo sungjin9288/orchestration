@@ -187,6 +187,15 @@ snapshot exposure is forbidden. `DEC-194` implements only the exact accepted evi
 no-write replay, exact inspection, and evidence-only UI. Builder WorkOrder or WorkOrderAttempt
 append, retry, preflight, approval, mutation, Reviewer/QA execution, and scheduling remain blocked.
 
+Planning-only `DEC-195` fixes Stage 5D as one future schema-v24 immutable
+`BuilderReworkDispatch` from the exact DEC-194 acceptance plus one existing-Builder
+`WorkOrderAttempt(action=start-builder-rework-preflight, attemptNumber=3)`. Logical rework round
+#2 and durable Builder attempt #3 remain distinct. Handoff-only `DEC-196` fixes the complete
+implementation gate, active-before-worker persistence, one local-stub no-write preflight, exact
+inspection, interruption, cap consumption, rollback, and blocked downstream authority.
+Implementation remains closed until `DEC-197`; no fourth WorkOrder, mutation Approval, source
+mutation, Reviewer/QA execution, retry, recovery, scheduling, or provider-backed WorkOrder opens.
+
 ### Stage 6: Ops Supervision And Recovery
 
 Expose one read-only supervision snapshot and explicit `step`, `retry-failed`, `cancel`, `quarantine`,

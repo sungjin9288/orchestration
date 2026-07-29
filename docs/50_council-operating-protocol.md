@@ -456,6 +456,13 @@ Builder append, retry, preflight, approval, source mutation, role execution, sch
 use unchanged. `DEC-194` implements only that exact acceptance fact and exact inspection; it opens
 no Builder or execution authority.
 
+Planning-only `DEC-195` and handoff-only `DEC-196` define one future schema-v24
+BuilderReworkDispatch from the exact accepted ReworkPlan. The proposed coordinator may reuse the
+original planner, architecture, and task-breaker evidence as read input, but it must not rerun
+Council or those roles, revise alignment, add a fourth WorkOrder, resolve the Reviewer decision,
+create a mutation Approval, mutate source, or execute Reviewer/QA. Implementation remains blocked
+until the exact `DEC-197` operator decision.
+
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한
