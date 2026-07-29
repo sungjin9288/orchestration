@@ -470,10 +470,10 @@ Dedicated source-bound wrappers retain Reviewer Decision priority, strict bindin
 one-way decisions, and complete DEC-197/DEC-188/DEC-191/DEC-194/provider lineage revalidation.
 `DEC-200` implements that evidence-only path; no graph transition or role execution opens.
 
-Planning-only `DEC-201` and handoff-only `DEC-202` keep Stage 5F outside Council authority. The
-future local-stub Builder mutation must preserve the Council synthesis, Reviewer decision, fixed
+Planning-only `DEC-201`, handoff-only `DEC-202`, and implementation `DEC-203` keep Stage 5F outside
+Council authority. The bounded local-stub Builder mutation preserves the Council synthesis, Reviewer decision, fixed
 three-WorkOrder graph, and DEC-200 Approval while reusing attempt #3 and stopping before Reviewer or
-QA re-execution. Exact `DEC-203` is still required before runtime or source behavior may change.
+QA re-execution. Council revision, Reviewer/QA execution, and graph transition remain blocked.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

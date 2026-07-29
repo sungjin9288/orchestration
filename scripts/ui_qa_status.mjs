@@ -395,6 +395,12 @@ const smokeChecks = [
       'Builder rework mutation Approval UI and API preserve exact source-bound request creation, Reviewer Decision priority, action-specific approve or reject controls, terminal read-only evidence, responsive fit, and absent mutation retry resume reviewer QA commit push or release controls',
   },
   {
+    id: 'ai-company-builder-rework-source-mutation-ui-api',
+    script: 'scripts/smoke-ui-slice-708.mjs',
+    purpose:
+      'Builder rework source mutation UI and API preserve exact approved request construction, immutable target and Approval evidence, safe ready running completed and failed rendering, responsive fit, and absent Reviewer QA retry recovery commit push or release controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

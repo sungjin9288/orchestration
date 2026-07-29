@@ -27,7 +27,7 @@ const renderStart = appSource.indexOf(
   'function renderReviewerReworkPreviewButton',
 );
 const renderEnd = appSource.indexOf(
-  'function renderSpecialistBatchPreview',
+  'function renderBuilderReworkSourceMutation',
   renderStart,
 );
 assert.ok(renderStart >= 0 && renderEnd > renderStart);

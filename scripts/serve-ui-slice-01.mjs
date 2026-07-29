@@ -2573,6 +2573,89 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  const builderReworkSourceMutationMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/builder-rework-source-mutation$/,
+  );
+  if (builderReworkSourceMutationMatch) {
+    const reworkPlanId = decodeURIComponent(
+      builderReworkSourceMutationMatch[1],
+    );
+    if (method === 'GET') {
+      try {
+        json(response, 200, {
+          generatedAt: new Date().toISOString(),
+          builderReworkSourceMutation:
+            runtime.getBuilderReworkSourceMutation(reworkPlanId),
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message ||
+              'Builder rework source mutation inspection에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    if (method === 'POST') {
+      try {
+        const input = await readBoundedJsonBody(request, 8 * 1024);
+        const expectedFields = [
+          'builderReworkDispatchDigest',
+          'builderReworkDispatchId',
+          'evaluatedAt',
+          'mutationApprovalBindingDigest',
+          'mutationApprovalId',
+          'mutationRequest',
+          'preflightArtifactContentDigest',
+          'preflightArtifactId',
+          'preflightArtifactRecordDigest',
+          'preflightRunId',
+          'preflightRunRecordDigest',
+          'sourceProgressDigest',
+          'workOrderAttemptId',
+          'workOrderAttemptRecordDigest',
+        ];
+        const actualFields = Object.keys(input).sort();
+        if (
+          actualFields.length !== expectedFields.length ||
+          actualFields.some(
+            (field, index) => field !== expectedFields[index],
+          )
+        ) {
+          const error = new Error(
+            'Builder rework source mutation body has unexpected or missing fields',
+          );
+          error.statusCode = 400;
+          throw error;
+        }
+        const result =
+          await executionCoordinator.runBuilderReworkSourceMutation({
+            reworkPlanId,
+            ...input,
+          });
+        json(response, result.idempotent ? 200 : 201, {
+          generatedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message ||
+              'Builder rework source mutation 실행에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    json(response, 405, {
+      error: 'Builder rework source mutation은 GET과 POST만 지원합니다.',
+    });
+    return;
+  }
+
   const builderReworkPreflightMatch = url.pathname.match(
     /^\/api\/rework-plans\/([^/]+)\/builder-rework-preflight$/,
   );

@@ -160,6 +160,45 @@ function buildBuilderReworkPreflightExecutionRequest(input) {
   };
 }
 
+function buildBuilderReworkSourceMutationExecutionRequest(input) {
+  return {
+    role: 'builder',
+    anchor: {
+      approvalBindingDigest: input.approval.metadata.bindingDigest,
+      approvalId: input.approval.id,
+      builderReworkDispatchDigest: input.dispatch.recordDigest,
+      builderReworkDispatchId: input.dispatch.id,
+      executionPlanId: input.dispatch.executionPlanId,
+      preflightArtifactContentDigest:
+        input.approval.metadata.preflightArtifactContentDigest,
+      preflightArtifactId: input.approval.metadata.preflightArtifactId,
+      preflightRunId: input.approval.metadata.preflightRunId,
+      projectId: input.project.id,
+      requestDigest: input.requestDigest,
+      targetFileBaselineDigests: structuredClone(input.baselineTargetDigests),
+      targetFileAllowlistPaths: [...input.reworkPlan.targetPathAllowlist],
+      taskId: input.task.id,
+      workOrderAttemptId: input.dispatch.workOrderAttemptId,
+    },
+    executionMode: 'rework-live-mutation',
+    mutationAllowed: true,
+    task: toExecutionTask(input.task),
+    project: toExecutionProject(input.project),
+    approval: {
+      id: input.approval.id,
+      status: input.approval.status,
+      bindingDigest: input.approval.metadata.bindingDigest,
+    },
+    rework: {
+      findings: structuredClone(input.reworkPlan.findings),
+      targetPathAllowlist: [...input.reworkPlan.targetPathAllowlist],
+      verificationCommands: [...input.reworkPlan.verificationCommands],
+    },
+    codeContext: structuredClone(input.codeContext),
+    expectedArtifactType: 'change-summary',
+  };
+}
+
 function buildBuilderLiveMutationExecutionRequest(input) {
   return {
     role: 'builder',
@@ -256,6 +295,7 @@ module.exports = {
   buildBuilderLiveMutationExecutionRequest,
   buildBuilderPreflightExecutionRequest,
   buildBuilderReworkPreflightExecutionRequest,
+  buildBuilderReworkSourceMutationExecutionRequest,
   buildPlannerExecutionRequest,
   buildReviewerExecutionRequest,
   buildTaskBreakerExecutionRequest,

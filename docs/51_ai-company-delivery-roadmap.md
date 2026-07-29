@@ -636,8 +636,8 @@ implements only that evidence boundary; Builder source mutation remains a later 
 Stage 5F planning-only `DEC-201` and handoff-only `DEC-202` define that later gate as one dedicated
 schema-v24-preserving local-stub mutation over immutable ReworkPlan targets. It reuses
 WorkOrderAttempt #3, records active/completed/failed/interrupted evidence through existing Run and
-Artifact contracts, keeps the DEC-200 Approval immutable, and stops before Reviewer/QA. Runtime,
-API, UI, worker, and source implementation remain blocked pending exact `DEC-203`.
+Artifact contracts, keeps the DEC-200 Approval immutable, and stops before Reviewer/QA. `DEC-203`
+implements only that runtime/API/UI/source path.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.

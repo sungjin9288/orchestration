@@ -25,6 +25,7 @@ const {
   buildBuilderLiveMutationExecutionRequest,
   buildBuilderPreflightExecutionRequest,
   buildBuilderReworkPreflightExecutionRequest,
+  buildBuilderReworkSourceMutationExecutionRequest,
   buildPlannerExecutionRequest,
   buildReviewerExecutionRequest,
   buildTaskBreakerExecutionRequest,
@@ -74,6 +75,14 @@ const {
   REVIEW_STATUS,
   TASK_LIFECYCLE,
 } = require('../runtime/contracts');
+const {
+  MAX_TARGET_BYTES: MAX_BUILDER_REWORK_TARGET_BYTES,
+  MAX_TOTAL_TARGET_BYTES: MAX_BUILDER_REWORK_TOTAL_BYTES,
+  assertNoSensitiveBuilderReworkSourceContent,
+  computeBuilderReworkSourceContentDigest,
+  readBoundedBuilderReworkSourceFile,
+  readBoundedBuilderReworkSourceTargets,
+} = require('../runtime/builder-rework-source-mutations');
 
 const DEFAULT_SOURCE_OF_TRUTH_PATHS = [
   'AGENTS.md',
@@ -110,6 +119,12 @@ const DEFAULT_BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
   'src/execution/providers/openai-responses-retry-policy.js',
   'ui/app.js',
 ];
+const MAX_BUILDER_REWORK_BASE64_FILE_CHARS =
+  4 * Math.ceil(MAX_BUILDER_REWORK_TARGET_BYTES / 3);
+const MAX_BUILDER_REWORK_BASE64_TOTAL_CHARS =
+  4 * Math.ceil(MAX_BUILDER_REWORK_TOTAL_BYTES / 3) + 4096;
+const MAX_BUILDER_REWORK_PROVIDER_OUTPUT_BYTES =
+  MAX_BUILDER_REWORK_BASE64_TOTAL_CHARS + 128 * 1024;
 
 function readContextFile(repoRoot, relativePath) {
   const filePath = path.join(repoRoot, relativePath);
@@ -160,6 +175,175 @@ function parseBase64FileUpdates(content) {
   }
 
   return fileUpdates;
+}
+
+function writeExistingRegularProjectFile(
+  projectPath,
+  relativePath,
+  content,
+  expectedDigest,
+) {
+  const current = readBoundedBuilderReworkSourceFile(projectPath, relativePath);
+  if (current.digest !== expectedDigest) {
+    throw new Error(`Builder rework target baseline drifted before write: ${relativePath}`);
+  }
+  assertNoSensitiveBuilderReworkSourceContent(content, relativePath);
+  let descriptor = null;
+  try {
+    descriptor = fs.openSync(
+      current.realPath,
+      fs.constants.O_RDWR | (fs.constants.O_NOFOLLOW || 0),
+    );
+    const opened = fs.fstatSync(descriptor);
+    if (
+      !opened.isFile() ||
+      opened.nlink !== 1 ||
+      opened.size !== current.bytes.length ||
+      opened.ino !== current.ino ||
+      opened.dev !== current.dev
+    ) {
+      throw new Error(`Builder rework target changed before write: ${relativePath}`);
+    }
+    const bytes = Buffer.from(content, 'utf8');
+    if (bytes.length === 0 || bytes.length > MAX_BUILDER_REWORK_TARGET_BYTES) {
+      throw new Error(`Builder rework output is outside the per-file byte cap: ${relativePath}`);
+    }
+    const openedBytes = Buffer.alloc(opened.size);
+    const openedBytesRead = fs.readSync(
+      descriptor,
+      openedBytes,
+      0,
+      opened.size,
+      0,
+    );
+    const beforeMutation = fs.fstatSync(descriptor);
+    const openedContent = new TextDecoder('utf-8', { fatal: true }).decode(
+      openedBytes,
+    );
+    if (
+      openedBytesRead !== opened.size ||
+      beforeMutation.size !== opened.size ||
+      beforeMutation.mtimeMs !== opened.mtimeMs ||
+      beforeMutation.ino !== opened.ino ||
+      beforeMutation.dev !== opened.dev ||
+      beforeMutation.nlink !== 1 ||
+      computeBuilderReworkSourceContentDigest(openedContent) !== expectedDigest
+    ) {
+      throw new Error(`Builder rework target changed before write: ${relativePath}`);
+    }
+    let mutationStarted = false;
+    try {
+      fs.ftruncateSync(descriptor, 0);
+      mutationStarted = true;
+      writeAllBytes(descriptor, bytes);
+      fs.fsyncSync(descriptor);
+      const writtenBytes = Buffer.alloc(bytes.length);
+      const writtenBytesRead = fs.readSync(
+        descriptor,
+        writtenBytes,
+        0,
+        bytes.length,
+        0,
+      );
+      if (
+        writtenBytesRead !== bytes.length ||
+        !writtenBytes.equals(bytes)
+      ) {
+        throw new Error(`Builder rework target write verification failed: ${relativePath}`);
+      }
+    } catch (error) {
+      if (mutationStarted) {
+        try {
+          fs.ftruncateSync(descriptor, 0);
+          writeAllBytes(descriptor, openedBytes);
+          fs.fsyncSync(descriptor);
+        } catch (restoreError) {
+          const activeError = new Error(
+            `Builder rework source restoration failed; active evidence retained: ${restoreError.message}`,
+          );
+          activeError.retainActiveEvidence = true;
+          throw activeError;
+        }
+      }
+      throw error;
+    }
+    return {
+      afterDigest: computeBuilderReworkSourceContentDigest(content),
+      beforeDigest: expectedDigest,
+    };
+  } finally {
+    if (descriptor !== null) fs.closeSync(descriptor);
+  }
+}
+
+function writeAllBytes(descriptor, bytes) {
+  let offset = 0;
+  while (offset < bytes.length) {
+    const written = fs.writeSync(
+      descriptor,
+      bytes,
+      offset,
+      bytes.length - offset,
+      offset,
+    );
+    if (written <= 0) {
+      throw new Error('Builder rework source write made no progress');
+    }
+    offset += written;
+  }
+}
+
+function parseBoundedBuilderReworkFileUpdates(content) {
+  const section = getMarkdownSection(content, 'File Updates');
+  const updates = [];
+  const seenPaths = new Set();
+  let aggregateBytes = 0;
+  let aggregateEncodedChars = 0;
+  for (const block of section.split(/^###\s+/m).filter(Boolean)) {
+    const newlineIndex = block.indexOf('\n');
+    const heading = newlineIndex < 0 ? block : block.slice(0, newlineIndex);
+    const relativePath = normalizeRelativePath(heading.trim());
+    const fenceMatch = block.match(/```base64\n([A-Za-z0-9+/=\r\n]+)\n```/);
+    if (!relativePath || !fenceMatch) {
+      throw new Error('Builder rework output has an invalid file update block');
+    }
+    if (seenPaths.has(relativePath)) {
+      throw new Error(`Duplicate Builder rework update path: ${relativePath}`);
+    }
+    const encoded = fenceMatch[1].replace(/\s+/g, '');
+    if (
+      !encoded ||
+      encoded.length % 4 !== 0 ||
+      encoded.length > MAX_BUILDER_REWORK_BASE64_FILE_CHARS ||
+      !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)
+    ) {
+      throw new Error(`Builder rework output has invalid base64 for ${relativePath}`);
+    }
+    aggregateEncodedChars += encoded.length;
+    if (aggregateEncodedChars > MAX_BUILDER_REWORK_BASE64_TOTAL_CHARS) {
+      throw new Error('Builder rework output exceeds the encoded aggregate byte cap');
+    }
+    const bytes = Buffer.from(encoded, 'base64');
+    if (
+      bytes.length === 0 ||
+      bytes.length > MAX_BUILDER_REWORK_TARGET_BYTES ||
+      bytes.toString('base64') !== encoded
+    ) {
+      throw new Error(`Builder rework output is outside the byte cap for ${relativePath}`);
+    }
+    aggregateBytes += bytes.length;
+    if (aggregateBytes > MAX_BUILDER_REWORK_TOTAL_BYTES) {
+      throw new Error('Builder rework output exceeds the aggregate byte cap');
+    }
+    const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    assertNoSensitiveBuilderReworkSourceContent(decoded, relativePath);
+    seenPaths.add(relativePath);
+    updates.push({ path: relativePath, content: decoded });
+  }
+  if (updates.length === 0) {
+    throw new Error('Builder rework source mutation returned no file updates');
+  }
+  return updates;
 }
 
 function compareRunsByStartedDesc(left, right) {
@@ -3292,6 +3476,238 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runBuilderReworkSourceMutation(input) {
+    const prepared = runtime.prepareBuilderReworkSourceMutation(input);
+    if (prepared.idempotent) {
+      return {
+        builderReworkSourceMutation: prepared.projection,
+        idempotent: true,
+      };
+    }
+    const { request, requestDigest, source } = prepared;
+    const targetFiles = [...source.reworkPlan.targetPathAllowlist];
+    if (
+      source.project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+      source.project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB ||
+      localStubProviderAdapter.name !== PROVIDER_ADAPTER_ID.LOCAL_STUB
+    ) {
+      throw new Error('Builder rework source mutation supports local-stub projects only');
+    }
+    const baselineEntries = readBoundedBuilderReworkSourceTargets(
+      source.project.projectPath,
+      targetFiles,
+    );
+    const baselineTargetDigests = baselineEntries.map((entry) => ({
+      path: entry.path,
+      digest: entry.digest,
+    }));
+    const baselineContents = new Map(
+      baselineEntries.map((entry) => [entry.path, entry.content]),
+    );
+    const started = runtime.beginBuilderReworkSourceMutation({
+      baselineTargetDigests,
+      request,
+      reworkPlanId: source.reworkPlan.id,
+    });
+    if (started.idempotent) {
+      return {
+        builderReworkSourceMutation:
+          started.builderReworkSourceMutation,
+        idempotent: true,
+      };
+    }
+    const run = started.builderReworkSourceMutation.mutationRun;
+    const requestPayload =
+      buildBuilderReworkSourceMutationExecutionRequest({
+        approval: source.approval,
+        baselineTargetDigests,
+        codeContext: baselineEntries.map((entry) => ({
+          path: entry.path,
+          content: entry.content,
+        })),
+        dispatch: source.builderReworkDispatch,
+        project: source.project,
+        requestDigest,
+        reworkPlan: source.reworkPlan,
+        task: source.task,
+      });
+    const writtenFilePostDigests = new Map();
+    let backupContents = new Map();
+    try {
+      const response = await localStubProviderAdapter.execute(requestPayload, {
+        providerConfig: {
+          adapter: PROVIDER_ADAPTER_ID.LOCAL_STUB,
+          mode: PROVIDER_MODE.LOCAL_STUB,
+        },
+      });
+      const result = response?.normalizedResult;
+      if (
+        !response ||
+        typeof response.outputText !== 'string' ||
+        !response.outputText.trim() ||
+        Buffer.byteLength(response.outputText, 'utf8') >
+          MAX_BUILDER_REWORK_PROVIDER_OUTPUT_BYTES ||
+        result?.needsDecision !== false ||
+        result?.nextStage !==
+          'separate-reviewer-reexecution-decision-required' ||
+        !Array.isArray(result?.blockers) ||
+        result.blockers.length !== 0
+      ) {
+        throw new Error('Builder rework source mutation output widened its authority');
+      }
+      const fileUpdates = parseBoundedBuilderReworkFileUpdates(
+        response.outputText,
+      );
+      const updatedFiles = fileUpdates.map((entry) => entry.path);
+      if (
+        new Set(updatedFiles).size !== updatedFiles.length ||
+        updatedFiles.some((relativePath) => !targetFiles.includes(relativePath))
+      ) {
+        throw new Error('Builder rework source mutation output exceeds the target allowlist');
+      }
+      const currentEntries = readBoundedBuilderReworkSourceTargets(
+        source.project.projectPath,
+        targetFiles,
+      );
+      const currentDigests = currentEntries.map((entry) => ({
+        path: entry.path,
+        digest: entry.digest,
+      }));
+      if (!sameExactDigestEntries(currentDigests, baselineTargetDigests)) {
+        throw new Error('Builder rework source mutation baseline drift detected');
+      }
+      backupContents = new Map(
+        updatedFiles.map((relativePath) => [
+          relativePath,
+          baselineContents.get(relativePath),
+        ]),
+      );
+      const plannedAfterContents = new Map(
+        fileUpdates.map((entry) => [entry.path, entry.content]),
+      );
+      const patchText = buildCombinedDiff(
+        updatedFiles,
+        backupContents,
+        plannedAfterContents,
+      );
+      if (!patchText.trim()) {
+        throw new Error('Builder rework source mutation produced no patch');
+      }
+      for (const fileUpdate of fileUpdates) {
+        const writeResult = writeExistingRegularProjectFile(
+          source.project.projectPath,
+          fileUpdate.path,
+          fileUpdate.content,
+          baselineTargetDigests.find(
+            (entry) => entry.path === fileUpdate.path,
+          ).digest,
+        );
+        writtenFilePostDigests.set(
+          fileUpdate.path,
+          writeResult.afterDigest,
+        );
+      }
+      const afterEntries = readBoundedBuilderReworkSourceTargets(
+        source.project.projectPath,
+        targetFiles,
+      );
+      const afterContents = new Map(
+        afterEntries.map((entry) => [entry.path, entry.content]),
+      );
+      const actualChangedFiles = targetFiles.filter(
+        (relativePath) =>
+          baselineContents.get(relativePath) !== afterContents.get(relativePath),
+      );
+      if (!sameStringSets(actualChangedFiles, updatedFiles)) {
+        throw new Error(
+          `Builder rework actual changed files differ from declared updates: expected=${updatedFiles.join(', ')} actual=${actualChangedFiles.join(', ')}`,
+        );
+      }
+      const diffText = buildCombinedDiff(
+        actualChangedFiles,
+        baselineContents,
+        afterContents,
+      );
+      const postMutationTargetDigests = afterEntries.map((entry) => ({
+        path: entry.path,
+        digest: entry.digest,
+      }));
+      const changeSummary = [
+        '# Builder Rework Source Mutation',
+        '',
+        `- approval id: ${source.approval.id}`,
+        `- dispatch id: ${source.builderReworkDispatch.id}`,
+        `- attempt id: ${source.workOrderAttempt.id}`,
+        `- changed files: ${actualChangedFiles.join(', ')}`,
+        `- request digest: ${requestDigest}`,
+        '- reviewer executed: no',
+        '- qa executed: no',
+        '- next gate: separate-reviewer-reexecution-decision-required',
+        '',
+      ].join('\n');
+      const projection = runtime.finalizeBuilderReworkSourceMutation({
+        artifacts: [
+          { content: changeSummary, type: 'change-summary' },
+          { content: patchText, extension: 'patch', type: 'patch' },
+          { content: diffText, extension: 'diff', type: 'diff' },
+        ],
+        changedFiles: actualChangedFiles,
+        postMutationTargetDigests,
+        providerEvidence: {
+          adapter: localStubProviderAdapter.name,
+          model: response.model,
+          providerRunId: response.providerRunId,
+        },
+        requestDigest,
+        reworkPlanId: source.reworkPlan.id,
+        runId: run.id,
+      });
+      return {
+        builderReworkSourceMutation: projection,
+        idempotent: false,
+      };
+    } catch (error) {
+      if (error.retainActiveEvidence === true) {
+        throw error;
+      }
+      if (writtenFilePostDigests.size > 0) {
+        try {
+          for (const [relativePath, postMutationDigest] of
+            writtenFilePostDigests) {
+            writeExistingRegularProjectFile(
+              source.project.projectPath,
+              relativePath,
+              backupContents.get(relativePath),
+              postMutationDigest,
+            );
+          }
+          const restoredEntries = readBoundedBuilderReworkSourceTargets(
+            source.project.projectPath,
+            targetFiles,
+          );
+          const restoredDigests = restoredEntries.map((entry) => ({
+            path: entry.path,
+            digest: entry.digest,
+          }));
+          if (!sameExactDigestEntries(restoredDigests, baselineTargetDigests)) {
+            throw new Error('restored source does not match the saved baseline');
+          }
+        } catch (restoreError) {
+          throw new Error(
+            `Builder rework source restoration failed; active evidence retained: ${restoreError.message}`,
+          );
+        }
+      }
+      runtime.failBuilderReworkSourceMutation({
+        error: error.message,
+        requestDigest,
+        reworkPlanId: source.reworkPlan.id,
+        runId: run.id,
+      });
+      throw error;
+    }
+  }
+
   async function runBuilderLiveMutation(input) {
     if (!input || !input.taskId) {
       throw new Error('taskId is required');
@@ -4823,6 +5239,7 @@ function createExecutionCoordinator(options = {}) {
     runBuilderLiveMutation,
     runBuilderPreflight,
     runBuilderReworkPreflight,
+    runBuilderReworkSourceMutation,
     runCloseOut,
     runCommitPackage,
     runLocalCommit,

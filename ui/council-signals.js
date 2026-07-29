@@ -436,6 +436,67 @@ export function getBuilderReworkMutationApprovalRequest(
   };
 }
 
+export function getBuilderReworkSourceMutationRequest(
+  approvalEnvelope,
+  { acknowledgement, rationale, reviewedAt },
+) {
+  const source = approvalEnvelope?.readiness?.requestSource;
+  const approval = approvalEnvelope?.approval;
+  const digestFields = [
+    'builderReworkDispatchDigest',
+    'workOrderAttemptRecordDigest',
+    'preflightRunRecordDigest',
+    'preflightArtifactRecordDigest',
+    'preflightArtifactContentDigest',
+    'sourceProgressDigest',
+  ];
+  if (
+    approval?.status !== 'approved' ||
+    approval.allowedNextAction !== 'builder-rework-live-mutation' ||
+    approval.scope !== 'builder-rework' ||
+    !/^[a-f0-9]{64}$/.test(approval.metadata?.bindingDigest || '') ||
+    !source ||
+    !source.builderReworkDispatchId ||
+    !source.workOrderAttemptId ||
+    !source.preflightRunId ||
+    !source.preflightArtifactId ||
+    digestFields.some(
+      (field) => !/^[a-f0-9]{64}$/.test(source[field] || ''),
+    ) ||
+    acknowledgement !==
+      'mutate-only-approved-rework-targets-and-stop-before-reviewer' ||
+    typeof rationale !== 'string' ||
+    !rationale.trim() ||
+    typeof reviewedAt !== 'string' ||
+    Number.isNaN(Date.parse(reviewedAt)) ||
+    new Date(reviewedAt).toISOString() !== reviewedAt
+  ) {
+    return null;
+  }
+  return {
+    builderReworkDispatchId: source.builderReworkDispatchId,
+    builderReworkDispatchDigest: source.builderReworkDispatchDigest,
+    workOrderAttemptId: source.workOrderAttemptId,
+    workOrderAttemptRecordDigest: source.workOrderAttemptRecordDigest,
+    preflightRunId: source.preflightRunId,
+    preflightRunRecordDigest: source.preflightRunRecordDigest,
+    preflightArtifactId: source.preflightArtifactId,
+    preflightArtifactRecordDigest: source.preflightArtifactRecordDigest,
+    preflightArtifactContentDigest:
+      source.preflightArtifactContentDigest,
+    mutationApprovalId: approval.id,
+    mutationApprovalBindingDigest: approval.metadata.bindingDigest,
+    sourceProgressDigest: source.sourceProgressDigest,
+    evaluatedAt: reviewedAt,
+    mutationRequest: {
+      decision: 'run-builder-rework-live-mutation',
+      acknowledgement,
+      rationale: rationale.trim(),
+      reviewedAt,
+    },
+  };
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

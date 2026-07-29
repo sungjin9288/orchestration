@@ -5,8 +5,8 @@
 This document defines the narrow Stage 5F boundary after one exact
 source-current `DEC-200` Builder rework mutation Approval is terminal
 `approved`. It records planning-only `DEC-201`; `DEC-202` records the complete
-fielded implementation handoff, and only a later exact `DEC-203` may authorize
-implementation.
+fielded implementation handoff, and exact `DEC-203` consumes that handoff for
+the implemented bounded path.
 
 This planning slice changes no runtime, API, UI, schema, state, file, provider,
 worker, Run, Artifact, WorkOrderAttempt, Approval, Decision Inbox item,
@@ -161,13 +161,17 @@ markdown. The result must contain one through the bounded target count of
 unique updates, only for allowlisted targets, with non-empty base64 content and
 per-file and aggregate byte caps.
 
-Immediately before each write, the coordinator rechecks project containment,
-regular-file status, symlink refusal, and the saved baseline digest. It stages
-backups, writes only the validated update set, verifies the actual changed set
-equals the declared update set, and restores every touched target on any
-failure. Shell execution, package installation, target creation, deletion,
-rename, chmod, symlink traversal, environment expansion, and verification
-command execution are prohibited in this slice.
+Immediately before each write, the implemented coordinator opens the resolved
+project-contained path, requires one regular inode with one hard link, rejects
+credential-sensitive paths and content, and recomputes the saved baseline digest
+from the writable file descriptor before truncation. It decodes only pre-bounded
+base64, writes the validated update set, records each successful post-write
+digest, and verifies the actual changed set equals the declared update set.
+Rollback restores only mutation-owned files whose post-write digest is still
+current; external drift keeps active evidence instead of being overwritten.
+Shell execution, package installation, target creation, deletion, rename,
+chmod, symlink traversal, environment expansion, and verification command
+execution are prohibited in this slice.
 
 ### Success settlement
 
@@ -183,15 +187,19 @@ One atomic state save after source success must:
 - leave Reviewer `changes-requested` and QA `blocked-dependency`;
 - return `nextGate=separate-reviewer-reexecution-decision-required`.
 
-GET returns one exact source-bound projection for this ReworkPlan and does not
+GET returns one exact source-bound projection for this ReworkPlan, verifies a
+completed result against its durable post-mutation target digests, and does not
 list mutation history or expose source content.
 
 ### Failure, interruption, and replay
 
 If validation, provider output, writing, or settlement fails after start, the
-coordinator restores every touched source file, finalizes the mutation Run with
-bounded redacted failure evidence, and marks WorkOrderAttempt #3 `failed`.
-There is no automatic retry, replacement attempt, or recovery.
+coordinator restores each mutation-owned file only while its recorded
+post-write digest is unchanged, finalizes the mutation Run with bounded
+redacted failure evidence, and marks WorkOrderAttempt #3 `failed`. If safe
+restoration cannot be proven, the attempt and Run stay active for a later
+explicit recovery decision. There is no automatic retry, replacement attempt,
+or recovery.
 
 If the process stops after the start save and before settlement, the durable
 attempt stays `active` and the mutation Run stays running. A later recovery,
@@ -261,11 +269,10 @@ stale clearing, no downstream controls, and desktop/mobile fit.
 
 - Planning approval: accepted as `DEC-201`.
 - Complete fielded implementation handoff: recorded as `DEC-202`.
-- Exact implementation authority: required as `DEC-203`.
-- Runtime/API/UI/schema/source mutation: not authorized by this planning slice.
+- Exact implementation authority: accepted as `DEC-203`.
+- Runtime/API/UI/source mutation: implemented only within the fixed Stage 5F boundary; schema remains v24.
 
-Builder source mutation implementation, Reviewer or QA re-execution, another
-attempt or WorkOrder, second rework, retry, recovery, resume, checkpoint or
-graph transition, provider-backed execution, result or memory application,
-runtime-agent Git/release, policy mutation, approval bypass, and connectors
-remain separately blocked.
+Reviewer or QA re-execution, another attempt or WorkOrder, second rework,
+retry, recovery, resume, checkpoint or graph transition, provider-backed
+execution, result or memory application, runtime-agent Git/release, policy
+mutation, approval bypass, and connectors remain separately blocked.

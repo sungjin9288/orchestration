@@ -127,6 +127,7 @@ const {
   WORK_ORDER_ATTEMPT_ACTION,
   WORK_ORDER_ATTEMPT_STATUS,
   assertWorkOrderAttemptRecord,
+  computeWorkOrderAttemptRecordDigest,
 } = require('./work-order-attempts');
 const {
   SPECIALIST_BATCH_STATUS,
@@ -2277,8 +2278,8 @@ function validateBuilderReworkDispatchRecords(state) {
       attempt.attemptNumber !== 3 || attempt.sourceDigest !== plan.sourceDigest ||
       attempt.workOrderDigest !== dispatch.builderWorkOrderDigest ||
       attempt.decisionInboxItemRefs.length !== 0 ||
-      attempt.approvalRefs.length !== 0 || attempt.checkpointRef !== null ||
-      !['active', 'waiting-gate', 'failed'].includes(attempt.status) ||
+      attempt.checkpointRef !== null ||
+      !['active', 'waiting-gate', 'completed', 'failed'].includes(attempt.status) ||
       plan.status !== EXECUTION_PLAN_STATUS.BLOCKED ||
       plan.stopReason !== 'reviewer-changes-requested' || plan.stoppedAt !== 'reviewer' ||
       plan.activeWorkOrderId !== null || builder.status !== WORK_ORDER_STATUS.COMPLETED ||
@@ -2296,21 +2297,53 @@ function validateBuilderReworkDispatchRecords(state) {
       throw new Error(`${label} has invalid authority summary`);
     }
 
+    const isInitialActive =
+      attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
+      attempt.runRefs.length === 0 &&
+      attempt.artifactRefs.length === 0 &&
+      attempt.approvalRefs.length === 0;
+    const isPreflightWaiting =
+      attempt.status === WORK_ORDER_ATTEMPT_STATUS.WAITING_GATE &&
+      attempt.runRefs.length === 1 &&
+      attempt.artifactRefs.length === 1 &&
+      attempt.approvalRefs.length === 0;
+    const isPreflightFailed =
+      attempt.status === WORK_ORDER_ATTEMPT_STATUS.FAILED &&
+      attempt.runRefs.length <= 1 &&
+      attempt.artifactRefs.length <= 1 &&
+      attempt.approvalRefs.length === 0;
+    const isMutationActive =
+      attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
+      attempt.runRefs.length === 2 &&
+      attempt.artifactRefs.length === 1 &&
+      attempt.approvalRefs.length === 1;
+    const isMutationCompleted =
+      attempt.status === WORK_ORDER_ATTEMPT_STATUS.COMPLETED &&
+      attempt.runRefs.length === 2 &&
+      attempt.artifactRefs.length === 4 &&
+      attempt.approvalRefs.length === 1;
+    const isMutationFailed =
+      attempt.status === WORK_ORDER_ATTEMPT_STATUS.FAILED &&
+      attempt.runRefs.length === 2 &&
+      attempt.artifactRefs.length === 1 &&
+      attempt.approvalRefs.length === 1;
     if (
-      attempt.runRefs.length > 1 ||
-      attempt.artifactRefs.length > 1 ||
-      (attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
-        (attempt.runRefs.length !== 0 || attempt.artifactRefs.length !== 0)) ||
-      (attempt.status === WORK_ORDER_ATTEMPT_STATUS.WAITING_GATE &&
-        (attempt.runRefs.length !== 1 || attempt.artifactRefs.length !== 1)) ||
-      (attempt.artifactRefs.length === 1 && attempt.runRefs.length !== 1)
+      ![
+        isInitialActive,
+        isPreflightWaiting,
+        isPreflightFailed,
+        isMutationActive,
+        isMutationCompleted,
+        isMutationFailed,
+      ].some(Boolean) ||
+      (attempt.artifactRefs.length === 1 && attempt.runRefs.length === 0)
     ) {
       throw new Error(`${label} has invalid bounded execution references`);
     }
-    const run = attempt.runRefs.length === 1
+    const run = attempt.runRefs.length >= 1
       ? state.runs[attempt.runRefs[0]]
       : null;
-    const artifact = attempt.artifactRefs.length === 1
+    const artifact = attempt.artifactRefs.length >= 1
       ? state.artifacts[attempt.artifactRefs[0]]
       : null;
     if (
@@ -2338,6 +2371,198 @@ function validateBuilderReworkDispatchRecords(state) {
       )
     ) {
       throw new Error(`${label} has invalid bounded Artifact evidence`);
+    }
+    if (isMutationActive || isMutationCompleted || isMutationFailed) {
+      const approval = state.approvals[attempt.approvalRefs[0]];
+      const mutationRun = state.runs[attempt.runRefs[1]];
+      const mutationArtifacts = attempt.artifactRefs
+        .slice(1)
+        .map((artifactId) => state.artifacts[artifactId]);
+      if (mutationRun) {
+        assertExactObjectKeys(
+          mutationRun.metadata,
+          [
+            'approvalBindingDigest',
+            'approvalId',
+            'builderReworkDispatchId',
+            'executionMode',
+            'mutationAllowed',
+            'preflightArtifactId',
+            'preflightCompletedAt',
+            'preflightRunId',
+            'requestDigest',
+            'targetFileBaselineDigests',
+            'targetFiles',
+            'workOrderAttemptId',
+          ],
+          `${label} rework mutation Run metadata`,
+        );
+      }
+      const expectedMutationRunStatus = isMutationActive
+        ? RUN_STATUS.RUNNING
+        : RUN_STATUS.COMPLETED;
+      if (
+        !approval ||
+        approval.status !== APPROVAL_STATUS.APPROVED ||
+        approval.allowedNextAction !== BUILDER_REWORK_MUTATION_ACTION ||
+        approval.metadata?.builderReworkDispatchId !== dispatch.id ||
+        approval.metadata?.workOrderAttemptId !== attempt.id ||
+        !mutationRun ||
+        mutationRun.taskId !== plan.controlTaskId ||
+        mutationRun.role !== 'builder' ||
+        mutationRun.status !== expectedMutationRunStatus ||
+        mutationRun.metadata?.executionMode !== 'rework-live-mutation' ||
+        mutationRun.metadata?.mutationAllowed !== true ||
+        mutationRun.metadata?.builderReworkDispatchId !== dispatch.id ||
+        mutationRun.metadata?.workOrderAttemptId !== attempt.id ||
+        mutationRun.metadata?.approvalId !== approval.id ||
+        mutationRun.metadata?.approvalBindingDigest !==
+          approval.metadata?.bindingDigest ||
+        mutationRun.metadata?.preflightRunId !== attempt.runRefs[0] ||
+        mutationRun.metadata?.preflightArtifactId !== attempt.artifactRefs[0] ||
+        typeof mutationRun.metadata?.preflightCompletedAt !== 'string' ||
+        Number.isNaN(Date.parse(mutationRun.metadata.preflightCompletedAt)) ||
+        new Date(mutationRun.metadata.preflightCompletedAt).toISOString() !==
+          mutationRun.metadata.preflightCompletedAt ||
+        !Array.isArray(mutationRun.metadata?.targetFileBaselineDigests) ||
+        !Array.isArray(mutationRun.metadata?.targetFiles) ||
+        mutationRun.metadata.targetFiles.length !==
+          reworkPlan.targetPathAllowlist.length ||
+        mutationRun.metadata.targetFiles.some(
+          (relativePath, index) =>
+            relativePath !== reworkPlan.targetPathAllowlist[index],
+        ) ||
+        mutationRun.metadata.targetFileBaselineDigests.length !==
+          reworkPlan.targetPathAllowlist.length ||
+        mutationRun.metadata.targetFileBaselineDigests.some(
+          (entry, index) =>
+            !entry ||
+            Object.keys(entry).sort().join('\u0000') !== 'digest\u0000path' ||
+            entry.path !== reworkPlan.targetPathAllowlist[index] ||
+            !/^[a-f0-9]{64}$/.test(entry.digest || ''),
+        ) ||
+        !/^[a-f0-9]{64}$/.test(
+          mutationRun.metadata?.requestDigest || '',
+        ) ||
+        (isMutationActive && mutationRun.summary !== null) ||
+        (!isMutationActive &&
+          mutationRun.summary?.executionMode !== 'rework-live-mutation') ||
+        (isMutationCompleted &&
+          (attempt.stopReason !== null ||
+            attempt.completedAt !== mutationRun.finishedAt)) ||
+        (isMutationFailed &&
+          (attempt.stopReason !== 'builder-rework-source-mutation-failed' ||
+            attempt.completedAt !== mutationRun.finishedAt))
+      ) {
+        throw new Error(`${label} has invalid rework mutation Run lineage`);
+      }
+      if (
+        isMutationCompleted &&
+        (
+          mutationArtifacts.some(
+            (entry) =>
+              !entry ||
+              entry.taskId !== plan.controlTaskId ||
+              entry.runId !== mutationRun.id,
+          ) ||
+          mutationArtifacts.map((entry) => entry.type).join('\u0000') !==
+            ['change-summary', 'patch', 'diff'].join('\u0000')
+        )
+      ) {
+        throw new Error(`${label} has invalid rework mutation Artifact bundle`);
+      }
+      if (!isMutationCompleted && mutationArtifacts.length !== 0) {
+        throw new Error(`${label} has premature rework mutation Artifacts`);
+      }
+      if (isMutationCompleted) {
+        const summary = mutationRun.summary;
+        assertExactObjectKeys(
+          summary,
+          [
+            'approvalId',
+            'artifactIds',
+            'changedFiles',
+            'executionMode',
+            'mutationAllowed',
+            'nextGate',
+            'providerEvidence',
+            'requestDigest',
+            'targetFilePostMutationDigests',
+          ],
+          `${label} completed rework mutation Run summary`,
+        );
+        const postDigests = summary.targetFilePostMutationDigests;
+        const expectedChangedFiles = Array.isArray(postDigests)
+          ? postDigests
+              .filter(
+                (entry, index) =>
+                  entry?.digest !==
+                  mutationRun.metadata.targetFileBaselineDigests[index]?.digest,
+              )
+              .map((entry) => entry.path)
+          : [];
+        if (
+          summary.approvalId !== approval.id ||
+          summary.executionMode !== 'rework-live-mutation' ||
+          summary.mutationAllowed !== true ||
+          summary.nextGate !==
+            'separate-reviewer-reexecution-decision-required' ||
+          summary.requestDigest !== mutationRun.metadata.requestDigest ||
+          !Array.isArray(summary.artifactIds) ||
+          !sameStringArrays(
+            summary.artifactIds,
+            mutationArtifacts.map((entry) => entry.id),
+          ) ||
+          !Array.isArray(summary.changedFiles) ||
+          summary.changedFiles.length === 0 ||
+          new Set(summary.changedFiles).size !== summary.changedFiles.length ||
+          !sameStringArrays(summary.changedFiles, expectedChangedFiles) ||
+          !Array.isArray(postDigests) ||
+          postDigests.length !== reworkPlan.targetPathAllowlist.length ||
+          postDigests.some(
+            (entry, index) =>
+              !entry ||
+              Object.keys(entry).sort().join('\u0000') !==
+                'digest\u0000path' ||
+              entry.path !== reworkPlan.targetPathAllowlist[index] ||
+              !/^[a-f0-9]{64}$/.test(entry.digest || ''),
+          ) ||
+          !summary.providerEvidence ||
+          typeof summary.providerEvidence !== 'object' ||
+          Array.isArray(summary.providerEvidence) ||
+          Object.keys(summary.providerEvidence).sort().join('\u0000') !==
+            'adapter\u0000model\u0000providerRunId' ||
+          summary.providerEvidence.adapter !== 'local-stub' ||
+          ['model', 'providerRunId'].some(
+            (field) =>
+              typeof summary.providerEvidence[field] !== 'string' ||
+              !summary.providerEvidence[field] ||
+              summary.providerEvidence[field].length > 256,
+          )
+        ) {
+          throw new Error(
+            `${label} has invalid completed rework mutation evidence`,
+          );
+        }
+      }
+      if (isMutationFailed) {
+        const summary = mutationRun.summary;
+        assertExactObjectKeys(
+          summary,
+          ['error', 'executionMode', 'mutationAllowed', 'requestDigest'],
+          `${label} failed rework mutation Run summary`,
+        );
+        if (
+          typeof summary.error !== 'string' ||
+          !summary.error ||
+          summary.error.length > 240 ||
+          summary.executionMode !== 'rework-live-mutation' ||
+          summary.mutationAllowed !== true ||
+          summary.requestDigest !== mutationRun.metadata.requestDigest
+        ) {
+          throw new Error(`${label} has invalid failed rework mutation evidence`);
+        }
+      }
     }
   }
   if (state.sequences.builderReworkDispatch !== highestSequence) {
@@ -2473,15 +2698,10 @@ function validateBuilderReworkMutationApprovalRecords(state, artifactsDir) {
       dispatch.executionPlanId !== metadata.executionPlanId ||
       dispatch.recordDigest !== metadata.builderReworkDispatchDigest ||
       dispatch.workOrderAttemptId !== attempt.id ||
-      attempt.recordDigest !== metadata.workOrderAttemptRecordDigest ||
-      attempt.status !== 'waiting-gate' ||
-      attempt.stopReason !==
-        'builder-rework-preflight-complete-mutation-approval-blocked' ||
-      attempt.runRefs.length !== 1 ||
+      attempt.runRefs.length < 1 ||
       attempt.runRefs[0] !== run.id ||
-      attempt.artifactRefs.length !== 1 ||
+      attempt.artifactRefs.length < 1 ||
       attempt.artifactRefs[0] !== artifact.id ||
-      attempt.approvalRefs.length !== 0 ||
       attempt.decisionInboxItemRefs.length !== 0 ||
       computePreflightRunRecordDigest(run) !==
         metadata.preflightRunRecordDigest ||
@@ -2499,6 +2719,44 @@ function validateBuilderReworkMutationApprovalRecords(state, artifactsDir) {
       reworkPlan.sourceProgressDigest !== metadata.sourceProgressDigest
     ) {
       throw new Error(`${label} has stale or invalid source bindings`);
+    }
+    const mutationRun =
+      attempt.runRefs.length === 2 ? state.runs[attempt.runRefs[1]] : null;
+    const waitingAttemptDigest =
+      attempt.status === WORK_ORDER_ATTEMPT_STATUS.WAITING_GATE
+        ? attempt.recordDigest
+        : mutationRun?.metadata?.preflightCompletedAt
+          ? computeWorkOrderAttemptRecordDigest({
+              ...attempt,
+              approvalRefs: [],
+              artifactRefs: [artifact.id],
+              completedAt: mutationRun.metadata.preflightCompletedAt,
+              recordDigest: metadata.workOrderAttemptRecordDigest,
+              runRefs: [run.id],
+              status: WORK_ORDER_ATTEMPT_STATUS.WAITING_GATE,
+              stopReason:
+                'builder-rework-preflight-complete-mutation-approval-blocked',
+            })
+          : null;
+    if (
+      waitingAttemptDigest !== metadata.workOrderAttemptRecordDigest ||
+      (
+        attempt.status === WORK_ORDER_ATTEMPT_STATUS.WAITING_GATE
+          ? (
+              attempt.stopReason !==
+                'builder-rework-preflight-complete-mutation-approval-blocked' ||
+              attempt.runRefs.length !== 1 ||
+              attempt.artifactRefs.length !== 1 ||
+              attempt.approvalRefs.length !== 0
+            )
+          : (
+              !mutationRun ||
+              attempt.approvalRefs.length !== 1 ||
+              attempt.approvalRefs[0] !== approval.id
+            )
+      )
+    ) {
+      throw new Error(`${label} has invalid immutable WorkOrderAttempt binding`);
     }
     const expectedReviewDecisionInboxItemRefs = [
       ...(reworkPlan.evidenceRefs?.decisionInboxItemRefs || []),

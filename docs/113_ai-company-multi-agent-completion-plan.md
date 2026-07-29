@@ -207,7 +207,8 @@ Planning-only `DEC-201` fixes Stage 5F as one dedicated local-stub Builder rewor
 from the exact DEC-200 approved evidence. Handoff-only `DEC-202` requires immutable Approval
 evidence, reuse of WorkOrderAttempt #3, active-before-worker persistence, source-derived targets,
 baseline and containment guards, full rollback, exact replay, and a stop after mutation Artifacts
-before Reviewer/QA. Exact `DEC-203` remains required; no source mutation implementation is open.
+before Reviewer/QA. `DEC-203` implements only that bounded source mutation; Reviewer/QA and all
+later authorities remain closed.
 
 ### Stage 6: Ops Supervision And Recovery
 

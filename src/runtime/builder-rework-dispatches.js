@@ -304,8 +304,13 @@ function isExactBuilderReworkDispatchReplay(record, request) {
 }
 
 function deriveBuilderReworkWorkerState(attempt) {
-  if (attempt.status === 'active') return 'running';
+  if (attempt.status === 'active') {
+    return attempt.runRefs?.length === 2
+      ? 'source-mutation-running'
+      : 'running';
+  }
   if (attempt.status === 'waiting-gate') return 'preflight-ready-for-separate-mutation-approval';
+  if (attempt.status === 'completed') return 'source-mutation-completed-reviewer-blocked';
   if (attempt.status === 'failed') return 'failed-terminal-no-retry';
   throw errorWithStatus('BuilderReworkDispatch attempt has invalid status', 409);
 }

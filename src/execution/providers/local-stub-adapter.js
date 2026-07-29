@@ -1011,6 +1011,68 @@ function renderBuilderReworkPreflightOutput(request) {
   return `# Builder Rework Preflight\n\n## Findings\n${renderList(findings, 'none')}\n\n## Target Paths\n${renderList(result.rework.targetPathAllowlist, 'none')}\n\n## Verification Commands\n${renderList(result.rework.verificationCommands, 'none')}\n\n## Boundary\n- source mutation: blocked\n- reviewer execution: blocked\n- qa execution: blocked\n- next stage: separate mutation approval\n`;
 }
 
+function buildBuilderReworkSourceMutationFileUpdates(request) {
+  const targetPaths = request?.rework?.targetPathAllowlist;
+  const codeContext = request?.codeContext;
+  if (
+    request?.executionMode !== 'rework-live-mutation' ||
+    request?.mutationAllowed !== true ||
+    request?.approval?.status !== 'approved' ||
+    !Array.isArray(targetPaths) ||
+    targetPaths.length === 0 ||
+    !Array.isArray(codeContext) ||
+    codeContext.length !== targetPaths.length
+  ) {
+    throw new Error('Builder rework source mutation requires exact approved source context');
+  }
+  const contextByPath = new Map(
+    codeContext.map((entry) => [entry.path, entry.content]),
+  );
+  if (
+    contextByPath.size !== codeContext.length ||
+    targetPaths.some(
+      (relativePath) =>
+        typeof contextByPath.get(relativePath) !== 'string',
+    )
+  ) {
+    throw new Error('Builder rework source mutation code context is invalid');
+  }
+  const relativePath = targetPaths[0];
+  const currentContent = contextByPath.get(relativePath);
+  const marker =
+    `builder-rework-live-mutation ${request.approval.id} ${relativePath}`;
+  const extension = path.extname(relativePath).toLowerCase();
+  const suffix =
+    extension === '.md'
+      ? `\n<!-- ${marker} -->\n`
+      : ['.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx'].includes(extension)
+        ? `\n// ${marker}\n`
+        : `\n# ${marker}\n`;
+  return [
+    {
+      path: relativePath,
+      content: `${currentContent.replace(/\s*$/, '\n').replace(/\n$/, '')}${suffix}`,
+    },
+  ];
+}
+
+function buildNormalizedBuilderReworkSourceMutationResult(request) {
+  const fileUpdates = buildBuilderReworkSourceMutationFileUpdates(request);
+  return {
+    blockers: [],
+    needsDecision: false,
+    nextStage: 'separate-reviewer-reexecution-decision-required',
+    summary: 'Builder rework source mutation prepared one bounded allowlisted update.',
+    changedFiles: fileUpdates.map((entry) => entry.path),
+  };
+}
+
+function renderBuilderReworkSourceMutationOutput(request) {
+  const result = buildNormalizedBuilderReworkSourceMutationResult(request);
+  const fileUpdates = buildBuilderReworkSourceMutationFileUpdates(request);
+  return `# Builder Rework Source Mutation\n\n## Change Summary\n- approval id: ${request.approval.id}\n- dispatch id: ${request.anchor.builderReworkDispatchId}\n- attempt id: ${request.anchor.workOrderAttemptId}\n- prepared file updates: ${fileUpdates.length}\n- reviewer executed: no\n- qa executed: no\n\n## File Updates\n${renderBase64FileUpdates(fileUpdates)}\n\n## Boundary\n- next gate: ${result.nextStage}\n- retry: blocked\n- commit or release: blocked\n`;
+}
+
 function renderBuilderPreflightOutput(request) {
   const normalizedResult = buildNormalizedBuilderPreflightResult(request);
   const sliceGoal = getMarkdownSection(request.planArtifact?.content, 'Slice Goal');
@@ -1525,6 +1587,17 @@ function createLocalStubProviderAdapter() {
       }
 
       if (request.role === 'builder') {
+        if (request.executionMode === 'rework-live-mutation') {
+          return {
+            providerRunId: `local-stub-builder-rework-live-mutation-${request.task.id}`,
+            model: 'local-stub-builder-rework-live-mutation-v1',
+            normalizedResult:
+              buildNormalizedBuilderReworkSourceMutationResult(request),
+            outputText: renderBuilderReworkSourceMutationOutput(request),
+            usage: { inputTokens: 0, outputTokens: 0 },
+          };
+        }
+
         if (request.executionMode === 'live-mutation') {
           return {
             providerRunId: `local-stub-builder-live-mutation-${request.task.id}`,

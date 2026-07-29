@@ -36,6 +36,7 @@ const verification = read('scripts/verification_status.mjs');
 const contracts = read('src/runtime/contracts.js');
 const attempts = read('src/runtime/work-order-attempts.js');
 const approvalRuntime = read('src/runtime/builder-rework-mutation-approvals.js');
+const sourceMutationRuntime = read('src/runtime/builder-rework-source-mutations.js');
 const coordinator = read('src/execution/execution-coordinator.js');
 const requestBuilders = read('src/execution/coordinator/execution-requests.js');
 const localStub = read('src/execution/providers/local-stub-adapter.js');
@@ -58,7 +59,7 @@ for (const field of fields) {
 for (const pattern of [
   /planning-only `DEC-201`/,
   /`DEC-202` records/,
-  /exact `DEC-203` may authorize\s+implementation/,
+  /exact `DEC-203` consumes that handoff/,
   /changes no runtime, API, UI, schema, state, file, provider/,
   /reuse the existing Builder `WorkOrderAttempt` #3/,
   /must not append WorkOrderAttempt #4/,
@@ -77,7 +78,8 @@ for (const pattern of [
   /built from the immutable source records, not parsed from Artifact\s+markdown/,
   /change-summary`, `patch`, and `diff` Artifacts/,
   /separate-reviewer-reexecution-decision-required/,
-  /restores every touched source file/,
+  /Rollback restores only mutation-owned files whose post-write digest is still/,
+  /external drift keeps active evidence instead of being overwritten/,
   /no automatic retry/,
   /process stops after the start save/,
   /exact active,\s+failed, or completed lifecycle evidence for an identical replay/,
@@ -85,7 +87,7 @@ for (const pattern of [
   /schemaVersion 24/,
   /Do not silently undo a completed source change/,
   /scripts\/smoke-ui-slice-708\.mjs/,
-  /Exact implementation authority: required as `DEC-203`/,
+  /Exact implementation authority: accepted as `DEC-203`/,
 ]) {
   assert.match(plan, pattern);
 }
@@ -103,7 +105,7 @@ assert.match(handoff, /executionMode=rework-live-mutation/);
 assert.match(handoff, /before Reviewer or QA re-execution/);
 assert.match(decisionLog, /^### DEC-201$/m);
 assert.match(decisionLog, /^### DEC-202$/m);
-assert.doesNotMatch(decisionLog, /^### DEC-203$/m);
+assert.match(decisionLog, /^### DEC-203$/m);
 
 for (const text of [
   masterPlan, runtimeContract, councilProtocol, deliveryRoadmap, completionPlan,
@@ -114,15 +116,16 @@ for (const text of [
 }
 
 assert.match(inventory, /AI Company Builder rework source mutation planning/);
-assert.match(inventory, /informational `294\/294`, total `295\/295`/);
+assert.match(inventory, /AI Company Builder rework source mutation implementation/);
+assert.match(inventory, /informational `295\/295`, total `296\/296`/);
 assert.match(readme, /docs\/137_ai-company-builder-rework-source-mutation-plan\.md/);
 assert.match(
   readme,
   /docs\/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /985 smoke files/);
-assert.match(readme, /707 UI smoke files/);
-assert.match(todo, /ai-company-builder-rework-source-mutation-planning-post-m7-2034/);
+assert.match(readme, /987 smoke files/);
+assert.match(readme, /708 UI smoke files/);
+assert.match(todo, /ai-company-builder-rework-source-mutation-implementation-post-m7-2035/);
 assert.match(
   lessons,
   /Mutation authorization evidence and mutation execution evidence need separate owners/,
@@ -135,28 +138,33 @@ assert.match(attempts, /START_BUILDER_REWORK_PREFLIGHT: 'start-builder-rework-pr
 assert.match(approvalRuntime, /const ACTION = 'builder-rework-live-mutation'/);
 assert.match(coordinator, /async function runBuilderLiveMutation\(input\)/);
 assert.match(coordinator, /async function runBuilderReworkPreflight\(input\)/);
-assert.doesNotMatch(coordinator, /async function runBuilderReworkSourceMutation\(input\)/);
+assert.match(coordinator, /async function runBuilderReworkSourceMutation\(input\)/);
 assert.match(requestBuilders, /executionMode: 'rework-preflight'/);
-assert.doesNotMatch(requestBuilders, /executionMode: 'rework-live-mutation'/);
+assert.match(requestBuilders, /executionMode: 'rework-live-mutation'/);
 assert.match(localStub, /request\.executionMode === 'rework-preflight'/);
-assert.doesNotMatch(localStub, /request\.executionMode === 'rework-live-mutation'/);
-assert.doesNotMatch(
-  server,
-  /\/api\/rework-plans\/\(\[\^\/\]\+\)\/builder-rework-source-mutation/,
+assert.match(localStub, /request\.executionMode === 'rework-live-mutation'/);
+assert.match(sourceMutationRuntime, /run-builder-rework-live-mutation/);
+assert.match(sourceMutationRuntime, /mutate-only-approved-rework-targets-and-stop-before-reviewer/);
+assert.equal(
+  server.includes(
+    '/^\\/api\\/rework-plans\\/([^/]+)\\/builder-rework-source-mutation$/',
+  ),
+  true,
 );
-assert.doesNotMatch(app, /run-builder-rework-source-mutation/);
+assert.match(app, /run-builder-rework-source-mutation/);
 
-assert.equal(countFiles(/^smoke-.*\.mjs$/), 985);
-assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 707);
+assert.equal(countFiles(/^smoke-.*\.mjs$/), 987);
+assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 708);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode,
   planningDecision: 'accepted-dec-201',
   handoffDecision: 'accepted-dec-202',
-  implementationDecision: 'required-dec-203',
+  implementationDecision: 'accepted-dec-203',
   schemaVersion: 24,
-  sourceMutationAllowed: false,
-  smokeFileCount: 985,
-  uiSmokeFileCount: 707,
+  sourceMutationAllowed: true,
+  reviewerQaExecutionAllowed: false,
+  smokeFileCount: 987,
+  uiSmokeFileCount: 708,
 }, null, 2)}\n`);

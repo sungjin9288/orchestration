@@ -4,8 +4,8 @@
 
 This is the complete fielded decision shape for the Stage 5F plan in
 `docs/137_ai-company-builder-rework-source-mutation-plan.md`. `DEC-201` accepts
-planning, `DEC-202` records this handoff, and only a complete matching operator
-decision may be recorded as `DEC-203`.
+planning, `DEC-202` records this handoff, and the complete matching operator
+decision is consumed as `DEC-203`.
 
 This handoff authorizes no implementation or source mutation. Broad approval,
 continuation, delegated self-approval, the DEC-200 approved evidence, and this
@@ -70,6 +70,6 @@ evidence inert.
 
 ## Acceptance Rule
 
-Only one complete matching decision can consume this handoff as `DEC-203`.
+The complete matching decision consumed this handoff as `DEC-203`.
 The approved implementation must stop after exact source mutation evidence and
 before Reviewer or QA re-execution.

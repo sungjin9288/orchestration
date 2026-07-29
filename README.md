@@ -138,6 +138,8 @@ Planning source files:
 - `docs/134_ai-company-builder-rework-preflight-implementation-decision-handoff.md`
 - `docs/135_ai-company-builder-rework-mutation-approval-plan.md`
 - `docs/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff.md`
+- `docs/137_ai-company-builder-rework-source-mutation-plan.md`
+- `docs/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -273,11 +275,13 @@ run Builder mutation; source mutation and all downstream execution remain blocke
 Planning-only `DEC-201` defines the Stage 5F Builder rework source mutation contract in
 `docs/137_ai-company-builder-rework-source-mutation-plan.md`, and `DEC-202` records its complete
 fielded implementation handoff in
-`docs/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff.md`. The
-contract requires one dedicated local-stub path, immutable DEC-200 Approval evidence, reuse of
-WorkOrderAttempt #3, active-before-worker persistence, source-derived targets, baseline and
-containment guards, complete rollback, exact replay, and a stop before Reviewer/QA. No runtime,
-API, UI, worker, or source mutation implementation exists until an exact `DEC-203`.
+`docs/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff.md`.
+`DEC-203` implements one dedicated local-stub path with immutable DEC-200 Approval evidence, reuse of
+WorkOrderAttempt #3, active-before-worker persistence, source-derived targets, realpath-open and
+single-link file identity, FD-level baseline verification, credential-sensitive source refusal,
+bounded decode, post-mutation digests, non-clobbering rollback, source-current exact replay, and a
+stop before Reviewer/QA. Reviewer/QA re-execution and every later authority remain separately
+blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -2376,6 +2380,17 @@ Observed result:
 | `POST` | `/api/council-sessions/:sessionId/work-order-preview` | Recompute one response-only source-current WorkOrder preview. |
 | `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview plan bundle and pending approval in current schema state. |
 | `GET` | `/api/execution-plans/:executionPlanId` | Inspect one durable plan, WorkOrders, handoffs, attempts, approval, and control task. |
+| `POST` | `/api/execution-plans/:executionPlanId/rework-plans` | Persist one exact source-current Reviewer rework preview as an immutable review-required ReworkPlan. |
+| `GET` | `/api/execution-plans/:executionPlanId/rework-plan` | Inspect the exact current-chain ReworkPlan, if present. |
+| `GET` | `/api/rework-plans/:reworkPlanId` | Inspect one exact durable ReworkPlan. |
+| `POST` | `/api/rework-plans/:reworkPlanId/accept` | Append one exact ReworkPlanAcceptance without opening execution. |
+| `GET` | `/api/rework-plans/:reworkPlanId/acceptance` | Inspect one exact ReworkPlanAcceptance. |
+| `POST` | `/api/rework-plans/:reworkPlanId/builder-rework-preflight` | Run one bounded local no-write Builder rework preflight through WorkOrderAttempt #3. |
+| `GET` | `/api/rework-plans/:reworkPlanId/builder-rework-dispatch` | Inspect the exact BuilderReworkDispatch and attempt evidence. |
+| `GET` | `/api/rework-plans/:reworkPlanId/builder-rework-mutation-approval` | Inspect the source-bound Builder rework mutation Approval gate. |
+| `POST` | `/api/rework-plans/:reworkPlanId/builder-rework-mutation-approval` | Create one source-bound Builder rework mutation Approval and Decision Inbox item. |
+| `GET` | `/api/rework-plans/:reworkPlanId/builder-rework-source-mutation` | Inspect exact ready, running, completed, or failed Builder rework source mutation evidence. |
+| `POST` | `/api/rework-plans/:reworkPlanId/builder-rework-source-mutation` | Run one approved bounded local-stub source mutation and stop before Reviewer/QA. |
 | `GET` | `/api/work-order-attempts/:workOrderAttemptId` | Inspect one exact durable operator-stepped WorkOrderAttempt. |
 | `POST` | `/api/execution-plans/:executionPlanId/start-sequential` | Start only the approved local Builder preflight path, recording a bound attempt when applicable, and stop at live-mutation approval. |
 | `POST` | `/api/execution-plans/:executionPlanId/step` | Execute one exact bound local Builder, Reviewer, or QA boundary and stop at the next checkpoint. |
@@ -2439,9 +2454,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 985 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 987 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 707 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 708 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -3013,15 +3028,14 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
-  multi-agent completion implementation slices are current through DEC-200, while Stage 5F has
-  planning and handoff evidence only through DEC-202. DEC-173
+  multi-agent completion implementation slices are current through DEC-203. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell
   retry and DEC-182 implements only the exact same-role attempt #2 path. DEC-169 implements
   Council-first StaffingEntry binding; DEC-172 implements only the exact schema-v19 operator-stepped
   local Builder/Reviewer/QA path. Broad parallel StaffingPlan mode, active-attempt recovery,
-  Builder rework source mutation, Reviewer/QA re-execution, automatic or repeated retry, provider/
+  Reviewer/QA re-execution after Builder rework, automatic or repeated retry, provider/
   background WorkOrders, memory application, source/Git/release, policy bypass, and connectors remain
   blocked. This is not a claim of hosted production readiness. Focused source and compatibility
   checks, the local browser matrix, UI QA, and aggregate verification pass. This remains local
@@ -3057,11 +3071,14 @@ Playwright CLI:
   Reviewer-priority evidence, and rationale-gated UI action exist; Builder source mutation,
   Reviewer/QA execution, another rework, retry, recovery, scheduling, provider-backed execution,
   memory, Git/release, policy, collection, bypass, and connector authority remain unimplemented.
-- `DEC-201` and `DEC-202` are planning and fielded handoff evidence only for one dedicated
-  local-stub Builder rework source mutation. The plan preserves schema v24 and DEC-200 Approval
-  evidence, reuses WorkOrderAttempt #3, and fixes source guards, rollback, replay, and the
-  Reviewer/QA stop. Exact `DEC-203` implementation approval and all runtime/API/UI/source behavior
-  remain absent.
+- `DEC-201` and `DEC-202` are consumed planning and fielded handoff evidence for the schema-v24
+  local-stub Builder rework source mutation implemented by `DEC-203`. The exact POST/GET and UI
+  reuse WorkOrderAttempt #3, keep DEC-200 Approval evidence immutable, enforce source containment,
+  single-link identity, sensitive-source refusal, FD-level baseline and encoded/decoded byte guards,
+  restore only mutation-owned files whose post-digest is unchanged, retain active evidence on unsafe
+  rollback, record exact Run plus change-summary/patch/diff evidence and post-digests on success, and
+  reject completed replay after source drift. Reviewer/QA, retry, recovery, another attempt,
+  provider-backed execution, Git/release, memory, policy, bypass, and connectors remain absent.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.

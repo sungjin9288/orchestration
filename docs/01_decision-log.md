@@ -1334,6 +1334,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one exact Stage 5F mutation-and-evidence slice. It explicitly excludes schema migration, another attempt or WorkOrder, Reviewer/QA execution, retry, recovery, provider-backed execution, checkpoint or graph transition, result or memory application, runtime-agent Git/release, scheduling, policy mutation, approval bypass, and connectors. No implementation or source-write authority is recorded.
 - Needed Before: The operator must supply every required field in one valid implementation decision. `DEC-201`, this handoff, broad approval, delegated self-approval, or continuation does not authorize runtime, API, UI, worker, or source behavior. A valid implementation outcome is reserved for `DEC-203`.
 
+### DEC-203
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one schema-v24 local-stub Builder rework source mutation from the source-current approved DEC-200 Approval, reusing WorkOrderAttempt #3 and stopping before Reviewer or QA re-execution.
+- Why: `DEC-201` and `DEC-202` fixed the exact request, immutable Approval ownership, action-specific attempt lifecycle, regular-file and baseline guards, rollback, replay, API/UI, focused-smoke, compatibility, and still-blocked-authority contracts. The supplied decision matches all fifteen required fields.
+- Impact: Runtime now saves WorkOrderAttempt #3 and one running `rework-live-mutation` Run before exactly one local-stub call, derives targets only from the immutable ReworkPlan, refuses symlinks, escaped realpaths, byte-limit violations, baseline drift, malformed base64, and widened output, restores all touched files on failure, and atomically records `change-summary`, `patch`, and `diff` Artifacts on success. The DEC-200 Approval and fixed ExecutionPlan/WorkOrders remain immutable; exact GET/replay and bounded UI evidence stop at `separate-reviewer-reexecution-decision-required`.
+- Needed Before: Reviewer or QA re-execution, another attempt or WorkOrder, retry, recovery, resume, checkpoint or graph transition, provider-backed execution, result or memory application, runtime-agent commit/push/release, scheduling, policy mutation, approval bypass, and connectors require separate complete fielded decisions and focused verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

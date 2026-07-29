@@ -98,8 +98,8 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   existing-Approval-and-Inbox mutation evidence boundary, `DEC-199` records its handoff, and
   `DEC-200` implements the exact evidence-only path without source mutation.
   `DEC-201` plans one dedicated local-stub Builder rework source mutation that reuses attempt #3,
-  and `DEC-202` records its complete fielded implementation handoff. Implementation remains blocked
-  pending exact `DEC-203`.
+  `DEC-202` records its complete fielded implementation handoff, and `DEC-203` implements only that
+  bounded schema-v24 path.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, durable Reviewer rework implementation,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
@@ -143,7 +143,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-202`
+- Recorded decisions: `DEC-163` through `DEC-203`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -210,8 +210,8 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   WorkOrderAttempt #3, keeps DEC-200 Approval immutable, validates source-derived targets and
   baseline digests, owns rollback and interruption evidence through existing Run/Artifact
   contracts, and stops before Reviewer/QA; `DEC-202` records the complete fielded handoff
-- Next gate: exact `DEC-203` for Stage 5F implementation; source mutation and downstream role
-  execution remain closed until then
+- Stage 5F implementation: `DEC-203` opens only the exact bounded local-stub source mutation and
+  stops at a separate Reviewer re-execution decision
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -558,9 +558,9 @@ remain blocked. Planning-only `DEC-195` and handoff-only `DEC-196` define one sc
 BuilderReworkDispatch and existing-Builder WorkOrderAttempt #3 no-write preflight boundary;
 `DEC-197` implements that exact preflight. Planning-only `DEC-198`, handoff-only `DEC-199`, and
 implementation `DEC-200` add only the exact existing-Approval-and-Inbox evidence boundary.
-Planning-only `DEC-201` and handoff-only `DEC-202` define one dedicated schema-v24-preserving
-local-stub Builder rework source mutation path that reuses attempt #3 and stops before Reviewer/QA.
-Builder source mutation implementation remains blocked pending exact `DEC-203`.
+Planning-only `DEC-201`, handoff-only `DEC-202`, and implementation `DEC-203` define one dedicated
+schema-v24-preserving local-stub Builder rework source mutation path that reuses attempt #3 and
+stops before Reviewer/QA. Reviewer/QA re-execution remains separately blocked.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

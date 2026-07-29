@@ -9043,6 +9043,48 @@ h3 {
   min-width: 0;
 }
 
+.builder-rework-source-mutation {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--surface-control);
+}
+
+.builder-rework-mutation-targets {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.builder-rework-mutation-targets ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.builder-rework-mutation-targets code {
+  overflow-wrap: anywhere;
+}
+
+.builder-rework-acknowledgement {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.builder-rework-acknowledgement input {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
 .reviewer-rework-acceptance span,
 .reviewer-rework-acceptance code {
   min-width: 0;

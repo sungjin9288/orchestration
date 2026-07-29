@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
 
 import coordinatorModule from '../src/execution/execution-coordinator.js';
 import localStubModule from '../src/execution/providers/local-stub-adapter.js';
@@ -705,7 +706,17 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(error.stack || error.message);
-  process.exitCode = 1;
-});
+export {
+  buildApprovalRequest,
+  prepareWaitingGate,
+};
+
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  main().catch((error) => {
+    console.error(error.stack || error.message);
+    process.exitCode = 1;
+  });
+}
