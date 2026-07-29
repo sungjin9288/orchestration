@@ -5,12 +5,15 @@
 This document defines the narrow Stage 5G boundary after one exact
 source-current `DEC-203` Builder rework source mutation has completed.
 Planning-only authority is recorded as `DEC-204`; `DEC-205` records the complete
-fielded implementation handoff. Exact implementation remains reserved for a
-later `DEC-206` decision.
+fielded implementation handoff. `DEC-206` accepts only the exact Stage 5G
+implementation described here.
 
-This planning slice changes no runtime, schema, API, UI, state, source,
-provider, Run, Artifact, WorkOrder, WorkOrderAttempt, checkpoint, Decision
-Inbox item, Git, release, memory, policy, or connector behavior.
+The implementation keeps schema v24 and the fixed WorkOrder graph. It adds the
+bounded runtime/API/UI path, one existing-Reviewer WorkOrderAttempt #2, its
+Reviewer Run and review Artifact, and the exact checkpoint and Decision Inbox
+transitions described below. It adds no WorkOrder, provider-backed execution,
+QA execution, new source mutation, Git, release, memory, policy, or connector
+authority.
 
 ## Recommendation
 
@@ -280,7 +283,7 @@ Git, release, scheduling, policy, bypass, or connector control.
 
 ## Required Verification
 
-The reserved runtime smoke is
+The focused runtime smoke is
 `scripts/smoke-ai-company-reviewer-reexecution.mjs`. It must prove exact
 request normalization, canonical mutation evidence and raw-byte binding,
 current post-mutation target digests, original Reviewer lineage, unrelated
@@ -289,20 +292,25 @@ attempt #2 numbering, atomic graph reconciliation and active-before-worker Run,
 one local-stub call, prior Decision resolution, old evidence retention,
 attempt-specific refs, pass-to-QA-ready stop, changes-requested terminal stop,
 pass-with-decision refusal, failure, interruption, exact replay, divergent
-`409`, file-store reload, DEC-197/200/203 compatibility, and zero QA/provider/
-source/Git/release/memory/policy/connector authority.
+`409`, exact terminal replay after later source drift, raw Artifact-byte tamper
+refusal during active settlement and terminal replay, mutation evidence
+recomputation during file-store reload, direct generic QA step and recovery
+refusal including an HTTP `409`, empty durable Stage 5G QA actions, checkpoint
+and attempt authority digest tamper refusal, DEC-197/200/203 compatibility, and
+zero QA/provider/source/Git/release/memory/policy/connector authority.
 
-The reserved UI smoke is `scripts/smoke-ui-slice-709.mjs`. It must prove exact
+The focused UI smoke is `scripts/smoke-ui-slice-709.mjs`. It must prove exact
 visibility, rationale and acknowledgement gating, retained finding and mutation
 evidence, safe running and terminal states, stale clearing, no QA or downstream
-controls, and desktop/mobile fit.
+controls, generic QA-step suppression at the Stage 5G checkpoint, and
+desktop/mobile fit.
 
 ## Authority Status
 
 - Planning authority: accepted as `DEC-204`.
 - Complete fielded implementation handoff: recorded as `DEC-205`.
-- Runtime/API/UI implementation: not approved.
-- Reserved implementation decision: `DEC-206`.
+- Runtime/API/UI implementation: approved only for this exact Stage 5G slice by `DEC-206`.
+- Implementation decision: `DEC-206`.
 
 QA execution, a third Reviewer or Builder attempt, second rework, retry,
 recovery, resume, provider-backed WorkOrders, source mutation expansion, result

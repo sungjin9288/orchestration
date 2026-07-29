@@ -9054,6 +9054,32 @@ h3 {
   background: var(--surface-control);
 }
 
+.reviewer-reexecution {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.reviewer-reexecution-findings {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.reviewer-reexecution-findings ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.reviewer-reexecution dd,
+.reviewer-reexecution li {
+  overflow-wrap: anywhere;
+}
+
 .builder-rework-mutation-targets {
   display: grid;
   gap: 5px;

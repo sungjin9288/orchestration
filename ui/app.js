@@ -144,6 +144,7 @@ import {
   getBuilderReworkPreflightRequest,
   getBuilderReworkMutationApprovalRequest,
   getBuilderReworkSourceMutationRequest,
+  getReviewerReexecutionRequest,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -444,6 +445,7 @@ const state = {
   builderReworkDispatch: null,
   builderReworkMutationApproval: null,
   builderReworkSourceMutation: null,
+  reviewerReexecution: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5148,6 +5150,7 @@ function applySnapshotPayload(payload) {
     state.builderReworkDispatch = null;
     state.builderReworkMutationApproval = null;
     state.builderReworkSourceMutation = null;
+    state.reviewerReexecution = null;
   }
 
   state.payload = {
@@ -5664,6 +5667,14 @@ async function hydrateSelectedDetails() {
                 `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/builder-rework-source-mutation`,
               )
             )?.builderReworkSourceMutation || null
+          : null;
+      state.reviewerReexecution =
+        state.builderReworkSourceMutation?.status === 'completed'
+          ? (
+              await fetchOptionalJson(
+                `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/reviewer-reexecution`,
+              )
+            )?.reviewerReexecution || null
           : null;
     }
   }
@@ -7432,6 +7443,7 @@ async function acceptReviewerReworkPlan(actionButton) {
     state.builderReworkDispatch = null;
     state.builderReworkMutationApproval = null;
     state.builderReworkSourceMutation = null;
+    state.reviewerReexecution = null;
     elements.refreshStatus.textContent = `${acceptance.id} accepted evidence를 기록했습니다`;
   } finally {
     state.mutating = false;
@@ -7486,6 +7498,7 @@ async function submitBuilderReworkPreflight(actionButton) {
     state.builderReworkDispatch = null;
     state.builderReworkMutationApproval = null;
     state.builderReworkSourceMutation = null;
+    state.reviewerReexecution = null;
     throw error;
   } finally {
     state.mutating = false;
@@ -7535,6 +7548,7 @@ async function requestBuilderReworkMutationApproval(actionButton) {
     }
     state.builderReworkMutationApproval = payload;
     state.builderReworkSourceMutation = null;
+    state.reviewerReexecution = null;
     elements.refreshStatus.textContent =
       `${payload.approval.id} mutation approval evidence를 기록했습니다`;
   } finally {
@@ -7563,6 +7577,7 @@ async function runBuilderReworkSourceMutation(actionButton) {
   }
   state.mutating = true;
   state.builderReworkSourceMutation = null;
+  state.reviewerReexecution = null;
   elements.refreshStatus.textContent =
     `${reworkPlan.id} allowlisted source mutation을 실행하는 중…`;
   render();
@@ -7581,6 +7596,14 @@ async function runBuilderReworkSourceMutation(actionButton) {
       throw new Error('Builder rework source mutation 응답이 exact evidence와 다릅니다.');
     }
     state.builderReworkSourceMutation = mutation;
+    state.reviewerReexecution =
+      mutation.status === 'completed'
+        ? (
+            await fetchOptionalJson(
+              `/api/rework-plans/${encodeURIComponent(reworkPlan.id)}/reviewer-reexecution`,
+            )
+          )?.reviewerReexecution || null
+        : null;
     if (state.builderReworkDispatch) {
       state.builderReworkDispatch = {
         ...state.builderReworkDispatch,
@@ -7593,6 +7616,61 @@ async function runBuilderReworkSourceMutation(actionButton) {
         : `${mutation.mutationRun.id} ${mutation.status} evidence를 보존했습니다`;
   } catch (error) {
     state.builderReworkSourceMutation = null;
+    state.reviewerReexecution = null;
+    throw error;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function runReviewerReexecution(actionButton) {
+  const reworkPlan = state.reviewerReworkPlan;
+  const envelope = state.reviewerReexecution;
+  const form = actionButton?.closest?.(
+    '[data-form="run-reviewer-reexecution"]',
+  );
+  if (!reworkPlan || !envelope || !form) {
+    throw new Error('source-current Reviewer 재실행 evidence가 필요합니다.');
+  }
+  const formData = new FormData(form);
+  const request = getReviewerReexecutionRequest(envelope, {
+    acknowledgement: String(
+      formData.get('reviewerReexecutionAcknowledgement') || '',
+    ),
+    rationale: String(formData.get('reviewerReexecutionRationale') || ''),
+    reviewedAt: new Date().toISOString(),
+  });
+  if (!request) {
+    throw new Error('exact acknowledgement와 Reviewer 재실행 rationale이 필요합니다.');
+  }
+  state.mutating = true;
+  state.reviewerReexecution = null;
+  elements.refreshStatus.textContent =
+    `${reworkPlan.id} Reviewer attempt #2를 실행하는 중…`;
+  render();
+  try {
+    const payload = await postJson(
+      `/api/rework-plans/${encodeURIComponent(reworkPlan.id)}/reviewer-reexecution`,
+      request,
+    );
+    const result = payload.reviewerReexecution;
+    if (
+      result?.reworkPlanId !== reworkPlan.id ||
+      !['running', 'completed', 'changes-requested', 'failed', 'interrupted'].includes(
+        result.status,
+      ) ||
+      result.blockedActions?.includes('qa-execution') !== true
+    ) {
+      throw new Error('Reviewer 재실행 응답이 exact evidence와 다릅니다.');
+    }
+    state.reviewerReexecution = result;
+    elements.refreshStatus.textContent =
+      result.status === 'completed'
+        ? `${result.reviewerRun?.id || 'Reviewer'} pass evidence를 기록했습니다`
+        : `${result.reviewerRun?.id || 'Reviewer'} ${result.status} evidence를 보존했습니다`;
+  } catch (error) {
+    state.reviewerReexecution = null;
     throw error;
   } finally {
     state.mutating = false;
@@ -13756,6 +13834,133 @@ function renderReviewerReworkPlanPreview(executionPlanId) {
   `;
 }
 
+function renderReviewerReexecution(reworkPlanId) {
+  const result = state.reviewerReexecution;
+  if (!result || result.reworkPlanId !== reworkPlanId) return '';
+  const statusTone =
+    result.status === 'completed'
+      ? 'success'
+      : ['changes-requested', 'failed'].includes(result.status)
+        ? 'danger'
+        : 'warning';
+  const requestSource =
+    result.readiness?.requestSource || result.requestSource || {};
+  const findings = result.retainedFindings || result.findings || [];
+  const findingRows = findings
+    .map((finding) => {
+      const label =
+        typeof finding === 'string'
+          ? finding
+          : finding.text || finding.summary || finding.findingId || '';
+      return `<li>${escapeHtml(label)}</li>`;
+    })
+    .join('');
+  return `
+    <section
+      class="reviewer-reexecution"
+      aria-label="Reviewer re-execution"
+      data-reviewer-reexecution-status="${escapeHtml(result.status)}"
+    >
+      <div class="card-title-row card-title-row-tight">
+        <strong>Reviewer attempt #2</strong>
+        ${createToken(result.status, statusTone)}
+        ${createToken('local-stub', 'neutral')}
+      </div>
+      <dl class="reviewer-rework-evidence">
+        <div>
+          <dt>Mutation run</dt>
+          <dd>${escapeHtml(requestSource.mutationRunId || result.mutationRun?.id || '')}</dd>
+        </div>
+        <div>
+          <dt>Reviewer WorkOrder</dt>
+          <dd>${escapeHtml(requestSource.reviewerWorkOrderId || result.reviewerWorkOrder?.id || '')}</dd>
+        </div>
+        <div>
+          <dt>Mutation evidence</dt>
+          <dd>${escapeHtml(requestSource.mutationEvidenceDigest || result.mutationEvidenceDigest || '')}</dd>
+        </div>
+        <div>
+          <dt>Changed files</dt>
+          <dd>${escapeHtml((result.changedFiles || []).join(', ') || 'none')}</dd>
+        </div>
+      </dl>
+      ${
+        findingRows
+          ? `
+            <div class="reviewer-reexecution-findings">
+              <strong>Retained findings</strong>
+              <ul>${findingRows}</ul>
+            </div>
+          `
+          : ''
+      }
+      ${
+        result.status === 'ready'
+          ? `
+            <form
+              class="reviewer-rework-record-form"
+              data-form="run-reviewer-reexecution"
+            >
+              <label class="field">
+                <span>Reviewer rationale</span>
+                <input
+                  name="reviewerReexecutionRationale"
+                  type="text"
+                  maxlength="500"
+                  required
+                  placeholder="Why the exact reworked source should be reviewed once"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                />
+              </label>
+              <label class="builder-rework-acknowledgement">
+                <input
+                  name="reviewerReexecutionAcknowledgement"
+                  type="checkbox"
+                  value="review-exact-rework-result-once-and-stop-before-qa"
+                  required
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                />
+                <span>현재 rework 결과를 한 번 검토하고 QA 실행 전 중단</span>
+              </label>
+              <button
+                class="primary-button"
+                type="button"
+                data-action="run-reviewer-reexecution"
+                data-id="${escapeHtml(reworkPlanId)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                Reviewer 재검토
+              </button>
+            </form>
+          `
+          : `
+            <dl class="reviewer-rework-evidence">
+              <div>
+                <dt>Attempt</dt>
+                <dd>${escapeHtml(result.reviewerWorkOrderAttempt?.id || result.workOrderAttempt?.id || 'not recorded')}</dd>
+              </div>
+              <div>
+                <dt>Run</dt>
+                <dd>${escapeHtml(result.reviewerRun?.id || 'not recorded')}</dd>
+              </div>
+              <div>
+                <dt>Review Artifact</dt>
+                <dd>${escapeHtml(result.reviewArtifact?.id || 'none')}</dd>
+              </div>
+              <div>
+                <dt>Next gate</dt>
+                <dd>${escapeHtml(result.nextGate || 'blocked')}</dd>
+              </div>
+            </dl>
+            <p class="detail-copy detail-copy-compact">
+              QA는 실행되지 않았습니다. retry, recovery, commit, push, release는 계속 차단됩니다.
+            </p>
+          `
+      }
+    </section>
+  `;
+}
+
 function renderBuilderReworkSourceMutation(reworkPlanId) {
   const mutation = state.builderReworkSourceMutation;
   if (!mutation || mutation.reworkPlanId !== reworkPlanId) return '';
@@ -13842,8 +14047,18 @@ function renderBuilderReworkSourceMutation(reworkPlanId) {
               </div>
             </dl>
             <p class="detail-copy detail-copy-compact">
-              Reviewer와 QA는 실행되지 않았습니다. retry, recovery, commit, push, release는 계속 차단됩니다.
+              ${
+                mutation.status === 'completed'
+                  ? 'Reviewer는 별도 operator action으로 한 번만 실행할 수 있습니다. QA는 계속 차단됩니다.'
+                  : 'Reviewer와 QA는 실행되지 않았습니다.'
+              }
+              retry, recovery, commit, push, release는 계속 차단됩니다.
             </p>
+            ${
+              mutation.status === 'completed'
+                ? renderReviewerReexecution(reworkPlanId)
+                : ''
+            }
           `
       }
     </div>
@@ -23227,6 +23442,10 @@ document.addEventListener('click', async (event) => {
         'run-builder-rework-source-mutation'
       ) {
         await runBuilderReworkSourceMutation(actionButton);
+        return;
+      }
+      if (actionButton.dataset.action === 'run-reviewer-reexecution') {
+        await runReviewerReexecution(actionButton);
         return;
       }
 

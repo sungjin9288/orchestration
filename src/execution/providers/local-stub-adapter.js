@@ -1418,6 +1418,68 @@ function buildNormalizedReviewerResult(request) {
   };
 }
 
+function buildNormalizedReviewerReexecutionResult(request) {
+  const result = buildNormalizedReviewerResult(request);
+  return {
+    ...result,
+    nextStage:
+      getReviewerDirective(request).verdict === 'pass'
+        ? 'qa-ready'
+        : 'no-additional-rework-authority',
+  };
+}
+
+function renderReviewerReexecutionOutput(request) {
+  const directive = getReviewerDirective(request);
+  const normalizedResult = buildNormalizedReviewerReexecutionResult(request);
+  const changedFiles = Array.isArray(request.builderRun?.summary?.changedFiles)
+    ? request.builderRun.summary.changedFiles
+    : [];
+  const findings =
+    directive.verdict === 'pass'
+      ? ['No blocking findings remain in the exact rework mutation evidence.']
+      : ['The exact rework mutation still requires a separately authorized change.'];
+
+  return `# Reviewer Re-execution: ${request.task.title}
+
+## Review Verdict
+- verdict: ${directive.verdict}
+- source builder run: ${request.builderRun.id}
+- preflight artifact: ${request.preflightArtifactId}
+- change-summary artifact: ${request.changeSummaryArtifact.id}
+- patch artifact: ${request.patchArtifact.id}
+- diff artifact: ${request.diffArtifact.id}
+
+## Evidence Reviewed
+${renderList([
+  `source builder run: ${request.builderRun.id}`,
+  `prior findings reviewed: ${request.priorFindings.length}`,
+  `changed files reviewed: ${changedFiles.length}`,
+  `mutation evidence: ${request.anchor.mutationEvidenceDigest}`,
+], 'none')}
+
+## Findings
+${renderList(findings, 'none')}
+
+## Contract Compliance
+- Review used the exact DEC-203 mutation bundle and retained findings.
+- QA execution, source mutation, and retry remain blocked.
+
+## Verification Evidence
+${renderList(request.verificationCommands.map((command) => `declared command: ${command}`), 'none')}
+
+## Accepted Risks
+- none
+
+## Next Action
+- ${normalizedResult.nextStage === 'qa-ready' ? 'Stop at the separate QA execution decision.' : 'Stop with no additional rework authority.'}
+
+## Follow-Up Gate
+- blocking issue: ${directive.blockingIssue ? 'yes' : 'no'}
+- decision required: ${directive.decisionRequired ? 'yes' : 'no'}
+`;
+}
+
 function renderReviewerOutput(request) {
   const directive = getReviewerDirective(request);
   const normalizedResult = buildNormalizedReviewerResult(request);
@@ -1574,6 +1636,15 @@ function createLocalStubProviderAdapter() {
     name: 'local-stub',
     async execute(request) {
       if (request.role === 'reviewer') {
+        if (request.executionMode === 'rework-reviewer') {
+          return {
+            providerRunId: `local-stub-reviewer-reexecution-${request.task.id}`,
+            model: 'local-stub-reviewer-reexecution-v1',
+            normalizedResult: buildNormalizedReviewerReexecutionResult(request),
+            outputText: renderReviewerReexecutionOutput(request),
+            usage: { inputTokens: 0, outputTokens: 0 },
+          };
+        }
         return {
           providerRunId: `local-stub-reviewer-${request.task.id}`,
           model: 'local-stub-reviewer-v1',

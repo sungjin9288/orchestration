@@ -276,6 +276,14 @@ const {
   readBoundedBuilderReworkSourceTargets,
 } = require('./builder-rework-source-mutations');
 const {
+  computeMutationEvidenceDigest,
+  computeReviewerReexecutionRequestDigest,
+  computeReviewerReexecutionWorkOrderDigest,
+  deepFreeze: deepFreezeReviewerReexecution,
+  isExactReviewerReexecutionReplay,
+  normalizeReviewerReexecutionRequest,
+} = require('./reviewer-reexecution');
+const {
   parseReviewerArtifactContent,
 } = require('../execution/coordinator/artifact-content');
 const {
@@ -5659,6 +5667,761 @@ function createRuntimeService(options = {}) {
     return failedProjection;
   }
 
+  function readReexecutionArtifactBytes(artifact) {
+    try {
+      const bytes = store.readArtifactBytes(artifact.path);
+      if (bytes.length === 0 || bytes.length > 1024 * 1024) {
+        throw new Error('artifact bytes are outside the bounded range');
+      }
+      return bytes;
+    } catch (error) {
+      throw conflict(`Reviewer re-execution Artifact cannot be read: ${error.message}`);
+    }
+  }
+
+  function findReviewerReexecutionAttempt(state, executionPlanId, reviewerWorkOrderId) {
+    return getPlanWorkOrderAttempts(state, executionPlanId).find(
+      (attempt) =>
+        attempt.workOrderId === reviewerWorkOrderId &&
+        attempt.action === WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER &&
+        attempt.command === WORK_ORDER_ATTEMPT_COMMAND.STEP &&
+        attempt.attemptNumber === 2,
+    ) || null;
+  }
+
+  function buildReviewerReexecutionSource(state, reworkPlanId, options = {}) {
+    const reworkPlan = assertReworkPlan(reworkPlanId, state);
+    assertReworkPlanRecord(reworkPlan);
+    const acceptance = findReworkPlanAcceptance(state, reworkPlan.id);
+    const dispatch = findBuilderReworkDispatch(state, reworkPlan.id);
+    if (!acceptance || !dispatch) {
+      throw conflict('Reviewer re-execution requires accepted rework and dispatch evidence');
+    }
+    assertReworkPlanAcceptanceRecord(acceptance);
+    assertBuilderReworkDispatchRecord(dispatch);
+
+    const bundle = getReviewedDeliveryRoleBundle(state, dispatch.executionPlanId);
+    const { executionPlan, byRole, mission, councilSession } = bundle;
+    const project = assertProject(executionPlan.projectId, state);
+    const task = assertTask(executionPlan.controlTaskId, state);
+    const builderAttempt = assertWorkOrderAttempt(dispatch.workOrderAttemptId, state);
+    const mutationRun = builderAttempt.runRefs.length === 2
+      ? assertRun(builderAttempt.runRefs[1], state)
+      : null;
+    const mutationArtifacts = builderAttempt.artifactRefs.slice(1).map((id) =>
+      assertArtifact(id, state));
+    const sourceReviewerAttempt = assertWorkOrderAttempt(
+      reworkPlan.reviewerAttemptId,
+      state,
+    );
+    const sourceReviewerRun = assertRun(reworkPlan.reviewerRunId, state);
+    const sourceReviewArtifact = assertArtifact(reworkPlan.reviewArtifactId, state);
+    const reexecutionAttempt = findReviewerReexecutionAttempt(
+      state,
+      executionPlan.id,
+      byRole.reviewer.id,
+    );
+    const reexecutionRun = reexecutionAttempt?.runRefs[0]
+      ? assertRun(reexecutionAttempt.runRefs[0], state)
+      : null;
+    const reexecutionReviewArtifact = reexecutionAttempt?.artifactRefs[0]
+      ? assertArtifact(reexecutionAttempt.artifactRefs[0], state)
+      : null;
+    const durableReplay = options.durableReplay === true && Boolean(reexecutionAttempt);
+    const staffingBinding = durableReplay
+      ? true
+      : assertBoundStaffingSchedulerSourceCurrent(
+          state,
+          councilSession,
+          { executionPlan },
+        );
+
+    if (
+      (!durableReplay &&
+        (project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+          project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB ||
+          !staffingBinding)) ||
+      dispatch.executionPlanId !== executionPlan.id ||
+      dispatch.builderWorkOrderId !== byRole.builder.id ||
+      dispatch.sourceAttemptRecordDigest !== sourceReviewerAttempt.recordDigest ||
+      dispatch.sourceProgressDigest !== reworkPlan.sourceProgressDigest ||
+      reworkPlan.sourceExecutionPlanDigest !== dispatch.sourceExecutionPlanDigest ||
+      reworkPlan.sourceAttemptRecordDigest !== dispatch.sourceAttemptRecordDigest ||
+      acceptance.reworkPlanId !== reworkPlan.id ||
+      acceptance.acceptanceDigest !== dispatch.reworkPlanAcceptanceDigest ||
+      builderAttempt.id !== dispatch.workOrderAttemptId ||
+      builderAttempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT ||
+      builderAttempt.attemptNumber !== 3 ||
+      builderAttempt.status !== WORK_ORDER_ATTEMPT_STATUS.COMPLETED ||
+      !mutationRun ||
+      mutationRun.status !== RUN_STATUS.COMPLETED ||
+      mutationRun.metadata?.executionMode !== 'rework-live-mutation' ||
+      mutationRun.metadata?.builderReworkDispatchId !== dispatch.id ||
+      mutationRun.metadata?.workOrderAttemptId !== builderAttempt.id ||
+      mutationRun.summary?.executionMode !== 'rework-live-mutation' ||
+      mutationArtifacts.length !== 3 ||
+      mutationArtifacts.map((artifact) => artifact.type).join('\u0000') !==
+        [ARTIFACT_TYPE.CHANGE_SUMMARY, ARTIFACT_TYPE.PATCH, ARTIFACT_TYPE.DIFF].join('\u0000') ||
+      mutationArtifacts.some((artifact) => artifact.runId !== mutationRun.id) ||
+      sourceReviewerAttempt.id !== reworkPlan.reviewerAttemptId ||
+      sourceReviewerAttempt.recordDigest !== reworkPlan.sourceAttemptRecordDigest ||
+      sourceReviewerAttempt.status !== WORK_ORDER_ATTEMPT_STATUS.CHANGES_REQUESTED ||
+      sourceReviewerAttempt.attemptNumber !== 1 ||
+      sourceReviewerRun.id !== reworkPlan.reviewerRunId ||
+      sourceReviewerRun.status !== RUN_STATUS.COMPLETED ||
+      sourceReviewArtifact.id !== reworkPlan.reviewArtifactId ||
+      sourceReviewArtifact.type !== ARTIFACT_TYPE.REVIEW ||
+      sourceReviewArtifact.runId !== sourceReviewerRun.id
+    ) {
+      throw conflict('Reviewer re-execution source evidence is stale or invalid');
+    }
+
+    const targetPathAllowlist = [...reworkPlan.targetPathAllowlist];
+    const postMutationTargetDigests = mutationRun.summary?.targetFilePostMutationDigests;
+    if (
+      !Array.isArray(postMutationTargetDigests) ||
+      postMutationTargetDigests.length !== targetPathAllowlist.length
+    ) {
+      throw conflict('Reviewer re-execution mutation target evidence is invalid');
+    }
+    const currentTargetDigests = durableReplay
+      ? postMutationTargetDigests.map((entry) => ({
+          path: entry.path,
+          digest: entry.digest,
+          content: null,
+        }))
+      : readBoundedBuilderReworkSourceTargets(
+          project.projectPath,
+          targetPathAllowlist,
+        ).map((entry) => ({
+          path: entry.path,
+          digest: entry.digest,
+          content: entry.content,
+        }));
+    if (
+      postMutationTargetDigests.length !== currentTargetDigests.length ||
+      currentTargetDigests.some(
+        (entry, index) =>
+          entry.path !== postMutationTargetDigests[index]?.path ||
+          entry.digest !== postMutationTargetDigests[index]?.digest,
+      )
+    ) {
+      throw conflict('Reviewer re-execution targets no longer match DEC-203 mutation evidence');
+    }
+
+    const mutationEvidenceDigest = computeMutationEvidenceDigest({
+      approval: assertApproval(builderAttempt.approvalRefs[0], state),
+      dispatch,
+      builderAttempt,
+      mutationRun,
+      artifacts: mutationArtifacts.map((artifact) => ({
+        artifact,
+        bytes: readReexecutionArtifactBytes(artifact),
+      })),
+      postMutationTargetDigests,
+      currentTargetDigests: currentTargetDigests.map(({ path: targetPath, digest }) => ({
+        path: targetPath,
+        digest,
+      })),
+      sourceReviewerAttempt,
+      sourceReviewerRun,
+    });
+    if (
+      durableReplay &&
+      (
+        !reexecutionRun ||
+        reexecutionRun.metadata?.executionMode !== 'rework-reviewer' ||
+        reexecutionRun.metadata?.mutationEvidenceDigest !== mutationEvidenceDigest
+      )
+    ) {
+      throw conflict('Reviewer re-execution durable replay evidence is invalid');
+    }
+
+    return {
+      acceptance,
+      builderAttempt,
+      bundle,
+      councilSession,
+      currentTargetDigests,
+      dispatch,
+      executionPlan,
+      mission,
+      mutationArtifacts,
+      mutationEvidenceDigest,
+      mutationRun,
+      project,
+      reexecutionAttempt,
+      reexecutionReviewArtifact,
+      reexecutionRun,
+      reworkPlan,
+      sourceReviewArtifact,
+      sourceReviewerAttempt,
+      sourceReviewerRun,
+      task,
+      byRole,
+    };
+  }
+
+  function assertReviewerReexecutionRequestMatchesSource(request, source) {
+    const expected = {
+      builderReworkDispatchId: source.dispatch.id,
+      builderReworkDispatchDigest: source.dispatch.recordDigest,
+      builderReworkAttemptId: source.dispatch.workOrderAttemptId,
+      builderReworkAttemptRecordDigest: source.builderAttempt.recordDigest,
+      mutationRunId: source.mutationRun.id,
+      mutationEvidenceDigest: source.mutationEvidenceDigest,
+      reviewerWorkOrderId: source.byRole.reviewer.id,
+      reviewerWorkOrderDigest: computeWorkOrderRecordDigest(source.byRole.reviewer),
+      sourceReviewerAttemptId: source.sourceReviewerAttempt.id,
+      sourceReviewerAttemptRecordDigest: source.sourceReviewerAttempt.recordDigest,
+      sourceProgressDigest: source.reworkPlan.sourceProgressDigest,
+    };
+    for (const [field, value] of Object.entries(expected)) {
+      if (request[field] !== value) {
+        throw conflict(`Reviewer re-execution ${field} does not match source evidence`);
+      }
+    }
+  }
+
+  function projectReviewerReexecution(source, requestDigest = null) {
+    const attempt = source.reexecutionAttempt;
+    const requestSource = !attempt
+      ? {
+          builderReworkDispatchId: source.dispatch.id,
+          builderReworkDispatchDigest: source.dispatch.recordDigest,
+          builderReworkAttemptId: source.dispatch.workOrderAttemptId,
+          builderReworkAttemptRecordDigest: source.builderAttempt.recordDigest,
+          mutationEvidenceDigest: source.mutationEvidenceDigest,
+          mutationRunId: source.mutationRun.id,
+          reviewerWorkOrderId: source.byRole.reviewer.id,
+          reviewerWorkOrderDigest: computeWorkOrderRecordDigest(source.byRole.reviewer),
+          sourceProgressDigest: source.reworkPlan.sourceProgressDigest,
+          sourceReviewerAttemptId: source.sourceReviewerAttempt.id,
+          sourceReviewerAttemptRecordDigest: source.sourceReviewerAttempt.recordDigest,
+        }
+      : null;
+    const attemptRefs = attempt
+      ? {
+          artifactRefs: [...attempt.artifactRefs],
+          decisionInboxItemRefs: [...attempt.decisionInboxItemRefs],
+          runRefs: [...attempt.runRefs],
+        }
+      : null;
+    return deepFreezeReviewerReexecution({
+      reworkPlanId: source.reworkPlan.id,
+      persisted: Boolean(attempt),
+      status:
+        !attempt ? 'ready' : attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE ? 'running' : attempt.status,
+      mutationEvidenceDigest: source.mutationEvidenceDigest,
+      requestDigest,
+      requestSource,
+      retainedFindings: structuredClone(source.reworkPlan.findings),
+      changedFiles: [...(source.mutationRun.summary?.changedFiles || [])],
+      targetPathAllowlist: [...source.reworkPlan.targetPathAllowlist],
+      verificationCommands: [...source.reworkPlan.verificationCommands],
+      reviewerWorkOrder: structuredClone(source.byRole.reviewer),
+      workOrderAttempt: attempt ? structuredClone(attempt) : null,
+      attemptRefs,
+      reviewerRun: source.reexecutionRun ? structuredClone(source.reexecutionRun) : null,
+      reviewArtifact: source.reexecutionReviewArtifact
+        ? structuredClone(source.reexecutionReviewArtifact)
+        : null,
+      mutationRun: structuredClone(source.mutationRun),
+      mutationArtifacts: structuredClone(source.mutationArtifacts),
+      nextGate:
+        attempt?.status === WORK_ORDER_ATTEMPT_STATUS.COMPLETED
+          ? 'separate-qa-execution-decision-required'
+          : attempt?.status === WORK_ORDER_ATTEMPT_STATUS.CHANGES_REQUESTED
+            ? 'no-additional-rework-authority'
+            : null,
+      blockedActions: [
+        'qa-execution',
+        'third-reviewer-attempt',
+        'second-builder-rework',
+        'retry',
+        'recovery',
+        'source-mutation',
+        'commit',
+        'push',
+        'release',
+      ],
+    });
+  }
+
+  function beginReviewerReexecution(input) {
+    if (
+      !input ||
+      typeof input !== 'object' ||
+      Array.isArray(input) ||
+      Object.keys(input).sort().join('\u0000') !== 'request\u0000reworkPlanId'
+    ) {
+      throw conflict('Reviewer re-execution start has unexpected or missing fields');
+    }
+    const now = builderReworkNowIso();
+    const request = normalizeReviewerReexecutionRequest(input.request, { now });
+    const requestDigest = computeReviewerReexecutionRequestDigest(request);
+    const state = store.loadStateSupportedReadonly();
+    const source = buildReviewerReexecutionSource(state, input.reworkPlanId, {
+      durableReplay: true,
+    });
+
+    if (source.reexecutionAttempt) {
+      const run = source.reexecutionAttempt.runRefs[0]
+        ? assertRun(source.reexecutionAttempt.runRefs[0], state)
+        : null;
+      if (!run || !isExactReviewerReexecutionReplay(
+        run,
+        requestDigest,
+        request.mutationEvidenceDigest,
+      )) {
+        throw conflict(`ReworkPlan ${input.reworkPlanId} already has a divergent Reviewer re-execution`);
+      }
+      return {
+        idempotent: true,
+        reviewerReexecution: projectReviewerReexecution(source, requestDigest),
+      };
+    }
+
+    assertReviewerReexecutionRequestMatchesSource(request, source);
+    const blockingItems = listPendingBlockingDecisionItems(source.task.id, state);
+    const retainedDecisionRefs = [...source.reworkPlan.evidenceRefs.decisionInboxItemRefs];
+    if (
+      blockingItems.length !== retainedDecisionRefs.length ||
+      blockingItems.some((item) => !retainedDecisionRefs.includes(item.id))
+    ) {
+      throw conflict('Reviewer re-execution refuses unrelated pending Decision blockers');
+    }
+    if (
+      source.executionPlan.status !== EXECUTION_PLAN_STATUS.BLOCKED ||
+      source.executionPlan.stopReason !== 'reviewer-changes-requested' ||
+      source.executionPlan.stoppedAt !== 'reviewer' ||
+      source.executionPlan.activeWorkOrderId !== null ||
+      source.byRole.builder.status !== WORK_ORDER_STATUS.COMPLETED ||
+      source.byRole.reviewer.status !== WORK_ORDER_STATUS.CHANGES_REQUESTED ||
+      source.byRole.qa.status !== WORK_ORDER_STATUS.BLOCKED_DEPENDENCY
+    ) {
+      throw conflict('Reviewer re-execution is not at the exact changes-requested stop');
+    }
+
+    const startedAt = new Date(
+      Math.max(Date.parse(now), Date.parse(request.evaluatedAt), Date.parse(source.mutationRun.finishedAt)),
+    ).toISOString();
+    const { executionPlan, byRole } = source;
+    const builder = byRole.builder;
+    const reviewer = byRole.reviewer;
+    const qa = byRole.qa;
+
+    builder.runRefs = appendUniqueRefs(builder.runRefs, [source.mutationRun.id]);
+    builder.artifactRefs = appendUniqueRefs(
+      builder.artifactRefs,
+      source.mutationArtifacts.map((artifact) => artifact.id),
+    );
+    builder.changedFiles = [...source.mutationRun.summary.changedFiles];
+    builder.completionRunId = source.mutationRun.id;
+    builder.completedAt = source.mutationRun.finishedAt;
+    builder.updatedAt = startedAt;
+    reviewer.status = WORK_ORDER_STATUS.QUEUED;
+    reviewer.updatedAt = startedAt;
+    executionPlan.runRefs = appendUniqueRefs(executionPlan.runRefs, [source.mutationRun.id]);
+    executionPlan.artifactRefs = appendUniqueRefs(
+      executionPlan.artifactRefs,
+      source.mutationArtifacts.map((artifact) => artifact.id),
+    );
+    executionPlan.status = EXECUTION_PLAN_STATUS.ACTIVE;
+    executionPlan.activeWorkOrderId = reviewer.id;
+    executionPlan.stopReason = null;
+    executionPlan.stoppedAt = null;
+    executionPlan.updatedAt = startedAt;
+
+    const checkpoint = appendWorkflowCheckpoint(
+      state,
+      source.bundle,
+      WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY,
+      {
+        createdAt: startedAt,
+        resumedFromCheckpointId: executionPlan.latestCheckpointId,
+        stopReason: 'dec-203-mutation-reconciled-reviewer-ready',
+      },
+    );
+    consumeLatestCheckpoint(
+      state,
+      executionPlan,
+      WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY,
+      'reviewer-reexecution-started',
+    );
+    const reviewerDependencies = reviewer.dependencyIds.map((dependencyId) => {
+      const dependency = assertWorkOrder(dependencyId, state);
+      return { id: dependency.id, status: dependency.status };
+    });
+    reviewer.status = WORK_ORDER_STATUS.ACTIVE;
+    reviewer.startedAt ||= startedAt;
+    reviewer.updatedAt = startedAt;
+    executionPlan.status = EXECUTION_PLAN_STATUS.REVIEWING;
+    executionPlan.activeWorkOrderId = reviewer.id;
+    executionPlan.updatedAt = startedAt;
+    const attemptId = nextWorkOrderAttemptId(state);
+    const authorityDigest = computeWorkOrderAttemptAuthorityDigest({
+      executionPlanId: executionPlan.id,
+      expectedWorkOrderId: reviewer.id,
+      command: WORK_ORDER_ATTEMPT_COMMAND.STEP,
+      action: WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER,
+      sourceDigest: executionPlan.sourceDigest,
+      checkpointRef: checkpoint.id,
+      checkpointDigest: checkpoint.checkpointDigest,
+      approvalRefs: [],
+    });
+    const attempt = createWorkOrderAttempt({
+      id: attemptId,
+      executionPlanId: executionPlan.id,
+      workOrderId: reviewer.id,
+      missionId: source.mission.id,
+      projectId: executionPlan.projectId,
+      staffingPlanId: source.sourceReviewerAttempt.staffingPlanId,
+      staffingEntryId: source.sourceReviewerAttempt.staffingEntryId,
+      councilSessionId: source.councilSession.id,
+      role: 'reviewer',
+      position: reviewer.position,
+      attemptNumber: 2,
+      command: WORK_ORDER_ATTEMPT_COMMAND.STEP,
+      action: WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER,
+      sourceDigest: executionPlan.sourceDigest,
+      workOrderDigest: computeReviewerReexecutionWorkOrderDigest(reviewer),
+      dependencyDigest: computeWorkOrderAttemptDependencyDigest({
+        executionPlanId: executionPlan.id,
+        workOrderId: reviewer.id,
+        dependencies: reviewerDependencies,
+      }),
+      authorityDigest,
+      checkpointRef: checkpoint.id,
+      approvalRefs: [],
+      startedAt,
+    });
+    const runId = nextId(state, 'run');
+    const run = {
+      id: runId,
+      taskId: source.task.id,
+      kind: 'role',
+      role: 'reviewer',
+      status: RUN_STATUS.RUNNING,
+      metadata: {
+        builderReworkDispatchId: source.dispatch.id,
+        executionMode: 'rework-reviewer',
+        mutationEvidenceDigest: source.mutationEvidenceDigest,
+        requestDigest,
+        reworkPlanId: source.reworkPlan.id,
+        sourceReviewerAttemptId: source.sourceReviewerAttempt.id,
+        workOrderAttemptId: attempt.id,
+      },
+      summary: null,
+      startedAt,
+      finishedAt: null,
+      logPath: path.join(store.logsDir, `${runId}.jsonl`),
+    };
+    const activeAttempt = {
+      ...attempt,
+      runRefs: [run.id],
+    };
+    delete activeAttempt.recordDigest;
+    activeAttempt.recordDigest = computeWorkOrderAttemptRecordDigest(activeAttempt);
+    state.runs[run.id] = run;
+    state.workOrderAttempts[activeAttempt.id] = Object.freeze(activeAttempt);
+    for (const itemId of retainedDecisionRefs) {
+      resolveInboxItemRecord(assertDecisionInboxItem(itemId, state), 'rework-started', '', startedAt);
+    }
+    source.task.latestRunId = run.id;
+    recalculateTaskFlags(source.task, state);
+    source.task.updatedAt = startedAt;
+    store.saveState(state);
+
+    return {
+      idempotent: false,
+      reviewerReexecution: projectReviewerReexecution(
+        {
+          ...source,
+          reexecutionAttempt: state.workOrderAttempts[activeAttempt.id],
+          reexecutionRun: run,
+        },
+        requestDigest,
+      ),
+    };
+  }
+
+  function getReviewerReexecutionWorkerInput(input) {
+    if (!input || Object.keys(input).sort().join('\u0000') !== 'requestDigest\u0000reworkPlanId') {
+      throw conflict('Reviewer re-execution worker input has unexpected or missing fields');
+    }
+    const state = store.loadStateReadonly();
+    const source = buildReviewerReexecutionSource(state, input.reworkPlanId);
+    const attempt = source.reexecutionAttempt;
+    const run = attempt?.runRefs?.[0] ? assertRun(attempt.runRefs[0], state) : null;
+    if (
+      !attempt ||
+      attempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE ||
+      !run ||
+      run.status !== RUN_STATUS.RUNNING ||
+      !isExactReviewerReexecutionReplay(run, input.requestDigest, source.mutationEvidenceDigest)
+    ) {
+      throw conflict('Reviewer re-execution has no exact active worker state');
+    }
+    return {
+      ...source,
+      reviewerAttempt: attempt,
+      reviewerRun: run,
+      codeContext: source.currentTargetDigests.map(({ path: targetPath, content }) => ({
+        path: targetPath,
+        content,
+      })),
+    };
+  }
+
+  function getReviewerReexecution(reworkPlanId) {
+    const state = store.loadStateSupportedReadonly();
+    const source = buildReviewerReexecutionSource(state, reworkPlanId, {
+      durableReplay: true,
+    });
+    const run = source.reexecutionAttempt?.runRefs?.[0]
+      ? assertRun(source.reexecutionAttempt.runRefs[0], state)
+      : null;
+    return projectReviewerReexecution(
+      source,
+      run?.metadata?.requestDigest || null,
+    );
+  }
+
+  function assertActiveReviewerReexecution(state, input) {
+    const source = buildReviewerReexecutionSource(state, input.reworkPlanId);
+    const attempt = source.reexecutionAttempt;
+    const run = attempt?.runRefs?.[0] ? assertRun(attempt.runRefs[0], state) : null;
+    if (
+      !attempt ||
+      attempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE ||
+      !run ||
+      run.id !== input.runId ||
+      run.status !== RUN_STATUS.RUNNING ||
+      input.mutationEvidenceDigest !== source.mutationEvidenceDigest ||
+      !isExactReviewerReexecutionReplay(
+        run,
+        input.requestDigest,
+        source.mutationEvidenceDigest,
+      )
+    ) {
+      throw conflict('Reviewer re-execution Run is not the exact active evidence');
+    }
+    return { ...source, reviewerAttempt: attempt, reviewerRun: run };
+  }
+
+  function completeReviewerReexecution(input) {
+    if (
+      !input ||
+      typeof input !== 'object' ||
+      Array.isArray(input) ||
+      Object.keys(input).sort().join('\u0000') !==
+        'mutationEvidenceDigest\u0000normalizedResult\u0000outputText\u0000providerEvidence\u0000requestDigest\u0000reworkPlanId\u0000runId'
+    ) {
+      throw conflict('Reviewer re-execution settlement has unexpected or missing fields');
+    }
+    const state = store.loadState();
+    const source = assertActiveReviewerReexecution(state, input);
+    const { executionPlan, byRole, reviewerAttempt, reviewerRun } = source;
+    const outputText = String(input.outputText || '');
+    let parsedReview;
+    try {
+      parsedReview = parseReviewerArtifactContent(outputText);
+    } catch (error) {
+      throw conflict(`Reviewer re-execution Artifact is malformed: ${error.message}`);
+    }
+    if (
+      !input.normalizedResult ||
+      typeof input.normalizedResult !== 'object' ||
+      !input.providerEvidence ||
+      typeof input.providerEvidence !== 'object' ||
+      input.providerEvidence.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB ||
+      parsedReview.sourceBuilderRunId !== source.mutationRun.id ||
+      parsedReview.preflightArtifactId !== source.mutationRun.metadata.preflightArtifactId ||
+      parsedReview.changeSummaryArtifactId !== source.mutationArtifacts[0].id ||
+      parsedReview.patchArtifactId !== source.mutationArtifacts[1].id ||
+      parsedReview.diffArtifactId !== source.mutationArtifacts[2].id ||
+      !['pass', 'changes_requested'].includes(parsedReview.verdict) ||
+      (parsedReview.verdict === 'pass' && input.normalizedResult.needsDecision === true) ||
+      (parsedReview.verdict === 'pass' && parsedReview.decisionRequired === true) ||
+      (parsedReview.verdict === 'pass' && input.normalizedResult.nextStage !== 'qa-ready') ||
+      (parsedReview.verdict === 'changes_requested' &&
+        input.normalizedResult.nextStage !== 'no-additional-rework-authority')
+    ) {
+      throw conflict('Reviewer re-execution result widens or contradicts the approved contract');
+    }
+
+    const finishedAt = new Date(
+      Math.max(Date.parse(builderReworkNowIso()), Date.parse(reviewerRun.startedAt)),
+    ).toISOString();
+    let writtenArtifactPaths = [];
+    try {
+      const artifactBundle = recordArtifactBundleInState(state, {
+        taskId: source.task.id,
+        runId: reviewerRun.id,
+        artifacts: [{ key: 'review', type: ARTIFACT_TYPE.REVIEW, content: outputText }],
+      });
+      writtenArtifactPaths = artifactBundle.writtenArtifactPaths;
+      const reviewArtifact = artifactBundle.artifactsByKey.review;
+      let decisionInboxItem = null;
+      if (parsedReview.verdict === 'changes_requested' && input.normalizedResult.needsDecision === true) {
+        decisionInboxItem = createDecisionInboxItemRecord(state, {
+          taskId: source.task.id,
+          kind: DECISION_INBOX_KIND.DECISION,
+          sourceType: DECISION_INBOX_SOURCE_TYPE.REVIEW,
+          sourceId: reviewArtifact.id,
+          title: `Review follow-up: ${source.task.title}`,
+          prompt: parsedReview.findings.map((finding) => `- ${finding}`).join('\n'),
+          blocksTask: true,
+          now: finishedAt,
+        });
+      }
+      reviewerRun.status = RUN_STATUS.COMPLETED;
+      reviewerRun.finishedAt = finishedAt;
+      reviewerRun.summary = {
+        adapter: input.providerEvidence.adapter,
+        decisionCreated: Boolean(decisionInboxItem),
+        executionMode: 'rework-reviewer',
+        findingsCount: parsedReview.findings.length,
+        mappedReviewStatus: parsedReview.verdict === 'pass' ? REVIEW_STATUS.PASSED : REVIEW_STATUS.CHANGES_REQUESTED,
+        model: input.providerEvidence.model,
+        mutationEvidenceDigest: input.mutationEvidenceDigest,
+        nextStage: input.normalizedResult.nextStage,
+        providerRunId: input.providerEvidence.providerRunId,
+        rawVerdict: parsedReview.verdict,
+        reviewArtifactId: reviewArtifact.id,
+        sourceRunId: source.mutationRun.id,
+        terminal: true,
+      };
+      byRole.reviewer.runRefs = appendUniqueRefs(byRole.reviewer.runRefs, [reviewerRun.id]);
+      byRole.reviewer.artifactRefs = appendUniqueRefs(byRole.reviewer.artifactRefs, [reviewArtifact.id]);
+      byRole.reviewer.completionRunId = reviewerRun.id;
+      byRole.reviewer.reviewArtifactId = reviewArtifact.id;
+      byRole.reviewer.completedAt = finishedAt;
+      byRole.reviewer.updatedAt = finishedAt;
+      executionPlan.runRefs = appendUniqueRefs(executionPlan.runRefs, [reviewerRun.id]);
+      executionPlan.artifactRefs = appendUniqueRefs(executionPlan.artifactRefs, [reviewArtifact.id]);
+      executionPlan.updatedAt = finishedAt;
+
+      let checkpoint = null;
+      if (parsedReview.verdict === 'pass') {
+        byRole.reviewer.status = WORK_ORDER_STATUS.COMPLETED;
+        byRole.qa.status = WORK_ORDER_STATUS.QUEUED;
+        byRole.qa.updatedAt = finishedAt;
+        executionPlan.status = EXECUTION_PLAN_STATUS.REVIEWING;
+        executionPlan.activeWorkOrderId = byRole.qa.id;
+        executionPlan.stopReason = 'separate-qa-execution-decision-required';
+        executionPlan.stoppedAt = 'qa';
+        checkpoint = appendWorkflowCheckpoint(state, source.bundle, WORKFLOW_CHECKPOINT_STAGE.QA_READY, {
+          createdAt: finishedAt,
+          resumedFromCheckpointId: executionPlan.latestCheckpointId,
+          stopReason: 'reviewer-reexecution-passed-qa-ready',
+        });
+      } else {
+        byRole.reviewer.status = WORK_ORDER_STATUS.CHANGES_REQUESTED;
+        byRole.qa.status = WORK_ORDER_STATUS.BLOCKED_DEPENDENCY;
+        byRole.qa.updatedAt = finishedAt;
+        executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
+        executionPlan.activeWorkOrderId = null;
+        executionPlan.stopReason = 'reviewer-reexecution-changes-requested';
+        executionPlan.stoppedAt = 'reviewer';
+      }
+      state.workOrderAttempts[reviewerAttempt.id] = transitionWorkOrderAttempt(
+        reviewerAttempt,
+        {
+          status:
+            parsedReview.verdict === 'pass'
+              ? WORK_ORDER_ATTEMPT_STATUS.COMPLETED
+              : WORK_ORDER_ATTEMPT_STATUS.CHANGES_REQUESTED,
+          checkpointRef: checkpoint?.id || null,
+          approvalRefs: [],
+          runRefs: [reviewerRun.id],
+          artifactRefs: [reviewArtifact.id],
+          decisionInboxItemRefs: decisionInboxItem ? [decisionInboxItem.id] : [],
+          stopReason:
+            parsedReview.verdict === 'pass'
+              ? null
+              : 'reviewer-reexecution-changes-requested',
+          completedAt: finishedAt,
+        },
+      );
+      recalculateTaskFlags(source.task, state);
+      source.task.updatedAt = finishedAt;
+      store.saveState(state);
+      return {
+        reviewerReexecution: projectReviewerReexecution(
+          {
+            ...source,
+            reexecutionAttempt: state.workOrderAttempts[reviewerAttempt.id],
+            reexecutionReviewArtifact: reviewArtifact,
+            reexecutionRun: reviewerRun,
+          },
+          input.requestDigest,
+        ),
+        reviewArtifact,
+        reviewerRun,
+        decisionInboxItem,
+      };
+    } catch (error) {
+      for (const artifactPath of writtenArtifactPaths) fs.rmSync(artifactPath, { force: true });
+      throw error;
+    }
+  }
+
+  function failReviewerReexecution(input) {
+    if (
+      !input ||
+      typeof input !== 'object' ||
+      Array.isArray(input) ||
+      Object.keys(input).sort().join('\u0000') !==
+        'error\u0000mutationEvidenceDigest\u0000requestDigest\u0000reworkPlanId\u0000runId'
+    ) {
+      throw conflict('Reviewer re-execution failure has unexpected or missing fields');
+    }
+    const state = store.loadState();
+    const source = assertActiveReviewerReexecution(state, input);
+    const finishedAt = new Date(
+      Math.max(Date.parse(builderReworkNowIso()), Date.parse(source.reviewerRun.startedAt)),
+    ).toISOString();
+    source.reviewerRun.status = RUN_STATUS.COMPLETED;
+    source.reviewerRun.finishedAt = finishedAt;
+    source.reviewerRun.summary = {
+      error: String(input.error || 'reviewer-reexecution-failed').replace(/\s+/g, ' ').slice(0, 240),
+      executionMode: 'rework-reviewer',
+      mutationEvidenceDigest: input.mutationEvidenceDigest,
+      requestDigest: input.requestDigest,
+      sourceRunId: source.mutationRun.id,
+    };
+    source.byRole.reviewer.status = WORK_ORDER_STATUS.FAILED;
+    source.byRole.reviewer.updatedAt = finishedAt;
+    source.byRole.qa.status = WORK_ORDER_STATUS.BLOCKED_DEPENDENCY;
+    source.byRole.qa.updatedAt = finishedAt;
+    source.executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
+    source.executionPlan.activeWorkOrderId = null;
+    source.executionPlan.stopReason = 'reviewer-reexecution-failed';
+    source.executionPlan.stoppedAt = 'reviewer';
+    source.executionPlan.updatedAt = finishedAt;
+    state.workOrderAttempts[source.reviewerAttempt.id] = transitionWorkOrderAttempt(
+      source.reviewerAttempt,
+      {
+        status: WORK_ORDER_ATTEMPT_STATUS.FAILED,
+        checkpointRef: null,
+        approvalRefs: [],
+        runRefs: [source.reviewerRun.id],
+        artifactRefs: [],
+        decisionInboxItemRefs: [],
+        stopReason: 'reviewer-reexecution-failed',
+        completedAt: finishedAt,
+      },
+    );
+    source.task.updatedAt = finishedAt;
+    store.saveState(state);
+    return projectReviewerReexecution(
+      { ...source, reexecutionAttempt: state.workOrderAttempts[source.reviewerAttempt.id] },
+      input.requestDigest,
+    );
+  }
+
   function getBuilderReworkMutationApproval(reworkPlanId) {
     let state;
     try {
@@ -7012,6 +7775,11 @@ function createRuntimeService(options = {}) {
       sourceCurrent = false;
     }
     const current = currentBindings.current && sourceCurrent;
+    const reviewerReexecutionQaGate = Boolean(
+      latestCheckpoint.stage === WORKFLOW_CHECKPOINT_STAGE.QA_READY &&
+        latestCheckpoint.stopReason === 'reviewer-reexecution-passed-qa-ready' &&
+        executionPlan.stopReason === 'separate-qa-execution-decision-required',
+    );
     let classification = latestCheckpoint.status;
     let stopReason = latestCheckpoint.stopReason;
 
@@ -7040,7 +7808,9 @@ function createRuntimeService(options = {}) {
         checkpointDigest: currentBindings.checkpointDigest,
       },
       nextAllowedActions:
-        classification === WORKFLOW_CHECKPOINT_STATUS.READY && current
+        classification === WORKFLOW_CHECKPOINT_STATUS.READY &&
+        current &&
+        !reviewerReexecutionQaGate
           ? latestCheckpoint.nextAllowedActions
           : [],
       stopReason: stopReason || null,
@@ -7358,6 +8128,15 @@ function createRuntimeService(options = {}) {
         workOrder: byRole.qa,
       },
     }[input.action];
+    if (
+      input.action === WORK_ORDER_ATTEMPT_ACTION.RUN_QA &&
+      checkpoint.stopReason === 'reviewer-reexecution-passed-qa-ready' &&
+      executionPlan.stopReason === 'separate-qa-execution-decision-required'
+    ) {
+      throw conflict(
+        'Reviewer re-execution QA requires a separate execution decision',
+      );
+    }
     if (
       checkpoint.executionPlanId !== executionPlan.id ||
       checkpoint.stage !== requiredBoundary.stage ||
@@ -11839,8 +12618,10 @@ function createRuntimeService(options = {}) {
     ensureCommitActionAllowed,
     finalizeBuilderLiveMutationSuccess,
     finalizeBuilderReworkSourceMutation,
+    completeReviewerReexecution,
     failSequentialWorkOrderExecution,
     failBuilderReworkSourceMutation,
+    failReviewerReexecution,
     failReviewedDeliveryContinuation,
     finalizeSequentialWorkOrderExecution,
     finishRunWithReviewPending,
@@ -11861,6 +12642,8 @@ function createRuntimeService(options = {}) {
     getTaskExecutionProvenance,
     getOpsSupervisionPreview,
     getReviewerReworkPlanPreview,
+    getReviewerReexecution,
+    getReviewerReexecutionWorkerInput,
     getReworkPlan,
     getReworkPlanAcceptance,
     getBuilderReworkDispatch,
@@ -11907,6 +12690,7 @@ function createRuntimeService(options = {}) {
     previewExecutionPlanDelivery,
     previewExecutionPlanContinuation,
     prepareBuilderReworkSourceMutation,
+    beginReviewerReexecution,
     persistExecutionPlanDeliveryPackage,
     persistMissionLearningCandidate,
     persistLearningCandidateMemoryItem,

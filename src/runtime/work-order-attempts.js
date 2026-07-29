@@ -531,9 +531,18 @@ function assertWorkOrderAttemptRecord(record) {
       record.approvalRefs.length === 1 &&
       record.runRefs.length === 2 &&
       record.artifactRefs.length === 1;
+    const isReviewerReexecutionActive =
+      record.action === WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER &&
+      record.command === WORK_ORDER_ATTEMPT_COMMAND.STEP &&
+      record.attemptNumber === 2 &&
+      record.checkpointRef !== null &&
+      record.approvalRefs.length === 0 &&
+      record.runRefs.length === 1 &&
+      record.artifactRefs.length === 0;
     if (
       hasTerminalFields ||
       (!isReworkMutationActive &&
+        !isReviewerReexecutionActive &&
         (record.runRefs.length !== 0 || record.artifactRefs.length !== 0))
     ) {
       throw new Error('Active WorkOrderAttempt has terminal evidence');

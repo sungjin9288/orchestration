@@ -99,11 +99,13 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `DEC-200` implements the exact evidence-only path without source mutation.
   `DEC-201` plans one dedicated local-stub Builder rework source mutation that reuses attempt #3,
   `DEC-202` records its complete fielded implementation handoff, and `DEC-203` implements only that
-  bounded schema-v24 path.
+  bounded schema-v24 path. `DEC-204` plans one exact Reviewer re-execution, `DEC-205` records its
+  complete fielded handoff, and `DEC-206` implements the existing-Reviewer WorkOrderAttempt #2
+  local-stub path with a stop before QA.
   Solo binding, bound Council
-  revision/resume/auto-chain, dynamic specialists, durable Reviewer rework implementation,
-  interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
-  application은 아직 구현되지 않았다.
+  revision/resume/auto-chain, dynamic specialists, QA execution, interrupted-attempt recovery,
+  provider/background WorkOrders, Ops commands, and Mission context application은 아직 구현되지
+  않았다.
 
 ## Approved Real Council Planning Authority
 
@@ -143,7 +145,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-205`
+- Recorded decisions: `DEC-163` through `DEC-206`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -214,7 +216,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   stops at a separate Reviewer re-execution decision
 - Stage 5G planning: `DEC-204` fixes one existing-Reviewer local-stub WorkOrderAttempt #2 over the
   exact source-current DEC-203 mutation bundle, and `DEC-205` records the complete fielded
-  implementation handoff; implementation remains reserved for `DEC-206`
+  implementation handoff
+- Stage 5G implementation: `DEC-206` reconciles the exact DEC-203 mutation into current Builder
+  provenance, persists one Reviewer attempt #2 and running local-stub Reviewer Run before worker
+  invocation, preserves attempt-specific evidence, and stops before QA at `QA_READY` on pass or
+  terminal changes-requested/failure
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -563,10 +569,10 @@ BuilderReworkDispatch and existing-Builder WorkOrderAttempt #3 no-write prefligh
 implementation `DEC-200` add only the exact existing-Approval-and-Inbox evidence boundary.
 Planning-only `DEC-201`, handoff-only `DEC-202`, and implementation `DEC-203` define one dedicated
 schema-v24-preserving local-stub Builder rework source mutation path that reuses attempt #3 and
-stops before Reviewer/QA. Planning-only `DEC-204` and handoff-only `DEC-205` define one future
-Reviewer re-execution over the exact DEC-203 mutation evidence, using Reviewer attempt #2 and
-stopping at `QA_READY` on pass. Reviewer re-execution implementation and QA execution remain
-separately blocked.
+stops before Reviewer/QA. Planning-only `DEC-204`, handoff-only `DEC-205`, and implementation
+`DEC-206` define one exact local-stub Reviewer re-execution over the DEC-203 mutation evidence,
+using Reviewer attempt #2 and stopping at `QA_READY` on pass. QA execution remains separately
+blocked.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

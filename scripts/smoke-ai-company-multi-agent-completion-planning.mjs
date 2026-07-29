@@ -173,12 +173,13 @@ for (const decisionId of [
   'DEC-203',
   'DEC-204',
   'DEC-205',
+  'DEC-206',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-205`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-206`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -211,8 +212,15 @@ assert.match(
 );
 assert.match(deliveryRoadmap, /Stage 5F planning-only `DEC-201`/);
 assert.match(masterPlan, /Stage 5G planning: `DEC-204`/);
-assert.match(runtimeContract, /`DEC-204` and handoff-only `DEC-205` define one future/);
-assert.match(councilProtocol, /Planning-only `DEC-204` and handoff-only `DEC-205`/);
+assert.match(masterPlan, /Stage 5G implementation: `DEC-206`/);
+assert.match(
+  runtimeContract,
+  /Planning-only\s+`DEC-204`, handoff-only `DEC-205`, and implementation `DEC-206`/,
+);
+assert.match(
+  councilProtocol,
+  /Planning-only `DEC-204`, handoff-only `DEC-205`, and implementation `DEC-206`/,
+);
 assert.match(deliveryRoadmap, /Stage 5G planning-only `DEC-204`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
@@ -308,6 +316,7 @@ process.stdout.write(
         builderReworkSourceMutationImplementation: 'accepted-dec-203',
         reviewerReexecutionPlanning: 'accepted-dec-204',
         reviewerReexecutionHandoff: 'documented-dec-205',
+        reviewerReexecutionImplementation: 'accepted-dec-206',
       },
       currentRuntime: {
         schemaVersion: 24,
@@ -323,16 +332,16 @@ process.stdout.write(
         builderReworkPreflight: true,
         builderReworkMutationApproval: true,
         builderReworkSourceMutation: 'bounded-local-stub-mutation',
-        reviewerReexecution: false,
+        reviewerReexecution: 'exact-local-stub-attempt-two',
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '5G',
-        object: 'reviewer-reexecution',
+        stage: '5H',
+        object: 'qa-execution',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-206',
+        nextDecisionLogEntry: 'unassigned',
       },
       authority: {
         documentationAllowed: true,
@@ -363,7 +372,7 @@ process.stdout.write(
         builderReworkSourceMutationPlanningAllowed: true,
         builderReworkSourceMutationImplementationAllowed: true,
         reviewerReexecutionPlanningAllowed: true,
-        reviewerReexecutionImplementationAllowed: false,
+        reviewerReexecutionImplementationAllowed: true,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

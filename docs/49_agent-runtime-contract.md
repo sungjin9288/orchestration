@@ -517,9 +517,14 @@ schema change. `DEC-203` implements one dedicated local-stub mutation that reuse
 #3, preserves the DEC-200 Approval byte-equivalent, derives targets from the immutable ReworkPlan,
 persists active attempt and Run evidence before the worker, enforces baseline/realpath/symlink/byte
 guards and full rollback, and stops after mutation Artifacts before Reviewer/QA. Planning-only
-`DEC-204` and handoff-only `DEC-205` define one future existing-Reviewer WorkOrderAttempt #2 over
-the exact current DEC-203 mutation evidence. It must stop at `QA_READY` on pass. Reviewer
-re-execution implementation, QA execution, and every later authority remain separately blocked.
+`DEC-204`, handoff-only `DEC-205`, and implementation `DEC-206` define one existing-Reviewer
+WorkOrderAttempt #2 over the exact current DEC-203 mutation evidence. The runtime atomically
+persists the active attempt and running Reviewer Run before worker invocation, then stops at
+`QA_READY` on pass or at a terminal blocked Reviewer outcome. The Stage 5G checkpoint has an empty
+durable action set and its provenance suppresses generic QA step and recovery actions until a
+separate decision, while reload recomputes
+the mutation evidence from exact Artifact bytes. QA execution and every later authority remain
+separately blocked.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

@@ -4,13 +4,13 @@
 
 This document is the complete fielded decision shape for Stage 5G in
 `docs/139_ai-company-reviewer-reexecution-plan.md`. `DEC-204` accepts planning
-only and `DEC-205` records this handoff. A complete matching operator decision
-is reserved for `DEC-206`.
+only, `DEC-205` records this handoff, and the complete matching operator
+decision is accepted as `DEC-206`.
 
-This handoff authorizes no runtime, schema, API, UI, state, worker, Reviewer,
-QA, or source behavior. Broad approval, continuation, delegated
-self-approval, DEC-203 completion, and this document are invalid
-implementation shortcuts.
+This handoff by itself authorizes no runtime, schema, API, UI, state, worker,
+Reviewer, QA, or source behavior. DEC-206 authorizes only the exact Stage 5G
+slice below. Broad approval, continuation, delegated self-approval, DEC-203
+completion, and this document alone remain invalid implementation shortcuts.
 
 ## Required Decision Fields
 
@@ -73,5 +73,6 @@ inert.
 
 ## Acceptance Rule
 
-Implementation may begin only after one complete matching decision is accepted
-as `DEC-206`. Until then, Stage 5G remains planning and handoff evidence only.
+The complete matching decision was accepted as `DEC-206`. Implementation is
+limited to the exact Stage 5G boundary above; every still-blocked authority
+remains closed.

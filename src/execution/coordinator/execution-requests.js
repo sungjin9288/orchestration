@@ -290,6 +290,35 @@ function buildReviewerExecutionRequest(input) {
   };
 }
 
+function buildReviewerReexecutionExecutionRequest(input) {
+  return {
+    role: 'reviewer',
+    executionMode: 'rework-reviewer',
+    anchor: {
+      builderReworkDispatchId: input.dispatch.id,
+      executionPlanId: input.executionPlan.id,
+      mutationEvidenceDigest: input.mutationEvidenceDigest,
+      reworkPlanId: input.reworkPlan.id,
+      reviewerAttemptId: input.reviewerAttempt.id,
+      reviewerWorkOrderId: input.reviewerWorkOrder.id,
+    },
+    task: toExecutionTask(input.task),
+    project: toExecutionProject(input.project),
+    builderRun: input.mutationRun,
+    changeSummaryArtifact: toExecutionArtifact(input.changeSummaryArtifact),
+    patchArtifact: toExecutionArtifact(input.patchArtifact),
+    diffArtifact: toExecutionArtifact(input.diffArtifact),
+    preflightArtifactId: input.mutationRun.metadata.preflightArtifactId,
+    priorFindings: structuredClone(input.priorFindings),
+    targetPathAllowlist: [...input.targetPathAllowlist],
+    verificationCommands: [...input.verificationCommands],
+    codeContext: structuredClone(input.codeContext),
+    sourceOfTruth: structuredClone(input.sourceOfTruth),
+    promptContract: input.promptContract,
+    expectedArtifactType: 'review',
+  };
+}
+
 module.exports = {
   buildArchitectExecutionRequest,
   buildBuilderLiveMutationExecutionRequest,
@@ -298,5 +327,6 @@ module.exports = {
   buildBuilderReworkSourceMutationExecutionRequest,
   buildPlannerExecutionRequest,
   buildReviewerExecutionRequest,
+  buildReviewerReexecutionExecutionRequest,
   buildTaskBreakerExecutionRequest,
 };

@@ -497,6 +497,71 @@ export function getBuilderReworkSourceMutationRequest(
   };
 }
 
+export function getReviewerReexecutionRequest(
+  envelope,
+  { acknowledgement, rationale, reviewedAt },
+) {
+  const source = envelope?.readiness?.requestSource || envelope?.requestSource;
+  const identifiers = [
+    'builderReworkDispatchId',
+    'builderReworkAttemptId',
+    'mutationRunId',
+    'reviewerWorkOrderId',
+    'sourceReviewerAttemptId',
+  ];
+  const digests = [
+    'builderReworkDispatchDigest',
+    'builderReworkAttemptRecordDigest',
+    'mutationEvidenceDigest',
+    'reviewerWorkOrderDigest',
+    'sourceReviewerAttemptRecordDigest',
+    'sourceProgressDigest',
+  ];
+  if (
+    !source ||
+    identifiers.some(
+      (field) =>
+        typeof source[field] !== 'string' ||
+        !source[field] ||
+        source[field] !== source[field].trim(),
+    ) ||
+    digests.some(
+      (field) => !/^[a-f0-9]{64}$/.test(source[field] || ''),
+    ) ||
+    acknowledgement !==
+      'review-exact-rework-result-once-and-stop-before-qa' ||
+    typeof rationale !== 'string' ||
+    !rationale.trim() ||
+    typeof reviewedAt !== 'string' ||
+    Number.isNaN(Date.parse(reviewedAt)) ||
+    new Date(reviewedAt).toISOString() !== reviewedAt
+  ) {
+    return null;
+  }
+  return {
+    builderReworkDispatchId: source.builderReworkDispatchId,
+    builderReworkDispatchDigest: source.builderReworkDispatchDigest,
+    builderReworkAttemptId: source.builderReworkAttemptId,
+    builderReworkAttemptRecordDigest:
+      source.builderReworkAttemptRecordDigest,
+    mutationRunId: source.mutationRunId,
+    mutationEvidenceDigest: source.mutationEvidenceDigest,
+    reviewerWorkOrderId: source.reviewerWorkOrderId,
+    reviewerWorkOrderDigest: source.reviewerWorkOrderDigest,
+    sourceReviewerAttemptId: source.sourceReviewerAttemptId,
+    sourceReviewerAttemptRecordDigest:
+      source.sourceReviewerAttemptRecordDigest,
+    sourceProgressDigest: source.sourceProgressDigest,
+    evaluatedAt: reviewedAt,
+    reviewerRequest: {
+      decision: 'run-reviewer-reexecution',
+      acknowledgement,
+      rationale: rationale.trim(),
+      reviewedAt,
+    },
+  };
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,
@@ -1377,6 +1442,11 @@ export function getMissionOperatorSteppedSchedulerSummary(bundle) {
   );
   let action = null;
   let expectedWorkOrder = null;
+  const reviewerReexecutionQaGate = Boolean(
+    checkpoint?.stage === 'qa-ready' &&
+      checkpoint.stopReason === 'reviewer-reexecution-passed-qa-ready' &&
+      bundle.executionPlan.stopReason === 'separate-qa-execution-decision-required',
+  );
   if (!activeAttempt && checkpoint?.status === 'ready') {
     if (checkpoint.stage === 'builder-waiting-gate' && terminalGateApproved) {
       action = 'continue-builder';
@@ -1384,7 +1454,7 @@ export function getMissionOperatorSteppedSchedulerSummary(bundle) {
     } else if (checkpoint.stage === 'reviewer-ready') {
       action = 'run-reviewer';
       expectedWorkOrder = byRole.reviewer;
-    } else if (checkpoint.stage === 'qa-ready') {
+    } else if (checkpoint.stage === 'qa-ready' && !reviewerReexecutionQaGate) {
       action = 'run-qa';
       expectedWorkOrder = byRole.qa;
     }
@@ -1401,6 +1471,8 @@ export function getMissionOperatorSteppedSchedulerSummary(bundle) {
       ? 'Builder, Reviewer, QA가 모두 완료됐습니다.'
       : checkpoint?.stage === 'builder-waiting-gate' && !terminalGateApproved
         ? 'Builder live-mutation 승인이 필요합니다.'
+        : reviewerReexecutionQaGate
+          ? 'Reviewer 재실행 이후 QA는 별도 실행 결정이 필요합니다.'
         : ['blocked', 'rejected'].includes(bundle.executionPlan.status)
           ? bundle.executionPlan.stopReason || `계획 상태: ${bundle.executionPlan.status}`
           : action

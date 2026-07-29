@@ -286,12 +286,18 @@ blocked.
 Planning-only `DEC-204` defines the Stage 5G Reviewer re-execution boundary in
 `docs/139_ai-company-reviewer-reexecution-plan.md`, and `DEC-205` records its complete fielded
 implementation handoff in
-`docs/140_ai-company-reviewer-reexecution-implementation-decision-handoff.md`. The planned path
-keeps schema v24 and the fixed three WorkOrders, binds the exact current DEC-203 mutation bundle to
-one existing-Reviewer WorkOrderAttempt #2, separates historical mutation digests from the later
-current graph, and runs Reviewer only. A pass must stop at `QA_READY`; QA execution remains a
-separate decision. Runtime/API/UI implementation remains blocked until one complete matching
-`DEC-206` decision is accepted.
+`docs/140_ai-company-reviewer-reexecution-implementation-decision-handoff.md`. `DEC-206`
+implements that exact local-stub path while keeping schema v24 and the fixed three WorkOrders. It
+binds the current DEC-203 mutation bundle to one existing-Reviewer WorkOrderAttempt #2, separates
+historical mutation evidence from the later current graph, saves the active attempt and Reviewer Run
+before worker invocation, and runs Reviewer only. Raw Artifact bytes are rebound on reload and
+settlement, while an exact terminal replay remains inspectable after unrelated later source drift.
+A pass stops at `QA_READY` with an empty durable action set, and both the generic operator step and
+recovery projection keep QA disabled until a separate decision; changes-requested or failure
+remains blocked at Reviewer. QA
+execution, another retry or rework, provider-backed
+WorkOrders, source mutation expansion, Git/release, memory, scheduling, policy bypass, and
+connectors remain separate decisions.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -793,7 +799,10 @@ handoff, and response-only implementation evidence plus DEC-189 through DEC-191 
 ReworkPlan planning, fielded handoff, and record-only implementation evidence plus DEC-192 through
 DEC-194 Stage 5C ReworkPlanAcceptance planning, handoff, and evidence-only implementation evidence
 plus DEC-195 through DEC-197 Stage 5D Builder rework preflight planning, fielded handoff, and
-bounded implementation evidence pass the aggregate and UI QA gates. Focused browser checks at 1280x720 and
+bounded implementation evidence plus DEC-198 through DEC-200 Stage 5E mutation Approval,
+DEC-201 through DEC-203 Stage 5F source mutation, and DEC-204 through DEC-206 Stage 5G Reviewer
+re-execution planning, handoff, and bounded implementation evidence pass the aggregate and UI QA
+gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
 hierarchy, preserve the first-run project connection path, and report zero root horizontal overflow.
 The earlier DEC-158 matrix remains the evidence for the default-closed Task
@@ -2464,9 +2473,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 988 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 990 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 708 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 709 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke

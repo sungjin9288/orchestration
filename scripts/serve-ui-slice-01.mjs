@@ -2656,6 +2656,82 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  const reviewerReexecutionMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/reviewer-reexecution$/,
+  );
+  if (reviewerReexecutionMatch) {
+    const reworkPlanId = decodeURIComponent(reviewerReexecutionMatch[1]);
+    if (method === 'GET') {
+      try {
+        json(response, 200, {
+          generatedAt: new Date().toISOString(),
+          reviewerReexecution: runtime.getReviewerReexecution(reworkPlanId),
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message || 'Reviewer re-execution inspection에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    if (method === 'POST') {
+      try {
+        const input = await readBoundedJsonBody(request, 8 * 1024);
+        const expectedFields = [
+          'builderReworkAttemptId',
+          'builderReworkAttemptRecordDigest',
+          'builderReworkDispatchDigest',
+          'builderReworkDispatchId',
+          'evaluatedAt',
+          'mutationEvidenceDigest',
+          'mutationRunId',
+          'reviewerRequest',
+          'reviewerWorkOrderDigest',
+          'reviewerWorkOrderId',
+          'sourceProgressDigest',
+          'sourceReviewerAttemptId',
+          'sourceReviewerAttemptRecordDigest',
+        ];
+        const actualFields = Object.keys(input).sort();
+        if (
+          actualFields.length !== expectedFields.length ||
+          actualFields.some(
+            (field, index) => field !== expectedFields[index],
+          )
+        ) {
+          const error = new Error(
+            'Reviewer re-execution body has unexpected or missing fields',
+          );
+          error.statusCode = 400;
+          throw error;
+        }
+        const result = await executionCoordinator.runReviewerReexecution({
+          reworkPlanId,
+          request: input,
+        });
+        json(response, result.idempotent ? 200 : 201, {
+          generatedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message || 'Reviewer re-execution 실행에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    json(response, 405, {
+      error: 'Reviewer re-execution은 GET과 POST만 지원합니다.',
+    });
+    return;
+  }
+
   const builderReworkPreflightMatch = url.pathname.match(
     /^\/api\/rework-plans\/([^/]+)\/builder-rework-preflight$/,
   );

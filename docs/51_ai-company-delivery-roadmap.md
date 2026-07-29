@@ -639,11 +639,14 @@ WorkOrderAttempt #3, records active/completed/failed/interrupted evidence throug
 Artifact contracts, keeps the DEC-200 Approval immutable, and stops before Reviewer/QA. `DEC-203`
 implements only that runtime/API/UI/source path.
 
-Stage 5G planning-only `DEC-204` and handoff-only `DEC-205` define one future local-stub Reviewer
-re-execution over the exact current DEC-203 mutation bundle. It keeps schema v24 and the fixed
-three WorkOrders, appends only Reviewer WorkOrderAttempt #2, and stops at the existing `QA_READY`
-checkpoint on pass. Reviewer implementation remains reserved for `DEC-206`; QA execution is a
-later separate gate.
+Stage 5G planning-only `DEC-204`, handoff-only `DEC-205`, and implementation `DEC-206` define one
+local-stub Reviewer re-execution over the exact current DEC-203 mutation bundle. It keeps schema
+v24 and the fixed three WorkOrders, appends only Reviewer WorkOrderAttempt #2, persists the running
+Reviewer evidence before the worker, and stops at the existing `QA_READY` checkpoint on pass. QA
+execution is a later separate gate, so Stage 5G checkpoint provenance blocks both generic QA step
+and recovery projection until that gate is explicitly approved, with no durable QA action exposed.
+Durable replay and reload bind the request and Run metadata to mutation evidence recomputed from
+exact Artifact bytes.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.

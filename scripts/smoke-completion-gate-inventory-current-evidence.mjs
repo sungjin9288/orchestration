@@ -38,10 +38,11 @@ function assertReadmeHas(pattern) {
 const inventoryGateRows = [
   /Starting head checked before this inventory edit: `965a35b`/,
   /Planning baseline head checked before this document update: `965a35b`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `296\/296`, total `297\/297` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `86\/86` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `297\/297`, UI QA `86\/86`, zero-open backlog,[^|]+DEC-201 through DEC-203 Stage 5F Builder rework source mutation planning\/handoff\/implementation, and DEC-204 through DEC-205 Stage 5G Reviewer re-execution planning\/handoff\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `297\/297`, total `298\/298` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `87\/87` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `298\/298`, UI QA `87\/87`, zero-open backlog,[^|]+DEC-201 through DEC-203 Stage 5F Builder rework source mutation planning\/handoff\/implementation, and DEC-204 through DEC-206 Stage 5G Reviewer re-execution planning\/handoff\/implementation\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| AI Company Reviewer re-execution planning \| pass \| `DEC-204`, `DEC-205`, `docs\/139_ai-company-reviewer-reexecution-plan\.md`, `docs\/140_ai-company-reviewer-reexecution-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-reviewer-reexecution-planning\.mjs` \|/,
+  /\| AI Company Reviewer re-execution implementation \| pass \| `DEC-206`, `src\/runtime\/reviewer-reexecution\.js`, `node scripts\/smoke-ai-company-reviewer-reexecution\.mjs`, `node scripts\/smoke-ui-slice-709\.mjs` \|/,
   /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
   /\| vNext proposal generation operator decision handoff \| pass \| `docs\/41_proposal-generation-operator-decision-handoff\.md`, `node scripts\/vnext-proposal-generation-operator-decision-handoff-status\.mjs` \|/,
   /\| vNext proposal generation planning plan \| pass \| `docs\/42_proposal-generation-planning-plan\.md`, `node scripts\/vnext-proposal-generation-planning-plan-status\.mjs` \|/,
@@ -355,6 +356,7 @@ assert.match(uiQaStatus, /smoke-ui-slice-705\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-706\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-707\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-708\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-709\.mjs/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -365,8 +367,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '296/296',
-        total: '297/297',
+        informational: '297/297',
+        total: '298/298',
       },
     },
     null,

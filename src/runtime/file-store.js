@@ -127,6 +127,8 @@ const {
   WORK_ORDER_ATTEMPT_ACTION,
   WORK_ORDER_ATTEMPT_STATUS,
   assertWorkOrderAttemptRecord,
+  computeWorkOrderAttemptAuthorityDigest,
+  computeWorkOrderAttemptDependencyDigest,
   computeWorkOrderAttemptRecordDigest,
 } = require('./work-order-attempts');
 const {
@@ -163,10 +165,17 @@ const {
   computePreflightRunRecordDigest,
 } = require('./builder-rework-mutation-approvals');
 const {
+  computeMutationEvidenceDigest,
+  computeReviewerReexecutionWorkOrderDigest,
+} = require('./reviewer-reexecution');
+const {
   computeExecutionPlanRecordDigest,
   computeWorkOrderRecordDigest,
 } = require('./workorder-verification-plan-preview');
-const { createWorkflowCheckpoint } = require('./workflow-checkpoints');
+const {
+  createWorkflowCheckpoint,
+  recomputeWorkflowCheckpoint,
+} = require('./workflow-checkpoints');
 const {
   BLOCKED_ACTIONS: VERIFICATION_PROOF_BLOCKED_ACTIONS,
   PROOF_APPROVAL_ACKNOWLEDGEMENT,
@@ -240,7 +249,9 @@ function validateWorkflowCheckpointRecords(state) {
       checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY
         ? [WORKFLOW_CHECKPOINT_ACTION.RESUME_REVIEWER]
         : checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.QA_READY
-          ? [WORKFLOW_CHECKPOINT_ACTION.RESUME_QA]
+          ? checkpoint.stopReason === 'reviewer-reexecution-passed-qa-ready'
+            ? []
+            : [WORKFLOW_CHECKPOINT_ACTION.RESUME_QA]
           : [];
     if (
       checkpoint.nextAllowedActions.length !== expectedActions.length ||
@@ -2214,7 +2225,7 @@ function validateWorkOrderAttemptRecords(state) {
   }
 }
 
-function validateBuilderReworkDispatchRecords(state) {
+function validateBuilderReworkDispatchRecords(state, artifactsDir) {
   const dispatchesByAcceptance = new Set();
   const dispatchesByAttempt = new Set();
   let highestSequence = 0;
@@ -2255,20 +2266,33 @@ function validateBuilderReworkDispatchRecords(state) {
       : [];
     const reviewer = planWorkOrders.find((workOrder) => workOrder?.role === 'reviewer');
     const qa = planWorkOrders.find((workOrder) => workOrder?.role === 'qa');
+    const reviewerReexecutionAttempt = planWorkOrders.length === 3
+      ? Object.values(state.workOrderAttempts).find(
+          (candidate) =>
+            candidate.executionPlanId === plan?.id &&
+            candidate.workOrderId === reviewer?.id &&
+            candidate.action === 'run-reviewer' &&
+            candidate.command === 'step' &&
+            candidate.attemptNumber === 2,
+        ) || null
+      : null;
+    const isReviewerReexecutionLifecycle = Boolean(reviewerReexecutionAttempt);
     if (
       !plan || !builder || !reviewer || !qa || !reworkPlan || !acceptance || !attempt ||
       plan.projectId !== dispatch.projectId || plan.missionId !== dispatch.missionId ||
       plan.councilSessionId !== dispatch.councilSessionId ||
       builder.executionPlanId !== plan.id || builder.role !== 'builder' || builder.position !== 1 ||
-      computeWorkOrderRecordDigest(builder) !== dispatch.builderWorkOrderDigest ||
-      reviewer.status !== WORK_ORDER_STATUS.CHANGES_REQUESTED ||
-      qa.status !== WORK_ORDER_STATUS.BLOCKED_DEPENDENCY ||
+      (!isReviewerReexecutionLifecycle &&
+        computeWorkOrderRecordDigest(builder) !== dispatch.builderWorkOrderDigest) ||
+      (!isReviewerReexecutionLifecycle && reviewer.status !== WORK_ORDER_STATUS.CHANGES_REQUESTED) ||
+      (!isReviewerReexecutionLifecycle && qa.status !== WORK_ORDER_STATUS.BLOCKED_DEPENDENCY) ||
       reworkPlan.executionPlanId !== plan.id ||
       reworkPlan.recordDigest !== dispatch.reworkPlanRecordDigest ||
       acceptance.reworkPlanId !== reworkPlan.id ||
       acceptance.acceptanceDigest !== dispatch.reworkPlanAcceptanceDigest ||
       acceptance.createdAt > dispatch.createdAt ||
-      computeExecutionPlanRecordDigest(plan) !== dispatch.sourceExecutionPlanDigest ||
+      (!isReviewerReexecutionLifecycle &&
+        computeExecutionPlanRecordDigest(plan) !== dispatch.sourceExecutionPlanDigest) ||
       reworkPlan.sourceExecutionPlanDigest !== dispatch.sourceExecutionPlanDigest ||
       reworkPlan.sourceAttemptRecordDigest !== dispatch.sourceAttemptRecordDigest ||
       reworkPlan.sourceProgressDigest !== dispatch.sourceProgressDigest ||
@@ -2280,9 +2304,11 @@ function validateBuilderReworkDispatchRecords(state) {
       attempt.decisionInboxItemRefs.length !== 0 ||
       attempt.checkpointRef !== null ||
       !['active', 'waiting-gate', 'completed', 'failed'].includes(attempt.status) ||
-      plan.status !== EXECUTION_PLAN_STATUS.BLOCKED ||
-      plan.stopReason !== 'reviewer-changes-requested' || plan.stoppedAt !== 'reviewer' ||
-      plan.activeWorkOrderId !== null || builder.status !== WORK_ORDER_STATUS.COMPLETED ||
+      (!isReviewerReexecutionLifecycle && plan.status !== EXECUTION_PLAN_STATUS.BLOCKED) ||
+      (!isReviewerReexecutionLifecycle && plan.stopReason !== 'reviewer-changes-requested') ||
+      (!isReviewerReexecutionLifecycle && plan.stoppedAt !== 'reviewer') ||
+      (!isReviewerReexecutionLifecycle && plan.activeWorkOrderId !== null) ||
+      builder.status !== WORK_ORDER_STATUS.COMPLETED ||
       !plan.workOrderIds.includes(builder.id) || plan.workOrderIds.length !== 3
     ) {
       throw new Error(`${label} has invalid source or attempt lineage`);
@@ -2564,6 +2590,298 @@ function validateBuilderReworkDispatchRecords(state) {
         }
       }
     }
+    if (isReviewerReexecutionLifecycle) {
+      const sourceReviewerAttempt = state.workOrderAttempts[reworkPlan.reviewerAttemptId];
+      const sourceReviewerRun = state.runs[reworkPlan.reviewerRunId];
+      const sourceReviewArtifact = state.artifacts[reworkPlan.reviewArtifactId];
+      const mutationApproval = state.approvals[attempt.approvalRefs[0]];
+      const mutationRun = state.runs[attempt.runRefs[1]];
+      const mutationArtifacts = attempt.artifactRefs
+        .slice(1)
+        .map((artifactId) => state.artifacts[artifactId]);
+      const reviewerRun = reviewerReexecutionAttempt.runRefs.length === 1
+        ? state.runs[reviewerReexecutionAttempt.runRefs[0]]
+        : null;
+      const reviewArtifact = reviewerReexecutionAttempt.artifactRefs.length === 1
+        ? state.artifacts[reviewerReexecutionAttempt.artifactRefs[0]]
+        : null;
+      const isActive = reviewerReexecutionAttempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE;
+      const isCompleted = reviewerReexecutionAttempt.status === WORK_ORDER_ATTEMPT_STATUS.COMPLETED;
+      const isChangesRequested =
+        reviewerReexecutionAttempt.status === WORK_ORDER_ATTEMPT_STATUS.CHANGES_REQUESTED;
+      const isFailed = reviewerReexecutionAttempt.status === WORK_ORDER_ATTEMPT_STATUS.FAILED;
+      let mutationEvidenceDigest = null;
+      try {
+        mutationEvidenceDigest = computeMutationEvidenceDigest({
+          approval: mutationApproval,
+          artifacts: mutationArtifacts.map((mutationArtifact) => ({
+            artifact: mutationArtifact,
+            bytes: readBuilderReworkPreflightArtifactBytes(
+              mutationArtifact.path,
+              artifactsDir,
+              label,
+            ),
+          })),
+          builderAttempt: attempt,
+          currentTargetDigests:
+            mutationRun?.summary?.targetFilePostMutationDigests,
+          dispatch,
+          mutationRun,
+          postMutationTargetDigests:
+            mutationRun?.summary?.targetFilePostMutationDigests,
+          sourceReviewerAttempt,
+          sourceReviewerRun,
+        });
+      } catch (error) {
+        throw new Error(
+          `${label} cannot recompute Stage 5G mutation evidence: ${error.message}`,
+        );
+      }
+      const terminalCheckpoint = reviewerReexecutionAttempt.checkpointRef
+        ? state.workflowCheckpoints[reviewerReexecutionAttempt.checkpointRef]
+        : null;
+      const reviewerStartCheckpoint = isCompleted
+        ? state.workflowCheckpoints[terminalCheckpoint?.resumedFromCheckpointId]
+        : state.workflowCheckpoints[plan.latestCheckpointId];
+      const reviewerAtAttemptStart = reviewerRun && sourceReviewerRun && sourceReviewArtifact
+        ? {
+            ...reviewer,
+            status: WORK_ORDER_STATUS.ACTIVE,
+            runRefs: reviewer.runRefs.filter((runId) => runId !== reviewerRun.id),
+            artifactRefs: reviewer.artifactRefs.filter(
+              (artifactId) => !reviewerReexecutionAttempt.artifactRefs.includes(artifactId),
+            ),
+            completionRunId:
+              reviewer.completionRunId === reviewerRun.id
+                ? sourceReviewerRun.id
+                : reviewer.completionRunId,
+            reviewArtifactId:
+              reviewer.reviewArtifactId === reviewArtifact?.id
+                ? sourceReviewArtifact.id
+                : reviewer.reviewArtifactId,
+            completedAt:
+              reviewer.completionRunId === reviewerRun.id
+                ? sourceReviewerRun.finishedAt
+                : reviewer.completedAt,
+            updatedAt: reviewerRun.startedAt,
+          }
+        : null;
+      const reviewerAtCheckpoint = reviewerAtAttemptStart
+        ? {
+            ...reviewerAtAttemptStart,
+            status: WORK_ORDER_STATUS.QUEUED,
+          }
+        : null;
+      const qaAtReviewerStart = {
+        ...qa,
+        status: WORK_ORDER_STATUS.BLOCKED_DEPENDENCY,
+      };
+      const planAtReviewerStart = reviewerRun
+        ? {
+            ...plan,
+            runRefs: plan.runRefs.filter((runId) => runId !== reviewerRun.id),
+            artifactRefs: plan.artifactRefs.filter(
+              (artifactId) => !reviewerReexecutionAttempt.artifactRefs.includes(artifactId),
+            ),
+          }
+        : null;
+      const project = state.projects[plan.projectId];
+      const reviewerStartCheckpointStatus =
+        reviewerStartCheckpoint && reviewerAtCheckpoint && planAtReviewerStart && project
+          ? recomputeWorkflowCheckpoint(reviewerStartCheckpoint, {
+              executionPlan: planAtReviewerStart,
+              workOrders: [builder, reviewerAtCheckpoint, qaAtReviewerStart],
+              projectProvider: project.provider,
+            })
+          : null;
+      const terminalCheckpointStatus =
+        isCompleted && terminalCheckpoint && project
+          ? recomputeWorkflowCheckpoint(terminalCheckpoint, {
+              executionPlan: plan,
+              workOrders: [builder, reviewer, qa],
+              projectProvider: project.provider,
+            })
+          : null;
+      const expectedReviewerDependencyDigest = reviewerAtAttemptStart
+        ? computeWorkOrderAttemptDependencyDigest({
+            executionPlanId: plan.id,
+            workOrderId: reviewer.id,
+            dependencies: reviewerAtAttemptStart.dependencyIds.map((dependencyId) => ({
+              id: dependencyId,
+              status: state.workOrders[dependencyId]?.status,
+            })),
+          })
+        : null;
+      const expectedReviewerAuthorityDigest = reviewerStartCheckpoint
+        ? computeWorkOrderAttemptAuthorityDigest({
+            executionPlanId: plan.id,
+            expectedWorkOrderId: reviewer.id,
+            command: 'step',
+            action: 'run-reviewer',
+            sourceDigest: plan.sourceDigest,
+            checkpointRef: reviewerStartCheckpoint.id,
+            checkpointDigest: reviewerStartCheckpoint.checkpointDigest,
+            approvalRefs: [],
+          })
+        : null;
+      if (
+        !reviewerStartCheckpoint ||
+        reviewerStartCheckpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY ||
+        reviewerStartCheckpoint.status !== WORKFLOW_CHECKPOINT_STATUS.CONSUMED ||
+        reviewerStartCheckpoint.stopReason !== 'reviewer-reexecution-started'
+      ) {
+        throw new Error(`${label} has invalid Stage 5G Reviewer start checkpoint`);
+      }
+      if (reviewerStartCheckpointStatus?.current !== true) {
+        throw new Error(`${label} has stale Stage 5G Reviewer start checkpoint digests`);
+      }
+      if (
+        reviewerReexecutionAttempt.workOrderDigest !==
+        computeReviewerReexecutionWorkOrderDigest(reviewer)
+      ) {
+        throw new Error(`${label} has invalid Stage 5G Reviewer WorkOrder digest`);
+      }
+      if (
+        reviewerReexecutionAttempt.dependencyDigest !==
+        expectedReviewerDependencyDigest
+      ) {
+        throw new Error(`${label} has invalid Stage 5G Reviewer dependency digest`);
+      }
+      if (
+        reviewerReexecutionAttempt.authorityDigest !==
+        expectedReviewerAuthorityDigest
+      ) {
+        throw new Error(`${label} has invalid Stage 5G Reviewer authority digest`);
+      }
+      if (
+        !sourceReviewerAttempt ||
+        sourceReviewerAttempt.recordDigest !== dispatch.sourceAttemptRecordDigest ||
+        sourceReviewerAttempt.attemptNumber !== 1 ||
+        sourceReviewerAttempt.status !== WORK_ORDER_ATTEMPT_STATUS.CHANGES_REQUESTED ||
+        !sourceReviewerRun ||
+        sourceReviewerRun.id !== reworkPlan.reviewerRunId ||
+        sourceReviewerRun.status !== RUN_STATUS.COMPLETED ||
+        !mutationApproval ||
+        !mutationRun ||
+        mutationRun.status !== RUN_STATUS.COMPLETED ||
+        mutationArtifacts.length !== 3 ||
+        mutationArtifacts.some((entry) => !entry) ||
+        mutationEvidenceDigest !== reviewerRun?.metadata?.mutationEvidenceDigest ||
+        !builder.runRefs.includes(mutationRun.id) ||
+        mutationArtifacts.some((entry) => !builder.artifactRefs.includes(entry.id)) ||
+        builder.completionRunId !== mutationRun.id ||
+        !sameStringArrays(
+          builder.changedFiles,
+          mutationRun.summary?.changedFiles || [],
+        ) ||
+        !plan.runRefs.includes(mutationRun.id) ||
+        mutationArtifacts.some((entry) => !plan.artifactRefs.includes(entry.id)) ||
+        reviewerReexecutionAttempt.executionPlanId !== plan.id ||
+        reviewerReexecutionAttempt.workOrderId !== reviewer.id ||
+        reviewerReexecutionAttempt.role !== 'reviewer' ||
+        reviewerReexecutionAttempt.position !== reviewer.position ||
+        reviewerReexecutionAttempt.action !== 'run-reviewer' ||
+        reviewerReexecutionAttempt.command !== 'step' ||
+        reviewerReexecutionAttempt.attemptNumber !== 2 ||
+        reviewerReexecutionAttempt.sourceDigest !== plan.sourceDigest ||
+        reviewerReexecutionAttempt.missionId !== plan.missionId ||
+        reviewerReexecutionAttempt.projectId !== plan.projectId ||
+        reviewerReexecutionAttempt.runRefs.length !== 1 ||
+        !reviewerRun ||
+        reviewerRun.taskId !== plan.controlTaskId ||
+        reviewerRun.role !== 'reviewer' ||
+        reviewerRun.metadata?.executionMode !== 'rework-reviewer' ||
+        reviewerRun.metadata?.builderReworkDispatchId !== dispatch.id ||
+        reviewerRun.metadata?.reworkPlanId !== reworkPlan.id ||
+        reviewerRun.metadata?.workOrderAttemptId !== reviewerReexecutionAttempt.id ||
+        !/^[a-f0-9]{64}$/.test(reviewerRun.metadata?.requestDigest || '') ||
+        !/^[a-f0-9]{64}$/.test(reviewerRun.metadata?.mutationEvidenceDigest || '') ||
+        ![isActive, isCompleted, isChangesRequested, isFailed].some(Boolean)
+      ) {
+        throw new Error(`${label} has invalid Stage 5G Reviewer re-execution lineage`);
+      }
+      if (isActive) {
+        const checkpoint = state.workflowCheckpoints[reviewerReexecutionAttempt.checkpointRef];
+        if (
+          reviewerRun.status !== RUN_STATUS.RUNNING ||
+          reviewerRun.summary !== null ||
+          reviewerReexecutionAttempt.artifactRefs.length !== 0 ||
+          reviewerReexecutionAttempt.decisionInboxItemRefs.length !== 0 ||
+          !checkpoint ||
+          checkpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY ||
+          checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.CONSUMED ||
+          reviewer.status !== WORK_ORDER_STATUS.ACTIVE ||
+          qa.status !== WORK_ORDER_STATUS.BLOCKED_DEPENDENCY ||
+          plan.status !== EXECUTION_PLAN_STATUS.REVIEWING ||
+          plan.activeWorkOrderId !== reviewer.id
+        ) {
+          throw new Error(`${label} has invalid active Stage 5G Reviewer state`);
+        }
+      } else if (isCompleted) {
+        const checkpoint = state.workflowCheckpoints[reviewerReexecutionAttempt.checkpointRef];
+        if (
+          reviewerRun.status !== RUN_STATUS.COMPLETED ||
+          reviewerRun.summary?.executionMode !== 'rework-reviewer' ||
+          reviewerRun.summary?.rawVerdict !== 'pass' ||
+          reviewerRun.summary?.terminal !== true ||
+          reviewerRun.summary?.mutationEvidenceDigest !== mutationEvidenceDigest ||
+          reviewerRun.summary?.sourceRunId !== mutationRun.id ||
+          !reviewArtifact ||
+          reviewArtifact.type !== ARTIFACT_TYPE.REVIEW ||
+          reviewArtifact.runId !== reviewerRun.id ||
+          reviewerReexecutionAttempt.decisionInboxItemRefs.length !== 0 ||
+          !checkpoint ||
+          checkpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.QA_READY ||
+          checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.READY ||
+          checkpoint.stopReason !== 'reviewer-reexecution-passed-qa-ready' ||
+          checkpoint.nextAllowedActions.length !== 0 ||
+          terminalCheckpointStatus?.current !== true ||
+          reviewer.status !== WORK_ORDER_STATUS.COMPLETED ||
+          qa.status !== WORK_ORDER_STATUS.QUEUED ||
+          plan.status !== EXECUTION_PLAN_STATUS.REVIEWING ||
+          plan.activeWorkOrderId !== qa.id ||
+          plan.stopReason !== 'separate-qa-execution-decision-required' ||
+          plan.stoppedAt !== 'qa'
+        ) {
+          throw new Error(`${label} has invalid passed Stage 5G Reviewer state`);
+        }
+      } else if (isChangesRequested) {
+        if (
+          reviewerRun.status !== RUN_STATUS.COMPLETED ||
+          reviewerRun.summary?.executionMode !== 'rework-reviewer' ||
+          reviewerRun.summary?.rawVerdict !== 'changes_requested' ||
+          reviewerRun.summary?.mutationEvidenceDigest !== mutationEvidenceDigest ||
+          reviewerRun.summary?.sourceRunId !== mutationRun.id ||
+          reviewerReexecutionAttempt.artifactRefs.length !== 1 ||
+          !reviewArtifact ||
+          reviewArtifact.type !== ARTIFACT_TYPE.REVIEW ||
+          reviewArtifact.runId !== reviewerRun.id ||
+          reviewerReexecutionAttempt.decisionInboxItemRefs.length > 1 ||
+          reviewer.status !== WORK_ORDER_STATUS.CHANGES_REQUESTED ||
+          qa.status !== WORK_ORDER_STATUS.BLOCKED_DEPENDENCY ||
+          plan.status !== EXECUTION_PLAN_STATUS.BLOCKED ||
+          plan.activeWorkOrderId !== null ||
+          plan.stopReason !== 'reviewer-reexecution-changes-requested' ||
+          plan.stoppedAt !== 'reviewer'
+        ) {
+          throw new Error(`${label} has invalid changes-requested Stage 5G Reviewer state`);
+        }
+      } else if (
+        reviewerRun.status !== RUN_STATUS.COMPLETED ||
+        reviewerRun.summary?.executionMode !== 'rework-reviewer' ||
+        reviewerRun.summary?.mutationEvidenceDigest !== mutationEvidenceDigest ||
+        reviewerRun.summary?.sourceRunId !== mutationRun.id ||
+        reviewerReexecutionAttempt.artifactRefs.length !== 0 ||
+        reviewer.status !== WORK_ORDER_STATUS.FAILED ||
+        qa.status !== WORK_ORDER_STATUS.BLOCKED_DEPENDENCY ||
+        plan.status !== EXECUTION_PLAN_STATUS.BLOCKED ||
+        plan.activeWorkOrderId !== null ||
+        plan.stopReason !== 'reviewer-reexecution-failed' ||
+        plan.stoppedAt !== 'reviewer'
+      ) {
+        throw new Error(`${label} has invalid failed Stage 5G Reviewer state`);
+      }
+    }
   }
   if (state.sequences.builderReworkDispatch !== highestSequence) {
     throw new Error(
@@ -2761,6 +3079,13 @@ function validateBuilderReworkMutationApprovalRecords(state, artifactsDir) {
     const expectedReviewDecisionInboxItemRefs = [
       ...(reworkPlan.evidenceRefs?.decisionInboxItemRefs || []),
     ];
+    const reviewerReexecutionStarted = Object.values(state.workOrderAttempts).some(
+      (candidate) =>
+        candidate.executionPlanId === metadata.executionPlanId &&
+        candidate.action === 'run-reviewer' &&
+        candidate.command === 'step' &&
+        candidate.attemptNumber === 2,
+    );
     if (
       metadata.reviewDecisionInboxItemRefs.length !==
         expectedReviewDecisionInboxItemRefs.length ||
@@ -2774,7 +3099,12 @@ function validateBuilderReworkMutationApprovalRecords(state, artifactsDir) {
           !item ||
           item.taskId !== task.id ||
           item.sourceType !== DECISION_INBOX_SOURCE_TYPE.REVIEW ||
-          item.status !== DECISION_INBOX_STATUS.PENDING ||
+          (
+            item.status !== DECISION_INBOX_STATUS.PENDING &&
+            (!reviewerReexecutionStarted ||
+              item.status !== DECISION_INBOX_STATUS.RESOLVED ||
+              item.resolution?.action !== 'rework-started')
+          ) ||
           item.blocksTask !== true
         );
       })
@@ -4413,7 +4743,7 @@ function createFileStore(options = {}) {
     validateSpecialistBatchRecords(normalizedState);
     validateReworkPlanRecords(normalizedState);
     validateReworkPlanAcceptanceRecords(normalizedState);
-    validateBuilderReworkDispatchRecords(normalizedState);
+    validateBuilderReworkDispatchRecords(normalizedState, artifactsDir);
     validateBuilderReworkMutationApprovalRecords(normalizedState, artifactsDir);
     return normalizedState;
   }
@@ -4585,6 +4915,14 @@ function createFileStore(options = {}) {
     return fs.readFileSync(artifactPath, 'utf8');
   }
 
+  function readArtifactBytes(location) {
+    return readBuilderReworkPreflightArtifactBytes(
+      resolveArtifactPath(location),
+      artifactsDir,
+      'Runtime',
+    );
+  }
+
   function writeArtifactAtPath(artifactPath, content) {
     ensureDirs();
     fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
@@ -4643,6 +4981,7 @@ function createFileStore(options = {}) {
     moveArtifactToArchive,
     moveArtifactToDeleted,
     readArtifact,
+    readArtifactBytes,
     readLogRecords,
     removeArtifactAtPath,
     resolveArtifactPath,

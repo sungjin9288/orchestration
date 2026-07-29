@@ -53,7 +53,11 @@ function buildCheckpointBindings(input) {
   const workOrders = [...input.workOrders].sort(
     (left, right) => left.position - right.position || left.id.localeCompare(right.id),
   );
-  const nextAllowedActions = nextAllowedActionsForStage(input.stage);
+  const nextAllowedActions =
+    input.stage === WORKFLOW_CHECKPOINT_STAGE.QA_READY &&
+    input.stopReason === 'reviewer-reexecution-passed-qa-ready'
+      ? []
+      : nextAllowedActionsForStage(input.stage);
   const completedUnitRefs = workOrders
     .filter((workOrder) => workOrder.status === 'completed')
     .map((workOrder) => workOrder.id);
@@ -186,6 +190,7 @@ function recomputeWorkflowCheckpoint(checkpoint, input) {
   const bindings = buildCheckpointBindings({
     ...input,
     stage: checkpoint.stage,
+    stopReason: checkpoint.stopReason,
   });
   return {
     ...bindings,

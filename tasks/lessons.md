@@ -1,5 +1,20 @@
 # lessons
 
+- A `QA_READY` checkpoint is not enough to prove that QA execution is authorized. When a bounded
+  stage stops for a separate downstream decision, carry that provenance in the checkpoint and
+  enforce it in runtime commands, recovery projections, and UI signals; otherwise a generic
+  scheduler can reopen authority that the specialized path intentionally withheld.
+- Evidence called raw-byte-bound must be read as bounded binary data with containment checks.
+  Re-decoding and re-encoding UTF-8 can collapse distinct invalid byte sequences, while validating
+  only a stored digest cannot detect later Artifact drift. Recompute the canonical evidence digest
+  from exact bytes on settlement, replay, and reload, then require it to match both the request and
+  durable Run metadata.
+- A separately authorized re-execution needs one atomic start transaction, not a generic role
+  runner followed by a second save. Reconcile the exact source evidence, consume the source-bound
+  checkpoint, append the new attempt, and persist the running Run together before invoking the
+  worker. Replay must bind both the operator request digest and immutable mutation evidence digest;
+  terminal evidence must stay attempt-specific so prior findings remain history rather than being
+  rewritten as the new attempt's output.
 - Historical execution evidence and current graph state need separate digest owners. Once a later
   role transition is authorized, keep validating the immutable source record against its stored
   source digest and bind the changed current graph through a new checkpoint and attempt authority;

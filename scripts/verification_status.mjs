@@ -454,7 +454,12 @@ const informationalChecks = [
   {
     id: 'ai-company-reviewer-reexecution-planning',
     script: 'scripts/smoke-ai-company-reviewer-reexecution-planning.mjs',
-    purpose: 'AI Company Stage 5G planning keeps schema v24 and the fixed WorkOrder graph while binding exact DEC-203 mutation evidence to one future existing-Reviewer attempt number two, pass-to-QA-ready stop, terminal changes-requested behavior, replay, interruption, and still-blocked implementation authority',
+    purpose: 'AI Company Stage 5G planning source-checks consumed DEC-204 through DEC-206 provenance, schema-v24 fixed graph, exact DEC-203 mutation evidence, existing-Reviewer attempt number two, pass-to-QA-ready stop, terminal changes-requested behavior, replay, interruption, and still-blocked QA authority',
+  },
+  {
+    id: 'ai-company-reviewer-reexecution',
+    script: 'scripts/smoke-ai-company-reviewer-reexecution.mjs',
+    purpose: 'AI Company Stage 5G runtime and API prove one source-current DEC-203 mutation reconciliation, atomic existing-Reviewer attempt number two and running Run persistence, exact local-stub settlement, attempt-specific evidence, no-write replay, divergent refusal, schema-v24 reload, pass-to-QA-ready stop, and terminal changes-requested or failure without QA execution',
   },
   {
     id: 'ai-company-builder-rework-preflight',

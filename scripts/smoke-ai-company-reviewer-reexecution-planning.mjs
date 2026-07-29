@@ -72,8 +72,8 @@ for (const field of decisionFields) {
 assertIncludesAll(plan, [
   /Planning-only authority is recorded as `DEC-204`/,
   /`DEC-205` records the complete\s+fielded implementation handoff/,
-  /later `DEC-206` decision/,
-  /changes no runtime, schema, API, UI, state, source/,
+  /`DEC-206` accepts only the exact Stage 5G/,
+  /implementation keeps schema v24 and the fixed WorkOrder graph/,
   /Stage 5G should run Reviewer once and stop before QA/,
   /existing Reviewer WorkOrderAttempt #2/,
   /Keep schemaVersion 24/,
@@ -96,7 +96,7 @@ assertIncludesAll(plan, [
   /stop recomputing that historical digest from a later mutable ExecutionPlan/,
   /scripts\/smoke-ai-company-reviewer-reexecution\.mjs/,
   /scripts\/smoke-ui-slice-709\.mjs/,
-  /Runtime\/API\/UI implementation: not approved/,
+  /Runtime\/API\/UI implementation: approved only for this exact Stage 5G slice by `DEC-206`/,
 ], 'reviewer re-execution plan');
 
 assertIncludesAll(handoff, [
@@ -112,12 +112,13 @@ assertIncludesAll(handoff, [
   /no schema migration sequence map new WorkOrder or new durable domain record/,
   /scripts\/smoke-ai-company-reviewer-reexecution\.mjs/,
   /scripts\/smoke-ui-slice-709\.mjs/,
-  /Implementation may begin only after one complete matching decision is accepted\s+as `DEC-206`/,
+  /The complete matching decision was accepted as `DEC-206`/,
 ], 'reviewer re-execution handoff');
 
 assertIncludesAll(decisionLog, [
   /^### DEC-204$/m,
   /^### DEC-205$/m,
+  /^### DEC-206$/m,
 ], 'decision log');
 
 for (const source of [
@@ -129,22 +130,23 @@ for (const source of [
 ]) {
   assert.match(source, /DEC-204/);
   assert.match(source, /DEC-205/);
+  assert.match(source, /DEC-206/);
   assert.match(source, /Reviewer/);
   assert.match(source, /QA/);
 }
 
-assert.match(inventory, /AI Company Reviewer re-execution planning/);
+assert.match(inventory, /AI Company Reviewer re-execution implementation/);
 assert.match(inventory, /DEC-204/);
 assert.match(inventory, /DEC-205/);
-assert.match(inventory, /informational `296\/296`, total `297\/297`/);
+assert.match(inventory, /informational `297\/297`, total `298\/298`/);
 assert.match(readme, /docs\/139_ai-company-reviewer-reexecution-plan\.md/);
 assert.match(
   readme,
   /docs\/140_ai-company-reviewer-reexecution-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /988 smoke files/);
-assert.match(readme, /708 UI smoke files/);
-assert.match(todo, /ai-company-reviewer-reexecution-planning-post-m7-2036/);
+assert.match(readme, /990 smoke files/);
+assert.match(readme, /709 UI smoke files/);
+assert.match(todo, /ai-company-reviewer-reexecution-implementation-post-m7-2037/);
 assert.match(
   lessons,
   /Historical execution evidence and current graph state need separate digest owners/,
@@ -170,7 +172,7 @@ assert.match(
 );
 assert.match(
   fileStore,
-  /computeExecutionPlanRecordDigest\(plan\) !== dispatch\.sourceExecutionPlanDigest/,
+  /!isReviewerReexecutionLifecycle &&\s+computeExecutionPlanRecordDigest\(plan\) !== dispatch\.sourceExecutionPlanDigest/,
 );
 assert.match(
   fileStore,
@@ -178,22 +180,23 @@ assert.match(
 );
 assert.match(coordinator, /async function runReviewer\(input\)/);
 assert.match(coordinator, /async function runBuilderReworkSourceMutation\(input\)/);
-assert.doesNotMatch(runtime, /function prepareReviewerReexecution\(/);
-assert.doesNotMatch(coordinator, /async function runReviewerReexecution\(/);
+assert.match(runtime, /function beginReviewerReexecution\(input\)/);
+assert.match(runtime, /function completeReviewerReexecution\(input\)/);
+assert.match(coordinator, /async function runReviewerReexecution\(input\)/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 988);
-assert.equal(uiSmokeFileCount, 708);
+assert.equal(smokeFileCount, 990);
+assert.equal(uiSmokeFileCount, 709);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode,
   planningDecision: 'accepted-dec-204',
   handoffDecision: 'documented-dec-205',
-  implementationDecision: 'reserved-dec-206',
+  implementationDecision: 'accepted-dec-206',
   schemaVersion: 24,
-  reviewerReexecutionAllowed: false,
+  reviewerReexecutionAllowed: true,
   qaExecutionAllowed: false,
   smokeFileCount,
   uiSmokeFileCount,

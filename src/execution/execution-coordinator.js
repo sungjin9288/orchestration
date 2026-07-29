@@ -28,6 +28,7 @@ const {
   buildBuilderReworkSourceMutationExecutionRequest,
   buildPlannerExecutionRequest,
   buildReviewerExecutionRequest,
+  buildReviewerReexecutionExecutionRequest,
   buildTaskBreakerExecutionRequest,
 } = require('./coordinator/execution-requests');
 const {
@@ -4289,6 +4290,98 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runReviewerReexecution(input) {
+    if (!input?.reworkPlanId || !input?.request) {
+      throw new Error('reworkPlanId and request are required');
+    }
+    const started = runtime.beginReviewerReexecution({
+      reworkPlanId: input.reworkPlanId,
+      request: input.request,
+    });
+    if (started.idempotent) return started;
+
+    const requestDigest = started.reviewerReexecution.requestDigest;
+    const mutationEvidenceDigest = started.reviewerReexecution.mutationEvidenceDigest;
+    let worker;
+    try {
+      worker = runtime.getReviewerReexecutionWorkerInput({
+        reworkPlanId: input.reworkPlanId,
+        requestDigest,
+      });
+      const providerContext = assertProviderExecutionReady(worker.project, 'reviewer');
+      const sourceOfTruthPaths = resolveSourceOfTruthPaths(worker.project);
+      const [changeSummaryArtifact, patchArtifact, diffArtifact] =
+        worker.mutationArtifacts.map((artifact) => runtime.getArtifact(artifact.id));
+      const request = buildReviewerReexecutionExecutionRequest({
+        ...worker,
+        dispatch: worker.dispatch,
+        reviewerAttempt: worker.reviewerAttempt,
+        reviewerWorkOrder: worker.byRole.reviewer,
+        changeSummaryArtifact,
+        patchArtifact,
+        diffArtifact,
+        priorFindings: worker.reworkPlan.findings.map((finding) => finding.text),
+        targetPathAllowlist: worker.reworkPlan.targetPathAllowlist,
+        verificationCommands: worker.reworkPlan.verificationCommands,
+        sourceOfTruth: sourceOfTruthPaths.map((relativePath) =>
+          readContextFile(repoRoot, relativePath)),
+        promptContract: readContextFile(repoRoot, reviewerPromptPath),
+      });
+      runtime.appendLog({
+        runId: worker.reviewerRun.id,
+        message: `reviewer re-execution started for exact mutation ${mutationEvidenceDigest}`,
+      });
+      const response = await executeWithAdapter(providerContext.adapter, request, providerContext);
+      const normalizedResult = response.normalizedResult;
+      const parsedReview = parseReviewerArtifactContent(response.outputText);
+      if (
+        !normalizedResult ||
+        !['pass', 'changes_requested'].includes(parsedReview.verdict) ||
+        (parsedReview.verdict === 'pass' && normalizedResult.needsDecision === true)
+      ) {
+        throw new Error('Reviewer re-execution provider result is malformed or widened');
+      }
+      const completed = runtime.completeReviewerReexecution({
+        reworkPlanId: input.reworkPlanId,
+        runId: worker.reviewerRun.id,
+        requestDigest,
+        mutationEvidenceDigest,
+        normalizedResult,
+        outputText: response.outputText,
+        providerEvidence: {
+          adapter: response.adapterName,
+          model: response.model,
+          providerRunId: response.providerRunId,
+        },
+      });
+      return {
+        ...completed,
+        idempotent: false,
+        parsedReview,
+      };
+    } catch (error) {
+      if (worker?.reviewerRun?.id) {
+        try {
+          runtime.appendLog({
+            runId: worker.reviewerRun.id,
+            level: 'error',
+            message: `reviewer re-execution failed: ${error.message}`,
+          });
+          runtime.failReviewerReexecution({
+            reworkPlanId: input.reworkPlanId,
+            runId: worker.reviewerRun.id,
+            requestDigest,
+            mutationEvidenceDigest,
+            error: error.message,
+          });
+        } catch (settlementError) {
+          error.reviewerReexecutionSettlementError = settlementError.message;
+        }
+      }
+      throw error;
+    }
+  }
+
   async function runQaWorkOrder(input) {
     if (!input?.taskId || !input.executionPlanId || !input.workOrderId) {
       throw new Error('taskId, executionPlanId, and workOrderId are required');
@@ -5247,6 +5340,7 @@ function createExecutionCoordinator(options = {}) {
     runPlanner,
     runQaWorkOrder,
     runReviewer,
+    runReviewerReexecution,
     runTaskBreaker,
   };
 }

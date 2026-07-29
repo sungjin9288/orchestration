@@ -1355,6 +1355,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one existing-Reviewer local-stub attempt #2 that stops at `QA_READY` on pass. It explicitly excludes QA execution, a third attempt, another rework, retry, recovery, provider-backed execution, source mutation expansion, Git/release, memory, scheduling, policy mutation, approval bypass, and connectors. No implementation authority is recorded.
 - Needed Before: The operator must supply every required field in one valid architecture-sensitive implementation decision. `DEC-204`, this handoff, broad approval, delegated self-approval, or continuation does not authorize implementation. A matching implementation outcome is reserved for `DEC-206`.
 
+### DEC-206
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one explicit local-stub Reviewer re-execution from one source-current completed schema-v24 DEC-203 mutation, using the existing Reviewer WorkOrder and WorkOrderAttempt #2 and stopping before QA execution.
+- Why: `DEC-204` and `DEC-205` fixed the exact mutation evidence digest, historical/current digest ownership, atomic start and settlement boundaries, existing Reviewer attempt #2, source-bound Reviewer-ready checkpoint, Decision reconciliation, pass-to-QA-ready stop, changes-requested terminal stop, replay, interruption, rollback, and focused verification contract. The supplied decision matches all fifteen required fields.
+- Impact: Implementation may change only the named Stage 5G runtime, execution, API, UI, smoke, and coupled evidence surfaces. Schema stays v24, the fixed three-WorkOrder graph remains unchanged, and no new durable domain record is added. QA execution, another Reviewer or Builder attempt, a second rework, retry, recovery, provider-backed WorkOrders, source mutation expansion, Git/release authority, memory, scheduling, policy mutation, bypass, and connectors remain blocked.
+- Needed Before: Every Stage 5G start must prove the exact DEC-203 mutation tuple and current source bytes, persist attempt #2 and its running Run atomically before the worker, and stop at `QA_READY` or a terminal Reviewer block. Any later QA execution or recovery requires a separate complete fielded decision.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
