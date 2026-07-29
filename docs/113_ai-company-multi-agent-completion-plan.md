@@ -197,11 +197,11 @@ inspection, interruption, cap consumption, rollback, and blocked downstream auth
 WorkOrder, mutation Approval, source mutation, Reviewer/QA execution, retry, recovery, scheduling,
 or provider-backed WorkOrder opens.
 
-Planning-only `DEC-198` fixes Stage 5E as one future existing task-owned `builder-rework` Approval
+Planning-only `DEC-198` fixes Stage 5E as one existing task-owned `builder-rework` Approval
 and Decision Inbox boundary from the exact DEC-197 waiting-gate. Handoff-only `DEC-199` preserves
 schema v24 and requires dedicated source-bound wrappers, strict dispatch/attempt/Run/Artifact/source
 binding, one-way decisions, Reviewer Decision priority, and source-current revalidation. `DEC-200`
-is reserved for implementation only; source mutation and downstream role execution remain closed.
+implements only that evidence path; source mutation and downstream role execution remain closed.
 
 ### Stage 6: Ops Supervision And Recovery
 

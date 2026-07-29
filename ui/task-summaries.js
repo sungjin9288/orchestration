@@ -150,6 +150,26 @@ export function getTaskApprovalBridge(task, data) {
 
   if (currentApproval) {
     if (
+      currentApproval.allowedNextAction ===
+      'builder-rework-live-mutation'
+    ) {
+      const terminal = currentApproval.status !== 'pending';
+      return {
+        actionLabel,
+        bridgeCopy: `${currentApproval.id}는 ${targetLabel} 기준 Builder 재작업 변경을 ${terminal ? '결정한' : '검토 중인'} source-bound 승인입니다.`,
+        currentApproval,
+        currentGateItem,
+        nextStepCopy: terminal
+          ? '이 결정은 증거로만 남으며, source mutation은 별도 권한 전까지 차단됩니다.'
+          : pendingInboxItem
+            ? `결정함에서 ${pendingInboxItem.id}를 승인 또는 반려합니다. 어느 결과도 source mutation을 실행하지 않습니다.`
+            : '현재 source-bound mutation 승인 증거를 확인합니다.',
+        pendingInboxItem,
+        targetArtifact,
+      };
+    }
+
+    if (
       currentApproval.status === 'pending' &&
       currentApproval.allowedNextAction === 'builder-live-mutation'
     ) {

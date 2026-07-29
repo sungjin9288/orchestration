@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This planning-only document defines the narrow Stage 5E boundary after the
+This document defines the narrow Stage 5E boundary after the
 source-current `DEC-197` Builder rework preflight reaches `waiting-gate`. It
 records planning-only `DEC-198`; `DEC-199` records the complete fielded
-implementation handoff. Exact implementation authority is reserved for
-`DEC-200`.
+implementation handoff, and `DEC-200` implements the exact evidence-only
+Approval path.
 
 The plan reuses the existing task-owned `Approval` and `DecisionInboxItem`
 records. It keeps schema v24 and adds no sequence, map, domain record, graph,
@@ -15,7 +15,7 @@ source behavior during this planning slice.
 
 ## Boundary
 
-The future implementation may create one existing-task-owned mutation Approval
+The implementation may create one existing-task-owned mutation Approval
 and one Decision Inbox item from one exact `BuilderReworkDispatch` at
 `waiting-gate`. It must use dedicated source-bound creation and resolution
 wrappers, not direct composition of generic `createApprovalPlaceholder` and
@@ -223,9 +223,9 @@ retry, resume, or a downstream role command.
   inspectable; no downgrade, deletion, automatic rejection, resume, or source
   cleanup is allowed.
 
-## Required Future Verification
+## Required Verification
 
-The DEC-200 implementation smoke must prove dedicated creation/resolution
+The DEC-200 implementation smoke proves dedicated creation/resolution
 wrappers, exact waiting-gate lineage and binding digest, strict file-store
 nested metadata validation, exact canonical Run/Artifact record projections,
 raw-byte Artifact content hashing, generic-versus-rework action collision
@@ -245,8 +245,8 @@ and aggregate verification.
 
 - Planning approval: accepted as `DEC-198`.
 - Complete fielded implementation handoff: recorded as `DEC-199`.
-- Exact implementation authority: reserved for `DEC-200`.
-- Schema/runtime/API/UI implementation: blocked.
+- Exact implementation authority: accepted as `DEC-200`.
+- Schema/runtime/API/UI Approval evidence path: implemented and verified.
 
 Builder source mutation, a fourth WorkOrder, another attempt, Reviewer/QA
 execution, retry/recovery/resume, checkpoint creation, scheduling,

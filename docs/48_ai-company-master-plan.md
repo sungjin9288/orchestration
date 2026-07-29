@@ -94,9 +94,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   evidence-and-inspection path.
   `DEC-195` plans one schema-v24 BuilderReworkDispatch plus an existing-Builder WorkOrderAttempt #3
   no-write preflight, `DEC-196` records its complete fielded implementation handoff, and `DEC-197`
-  implements only that bounded local-stub dispatch-and-preflight path. `DEC-198` plans one future
-  existing-Approval-and-Inbox mutation evidence boundary, while `DEC-199` records its handoff and
-  reserves exact implementation for `DEC-200`.
+  implements only that bounded local-stub dispatch-and-preflight path. `DEC-198` plans one
+  existing-Approval-and-Inbox mutation evidence boundary, `DEC-199` records its handoff, and
+  `DEC-200` implements the exact evidence-only path without source mutation.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, durable Reviewer rework implementation,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
@@ -200,9 +200,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   rationale-gated UI that stops before mutation Approval
 - Stage 5E planning: `DEC-198` fixes one future task-owned `builder-rework` Approval and Decision
   Inbox binding from the exact DEC-197 waiting-gate; `DEC-199` records the complete fielded handoff
-  and reserves implementation for `DEC-200`
-- Next gate: a separate complete fielded `DEC-200` decision for mutation Approval; source mutation and
-  downstream role execution remain closed
+- Stage 5E implementation: `DEC-200` reuses the existing Approval and Decision Inbox contracts
+  through exact source-bound create/resolve wrappers, canonical Run/Artifact and raw-byte content
+  digests, strict binding validation, one-way decisions, and Reviewer Decision priority
+- Next gate: a separate complete fielded decision for Builder source mutation; downstream role
+  execution remains closed
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -545,9 +547,11 @@ schema-v22 ReworkPlan record and exact inspection boundary, and `DEC-191` implem
 record-and-inspect path with no downstream execution authority. Planning-only `DEC-192` and
 handoff-only `DEC-193` define one append-only schema-v23 ReworkPlanAcceptance fact, and `DEC-194`
 implements only its exact accepted evidence-and-inspection path. Builder append and execution
-remain blocked. Planning-only `DEC-195` and handoff-only `DEC-196` define one future schema-v24
-BuilderReworkDispatch and existing-Builder WorkOrderAttempt #3 no-write preflight boundary. They do
-not authorize implementation; mutation Approval and source mutation remain separately blocked.
+remain blocked. Planning-only `DEC-195` and handoff-only `DEC-196` define one schema-v24
+BuilderReworkDispatch and existing-Builder WorkOrderAttempt #3 no-write preflight boundary;
+`DEC-197` implements that exact preflight. Planning-only `DEC-198`, handoff-only `DEC-199`, and
+implementation `DEC-200` add only the exact existing-Approval-and-Inbox evidence boundary.
+Builder source mutation remains separately blocked.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

@@ -142,6 +142,7 @@ import {
   getReviewerReworkPlanRecordRequest,
   getReworkPlanAcceptanceRequest,
   getBuilderReworkPreflightRequest,
+  getBuilderReworkMutationApprovalRequest,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -440,6 +441,7 @@ const state = {
   reviewerReworkPlan: null,
   reviewerReworkPlanAcceptance: null,
   builderReworkDispatch: null,
+  builderReworkMutationApproval: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5142,6 +5144,7 @@ function applySnapshotPayload(payload) {
     state.reviewerReworkPlanPreview = null;
     state.reviewerReworkPlan = null;
     state.builderReworkDispatch = null;
+    state.builderReworkMutationApproval = null;
   }
 
   state.payload = {
@@ -5411,6 +5414,7 @@ async function hydrateSelectedDetails() {
   state.reviewerReworkPlan = null;
   state.reviewerReworkPlanAcceptance = null;
   state.builderReworkDispatch = null;
+  state.builderReworkMutationApproval = null;
   state.workOrderAcceptanceCriteriaRationale = '';
   state.workOrderProofDrafts = {};
   state.executionContinuationPreview = null;
@@ -5645,6 +5649,11 @@ async function hydrateSelectedDetails() {
         `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/builder-rework-dispatch`,
       );
       state.builderReworkDispatch = dispatchPayload || null;
+      state.builderReworkMutationApproval = dispatchPayload
+        ? await fetchOptionalJson(
+            `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/builder-rework-mutation-approval`,
+          )
+        : null;
     }
   }
 
@@ -7410,6 +7419,7 @@ async function acceptReviewerReworkPlan(actionButton) {
     }
     state.reviewerReworkPlanAcceptance = acceptance;
     state.builderReworkDispatch = null;
+    state.builderReworkMutationApproval = null;
     elements.refreshStatus.textContent = `${acceptance.id} accepted evidence를 기록했습니다`;
   } finally {
     state.mutating = false;
@@ -7432,6 +7442,7 @@ async function submitBuilderReworkPreflight(actionButton) {
   if (!request) throw new Error('bounded rework preflight rationale이 필요합니다.');
 
   state.builderReworkDispatch = null;
+  state.builderReworkMutationApproval = null;
   state.mutating = true;
   elements.refreshStatus.textContent = `${record.id} bounded rework preflight을 시작하는 중…`;
   render();
@@ -7448,13 +7459,69 @@ async function submitBuilderReworkPreflight(actionButton) {
       throw new Error('BuilderReworkDispatch 응답이 exact rework evidence와 다릅니다.');
     }
     state.builderReworkDispatch = payload;
+    state.builderReworkMutationApproval =
+      payload.workOrderAttempt.status === 'waiting-gate'
+        ? await fetchOptionalJson(
+            `/api/rework-plans/${encodeURIComponent(record.id)}/builder-rework-mutation-approval`,
+          )
+        : null;
     elements.refreshStatus.textContent =
       payload.workOrderAttempt.status === 'active'
         ? `${payload.builderReworkDispatch.id} worker interruption evidence를 복원했습니다`
         : `${payload.builderReworkDispatch.id} preflight evidence를 기록했습니다`;
   } catch (error) {
     state.builderReworkDispatch = null;
+    state.builderReworkMutationApproval = null;
     throw error;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function requestBuilderReworkMutationApproval(actionButton) {
+  const record = state.reviewerReworkPlan;
+  const envelope = state.builderReworkMutationApproval;
+  const form = actionButton?.closest?.(
+    '[data-form="request-builder-rework-mutation-approval"]',
+  );
+  if (!record || !envelope || !form) {
+    throw new Error(
+      'source-current Builder rework mutation approval evidence가 필요합니다.',
+    );
+  }
+  const request = getBuilderReworkMutationApprovalRequest(envelope, {
+    rationale: String(
+      new FormData(form).get('builderReworkMutationRationale') || '',
+    ),
+    reviewedAt: new Date().toISOString(),
+  });
+  if (!request) {
+    throw new Error('Builder rework mutation approval rationale이 필요합니다.');
+  }
+
+  state.mutating = true;
+  elements.refreshStatus.textContent =
+    `${record.id} mutation approval을 요청하는 중…`;
+  render();
+  try {
+    const payload = await postJson(
+      `/api/rework-plans/${encodeURIComponent(record.id)}/builder-rework-mutation-approval`,
+      request,
+    );
+    if (
+      payload.approval?.allowedNextAction !==
+        'builder-rework-live-mutation' ||
+      payload.approval?.scope !== 'builder-rework' ||
+      payload.decisionInboxItem?.sourceId !== payload.approval.id
+    ) {
+      throw new Error(
+        'Builder rework mutation approval 응답이 exact evidence와 다릅니다.',
+      );
+    }
+    state.builderReworkMutationApproval = payload;
+    elements.refreshStatus.textContent =
+      `${payload.approval.id} mutation approval evidence를 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -13617,6 +13684,145 @@ function renderReviewerReworkPlanPreview(executionPlanId) {
   `;
 }
 
+function renderBuilderReworkMutationApproval(reworkPlanId) {
+  const envelope = state.builderReworkMutationApproval;
+  const dispatch = state.builderReworkDispatch;
+  if (
+    !envelope ||
+    envelope.reworkPlanId !== reworkPlanId ||
+    dispatch?.workOrderAttempt?.workerState !==
+      'preflight-ready-for-separate-mutation-approval'
+  ) {
+    return '';
+  }
+  const approval = envelope.approval;
+  const inboxItem = envelope.decisionInboxItem;
+  const reviewerDecisionRefs =
+    envelope.readiness?.reviewDecisionInboxItemRefs || [];
+  const reviewerPriority = reviewerDecisionRefs.length
+    ? `
+      <div class="builder-rework-mutation-priority">
+        <strong>Reviewer Decision 우선</strong>
+        <span>${escapeHtml(reviewerDecisionRefs.join(', '))}</span>
+        <p>이 decision은 계속 blocking 상태이며 mutation approval이 이를 해제하지 않습니다.</p>
+      </div>
+    `
+    : `
+      <p class="detail-copy detail-copy-compact">
+        연결된 Reviewer Decision ref는 없습니다. 빈 ref 상태를 그대로 보존합니다.
+      </p>
+    `;
+  const evidence = envelope.readiness?.requestSource || {};
+
+  return `
+    <div
+      class="builder-rework-mutation-approval"
+      aria-label="Builder rework mutation approval"
+    >
+      <div class="card-title-row card-title-row-tight">
+        <strong>Builder rework mutation approval</strong>
+        ${createToken(
+          approval?.status || envelope.readiness?.status || 'request-ready',
+          approval?.status === 'approved'
+            ? 'success'
+            : approval?.status === 'rejected'
+              ? 'danger'
+              : 'warning',
+        )}
+        ${createToken('source mutation blocked', 'neutral')}
+      </div>
+      ${reviewerPriority}
+      <dl class="reviewer-rework-evidence">
+        <div>
+          <dt>dispatch</dt>
+          <dd>${escapeHtml(evidence.builderReworkDispatchId || '')}</dd>
+        </div>
+        <div>
+          <dt>attempt</dt>
+          <dd>${escapeHtml(evidence.workOrderAttemptId || '')}</dd>
+        </div>
+        <div>
+          <dt>preflight run</dt>
+          <dd>${escapeHtml(evidence.preflightRunId || '')}</dd>
+        </div>
+        <div>
+          <dt>preflight artifact</dt>
+          <dd>${escapeHtml(evidence.preflightArtifactId || '')}</dd>
+        </div>
+      </dl>
+      ${
+        !approval
+          ? `
+            <form
+              class="reviewer-rework-record-form"
+              data-form="request-builder-rework-mutation-approval"
+            >
+              <label class="field">
+                <span>Mutation approval rationale</span>
+                <input
+                  name="builderReworkMutationRationale"
+                  type="text"
+                  maxlength="500"
+                  required
+                  placeholder="Why this exact source-bound mutation gate should be reviewed"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                />
+              </label>
+              <button
+                class="primary-button"
+                type="button"
+                data-action="request-builder-rework-mutation-approval"
+                data-id="${escapeHtml(reworkPlanId)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                Mutation approval 요청
+              </button>
+            </form>
+          `
+          : `
+            <div class="builder-rework-mutation-record">
+              <strong>${escapeHtml(approval.id)}</strong>
+              <span>${escapeHtml(approval.prompt)}</span>
+              <code>${escapeHtml(approval.metadata.bindingDigest)}</code>
+            </div>
+            ${
+              approval.status === 'pending' && inboxItem?.status === 'pending'
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-inbox-action"
+                      data-id="${escapeHtml(inboxItem.id)}"
+                      data-verb="approve"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      승인
+                    </button>
+                    <button
+                      class="danger-button"
+                      type="button"
+                      data-action="run-inbox-action"
+                      data-id="${escapeHtml(inboxItem.id)}"
+                      data-verb="reject"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      반려
+                    </button>
+                  </div>
+                `
+                : `
+                  <p class="detail-copy detail-copy-compact">
+                    결정은 evidence로만 유지됩니다. source mutation, retry, resume는 계속 차단됩니다.
+                  </p>
+                `
+            }
+          `
+      }
+    </div>
+  `;
+}
+
 function renderReviewerReworkPlanRecord(executionPlanId) {
   const record = state.reviewerReworkPlan;
   if (!record || record.executionPlanId !== executionPlanId) return '';
@@ -13677,6 +13883,7 @@ function renderReviewerReworkPlanRecord(executionPlanId) {
                         'none',
                     )}</code>
                   </div>
+                  ${renderBuilderReworkMutationApproval(record.id)}
                 `
                 : `
                   <form class="reviewer-rework-record-form" data-form="start-builder-rework-preflight">
@@ -22835,6 +23042,14 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (
+        actionButton.dataset.action ===
+        'request-builder-rework-mutation-approval'
+      ) {
+        await requestBuilderReworkMutationApproval(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'request-builder-live-mutation-approval') {
         await requestBuilderLiveMutationApproval(actionButton.dataset.id);
         return;
@@ -23152,6 +23367,7 @@ function handleFormInput(event) {
 
   if (builderReworkPreflightForm) {
     state.builderReworkDispatch = null;
+    state.builderReworkMutationApproval = null;
     return;
   }
 

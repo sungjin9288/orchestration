@@ -51,7 +51,7 @@ for (const field of fields) {
 }
 
 for (const pattern of [
-  /planning-only `DEC-198`/, /`DEC-199` records/, /reserved for\s+`DEC-200`/,
+  /planning-only `DEC-198`/, /`DEC-199` records/, /`DEC-200` implements/,
   /schema v24/, /allowedNextAction=builder-rework-live-mutation/,
   /scope=builder-rework/, /bindingDigest/, /exact preflight Run and Artifact lineage/,
   /POST \/api\/rework-plans\/:reworkPlanId\/builder-rework-mutation-approval/,
@@ -104,6 +104,7 @@ assert.match(handoff, /preserve historical generic Approvals for earlier Builder
 assert.match(handoff, /terminal replay and status reversal 409/);
 assert.match(decisionLog, /^### DEC-198$/m);
 assert.match(decisionLog, /^### DEC-199$/m);
+assert.match(decisionLog, /^### DEC-200$/m);
 
 for (const text of [masterPlan, runtimeContract, councilProtocol, deliveryRoadmap, completionPlan]) {
   assert.match(text, /DEC-198/);
@@ -112,11 +113,11 @@ for (const text of [masterPlan, runtimeContract, councilProtocol, deliveryRoadma
 }
 
 assert.match(inventory, /AI Company Builder rework mutation Approval planning/);
-assert.match(inventory, /informational `292\/292`, total `293\/293`/);
+assert.match(inventory, /informational `293\/293`, total `294\/294`/);
 assert.match(readme, /docs\/135_ai-company-builder-rework-mutation-approval-plan\.md/);
 assert.match(readme, /docs\/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff\.md/);
-assert.match(readme, /982 smoke files/);
-assert.match(readme, /706 UI smoke files/);
+assert.match(readme, /984 smoke files/);
+assert.match(readme, /707 UI smoke files/);
 assert.match(todo, /ai-company-builder-rework-mutation-approval-planning-post-m7-2030/);
 assert.match(lessons, /Builder rework mutation Approval must bind the exact waiting-gate lineage/);
 assert.match(verification, /ai-company-builder-rework-mutation-approval-planning/);

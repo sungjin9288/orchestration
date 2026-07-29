@@ -110,6 +110,10 @@ export function getApprovalActionLabel(action) {
     return '라이브 변경';
   }
 
+  if (action === 'builder-rework-live-mutation') {
+    return 'Builder 재작업 변경';
+  }
+
   if (action === 'commit-intent') {
     return '로컬 커밋';
   }

@@ -452,6 +452,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 5D runtime proves one schema-v23 to v24 BuilderReworkDispatch and existing Builder WorkOrderAttempt append, replay-safe exact inspection, sidecar-only lifecycle, snapshot exclusion, and blocked mutation authority',
   },
   {
+    id: 'ai-company-builder-rework-mutation-approval',
+    script: 'scripts/smoke-ai-company-builder-rework-mutation-approval.mjs',
+    purpose: 'AI Company Stage 5E runtime and API prove one schema-v24 source-bound task Approval and Decision Inbox item, canonical Run and Artifact record digests, raw-byte content binding, exact replay and collision refusal, one-way approve or reject evidence, Reviewer Decision priority, and zero source graph worker provider or checkpoint mutation',
+  },
+  {
     id: 'ai-company-rework-plan-acceptance',
     script: 'scripts/smoke-ai-company-rework-plan-acceptance.mjs',
     purpose: 'AI Company Stage 5C runtime and API prove one schema-v22 to v23 immutable ReworkPlanAcceptance append, exact DEC-188 source recomputation before first write, replay-before-recompute source-drift retention, exact inspection, snapshot exclusion, and zero downstream authority',

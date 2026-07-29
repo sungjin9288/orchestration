@@ -2494,6 +2494,85 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const builderReworkMutationApprovalMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/builder-rework-mutation-approval$/,
+  );
+  if (builderReworkMutationApprovalMatch) {
+    const reworkPlanId = decodeURIComponent(
+      builderReworkMutationApprovalMatch[1],
+    );
+    if (method === 'GET') {
+      try {
+        json(response, 200, {
+          generatedAt: new Date().toISOString(),
+          ...runtime.getBuilderReworkMutationApproval(reworkPlanId),
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message ||
+              'Builder rework mutation approval inspection에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    if (method === 'POST') {
+      try {
+        const input = await readBoundedJsonBody(request, 8 * 1024);
+        const expectedFields = [
+          'approvalRequest',
+          'builderReworkDispatchDigest',
+          'builderReworkDispatchId',
+          'evaluatedAt',
+          'preflightArtifactContentDigest',
+          'preflightArtifactId',
+          'preflightArtifactRecordDigest',
+          'preflightRunId',
+          'preflightRunRecordDigest',
+          'sourceProgressDigest',
+          'workOrderAttemptId',
+          'workOrderAttemptRecordDigest',
+        ];
+        const actualFields = Object.keys(input).sort();
+        if (
+          actualFields.length !== expectedFields.length ||
+          actualFields.some(
+            (field, index) => field !== expectedFields[index],
+          )
+        ) {
+          const error = new Error(
+            'Builder rework mutation approval body has unexpected or missing fields',
+          );
+          error.statusCode = 400;
+          throw error;
+        }
+        const result = runtime.requestBuilderReworkMutationApproval({
+          reworkPlanId,
+          ...input,
+        });
+        json(response, result.idempotent ? 200 : 201, {
+          generatedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message ||
+              'Builder rework mutation approval 요청에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    json(response, 405, {
+      error: 'Builder rework mutation approval은 GET과 POST만 지원합니다.',
+    });
+    return;
+  }
+
   const builderReworkPreflightMatch = url.pathname.match(
     /^\/api\/rework-plans\/([^/]+)\/builder-rework-preflight$/,
   );
@@ -4472,7 +4551,8 @@ const server = createServer(async (request, response) => {
       );
       return;
     } catch (error) {
-      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, { error: error.message || '태스크 워크트리 설정 갱신에 실패했습니다.' });
       return;
     }
@@ -4997,7 +5077,8 @@ const server = createServer(async (request, response) => {
       );
       return;
     } catch (error) {
-      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, { error: error.message || '결정함 처리에 실패했습니다.' });
       return;
     }

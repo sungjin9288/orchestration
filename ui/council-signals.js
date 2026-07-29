@@ -383,6 +383,59 @@ export function getBuilderReworkPreflightRequest(
   };
 }
 
+export function getBuilderReworkMutationApprovalRequest(
+  approvalEnvelope,
+  { rationale, reviewedAt },
+) {
+  const source = approvalEnvelope?.readiness?.requestSource;
+  const digestFields = [
+    'builderReworkDispatchDigest',
+    'workOrderAttemptRecordDigest',
+    'preflightRunRecordDigest',
+    'preflightArtifactRecordDigest',
+    'preflightArtifactContentDigest',
+    'sourceProgressDigest',
+  ];
+  if (
+    approvalEnvelope?.readiness?.status !== 'request-ready' ||
+    !source ||
+    !source.builderReworkDispatchId ||
+    !source.workOrderAttemptId ||
+    !source.preflightRunId ||
+    !source.preflightArtifactId ||
+    digestFields.some(
+      (field) => !/^[a-f0-9]{64}$/.test(source[field] || ''),
+    ) ||
+    typeof rationale !== 'string' ||
+    !rationale.trim() ||
+    typeof reviewedAt !== 'string' ||
+    Number.isNaN(Date.parse(reviewedAt)) ||
+    new Date(reviewedAt).toISOString() !== reviewedAt
+  ) {
+    return null;
+  }
+  return {
+    builderReworkDispatchId: source.builderReworkDispatchId,
+    builderReworkDispatchDigest: source.builderReworkDispatchDigest,
+    workOrderAttemptId: source.workOrderAttemptId,
+    workOrderAttemptRecordDigest: source.workOrderAttemptRecordDigest,
+    preflightRunId: source.preflightRunId,
+    preflightRunRecordDigest: source.preflightRunRecordDigest,
+    preflightArtifactId: source.preflightArtifactId,
+    preflightArtifactRecordDigest: source.preflightArtifactRecordDigest,
+    preflightArtifactContentDigest: source.preflightArtifactContentDigest,
+    sourceProgressDigest: source.sourceProgressDigest,
+    evaluatedAt: reviewedAt,
+    approvalRequest: {
+      decision: 'request-builder-rework-mutation-approval',
+      acknowledgement:
+        'create-one-reviewable-rework-approval-without-source-mutation',
+      rationale: rationale.trim(),
+      reviewedAt,
+    },
+  };
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

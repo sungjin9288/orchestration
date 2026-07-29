@@ -526,9 +526,22 @@ function buildBuilderLiveMutationApprovalRequestSummary(task, state) {
       : null;
   const reasons = [];
   let conflict = false;
+  const reworkPreflightSource = Boolean(
+    currentPreflight.run?.metadata?.executionMode === 'rework-preflight' ||
+      currentPreflight.run?.summary?.executionMode === 'rework-preflight' ||
+      currentPreflight.run?.metadata?.builderReworkDispatchId ||
+      currentPreflight.run?.summary?.builderReworkDispatchId,
+  );
 
   if (!currentPreflight.artifact || !currentPreflight.run) {
     reasons.push('latest preflight artifact required');
+  }
+
+  if (reworkPreflightSource) {
+    conflict = true;
+    reasons.push(
+      'Builder rework preflight evidence requires the dedicated builder-rework-live-mutation approval path',
+    );
   }
 
   if (pendingBlockingDecisionItems.length > 0) {

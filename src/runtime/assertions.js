@@ -78,6 +78,22 @@ function assertBuilderReworkDispatch(builderReworkDispatchId, state) {
   return dispatch;
 }
 
+function assertBuilderReworkMutationApproval(approvalId, state) {
+  const approval = state.approvals[approvalId];
+  if (!approval) {
+    throw new Error(`Builder rework mutation Approval not found: ${approvalId}`);
+  }
+  if (
+    approval.allowedNextAction !== 'builder-rework-live-mutation' ||
+    approval.scope !== 'builder-rework'
+  ) {
+    throw new Error(
+      `Approval ${approvalId} is not a Builder rework mutation Approval`,
+    );
+  }
+  return approval;
+}
+
 function assertHandoffPacket(handoffPacketId, state) {
   const handoffPacket = state.handoffPackets[handoffPacketId];
   if (!handoffPacket) throw new Error(`HandoffPacket not found: ${handoffPacketId}`);
@@ -183,6 +199,7 @@ function assertStaffingEntry(staffingEntryId, state) {
 module.exports = {
   assertAcceptanceCriterion,
   assertBuilderReworkDispatch,
+  assertBuilderReworkMutationApproval,
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,

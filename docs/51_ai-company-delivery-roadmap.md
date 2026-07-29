@@ -630,8 +630,8 @@ Reviewer/QA execution, retry, recovery, scheduling, and provider-backed authorit
 Stage 5E planning-only `DEC-198` fixes one future existing task-owned Builder rework mutation
 Approval and Decision Inbox boundary after the exact DEC-197 waiting-gate. Handoff-only `DEC-199`
 requires dedicated source-bound create/resolve wrappers, strict metadata binding digest, one-way
-decisions, collision refusal, and a Reviewer-priority UI while retaining schema v24. `DEC-200` alone
-may authorize that evidence boundary; Builder source mutation remains a later separate gate.
+decisions, collision refusal, and a Reviewer-priority UI while retaining schema v24. `DEC-200`
+implements only that evidence boundary; Builder source mutation remains a later separate gate.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.

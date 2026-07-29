@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const STATE_REVISION = Symbol('orchestration.stateRevision');
+const MAX_BUILDER_REWORK_PREFLIGHT_ARTIFACT_BYTES = 1024 * 1024;
 
 class StateConflictError extends Error {
   constructor(message) {
@@ -26,7 +27,10 @@ const {
   ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION,
   APPROVAL_STATUS,
   ARTIFACT_TYPE,
+  BUILDER_ACTION,
   BUILDER_REWORK_DISPATCH_STATE_SCHEMA_VERSION,
+  DECISION_INBOX_KIND,
+  DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
   DELIVERY_PACKAGE_ACCEPTANCE_DECISION,
   DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION,
@@ -149,6 +153,14 @@ const {
   DISPATCH_STATUS: BUILDER_REWORK_DISPATCH_STATUS,
   assertBuilderReworkDispatchRecord,
 } = require('./builder-rework-dispatches');
+const {
+  ACTION: BUILDER_REWORK_MUTATION_ACTION,
+  SCOPE: BUILDER_REWORK_MUTATION_SCOPE,
+  assertBuilderReworkMutationApprovalRecord,
+  computePreflightArtifactContentDigest,
+  computePreflightArtifactRecordDigest,
+  computePreflightRunRecordDigest,
+} = require('./builder-rework-mutation-approvals');
 const {
   computeExecutionPlanRecordDigest,
   computeWorkOrderRecordDigest,
@@ -2338,6 +2350,225 @@ function validateBuilderReworkDispatchRecords(state) {
   }
 }
 
+function readBuilderReworkPreflightArtifactBytes(
+  artifactPath,
+  artifactsDir,
+  label,
+) {
+  let descriptor = null;
+  try {
+    const realArtifactsDir = fs.realpathSync(artifactsDir);
+    const resolvedArtifactPath = path.resolve(artifactPath);
+    const lexicalRelativePath = path.relative(
+      path.resolve(artifactsDir),
+      resolvedArtifactPath,
+    );
+    if (
+      !lexicalRelativePath ||
+      lexicalRelativePath === '..' ||
+      lexicalRelativePath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(lexicalRelativePath)
+    ) {
+      throw new Error('path escapes the runtime Artifact root');
+    }
+
+    const linkStatus = fs.lstatSync(resolvedArtifactPath);
+    if (
+      linkStatus.isSymbolicLink() ||
+      !linkStatus.isFile() ||
+      linkStatus.size > MAX_BUILDER_REWORK_PREFLIGHT_ARTIFACT_BYTES
+    ) {
+      throw new Error('path is not a bounded regular file');
+    }
+
+    const realArtifactPath = fs.realpathSync(resolvedArtifactPath);
+    const realRelativePath = path.relative(realArtifactsDir, realArtifactPath);
+    if (
+      !realRelativePath ||
+      realRelativePath === '..' ||
+      realRelativePath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(realRelativePath)
+    ) {
+      throw new Error('real path escapes the runtime Artifact root');
+    }
+
+    descriptor = fs.openSync(
+      resolvedArtifactPath,
+      fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0),
+    );
+    const before = fs.fstatSync(descriptor);
+    if (
+      !before.isFile() ||
+      before.size > MAX_BUILDER_REWORK_PREFLIGHT_ARTIFACT_BYTES
+    ) {
+      throw new Error('opened path is not a bounded regular file');
+    }
+    const bytes = Buffer.alloc(before.size);
+    const bytesRead = fs.readSync(descriptor, bytes, 0, before.size, 0);
+    const after = fs.fstatSync(descriptor);
+    if (
+      bytesRead !== before.size ||
+      after.size !== before.size ||
+      after.mtimeMs !== before.mtimeMs
+    ) {
+      throw new Error('content changed during validation');
+    }
+    return bytes;
+  } catch (error) {
+    throw new Error(`${label} Artifact content is unavailable: ${error.message}`);
+  } finally {
+    if (descriptor !== null) fs.closeSync(descriptor);
+  }
+}
+
+function validateBuilderReworkMutationApprovalRecords(state, artifactsDir) {
+  const dedicatedByDispatch = new Set();
+
+  for (const [approvalId, approval] of Object.entries(state.approvals)) {
+    if (approval?.allowedNextAction !== BUILDER_REWORK_MUTATION_ACTION) continue;
+    const label = `Builder rework mutation Approval ${approvalId}`;
+    if (approval.id !== approvalId) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertBuilderReworkMutationApprovalRecord(approval);
+    const metadata = approval.metadata;
+    if (dedicatedByDispatch.has(metadata.builderReworkDispatchId)) {
+      throw new Error(`${label} duplicates one BuilderReworkDispatch`);
+    }
+    dedicatedByDispatch.add(metadata.builderReworkDispatchId);
+
+    const task = state.tasks[approval.taskId];
+    const dispatch =
+      state.builderReworkDispatches[metadata.builderReworkDispatchId];
+    const attempt = state.workOrderAttempts[metadata.workOrderAttemptId];
+    const run = state.runs[metadata.preflightRunId];
+    const artifact = state.artifacts[metadata.preflightArtifactId];
+    const reworkPlan = state.reworkPlans[metadata.reworkPlanId];
+    const acceptance =
+      state.reworkPlanAcceptances[metadata.reworkPlanAcceptanceId];
+    const inboxItem = state.decisionInboxItems[approval.inboxItemId];
+    if (
+      !task ||
+      !dispatch ||
+      !attempt ||
+      !run ||
+      !artifact ||
+      !reworkPlan ||
+      !acceptance ||
+      !inboxItem
+    ) {
+      throw new Error(`${label} has missing source references`);
+    }
+    const contentDigest = computePreflightArtifactContentDigest(
+      readBuilderReworkPreflightArtifactBytes(
+        artifact.path,
+        artifactsDir,
+        label,
+      ),
+    );
+    if (
+      approval.projectId !== task.projectId ||
+      dispatch.projectId !== task.projectId ||
+      dispatch.reworkPlanId !== reworkPlan.id ||
+      dispatch.executionPlanId !== metadata.executionPlanId ||
+      dispatch.recordDigest !== metadata.builderReworkDispatchDigest ||
+      dispatch.workOrderAttemptId !== attempt.id ||
+      attempt.recordDigest !== metadata.workOrderAttemptRecordDigest ||
+      attempt.status !== 'waiting-gate' ||
+      attempt.stopReason !==
+        'builder-rework-preflight-complete-mutation-approval-blocked' ||
+      attempt.runRefs.length !== 1 ||
+      attempt.runRefs[0] !== run.id ||
+      attempt.artifactRefs.length !== 1 ||
+      attempt.artifactRefs[0] !== artifact.id ||
+      attempt.approvalRefs.length !== 0 ||
+      attempt.decisionInboxItemRefs.length !== 0 ||
+      computePreflightRunRecordDigest(run) !==
+        metadata.preflightRunRecordDigest ||
+      computePreflightArtifactRecordDigest(artifact) !==
+        metadata.preflightArtifactRecordDigest ||
+      contentDigest !== metadata.preflightArtifactContentDigest ||
+      reworkPlan.recordDigest !== metadata.reworkPlanRecordDigest ||
+      acceptance.reworkPlanId !== reworkPlan.id ||
+      acceptance.acceptanceDigest !== metadata.reworkPlanAcceptanceDigest ||
+      reworkPlan.sourceExecutionPlanDigest !==
+        metadata.sourceExecutionPlanDigest ||
+      reworkPlan.sourceAttemptRecordDigest !==
+        metadata.sourceAttemptRecordDigest ||
+      reworkPlan.reviewEvidenceDigest !== metadata.reviewEvidenceDigest ||
+      reworkPlan.sourceProgressDigest !== metadata.sourceProgressDigest
+    ) {
+      throw new Error(`${label} has stale or invalid source bindings`);
+    }
+    const expectedReviewDecisionInboxItemRefs = [
+      ...(reworkPlan.evidenceRefs?.decisionInboxItemRefs || []),
+    ];
+    if (
+      metadata.reviewDecisionInboxItemRefs.length !==
+        expectedReviewDecisionInboxItemRefs.length ||
+      metadata.reviewDecisionInboxItemRefs.some(
+        (itemId, index) =>
+          itemId !== expectedReviewDecisionInboxItemRefs[index],
+      ) ||
+      metadata.reviewDecisionInboxItemRefs.some((itemId) => {
+        const item = state.decisionInboxItems[itemId];
+        return (
+          !item ||
+          item.taskId !== task.id ||
+          item.sourceType !== DECISION_INBOX_SOURCE_TYPE.REVIEW ||
+          item.status !== DECISION_INBOX_STATUS.PENDING ||
+          item.blocksTask !== true
+        );
+      })
+    ) {
+      throw new Error(`${label} has stale Reviewer Decision references`);
+    }
+    const expectedResolutionAction =
+      approval.status === APPROVAL_STATUS.APPROVED
+        ? APPROVAL_STATUS.APPROVED
+        : approval.status === APPROVAL_STATUS.REJECTED
+          ? APPROVAL_STATUS.REJECTED
+          : null;
+    if (
+      approval.allowedNextAction !== BUILDER_ACTION.REWORK_LIVE_MUTATION ||
+      approval.scope !== BUILDER_REWORK_MUTATION_SCOPE ||
+      approval.targetRunId !== run.id ||
+      approval.targetArtifactId !== artifact.id ||
+      inboxItem.projectId !== approval.projectId ||
+      inboxItem.taskId !== task.id ||
+      inboxItem.kind !== DECISION_INBOX_KIND.APPROVAL ||
+      inboxItem.sourceType !== DECISION_INBOX_SOURCE_TYPE.APPROVAL ||
+      inboxItem.sourceId !== approval.id ||
+      inboxItem.blocksTask !== false ||
+      inboxItem.title !== approval.title ||
+      inboxItem.prompt !== approval.prompt ||
+      inboxItem.createdAt !== approval.createdAt ||
+      inboxItem.updatedAt !== approval.updatedAt ||
+      (expectedResolutionAction === null &&
+        (inboxItem.status !== DECISION_INBOX_STATUS.PENDING ||
+          inboxItem.resolution !== null)) ||
+      (expectedResolutionAction !== null &&
+        (inboxItem.status !== DECISION_INBOX_STATUS.RESOLVED ||
+          inboxItem.resolution?.action !== expectedResolutionAction ||
+          inboxItem.resolution?.resolvedAt !== approval.resolvedAt))
+    ) {
+      throw new Error(`${label} has invalid Decision Inbox lifecycle`);
+    }
+    const genericCollision = Object.values(state.approvals).some(
+      (candidate) =>
+        candidate.id !== approval.id &&
+        candidate.allowedNextAction === BUILDER_ACTION.LIVE_MUTATION &&
+        (candidate.targetRunId === run.id ||
+          candidate.targetArtifactId === artifact.id ||
+          candidate.metadata?.builderReworkDispatchId === dispatch.id ||
+          candidate.metadata?.workOrderAttemptId === attempt.id),
+    );
+    if (genericCollision) {
+      throw new Error(`${label} collides with a generic Builder approval`);
+    }
+  }
+}
+
 function validateSpecialistBatchRecords(state) {
   const boundSourceChains = new Set();
   const referencedCellAttemptIds = new Set();
@@ -3925,6 +4156,7 @@ function createFileStore(options = {}) {
     validateReworkPlanRecords(normalizedState);
     validateReworkPlanAcceptanceRecords(normalizedState);
     validateBuilderReworkDispatchRecords(normalizedState);
+    validateBuilderReworkMutationApprovalRecords(normalizedState, artifactsDir);
     return normalizedState;
   }
 

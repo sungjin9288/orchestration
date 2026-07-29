@@ -389,6 +389,12 @@ const smokeChecks = [
       'BuilderReworkDispatch UI and API preserve one exact rationale-gated local no-write command, cap warning, durable dispatch inspection, stale browser-memory clearing, responsive fit, and absent mutation retry reviewer QA commit push or release controls',
   },
   {
+    id: 'ai-company-builder-rework-mutation-approval-ui-api',
+    script: 'scripts/smoke-ui-slice-707.mjs',
+    purpose:
+      'Builder rework mutation Approval UI and API preserve exact source-bound request creation, Reviewer Decision priority, action-specific approve or reject controls, terminal read-only evidence, responsive fit, and absent mutation retry resume reviewer QA commit push or release controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

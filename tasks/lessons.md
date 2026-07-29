@@ -1,5 +1,6 @@
 # lessons
 
+- A post-preflight approval cannot reuse a source projection validator that assumes the Reviewer attempt is permanently latest. Preserve the original Reviewer attempt and digest checks, but explicitly admit only the one dispatch-bound Builder rework attempt #3 as the newer terminal or waiting source; otherwise a valid DEC-197 waiting-gate cannot be revalidated without weakening lineage.
 - Builder rework mutation Approval must bind the exact waiting-gate lineage through dedicated source-bound create/resolve wrappers, not generic Approval composition. Revalidate dispatch, attempt, Run, Artifact, DEC-188/DEC-191/DEC-194, provider, and any referenced Reviewer Decision on creation and each terminal transition; preserve an empty source Decision ref list, keep task blocked/waitingDecision unchanged while only waitingApproval toggles, reject sequence collisions before write, and keep source mutation as a later gate.
 
 - Rework preflight sidecar는 graph scheduler의 다음 단계처럼 보이면 안 된다. Worker 호출 전에 active attempt를 저장하고, generic operator-stepped scheduler에서 해당 action을 제외하며, 전용 settlement에서 exact Run/Artifact lineage를 확인해야 interruption과 replay가 execution authority를 넓히지 않는다.

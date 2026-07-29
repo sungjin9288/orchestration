@@ -417,7 +417,7 @@ const completionFocusEvidence = [
   /Planning-only `DEC-195` defines the next Stage 5D boundary/,
   /`DEC-197`\s+implements the schema-v24 immutable dispatch/,
   /Planning-only `DEC-198` defines the Stage 5E Builder rework mutation Approval boundary/,
-  /`DEC-200` is reserved for implementation/,
+  /`DEC-200` implements the schema-v24 evidence-only path/,
   /`DEC-166` consumes that handoff and implements one source-current response-only preview/,
   /atomic schema-v16-to-v17 migration plus immutable StaffingPlan append/,
   /`DEC-167` accepts the Council-first schema-v18\s+StaffingEntry binding plan/,

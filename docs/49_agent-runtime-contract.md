@@ -505,11 +505,12 @@ implements only that schema-v24 sidecar and existing-Builder attempt path. Anoth
 mutation Approval, source mutation, Reviewer/QA execution, retry, recovery, scheduling, and
 provider-backed execution remain absent.
 
-Planning-only `DEC-198` defines Stage 5E without a schema change: one future task-owned
+Planning-only `DEC-198` defines Stage 5E without a schema change: one task-owned
 `builder-rework` Approval and Decision Inbox item must use dedicated source-bound wrappers, strict
 file-store metadata/digest validation, one-way transition, and full DEC-197/DEC-188/DEC-191/
-DEC-194/provider/Reviewer Decision revalidation. Handoff-only `DEC-199` reserves implementation for
-`DEC-200`; source mutation and every worker or graph transition remain closed.
+DEC-194/provider/Reviewer Decision revalidation. Handoff-only `DEC-199` fixes the exact gate;
+`DEC-200` implements only that Approval evidence path. Source mutation and every worker or graph
+transition remain closed.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

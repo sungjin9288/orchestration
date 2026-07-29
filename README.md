@@ -263,11 +263,12 @@ unimplemented.
 Planning-only `DEC-198` defines the Stage 5E Builder rework mutation Approval boundary in
 `docs/135_ai-company-builder-rework-mutation-approval-plan.md`, and `DEC-199` records its complete
 fielded handoff in
-`docs/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff.md`. The
-future schema-v24 path reuses Approval and Decision Inbox only through dedicated source-bound
-wrappers, strict immutable binding digests, one-way decisions, referenced Reviewer Decision priority,
-and exact DEC-197 waiting-gate lineage revalidation. `DEC-200` is reserved for implementation;
-Builder source mutation and all downstream execution remain blocked.
+`docs/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff.md`.
+`DEC-200` implements the schema-v24 evidence-only path with dedicated source-bound wrappers,
+canonical Run/Artifact record digests, exact raw-byte Artifact content binding, strict immutable
+metadata digests, generic-action collision refusal, one-way decisions, referenced Reviewer Decision
+priority, and exact DEC-197 waiting-gate lineage revalidation. Approved or rejected outcomes do not
+run Builder mutation; source mutation and all downstream execution remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -2429,9 +2430,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 982 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 984 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 706 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 707 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -3039,7 +3040,11 @@ Playwright CLI:
 - `DEC-195` and `DEC-196` are consumed planning and fielded handoff evidence for the schema-v24
   BuilderReworkDispatch and one existing-Builder WorkOrderAttempt #3 no-write preflight implemented
   by `DEC-197`. One immutable sidecar, active-before-worker attempt, local-stub Run and Artifact,
-  exact replay, exact GET, and rationale-gated UI action exist; mutation Approval, source mutation,
+  exact replay, exact GET, and rationale-gated UI action exist.
+- `DEC-198` and `DEC-199` are consumed planning and fielded handoff evidence for the schema-v24
+  Builder rework mutation Approval implemented by `DEC-200`. One source-bound existing Approval and
+  Decision Inbox item, exact replay, canonical source digests, one-way approve/reject, exact GET,
+  Reviewer-priority evidence, and rationale-gated UI action exist; Builder source mutation,
   Reviewer/QA execution, another rework, retry, recovery, scheduling, provider-backed execution,
   memory, Git/release, policy, collection, bypass, and connector authority remain unimplemented.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped

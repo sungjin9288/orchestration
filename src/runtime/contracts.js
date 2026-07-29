@@ -293,6 +293,7 @@ const WORKFLOW_TYPE = {
 
 const BUILDER_ACTION = {
   LIVE_MUTATION: 'builder-live-mutation',
+  REWORK_LIVE_MUTATION: 'builder-rework-live-mutation',
 };
 
 const COMMIT_ACTION = {

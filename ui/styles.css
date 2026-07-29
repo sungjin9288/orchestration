@@ -9006,6 +9006,43 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+.builder-rework-mutation-approval {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.builder-rework-mutation-priority {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--danger);
+}
+
+.builder-rework-mutation-priority span,
+.builder-rework-mutation-priority p,
+.builder-rework-mutation-record span,
+.builder-rework-mutation-record code {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.builder-rework-mutation-priority p {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.builder-rework-mutation-record {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
 .reviewer-rework-acceptance span,
 .reviewer-rework-acceptance code {
   min-width: 0;

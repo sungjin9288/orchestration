@@ -1313,6 +1313,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines the only matching DEC-200 approval shape and explicitly excludes schema migration, source mutation, worker/provider calls, Run/Artifact/checkpoint activity, graph/dispatch/attempt mutation, Reviewer/QA, scheduling, Git/release, policy mutation, bypass, and connectors. No implementation authority is recorded.
 - Needed Before: All fifteen fields must match in one valid operator decision. DEC-198, this handoff, broad approval, delegated self-approval, or continuation do not authorize creation, resolution, or source mutation. A valid implementation outcome is reserved for `DEC-200`.
 
+### DEC-200
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic schema-v24 task-owned `Approval(scope=builder-rework, allowedNextAction=builder-rework-live-mutation)` and one linked Decision Inbox item from one exact source-current DEC-197 waiting-gate dispatch.
+- Why: `DEC-198` and `DEC-199` fixed the dedicated source-bound create/resolve wrappers, exact dispatch/attempt/Run/Artifact/source tuple, canonical record and raw-byte content digests, strict metadata binding, generic-action collision refusal, one-way decision lifecycle, Reviewer Decision priority, and every downstream authority that must remain closed. The supplied decision matches that 15-field outcome exactly.
+- Impact: Implementation may add only the existing Approval and Decision Inbox evidence boundary described in `docs/135_ai-company-builder-rework-mutation-approval-plan.md`. Schema stays v24; exact replay is no-write, approved and rejected outcomes remain evidence-only, and the fixed ExecutionPlan, WorkOrders, attempt #3, dispatch, Run, Artifact, checkpoint, provider, and source stay unchanged.
+- Needed Before: Builder source mutation, another attempt or WorkOrder, Reviewer/QA execution, retry, recovery, resume, checkpoint or graph transition, scheduling, provider-backed execution, result or memory application, runtime-agent Git/release, policy mutation, approval bypass, and connectors require separate complete fielded decisions.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
