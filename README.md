@@ -283,6 +283,16 @@ bounded decode, post-mutation digests, non-clobbering rollback, source-current e
 stop before Reviewer/QA. Reviewer/QA re-execution and every later authority remain separately
 blocked.
 
+Planning-only `DEC-204` defines the Stage 5G Reviewer re-execution boundary in
+`docs/139_ai-company-reviewer-reexecution-plan.md`, and `DEC-205` records its complete fielded
+implementation handoff in
+`docs/140_ai-company-reviewer-reexecution-implementation-decision-handoff.md`. The planned path
+keeps schema v24 and the fixed three WorkOrders, binds the exact current DEC-203 mutation bundle to
+one existing-Reviewer WorkOrderAttempt #2, separates historical mutation digests from the later
+current graph, and runs Reviewer only. A pass must stop at `QA_READY`; QA execution remains a
+separate decision. Runtime/API/UI implementation remains blocked until one complete matching
+`DEC-206` decision is accepted.
+
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
 reading model and offers an explicit `Graph` view backed by one exact
@@ -2454,7 +2464,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 987 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 988 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 708 UI smoke files
 ```

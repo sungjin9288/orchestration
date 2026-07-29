@@ -114,6 +114,11 @@ remain outside this stage.
 
 Mutable targets are serialized. Builder retains the current targeted live-mutation approval.
 
+Stage 5G planning-only `DEC-204` and handoff-only `DEC-205` define the one allowed return to this
+operator-stepped model after DEC-203: reuse the existing Reviewer WorkOrder, append Reviewer
+WorkOrderAttempt #2, run one local-stub Reviewer boundary, and stop at `QA_READY` on pass.
+Implementation remains reserved for `DEC-206`, and QA is not part of that slice.
+
 ### Stage 4A: SpecialistBatchPreview
 
 `DEC-173` accepts planning only, `DEC-174` records the fielded implementation handoff, `DEC-175`
@@ -209,6 +214,14 @@ evidence, reuse of WorkOrderAttempt #3, active-before-worker persistence, source
 baseline and containment guards, full rollback, exact replay, and a stop after mutation Artifacts
 before Reviewer/QA. `DEC-203` implements only that bounded source mutation; Reviewer/QA and all
 later authorities remain closed.
+
+Planning-only `DEC-204` fixes Stage 5G as one existing-Reviewer local-stub re-execution over the
+exact source-current DEC-203 mutation evidence. Handoff-only `DEC-205` binds canonical mutation
+evidence, historical-versus-current digest ownership, Reviewer attempt #2, active-before-worker
+Run, exact prior Decision handling, pass-to-`QA_READY`, changes-requested, failure, interruption,
+replay, and rollback. Reviewer implementation remains blocked pending `DEC-206`; QA execution,
+another attempt or rework, retry, recovery, provider execution, source widening, Git/release,
+memory, scheduling, policy mutation, bypass, and connectors remain closed.
 
 ### Stage 6: Ops Supervision And Recovery
 

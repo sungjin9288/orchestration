@@ -143,7 +143,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-203`
+- Recorded decisions: `DEC-163` through `DEC-205`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -212,6 +212,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   contracts, and stops before Reviewer/QA; `DEC-202` records the complete fielded handoff
 - Stage 5F implementation: `DEC-203` opens only the exact bounded local-stub source mutation and
   stops at a separate Reviewer re-execution decision
+- Stage 5G planning: `DEC-204` fixes one existing-Reviewer local-stub WorkOrderAttempt #2 over the
+  exact source-current DEC-203 mutation bundle, and `DEC-205` records the complete fielded
+  implementation handoff; implementation remains reserved for `DEC-206`
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -560,7 +563,10 @@ BuilderReworkDispatch and existing-Builder WorkOrderAttempt #3 no-write prefligh
 implementation `DEC-200` add only the exact existing-Approval-and-Inbox evidence boundary.
 Planning-only `DEC-201`, handoff-only `DEC-202`, and implementation `DEC-203` define one dedicated
 schema-v24-preserving local-stub Builder rework source mutation path that reuses attempt #3 and
-stops before Reviewer/QA. Reviewer/QA re-execution remains separately blocked.
+stops before Reviewer/QA. Planning-only `DEC-204` and handoff-only `DEC-205` define one future
+Reviewer re-execution over the exact DEC-203 mutation evidence, using Reviewer attempt #2 and
+stopping at `QA_READY` on pass. Reviewer re-execution implementation and QA execution remain
+separately blocked.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

@@ -473,7 +473,9 @@ one-way decisions, and complete DEC-197/DEC-188/DEC-191/DEC-194/provider lineage
 Planning-only `DEC-201`, handoff-only `DEC-202`, and implementation `DEC-203` keep Stage 5F outside
 Council authority. The bounded local-stub Builder mutation preserves the Council synthesis, Reviewer decision, fixed
 three-WorkOrder graph, and DEC-200 Approval while reusing attempt #3 and stopping before Reviewer or
-QA re-execution. Council revision, Reviewer/QA execution, and graph transition remain blocked.
+QA re-execution. Planning-only `DEC-204` and handoff-only `DEC-205` define one future exact
+local-stub Reviewer attempt #2 with a pass-side stop at `QA_READY`; neither Reviewer implementation
+nor QA execution is authorized. Council revision and any broader graph transition remain blocked.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

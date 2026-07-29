@@ -1,5 +1,10 @@
 # lessons
 
+- Historical execution evidence and current graph state need separate digest owners. Once a later
+  role transition is authorized, keep validating the immutable source record against its stored
+  source digest and bind the changed current graph through a new checkpoint and attempt authority;
+  recomputing a historical digest from the later mutable record either blocks valid progress or
+  tempts a broad validation bypass.
 - Mutation authorization evidence and mutation execution evidence need separate owners. Keep the
   approved source-bound Approval immutable; record the actual start, completion, failure, and
   interruption in the existing WorkOrderAttempt, Run, and Artifact lifecycle. A dedicated rework

@@ -452,6 +452,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 5F planning preserves schema v24 while fixing one dedicated local-stub Builder rework source mutation over immutable targets, attempt number three lifecycle evidence, complete rollback, exact replay, and a stop before Reviewer or QA',
   },
   {
+    id: 'ai-company-reviewer-reexecution-planning',
+    script: 'scripts/smoke-ai-company-reviewer-reexecution-planning.mjs',
+    purpose: 'AI Company Stage 5G planning keeps schema v24 and the fixed WorkOrder graph while binding exact DEC-203 mutation evidence to one future existing-Reviewer attempt number two, pass-to-QA-ready stop, terminal changes-requested behavior, replay, interruption, and still-blocked implementation authority',
+  },
+  {
     id: 'ai-company-builder-rework-preflight',
     script: 'scripts/smoke-ai-company-builder-rework-preflight.mjs',
     purpose: 'AI Company Stage 5D runtime proves one schema-v23 to v24 BuilderReworkDispatch and existing Builder WorkOrderAttempt append, replay-safe exact inspection, sidecar-only lifecycle, snapshot exclusion, and blocked mutation authority',

@@ -1341,6 +1341,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Runtime now saves WorkOrderAttempt #3 and one running `rework-live-mutation` Run before exactly one local-stub call, derives targets only from the immutable ReworkPlan, refuses symlinks, escaped realpaths, byte-limit violations, baseline drift, malformed base64, and widened output, restores all touched files on failure, and atomically records `change-summary`, `patch`, and `diff` Artifacts on success. The DEC-200 Approval and fixed ExecutionPlan/WorkOrders remain immutable; exact GET/replay and bounded UI evidence stop at `separate-reviewer-reexecution-decision-required`.
 - Needed Before: Reviewer or QA re-execution, another attempt or WorkOrder, retry, recovery, resume, checkpoint or graph transition, provider-backed execution, result or memory application, runtime-agent commit/push/release, scheduling, policy mutation, approval bypass, and connectors require separate complete fielded decisions and focused verification.
 
+### DEC-204
+- Status: `Accepted`
+- Decision: Accept `docs/139_ai-company-reviewer-reexecution-plan.md` as planning-only authority for one exact local-stub Reviewer re-execution after a source-current completed DEC-203 mutation.
+- Why: DEC-203 leaves the fixed graph at the original Reviewer `changes-requested` stop. Current scheduler replay, Reviewer bundle selection, completion, and file-store validation all assume that first Reviewer outcome remains current, so directly calling the generic Reviewer path would either reuse stale Builder evidence or invalidate historical rework provenance.
+- Impact: The plan keeps schema v24 and the existing three WorkOrders, fixes one Reviewer WorkOrderAttempt #2, canonical DEC-203 mutation evidence, atomic graph reconciliation and active-before-worker Run, exact prior Reviewer Decision handling, pass-to-`QA_READY` and changes-requested terminal branches, replay/interruption/failure behavior, UI limits, rollback, and focused verification. It does not change runtime, schema, API, UI, state, source, provider, worker, QA, Git/release, memory, policy, bypass, or connector behavior.
+- Needed Before: Runtime, API, UI, Reviewer execution, WorkOrderAttempt #2, graph reconciliation, Decision resolution, Run, Artifact, or checkpoint mutation requires the complete fielded operator decision in `docs/140_ai-company-reviewer-reexecution-implementation-decision-handoff.md`.
+
+### DEC-205
+- Status: `Accepted`
+- Decision: Record `docs/140_ai-company-reviewer-reexecution-implementation-decision-handoff.md` as the complete 15-field input shape for the Stage 5G Reviewer re-execution implementation gate.
+- Why: Generic continuation cannot decide the exact DEC-203 mutation bundle, historical-versus-current digest boundary, Reviewer attempt #2 authority, pending review Decision transition, atomic start, pass and changes-requested settlement, QA stop, interruption, rollback, focused smoke, or every authority that must remain closed.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one existing-Reviewer local-stub attempt #2 that stops at `QA_READY` on pass. It explicitly excludes QA execution, a third attempt, another rework, retry, recovery, provider-backed execution, source mutation expansion, Git/release, memory, scheduling, policy mutation, approval bypass, and connectors. No implementation authority is recorded.
+- Needed Before: The operator must supply every required field in one valid architecture-sensitive implementation decision. `DEC-204`, this handoff, broad approval, delegated self-approval, or continuation does not authorize implementation. A matching implementation outcome is reserved for `DEC-206`.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-203`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-205`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -342,6 +342,10 @@ assert.match(
   /Planning-only `DEC-201`, handoff-only `DEC-202`, and implementation `DEC-203`/,
 );
 assert.match(deliveryRoadmapText, /Stage 5F planning-only `DEC-201`/);
+assert.match(masterPlanText, /Stage 5G planning: `DEC-204`/);
+assert.match(runtimeContractText, /`DEC-204` and handoff-only `DEC-205` define one future/);
+assert.match(councilProtocolText, /Planning-only `DEC-204` and handoff-only `DEC-205`/);
+assert.match(deliveryRoadmapText, /Stage 5G planning-only `DEC-204`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -479,6 +483,8 @@ const report = {
         'DEC-201',
         'DEC-202',
         'DEC-203',
+        'DEC-204',
+        'DEC-205',
       ],
       currentRuntime: {
         schemaVersion: 24,
@@ -518,6 +524,7 @@ const report = {
         builderReworkPreflight: 'schema-v24-exact-local-stub-sidecar-preflight',
         builderReworkMutationApproval: 'schema-v24-exact-source-bound-evidence-only',
         builderReworkSourceMutation: 'schema-v24-exact-bounded-local-stub-mutation',
+        reviewerReexecution: 'planning-only-dec-204-dec-205',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -587,6 +594,9 @@ const report = {
         builderReworkMutationApprovalImplementationAllowed: true,
         builderReworkSourceMutationPlanningAllowed: true,
         builderReworkSourceMutationImplementationAllowed: true,
+        reviewerReexecutionPlanningAllowed: true,
+        reviewerReexecutionImplementationAllowed: false,
+        qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
         providerRoleExpansionAllowed: false,
@@ -598,7 +608,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'Reviewer and QA re-execution require a separate decision; solo remains deferred',
+      'Reviewer re-execution implementation requires exact DEC-206; QA and solo remain deferred',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -617,11 +627,14 @@ assert.equal(report.authority.builderReworkPreflightImplementationAllowed, true)
 assert.equal(report.authority.builderReworkMutationApprovalImplementationAllowed, true);
 assert.equal(report.authority.builderReworkSourceMutationPlanningAllowed, true);
 assert.equal(report.authority.builderReworkSourceMutationImplementationAllowed, true);
+assert.equal(report.authority.reviewerReexecutionPlanningAllowed, true);
+assert.equal(report.authority.reviewerReexecutionImplementationAllowed, false);
+assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /Reviewer and QA re-execution require a separate decision/,
+  /Reviewer re-execution implementation requires exact DEC-206/,
 );
 
 process.stdout.write(

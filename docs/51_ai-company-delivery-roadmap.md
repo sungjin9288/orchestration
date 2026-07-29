@@ -638,6 +638,12 @@ schema-v24-preserving local-stub mutation over immutable ReworkPlan targets. It 
 WorkOrderAttempt #3, records active/completed/failed/interrupted evidence through existing Run and
 Artifact contracts, keeps the DEC-200 Approval immutable, and stops before Reviewer/QA. `DEC-203`
 implements only that runtime/API/UI/source path.
+
+Stage 5G planning-only `DEC-204` and handoff-only `DEC-205` define one future local-stub Reviewer
+re-execution over the exact current DEC-203 mutation bundle. It keeps schema v24 and the fixed
+three WorkOrders, appends only Reviewer WorkOrderAttempt #2, and stops at the existing `QA_READY`
+checkpoint on pass. Reviewer implementation remains reserved for `DEC-206`; QA execution is a
+later separate gate.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.
