@@ -61,7 +61,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
   runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
   envelope로 노출된다.
-- Persisted runtime은 schema v23이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
+- Persisted runtime은 schema v24이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
   WorkflowCheckpoint, DeliveryPackage, acceptance, MissionCloseOut, LearningCandidate, MemoryItem,
   MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan, StaffingEntry, and
   WorkOrderAttempt, SpecialistBatch, SpecialistCellAttempt, and SpecialistCellRetry evidence를
@@ -93,8 +93,8 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   complete fielded implementation handoff, and `DEC-194` implements only the exact accepted
   evidence-and-inspection path.
   `DEC-195` plans one schema-v24 BuilderReworkDispatch plus an existing-Builder WorkOrderAttempt #3
-  no-write preflight, and `DEC-196` records its complete fielded implementation handoff. Runtime
-  implementation remains blocked pending `DEC-197`.
+  no-write preflight, `DEC-196` records its complete fielded implementation handoff, and `DEC-197`
+  implements only that bounded local-stub dispatch-and-preflight path.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, durable Reviewer rework implementation,
   interrupted-attempt recovery, provider/background WorkOrders, Ops commands, and Mission context
@@ -138,7 +138,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-196`
+- Recorded decisions: `DEC-163` through `DEC-197`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -193,8 +193,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Stage 5D planning: `DEC-195` fixes one future schema-v24 immutable BuilderReworkDispatch plus one
   existing-Builder `start-builder-rework-preflight` WorkOrderAttempt #3; `DEC-196` records the
   complete fielded implementation handoff
-- Next gate: `DEC-197` exact operator implementation decision; no runtime/schema/API/UI/worker
-  authority is open yet
+- Stage 5D implementation: `DEC-197` adds only the dispatch sequence/map, existing-Builder attempt
+  #3, one local-stub no-write preflight, exact inspection, terminal no-retry failure, and a
+  rationale-gated UI that stops before mutation Approval
+- Next gate: a separate complete fielded decision for mutation Approval; source mutation and
+  downstream role execution remain closed
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed

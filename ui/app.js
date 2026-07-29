@@ -141,6 +141,7 @@ import {
   getOpsSupervisionTarget,
   getReviewerReworkPlanRecordRequest,
   getReworkPlanAcceptanceRequest,
+  getBuilderReworkPreflightRequest,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -438,6 +439,7 @@ const state = {
   reviewerReworkPlanPreview: null,
   reviewerReworkPlan: null,
   reviewerReworkPlanAcceptance: null,
+  builderReworkDispatch: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5139,6 +5141,7 @@ function applySnapshotPayload(payload) {
     state.opsSupervisionPreview = null;
     state.reviewerReworkPlanPreview = null;
     state.reviewerReworkPlan = null;
+    state.builderReworkDispatch = null;
   }
 
   state.payload = {
@@ -5407,6 +5410,7 @@ async function hydrateSelectedDetails() {
   state.workOrderVerificationStatus = null;
   state.reviewerReworkPlan = null;
   state.reviewerReworkPlanAcceptance = null;
+  state.builderReworkDispatch = null;
   state.workOrderAcceptanceCriteriaRationale = '';
   state.workOrderProofDrafts = {};
   state.executionContinuationPreview = null;
@@ -5637,6 +5641,10 @@ async function hydrateSelectedDetails() {
       );
       state.reviewerReworkPlanAcceptance =
         acceptancePayload?.reworkPlanAcceptance || null;
+      const dispatchPayload = await fetchOptionalJson(
+        `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/builder-rework-dispatch`,
+      );
+      state.builderReworkDispatch = dispatchPayload || null;
     }
   }
 
@@ -7401,7 +7409,52 @@ async function acceptReviewerReworkPlan(actionButton) {
       throw new Error('ReworkPlanAcceptance 응답이 exact evidence와 다릅니다.');
     }
     state.reviewerReworkPlanAcceptance = acceptance;
+    state.builderReworkDispatch = null;
     elements.refreshStatus.textContent = `${acceptance.id} accepted evidence를 기록했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitBuilderReworkPreflight(actionButton) {
+  const record = state.reviewerReworkPlan;
+  const acceptance = state.reviewerReworkPlanAcceptance;
+  const form = actionButton?.closest?.('[data-form="start-builder-rework-preflight"]');
+  const bundle = getReviewerReworkSource(record?.executionPlanId).bundle;
+  if (!record || !acceptance || !form || !bundle) {
+    throw new Error('exact accepted ReworkPlan과 현재 Builder evidence가 필요합니다.');
+  }
+  const request = getBuilderReworkPreflightRequest(record, acceptance, bundle, {
+    rationale: String(new FormData(form).get('builderReworkRationale') || ''),
+    reviewedAt: new Date().toISOString(),
+  });
+  if (!request) throw new Error('bounded rework preflight rationale이 필요합니다.');
+
+  state.builderReworkDispatch = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${record.id} bounded rework preflight을 시작하는 중…`;
+  render();
+  try {
+    const payload = await postJson(
+      `/api/rework-plans/${encodeURIComponent(record.id)}/builder-rework-preflight`,
+      request,
+    );
+    if (
+      payload.builderReworkDispatch?.reworkPlanId !== record.id ||
+      payload.workOrderAttempt?.action !== 'start-builder-rework-preflight' ||
+      !['active', 'waiting-gate', 'failed'].includes(payload.workOrderAttempt?.status)
+    ) {
+      throw new Error('BuilderReworkDispatch 응답이 exact rework evidence와 다릅니다.');
+    }
+    state.builderReworkDispatch = payload;
+    elements.refreshStatus.textContent =
+      payload.workOrderAttempt.status === 'active'
+        ? `${payload.builderReworkDispatch.id} worker interruption evidence를 복원했습니다`
+        : `${payload.builderReworkDispatch.id} preflight evidence를 기록했습니다`;
+  } catch (error) {
+    state.builderReworkDispatch = null;
+    throw error;
   } finally {
     state.mutating = false;
     render();
@@ -13608,6 +13661,49 @@ function renderReviewerReworkPlanRecord(executionPlanId) {
               <span>${escapeHtml(acceptance.id)}</span>
               <code>${escapeHtml(acceptance.acceptanceDigest)}</code>
             </div>
+            ${
+              state.builderReworkDispatch?.builderReworkDispatch?.reworkPlanId === record.id
+                ? `
+                  <div class="builder-rework-dispatch" aria-label="Builder rework dispatch evidence">
+                    <strong>${escapeHtml(state.builderReworkDispatch.workOrderAttempt?.workerState || 'unknown')}</strong>
+                    <span>${escapeHtml(state.builderReworkDispatch.builderReworkDispatch.id)}</span>
+                    <code>${escapeHtml(state.builderReworkDispatch.workOrderAttempt?.id || '')}</code>
+                    <code>Run: ${escapeHtml(
+                      state.builderReworkDispatch.workOrderAttempt?.runRefs?.join(', ') ||
+                        'none',
+                    )}</code>
+                    <code>Artifact: ${escapeHtml(
+                      state.builderReworkDispatch.workOrderAttempt?.artifactRefs?.join(', ') ||
+                        'none',
+                    )}</code>
+                  </div>
+                `
+                : `
+                  <form class="reviewer-rework-record-form" data-form="start-builder-rework-preflight">
+                    <label class="field">
+                      <span>Bounded rework rationale</span>
+                      <input
+                        name="builderReworkRationale"
+                        type="text"
+                        maxlength="500"
+                        required
+                        placeholder="Why this one no-write rework preflight is needed"
+                        ${state.loading || state.mutating ? 'disabled' : ''}
+                      />
+                    </label>
+                    <p class="detail-copy detail-copy-compact">This consumes the one dispatch cap and stops before mutation approval.</p>
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="start-builder-rework-preflight"
+                      data-id="${escapeHtml(record.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Start bounded rework preflight
+                    </button>
+                  </form>
+                `
+            }
           `
           : `
             <form class="reviewer-rework-record-form" data-form="accept-reviewer-rework-plan">
@@ -22734,6 +22830,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'start-builder-rework-preflight') {
+        await submitBuilderReworkPreflight(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'request-builder-live-mutation-approval') {
         await requestBuilderLiveMutationApproval(actionButton.dataset.id);
         return;
@@ -23045,6 +23146,14 @@ function handleFormInput(event) {
   const verificationProofForm = event.target.closest(
     '[data-form="workorder-verification-proof"]',
   );
+  const builderReworkPreflightForm = event.target.closest(
+    '[data-form="start-builder-rework-preflight"]',
+  );
+
+  if (builderReworkPreflightForm) {
+    state.builderReworkDispatch = null;
+    return;
+  }
 
   if (missionGraphExplorerForm) {
     if (event.target.name === 'missionGraphQuery') {

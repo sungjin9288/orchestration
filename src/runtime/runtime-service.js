@@ -108,6 +108,8 @@ const {
 } = require('./task-gates');
 const {
   assertAcceptanceCriterion,
+  assertArtifact,
+  assertBuilderReworkDispatch,
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,
@@ -243,6 +245,13 @@ const {
   isExactReworkPlanAcceptanceReplay,
   normalizeReworkPlanAcceptanceRequest,
 } = require('./rework-plan-acceptances');
+const {
+  assertBuilderReworkDispatchRecord,
+  createBuilderReworkDispatch,
+  deriveBuilderReworkWorkerState,
+  isExactBuilderReworkDispatchReplay,
+  normalizeBuilderReworkDispatchRequest,
+} = require('./builder-rework-dispatches');
 const {
   parseReviewerArtifactContent,
 } = require('../execution/coordinator/artifact-content');
@@ -416,6 +425,11 @@ function createRuntimeService(options = {}) {
     return `rework-plan-acceptance-${String(
       state.sequences.reworkPlanAcceptance,
     ).padStart(4, '0')}`;
+  }
+
+  function nextBuilderReworkDispatchId(state) {
+    state.sequences.builderReworkDispatch += 1;
+    return `builder-rework-dispatch-${String(state.sequences.builderReworkDispatch).padStart(4, '0')}`;
   }
 
   function nextProposalRecordId(state) {
@@ -4588,6 +4602,339 @@ function createRuntimeService(options = {}) {
     return { reworkPlanAcceptance: acceptance };
   }
 
+  function builderReworkNowIso() {
+    const value =
+      typeof options.builderReworkNow === 'function'
+        ? options.builderReworkNow()
+        : new Date();
+    const timestamp = value instanceof Date ? value.getTime() : Date.parse(String(value));
+    if (!Number.isFinite(timestamp)) throw conflict('Builder rework clock must return a valid timestamp');
+    return new Date(timestamp).toISOString();
+  }
+
+  function findBuilderReworkDispatch(state, reworkPlanId) {
+    return Object.values(state.builderReworkDispatches || {}).find(
+      (dispatch) => dispatch.reworkPlanId === reworkPlanId,
+    ) || null;
+  }
+
+  function getBuilderReworkDispatchEnvelopeFromState(state, dispatch) {
+    assertBuilderReworkDispatchRecord(dispatch);
+    const attempt = assertWorkOrderAttempt(dispatch.workOrderAttemptId, state);
+    if (
+      attempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT ||
+      attempt.workOrderId !== dispatch.builderWorkOrderId ||
+      attempt.recordDigest === undefined
+    ) {
+      throw conflict('BuilderReworkDispatch attempt lineage is invalid');
+    }
+    return {
+      builderReworkDispatch: dispatch,
+      workOrderAttempt: {
+        ...attempt,
+        workerState: deriveBuilderReworkWorkerState(attempt),
+      },
+    };
+  }
+
+  function getBuilderReworkDispatchById(builderReworkDispatchId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`BuilderReworkDispatch inspection requires current state: ${error.message}`);
+    }
+    try {
+      return getBuilderReworkDispatchEnvelopeFromState(
+        state,
+        assertBuilderReworkDispatch(builderReworkDispatchId, state),
+      );
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+  }
+
+  function getBuilderReworkDispatch(reworkPlanId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`BuilderReworkDispatch inspection requires current state: ${error.message}`);
+    }
+    const reworkPlan = assertReworkPlan(reworkPlanId, state);
+    const dispatch = findBuilderReworkDispatch(state, reworkPlan.id);
+    if (!dispatch) {
+      const error = new Error('BuilderReworkDispatch not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    return getBuilderReworkDispatchEnvelopeFromState(state, dispatch);
+  }
+
+  function assertBuilderReworkSourceCurrent(state, reworkPlan, acceptance, request, now) {
+    const bundle = getReviewedDeliveryRoleBundle(state, reworkPlan.executionPlanId);
+    const { executionPlan, byRole } = bundle;
+    assertCurrentReworkPlanProjection(state, reworkPlan, now);
+    if (
+      acceptance.reworkPlanId !== reworkPlan.id ||
+      acceptance.reworkPlanRecordDigest !== reworkPlan.recordDigest ||
+      request.reworkPlanAcceptanceId !== acceptance.id ||
+      request.reworkPlanRecordDigest !== reworkPlan.recordDigest ||
+      request.acceptanceDigest !== acceptance.acceptanceDigest ||
+      request.sourceExecutionPlanDigest !== reworkPlan.sourceExecutionPlanDigest ||
+      request.sourceAttemptRecordDigest !== reworkPlan.sourceAttemptRecordDigest ||
+      request.sourceProgressDigest !== reworkPlan.sourceProgressDigest ||
+      request.builderWorkOrderId !== byRole.builder.id ||
+      request.builderWorkOrderDigest !== computeWorkOrderRecordDigest(byRole.builder) ||
+      reworkPlan.nextAttemptNumber !== 2 || reworkPlan.maxAdditionalBuilderAttempts !== 1 ||
+      executionPlan.status !== EXECUTION_PLAN_STATUS.BLOCKED ||
+      executionPlan.stopReason !== 'reviewer-changes-requested' ||
+      executionPlan.stoppedAt !== 'reviewer' || executionPlan.activeWorkOrderId !== null ||
+      byRole.builder.status !== WORK_ORDER_STATUS.COMPLETED ||
+      byRole.reviewer.status !== WORK_ORDER_STATUS.CHANGES_REQUESTED ||
+      byRole.qa.status !== WORK_ORDER_STATUS.BLOCKED_DEPENDENCY
+    ) {
+      throw conflict('BuilderReworkDispatch source evidence is stale or invalid');
+    }
+    const builderAttempts = bundle.workOrderAttempts.filter(
+      (attempt) => attempt.workOrderId === byRole.builder.id,
+    );
+    if (
+      builderAttempts.length !== 2 ||
+      builderAttempts[0].action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER ||
+      builderAttempts[0].attemptNumber !== 1 ||
+      builderAttempts[1].action !== WORK_ORDER_ATTEMPT_ACTION.CONTINUE_BUILDER ||
+      builderAttempts[1].attemptNumber !== 2 ||
+      builderAttempts.some((attempt) => !['completed', 'waiting-gate'].includes(attempt.status))
+    ) {
+      throw conflict('BuilderReworkDispatch requires two terminal Builder attempts');
+    }
+    if (
+      Object.values(state.workOrderAttempts).some(
+        (attempt) =>
+          attempt.projectId === executionPlan.projectId &&
+          attempt.role === 'builder' &&
+          attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+      )
+    ) {
+      throw conflict(
+        'BuilderReworkDispatch cannot overlap an active Builder WorkOrderAttempt in the project',
+      );
+    }
+    const project = assertProject(executionPlan.projectId, state);
+    if (
+      project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+      project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB
+    ) {
+      throw conflict('BuilderReworkDispatch supports local-stub projects only');
+    }
+    return { bundle, project };
+  }
+
+  function beginBuilderReworkPreflight(input) {
+    const { reworkPlanId, ...requestInput } = input || {};
+    const now = builderReworkNowIso();
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`BuilderReworkDispatch requires supported state: ${error.message}`);
+    }
+    const reworkPlan = assertReworkPlan(reworkPlanId, state);
+    const acceptance = assertReworkPlanAcceptance(
+      requestInput.reworkPlanAcceptanceId,
+      state,
+    );
+    let request;
+    try {
+      request = normalizeBuilderReworkDispatchRequest(requestInput, {
+        acceptanceCreatedAt: acceptance.createdAt,
+        now,
+      });
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+    const existing = findBuilderReworkDispatch(state, reworkPlan.id);
+    if (existing) {
+      if (!isExactBuilderReworkDispatchReplay(existing, request)) {
+        throw conflict(`ReworkPlan ${reworkPlan.id} already has a different BuilderReworkDispatch`);
+      }
+      return { ...getBuilderReworkDispatchEnvelopeFromState(state, existing), idempotent: true };
+    }
+
+    const { bundle } = assertBuilderReworkSourceCurrent(
+      state,
+      reworkPlan,
+      acceptance,
+      request,
+      now,
+    );
+    const builder = bundle.byRole.builder;
+    const councilSession = assertCouncilSession(bundle.executionPlan.councilSessionId, state);
+    const bound = assertBoundStaffingSchedulerSourceCurrent(state, councilSession, {
+      executionPlan: bundle.executionPlan,
+    });
+    const dispatchId = nextBuilderReworkDispatchId(state);
+    const attemptId = nextWorkOrderAttemptId(state);
+    if (state.workOrderAttempts[attemptId]) {
+      throw conflict(`WorkOrderAttempt id collision: ${attemptId}`);
+    }
+    const dependencies = builder.dependencyIds.map((dependencyId) => {
+      const dependency = assertWorkOrder(dependencyId, state);
+      return { id: dependency.id, status: dependency.status };
+    });
+    const authorityDigest = digestSpecialistCanonical({
+      builderWorkOrderDigest: request.builderWorkOrderDigest,
+      dispatchApproval: request.dispatchApproval,
+      dispatchId,
+      reworkPlanAcceptanceId: acceptance.id,
+      reworkPlanAcceptanceDigest: acceptance.acceptanceDigest,
+      reworkPlanId: reworkPlan.id,
+      workOrderAttemptId: attemptId,
+    });
+    const attempt = createWorkOrderAttempt({
+      id: attemptId,
+      executionPlanId: bundle.executionPlan.id,
+      workOrderId: builder.id,
+      missionId: bundle.executionPlan.missionId,
+      projectId: bundle.executionPlan.projectId,
+      staffingPlanId: bound.staffingPlan.id,
+      staffingEntryId: bound.staffingEntry.id,
+      councilSessionId: councilSession.id,
+      role: 'builder',
+      position: builder.position,
+      attemptNumber: 3,
+      command: WORK_ORDER_ATTEMPT_COMMAND.STEP,
+      action: WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
+      sourceDigest: bundle.executionPlan.sourceDigest,
+      workOrderDigest: request.builderWorkOrderDigest,
+      dependencyDigest: computeWorkOrderAttemptDependencyDigest({
+        executionPlanId: bundle.executionPlan.id,
+        workOrderId: builder.id,
+        dependencies,
+      }),
+      authorityDigest,
+      checkpointRef: null,
+      approvalRefs: [],
+      startedAt: request.evaluatedAt,
+    });
+    const dispatch = createBuilderReworkDispatch({
+      id: dispatchId,
+      projectId: bundle.executionPlan.projectId,
+      missionId: bundle.executionPlan.missionId,
+      staffingPlanId: bound.staffingPlan.id,
+      staffingEntryId: bound.staffingEntry.id,
+      councilSessionId: councilSession.id,
+      executionPlanId: bundle.executionPlan.id,
+      reworkPlanId: reworkPlan.id,
+      reviewEvidenceDigest: reworkPlan.reviewEvidenceDigest,
+      request,
+      workOrderAttemptId: attempt.id,
+    });
+    state.workOrderAttempts[attempt.id] = attempt;
+    state.builderReworkDispatches[dispatch.id] = dispatch;
+    store.saveState(state);
+    return { ...getBuilderReworkDispatchEnvelopeFromState(state, dispatch), idempotent: false };
+  }
+
+  function settleBuilderReworkPreflight(input) {
+    const expectedFields = [
+      'artifactId',
+      'builderReworkDispatchId',
+      'failed',
+      'runId',
+    ];
+    if (
+      !input ||
+      typeof input !== 'object' ||
+      Array.isArray(input) ||
+      Object.keys(input).sort().join('\u0000') !==
+        expectedFields.join('\u0000')
+    ) {
+      throw conflict(
+        'Builder rework preflight settlement has unexpected or missing fields',
+      );
+    }
+    if (typeof input.failed !== 'boolean') {
+      throw conflict('Builder rework preflight failed must be a boolean');
+    }
+    if (
+      (!input.failed && (!input.runId || !input.artifactId)) ||
+      (input.artifactId && !input.runId)
+    ) {
+      throw conflict(
+        'Successful Builder rework preflight requires one Run and one Artifact',
+      );
+    }
+
+    const state = store.loadState();
+    const dispatch = assertBuilderReworkDispatch(input.builderReworkDispatchId, state);
+    const attempt = assertWorkOrderAttempt(dispatch.workOrderAttemptId, state);
+    if (
+      attempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE ||
+      attempt.action !==
+        WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT
+    ) {
+      throw conflict(`BuilderReworkDispatch ${dispatch.id} is already terminal`);
+    }
+    const executionPlan = assertExecutionPlan(dispatch.executionPlanId, state);
+    const runRefs = input.runId ? [input.runId] : [];
+    const artifactRefs = input.artifactId ? [input.artifactId] : [];
+    const run = input.runId ? assertRun(input.runId, state) : null;
+    const artifact = input.artifactId
+      ? assertArtifact(input.artifactId, state)
+      : null;
+    if (
+      run &&
+      (
+        run.taskId !== executionPlan.controlTaskId ||
+        run.role !== 'builder' ||
+        run.status !== RUN_STATUS.COMPLETED ||
+        run.metadata?.executionMode !== 'rework-preflight' ||
+        run.metadata?.builderReworkDispatchId !== dispatch.id ||
+        run.metadata?.workOrderAttemptId !== attempt.id ||
+        run.summary?.executionMode !== 'rework-preflight' ||
+        run.summary?.builderReworkDispatchId !== dispatch.id ||
+        run.summary?.workOrderAttemptId !== attempt.id
+      )
+    ) {
+      throw conflict('Builder rework preflight Run lineage is invalid');
+    }
+    if (
+      artifact &&
+      (
+        artifact.taskId !== executionPlan.controlTaskId ||
+        artifact.runId !== run?.id ||
+        artifact.type !== 'preflight'
+      )
+    ) {
+      throw conflict('Builder rework preflight Artifact lineage is invalid');
+    }
+    const completedAt = new Date(
+      Math.max(
+        Date.parse(builderReworkNowIso()),
+        Date.parse(attempt.startedAt),
+      ),
+    ).toISOString();
+    const next = transitionWorkOrderAttempt(attempt, {
+      status: input.failed ? WORK_ORDER_ATTEMPT_STATUS.FAILED : WORK_ORDER_ATTEMPT_STATUS.WAITING_GATE,
+      checkpointRef: null,
+      approvalRefs: [],
+      runRefs,
+      artifactRefs,
+      decisionInboxItemRefs: [],
+      stopReason: input.failed
+        ? 'builder-rework-preflight-failed'
+        : 'builder-rework-preflight-complete-mutation-approval-blocked',
+      completedAt,
+    });
+    state.workOrderAttempts[next.id] = next;
+    store.saveState(state);
+    return getBuilderReworkDispatchEnvelopeFromState(state, dispatch);
+  }
+
   function opsSupervisionNowIso() {
     const value =
       typeof options.opsSupervisionNow === 'function'
@@ -6401,7 +6748,9 @@ function createRuntimeService(options = {}) {
     if (
       bundle.councilSession.staffingEntryRef &&
       getPlanWorkOrderAttempts(state, executionPlan.id).some(
-        (attempt) => attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+        (attempt) =>
+          attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
+          attempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
       )
     ) {
       transitionActiveSchedulerAttempt(state, executionPlan, {
@@ -8179,7 +8528,9 @@ function createRuntimeService(options = {}) {
 
   function assertNoActiveSchedulerAttempt(state, executionPlan) {
     const active = getPlanWorkOrderAttempts(state, executionPlan.id).find(
-      (attempt) => attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+      (attempt) =>
+        attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
+        attempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
     );
     if (active) {
       throw conflict(
@@ -8319,7 +8670,9 @@ function createRuntimeService(options = {}) {
 
   function transitionActiveSchedulerAttempt(state, executionPlan, input) {
     const attempt = getPlanWorkOrderAttempts(state, executionPlan.id).find(
-      (candidate) => candidate.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+      (candidate) =>
+        candidate.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
+        candidate.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
     );
     if (!attempt) {
       throw conflict(`ExecutionPlan ${executionPlan.id} has no active WorkOrderAttempt`);
@@ -8544,7 +8897,9 @@ function createRuntimeService(options = {}) {
     }
 
     if (getPlanWorkOrderAttempts(state, executionPlan.id).some(
-      (attempt) => attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+      (attempt) =>
+        attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
+        attempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
     )) {
       transitionActiveSchedulerAttempt(state, executionPlan, {
         status: checkpoint
@@ -8584,7 +8939,9 @@ function createRuntimeService(options = {}) {
       workOrder.updatedAt = now;
     }
     if (getPlanWorkOrderAttempts(state, executionPlan.id).some(
-      (attempt) => attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+      (attempt) =>
+        attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
+        attempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
     )) {
       transitionActiveSchedulerAttempt(state, executionPlan, {
         status: WORK_ORDER_ATTEMPT_STATUS.FAILED,
@@ -9688,6 +10045,97 @@ function createRuntimeService(options = {}) {
     return state.runs[id];
   }
 
+  function startBuilderReworkPreflightRun(input) {
+    const state = store.loadStateReadonly();
+    const dispatch = assertBuilderReworkDispatch(
+      input.builderReworkDispatchId,
+      state,
+    );
+    const attempt = assertWorkOrderAttempt(dispatch.workOrderAttemptId, state);
+    const executionPlan = assertExecutionPlan(dispatch.executionPlanId, state);
+    assertTask(executionPlan.controlTaskId, state);
+    if (
+      attempt.id !== input.workOrderAttemptId ||
+      attempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE
+    ) {
+      throw conflict(
+        'Builder rework preflight Run requires its persisted active attempt',
+      );
+    }
+
+    const id = nextId(state, 'run');
+    const startedAt = new Date().toISOString();
+    state.runs[id] = {
+      id,
+      taskId: executionPlan.controlTaskId,
+      kind: 'role',
+      role: 'builder',
+      status: RUN_STATUS.RUNNING,
+      metadata: {
+        ...input.metadata,
+        builderReworkDispatchId: dispatch.id,
+        executionMode: 'rework-preflight',
+        mutationAllowed: false,
+        workOrderAttemptId: attempt.id,
+      },
+      summary: null,
+      startedAt,
+      finishedAt: null,
+      logPath: path.join(store.logsDir, `${id}.jsonl`),
+    };
+    store.saveState(state);
+    return state.runs[id];
+  }
+
+  function completeBuilderReworkPreflightRun(input) {
+    const state = store.loadStateReadonly();
+    const run = assertRun(input.runId, state);
+    if (
+      run.status !== RUN_STATUS.RUNNING ||
+      run.metadata?.builderReworkDispatchId !== input.builderReworkDispatchId ||
+      run.metadata?.executionMode !== 'rework-preflight' ||
+      run.metadata?.mutationAllowed !== false
+    ) {
+      throw conflict('Builder rework preflight Run lineage is invalid');
+    }
+    run.status = input.status || RUN_STATUS.COMPLETED;
+    run.finishedAt = new Date().toISOString();
+    run.summary = input.summary || run.summary || null;
+    store.saveState(state);
+    return run;
+  }
+
+  function recordBuilderReworkPreflightArtifact(input) {
+    const state = store.loadStateReadonly();
+    const dispatch = assertBuilderReworkDispatch(
+      input.builderReworkDispatchId,
+      state,
+    );
+    const run = assertRun(input.runId, state);
+    if (
+      run.status !== RUN_STATUS.RUNNING ||
+      run.taskId !== assertExecutionPlan(dispatch.executionPlanId, state).controlTaskId ||
+      run.metadata?.builderReworkDispatchId !== dispatch.id ||
+      run.metadata?.executionMode !== 'rework-preflight'
+    ) {
+      throw conflict('Builder rework preflight Artifact lineage is invalid');
+    }
+
+    const id = nextId(state, 'artifact');
+    const filename = `${id}.md`;
+    const artifactPath = store.writeArtifact(filename, input.content);
+    state.artifacts[id] = {
+      id,
+      taskId: run.taskId,
+      runId: run.id,
+      type: 'preflight',
+      path: artifactPath,
+      createdAt: new Date().toISOString(),
+    };
+    store.saveState(state);
+    return state.artifacts[id];
+  }
+
   function startPlaceholderRun(input) {
     return startRun({
       ...input,
@@ -9961,6 +10409,7 @@ function createRuntimeService(options = {}) {
     delete snapshotForPublicProjection.specialistCellRetries;
     delete snapshotForPublicProjection.reworkPlans;
     delete snapshotForPublicProjection.reworkPlanAcceptances;
+    delete snapshotForPublicProjection.builderReworkDispatches;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -10012,6 +10461,7 @@ function createRuntimeService(options = {}) {
 
   return {
     appendLog,
+    beginBuilderReworkPreflight,
     acceptDeliveryPackage,
     acceptReworkPlan,
     acceptMissionStaffingPlan,
@@ -10068,6 +10518,8 @@ function createRuntimeService(options = {}) {
     getReviewerReworkPlanPreview,
     getReworkPlan,
     getReworkPlanAcceptance,
+    getBuilderReworkDispatch,
+    getBuilderReworkDispatchById,
     getExecutionPlanReworkPlan,
     getMissionCloseOut,
     getMissionLearningCandidate,
@@ -10126,18 +10578,22 @@ function createRuntimeService(options = {}) {
     quarantineProposalSourceMutation,
     rollbackProposalSourceMutation,
     quarantineProposalRecord,
+    recordBuilderReworkPreflightArtifact,
     recordArtifact,
     requestBuilderLiveMutationApproval,
     resolveReview,
     resolveDecisionInboxItem,
     resetRuntime,
     setProjectProviderConfig,
+    settleBuilderReworkPreflight,
     setTaskWorktreeRef,
     selectMission,
     selectProject,
+    startBuilderReworkPreflightRun,
     startRealCouncilForMission,
     startProviderCouncilForMission,
     startRun,
+    completeBuilderReworkPreflightRun,
     startPlaceholderRun,
     startCouncilSpecialistBatch,
     retrySpecialistBatchCell,

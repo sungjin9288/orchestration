@@ -442,6 +442,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 5D planning preserves the three-WorkOrder graph while fixing one future schema-v24 dispatch, existing-Builder WorkOrderAttempt number three, local-stub no-write preflight, and blocked mutation authority',
   },
   {
+    id: 'ai-company-builder-rework-preflight',
+    script: 'scripts/smoke-ai-company-builder-rework-preflight.mjs',
+    purpose: 'AI Company Stage 5D runtime proves one schema-v23 to v24 BuilderReworkDispatch and existing Builder WorkOrderAttempt append, replay-safe exact inspection, sidecar-only lifecycle, snapshot exclusion, and blocked mutation authority',
+  },
+  {
     id: 'ai-company-rework-plan-acceptance',
     script: 'scripts/smoke-ai-company-rework-plan-acceptance.mjs',
     purpose: 'AI Company Stage 5C runtime and API prove one schema-v22 to v23 immutable ReworkPlanAcceptance append, exact DEC-188 source recomputation before first write, replay-before-recompute source-drift retention, exact inspection, snapshot exclusion, and zero downstream authority',

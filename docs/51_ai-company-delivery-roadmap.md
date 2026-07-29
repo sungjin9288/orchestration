@@ -534,9 +534,9 @@ role execution, scheduling, provider authority는 계속 blocked다.
 `DEC-195`는 Stage 5D planning-only boundary로 exact DEC-194 acceptance에서 immutable
 schema-v24 BuilderReworkDispatch 하나와 기존 Builder WorkOrder의
 `start-builder-rework-preflight` WorkOrderAttempt #3 하나를 append하는 계약을 고정한다.
-`DEC-196`은 complete fielded implementation handoff를 기록한다. 이 경계는 local-stub no-write
-preflight 후 mutation Approval 생성 전에서 멈추며, `DEC-197` 전에는 schema/runtime/API/UI/worker
-구현 권한이 없다.
+`DEC-196`은 complete fielded implementation handoff를 기록하고, `DEC-197`은 exact
+schema-v24 sidecar, active-before-worker attempt, local-stub no-write preflight, exact inspection을
+구현한다. 이 경계는 mutation Approval 생성 전에서 멈춘다.
 
 Source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`, first durable StaffingPlan
 implementation handoff는 `DEC-164`, readiness clarification은 `DEC-165`로 기록됐다. The
@@ -624,8 +624,8 @@ path. Planning-only `DEC-192` and handoff-only `DEC-193` fix one append-only sch
 ReworkPlanAcceptance boundary, and `DEC-194` implements only its exact accepted
 evidence-and-inspection path. Planning-only `DEC-195` and handoff-only `DEC-196` fix one future
 schema-v24 BuilderReworkDispatch plus existing-Builder WorkOrderAttempt #3 no-write preflight
-boundary. They open no implementation, mutation Approval, source mutation, Reviewer/QA execution,
-retry, recovery, scheduling, or provider-backed authority.
+boundary. `DEC-197` implements only that exact sidecar path. Mutation Approval, source mutation,
+Reviewer/QA execution, retry, recovery, scheduling, and provider-backed authority remain closed.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.

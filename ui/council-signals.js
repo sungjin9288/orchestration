@@ -340,6 +340,49 @@ export function getReworkPlanAcceptanceRequest(record, { rationale, reviewedAt }
   };
 }
 
+export function getBuilderReworkPreflightRequest(
+  record,
+  acceptance,
+  bundle,
+  { rationale, reviewedAt },
+) {
+  const builder = bundle?.workOrders?.find((workOrder) => workOrder.role === 'builder');
+  if (
+    !record || !acceptance || !builder ||
+    acceptance.reworkPlanId !== record.id ||
+    acceptance.reworkPlanRecordDigest !== record.recordDigest ||
+    acceptance.decision !== 'accepted' ||
+    record.nextAttemptNumber !== 2 || record.maxAdditionalBuilderAttempts !== 1 ||
+    !/^[a-f0-9]{64}$/.test(record.recordDigest || '') ||
+    !/^[a-f0-9]{64}$/.test(acceptance.acceptanceDigest || '') ||
+    typeof rationale !== 'string' || !rationale.trim() ||
+    typeof reviewedAt !== 'string' || Number.isNaN(Date.parse(reviewedAt)) ||
+    new Date(reviewedAt).toISOString() !== reviewedAt
+  ) {
+    return null;
+  }
+  return {
+    reworkPlanAcceptanceId: acceptance.id,
+    reworkPlanRecordDigest: record.recordDigest,
+    acceptanceDigest: acceptance.acceptanceDigest,
+    sourceExecutionPlanDigest: record.sourceExecutionPlanDigest,
+    sourceAttemptRecordDigest: record.sourceAttemptRecordDigest,
+    sourceProgressDigest: record.sourceProgressDigest,
+    builderWorkOrderId: builder.id,
+    builderWorkOrderDigest: computeWorkOrderRecordDigest(builder),
+    reworkAttemptNumber: 2,
+    workOrderAttemptNumber: 3,
+    evaluatedAt: reviewedAt,
+    dispatchApproval: {
+      decision: 'dispatch-builder-rework-preflight',
+      acknowledgement:
+        'dispatch-one-local-no-write-rework-preflight-without-mutation-approval',
+      rationale: rationale.trim(),
+      reviewedAt,
+    },
+  };
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

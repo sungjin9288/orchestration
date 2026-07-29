@@ -451,3 +451,15 @@ node scripts/verification_status.mjs
 Runtime, schema, API, UI, and worker changes require all fifteen fields in
 `docs/134_ai-company-builder-rework-preflight-implementation-decision-handoff.md`. Planning approval,
 broad approval, delegated self-approval, or continuation does not open implementation.
+
+## Implementation Status
+
+- Planning-only authority: accepted as `DEC-195`.
+- Complete fielded implementation handoff: documented as `DEC-196`.
+- Exact fielded implementation authority: accepted as `DEC-197`.
+- Schema/runtime/API/UI/local-stub implementation: completed under `DEC-197`.
+- Focused runtime/API/UI and compatibility verification: passed.
+- Mutation Approval creation or resolution, source mutation, Reviewer or QA execution, another
+  rework, retry, recovery, resume, checkpoint creation, scheduling, provider-backed execution,
+  memory application, Git/release, policy mutation, collections, approval bypass, and connectors
+  remain blocked.

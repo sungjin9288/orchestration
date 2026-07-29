@@ -50,7 +50,7 @@ assertMatchesAll(sourceMutationEvidenceSources.contracts, [
   /PROPOSAL_SOURCE_MUTATION_DEFAULT_BLOCKED_ACTIONS/,
   /proposalSourceMutation: 0/,
   /proposalSourceMutations: \{\}/,
-  /const STATE_SCHEMA_VERSION = 23/,
+  /const STATE_SCHEMA_VERSION = 24/,
 ]);
 assertMatchesAll(sourceMutationEvidenceSources.proposalRecords, [
   /function normalizeProposalSourceMutationApproval\(input\)/,

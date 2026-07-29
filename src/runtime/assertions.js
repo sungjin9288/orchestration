@@ -70,6 +70,14 @@ function assertReworkPlanAcceptance(reworkPlanAcceptanceId, state) {
   return acceptance;
 }
 
+function assertBuilderReworkDispatch(builderReworkDispatchId, state) {
+  const dispatch = state.builderReworkDispatches[builderReworkDispatchId];
+  if (!dispatch) {
+    throw new Error(`BuilderReworkDispatch not found: ${builderReworkDispatchId}`);
+  }
+  return dispatch;
+}
+
 function assertHandoffPacket(handoffPacketId, state) {
   const handoffPacket = state.handoffPackets[handoffPacketId];
   if (!handoffPacket) throw new Error(`HandoffPacket not found: ${handoffPacketId}`);
@@ -174,6 +182,7 @@ function assertStaffingEntry(staffingEntryId, state) {
 
 module.exports = {
   assertAcceptanceCriterion,
+  assertBuilderReworkDispatch,
   assertDeliveryPackage,
   assertDeliveryPackageAcceptance,
   assertExecutionPlan,

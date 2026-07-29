@@ -4,8 +4,7 @@
 
 This document is the complete fielded implementation decision shape for
 `docs/133_ai-company-builder-rework-preflight-plan.md`. `DEC-195` accepts planning and `DEC-196`
-records this handoff. Schema-v24 dispatch and worker implementation remains blocked until one
-complete valid operator outcome is accepted as `DEC-197`.
+records this handoff. The exact valid operator outcome is accepted as `DEC-197`.
 
 Generic approval, broad continuation, delegated self-approval, `DEC-194` acceptance evidence, and
 this handoff are invalid implementation shortcuts. Attempt append, worker execution, Approval
@@ -16,10 +15,10 @@ memory, Git/release, policy, collection, bypass, and connector behavior remain c
 
 - Planning-only decision: accepted as `DEC-195`
 - Implementation handoff: recorded as `DEC-196`
-- Complete fielded implementation decision: not supplied
-- Current runtime: schema v23 with immutable ReworkPlan and append-only ReworkPlanAcceptance evidence
-- Implementation authority: blocked
-- Reserved implementation decision: `DEC-197`
+- Complete fielded implementation decision: accepted as `DEC-197`
+- Current runtime: schema v24 with one bounded Builder rework dispatch path
+- Implementation authority: consumed by the dispatch-and-preflight-only slice
+- Implementation decision: `DEC-197`
 
 ## Required Decision Fields
 

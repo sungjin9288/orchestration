@@ -978,6 +978,39 @@ function buildNormalizedBuilderPreflightResult(request) {
   };
 }
 
+function buildNormalizedBuilderReworkPreflightResult(request) {
+  const rework = request?.rework;
+  if (
+    request?.executionMode !== 'rework-preflight' ||
+    request?.mutationAllowed !== false ||
+    !rework ||
+    !Array.isArray(rework.findings) || rework.findings.length === 0 ||
+    !Array.isArray(rework.targetPathAllowlist) || rework.targetPathAllowlist.length === 0 ||
+    !Array.isArray(rework.verificationCommands) || rework.verificationCommands.length === 0
+  ) {
+    throw new Error('Builder rework preflight requires exact accepted rework scope');
+  }
+  return {
+    blockers: [],
+    needsDecision: false,
+    nextStage: 'separate-mutation-approval',
+    summary: 'Builder rework preflight is ready for a separately authorized mutation approval.',
+    rework: {
+      findings: structuredClone(rework.findings),
+      targetPathAllowlist: [...rework.targetPathAllowlist],
+      verificationCommands: [...rework.verificationCommands],
+    },
+  };
+}
+
+function renderBuilderReworkPreflightOutput(request) {
+  const result = buildNormalizedBuilderReworkPreflightResult(request);
+  const findings = result.rework.findings.map(
+    (finding) => `${finding.findingId}: ${finding.text}`,
+  );
+  return `# Builder Rework Preflight\n\n## Findings\n${renderList(findings, 'none')}\n\n## Target Paths\n${renderList(result.rework.targetPathAllowlist, 'none')}\n\n## Verification Commands\n${renderList(result.rework.verificationCommands, 'none')}\n\n## Boundary\n- source mutation: blocked\n- reviewer execution: blocked\n- qa execution: blocked\n- next stage: separate mutation approval\n`;
+}
+
 function renderBuilderPreflightOutput(request) {
   const normalizedResult = buildNormalizedBuilderPreflightResult(request);
   const sliceGoal = getMarkdownSection(request.planArtifact?.content, 'Slice Goal');
@@ -1503,6 +1536,20 @@ function createLocalStubProviderAdapter() {
               outputTokens: 0,
             },
           };
+        }
+
+        if (request.executionMode === 'rework-preflight') {
+          return {
+            providerRunId: `local-stub-builder-rework-preflight-${request.task.id}`,
+            model: 'local-stub-builder-rework-preflight-v1',
+            normalizedResult: buildNormalizedBuilderReworkPreflightResult(request),
+            outputText: renderBuilderReworkPreflightOutput(request),
+            usage: { inputTokens: 0, outputTokens: 0 },
+          };
+        }
+
+        if (request.executionMode !== 'preflight') {
+          throw new Error(`Unsupported local stub builder mode: ${request.executionMode}`);
         }
 
         return {

@@ -153,7 +153,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-memory-item-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 23/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 24/);
 assert.match(contracts, /memoryItem: 0/);
 assert.match(fileStore, /validateMemoryItemRecords/);
 assert.match(runtimeService, /function previewLearningCandidateMemory\(/);

@@ -24,6 +24,7 @@ const {
   buildArchitectExecutionRequest,
   buildBuilderLiveMutationExecutionRequest,
   buildBuilderPreflightExecutionRequest,
+  buildBuilderReworkPreflightExecutionRequest,
   buildPlannerExecutionRequest,
   buildReviewerExecutionRequest,
   buildTaskBreakerExecutionRequest,
@@ -3161,6 +3162,136 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runBuilderReworkPreflight(input) {
+    if (!input?.builderReworkDispatchId || !input?.workOrderAttemptId) {
+      throw new Error('builderReworkDispatchId and workOrderAttemptId are required');
+    }
+
+    const envelope = runtime.getBuilderReworkDispatchById(input.builderReworkDispatchId);
+    const { builderReworkDispatch: dispatch, workOrderAttempt } = envelope;
+    if (workOrderAttempt.id !== input.workOrderAttemptId || workOrderAttempt.status !== 'active') {
+      throw new Error('Builder rework preflight requires its persisted active WorkOrderAttempt');
+    }
+
+    const executionPlanBundle = runtime.getExecutionPlan(dispatch.executionPlanId);
+    const task = executionPlanBundle.controlTask;
+    const project = runtime.getProject(dispatch.projectId);
+    if (
+      project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+      project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB ||
+      localStubProviderAdapter.name !== PROVIDER_ADAPTER_ID.LOCAL_STUB
+    ) {
+      throw new Error('Builder rework preflight supports local-stub projects only');
+    }
+
+    let run = null;
+    let artifact = null;
+    try {
+      const provenance = resolveLatestBuilderPreflightProvenance(runtime, task);
+      const promptContract = readContextFile(repoRoot, builderPromptPath);
+      const sourceOfTruthPaths = resolveSourceOfTruthPaths(project);
+      const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
+        readContextFile(repoRoot, relativePath));
+      const request = buildBuilderReworkPreflightExecutionRequest({
+        ...provenance,
+        dispatch,
+        project,
+        promptContract,
+        reworkPlan: runtime.getReworkPlan(dispatch.reworkPlanId).reworkPlan,
+        sourceOfTruth,
+        task,
+      });
+
+      run = runtime.startBuilderReworkPreflightRun({
+        builderReworkDispatchId: dispatch.id,
+        workOrderAttemptId: workOrderAttempt.id,
+        metadata: {
+          targetPathAllowlist: request.rework.targetPathAllowlist,
+          verificationCommands: request.rework.verificationCommands,
+        },
+      });
+      runtime.appendLog({
+        runId: run.id,
+        message: `builder rework preflight started for dispatch ${dispatch.id}`,
+      });
+
+      const response = await localStubProviderAdapter.execute(request, {
+        providerConfig: { adapter: PROVIDER_ADAPTER_ID.LOCAL_STUB, mode: PROVIDER_MODE.LOCAL_STUB },
+      });
+      if (!response || typeof response.outputText !== 'string' || !response.outputText.trim()) {
+        throw new Error('Local-stub Builder rework preflight output is required');
+      }
+      const result = response.normalizedResult;
+      if (
+        result?.needsDecision !== false ||
+        result?.nextStage !== 'separate-mutation-approval' ||
+        JSON.stringify(result?.rework?.findings || []) !==
+          JSON.stringify(request.rework.findings) ||
+        !sameExactStringArrays(
+          result?.rework?.targetPathAllowlist || [],
+          request.rework.targetPathAllowlist,
+        ) ||
+        !sameExactStringArrays(
+          result?.rework?.verificationCommands || [],
+          request.rework.verificationCommands,
+        )
+      ) {
+        throw new Error('Builder rework preflight output widened or requested a decision');
+      }
+      artifact = runtime.recordBuilderReworkPreflightArtifact({
+        builderReworkDispatchId: dispatch.id,
+        runId: run.id,
+        content: response.outputText,
+      });
+      run = runtime.completeBuilderReworkPreflightRun({
+        builderReworkDispatchId: dispatch.id,
+        runId: run.id,
+        summary: {
+          adapter: localStubProviderAdapter.name,
+          builderReworkDispatchId: dispatch.id,
+          executionMode: 'rework-preflight',
+          mutationAllowed: false,
+          providerRunId: response.providerRunId,
+          targetPathAllowlist: request.rework.targetPathAllowlist,
+          verificationCommands: request.rework.verificationCommands,
+          workOrderAttemptId: workOrderAttempt.id,
+        },
+      });
+      return {
+        artifact,
+        failed: false,
+        run,
+        stopReason:
+          'builder-rework-preflight-complete-mutation-approval-blocked',
+      };
+    } catch (error) {
+      if (run) {
+        runtime.appendLog({
+          runId: run.id,
+          level: 'error',
+          message: `builder rework preflight failed: ${error.message}`,
+        });
+        run = runtime.completeBuilderReworkPreflightRun({
+          builderReworkDispatchId: dispatch.id,
+          runId: run.id,
+          summary: {
+            builderReworkDispatchId: dispatch.id,
+            error: String(error.message || 'builder-rework-preflight-failed').slice(0, 240),
+            executionMode: 'rework-preflight',
+            mutationAllowed: false,
+            workOrderAttemptId: workOrderAttempt.id,
+          },
+        });
+      }
+      return {
+        artifact,
+        failed: true,
+        run,
+        stopReason: 'builder-rework-preflight-failed',
+      };
+    }
+  }
+
   async function runBuilderLiveMutation(input) {
     if (!input || !input.taskId) {
       throw new Error('taskId is required');
@@ -4691,6 +4822,7 @@ function createExecutionCoordinator(options = {}) {
     runArchitect,
     runBuilderLiveMutation,
     runBuilderPreflight,
+    runBuilderReworkPreflight,
     runCloseOut,
     runCommitPackage,
     runLocalCommit,

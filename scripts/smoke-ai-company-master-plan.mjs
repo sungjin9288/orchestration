@@ -251,6 +251,7 @@ assert.match(decisionLog, /^### DEC-193$/m);
 assert.match(decisionLog, /^### DEC-194$/m);
 assert.match(decisionLog, /^### DEC-195$/m);
 assert.match(decisionLog, /^### DEC-196$/m);
+assert.match(decisionLog, /^### DEC-197$/m);
 assert.match(masterPlanText, /Durable LearningCandidate persistence planning-only authority는 `DEC-110`/);
 assert.match(runtimeContractText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
 assert.match(councilProtocolText, /Durable LearningCandidate persistence planning은 `DEC-110`/);
@@ -289,7 +290,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-196`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-197`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -324,6 +325,7 @@ assert.match(runtimeContractText, /Planning-only `DEC-192` defines one schema-v2
 assert.match(councilProtocolText, /Planning-only `DEC-192` and handoff-only `DEC-193`/);
 assert.match(deliveryRoadmapText, /`DEC-192`[\s\S]*`DEC-193`/);
 assert.match(masterPlanText, /Stage 5D planning: `DEC-195`/);
+assert.match(masterPlanText, /Stage 5D implementation: `DEC-197`/);
 assert.match(runtimeContractText, /Planning-only `DEC-195` defines one future schema-v24/);
 assert.match(councilProtocolText, /Planning-only `DEC-195` and handoff-only `DEC-196`/);
 assert.match(deliveryRoadmapText, /`DEC-195`[\s\S]*`DEC-196`/);
@@ -340,7 +342,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 23/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 24/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -457,9 +459,10 @@ const report = {
         'DEC-194',
         'DEC-195',
         'DEC-196',
+        'DEC-197',
       ],
       currentRuntime: {
-        schemaVersion: 23,
+        schemaVersion: 24,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -493,7 +496,7 @@ const report = {
         reviewerReworkPreview: 'schema-v21-response-only-exact-changes-requested-inspection',
         durableReviewerReworkPlan: 'schema-v22-exact-review-required-record',
         reworkPlanAcceptance: 'schema-v23-exact-append-only-accepted-record',
-        builderReworkPreflight: 'schema-v24-planned-not-implemented',
+        builderReworkPreflight: 'schema-v24-exact-local-stub-sidecar-preflight',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -559,7 +562,7 @@ const report = {
         reworkPlanAcceptancePlanningAllowed: true,
         reworkPlanAcceptanceImplementationAllowed: true,
         builderReworkPreflightPlanningAllowed: true,
-        builderReworkPreflightImplementationAllowed: false,
+        builderReworkPreflightImplementationAllowed: true,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
         providerRoleExpansionAllowed: false,
@@ -571,7 +574,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'Builder rework preflight implementation requires exact DEC-197; mutation approval and solo remain deferred',
+      'Builder rework mutation Approval requires a later exact decision; source mutation and solo remain deferred',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -586,12 +589,12 @@ assert.equal(report.authority.durableReviewerReworkPlanImplementationAllowed, tr
 assert.equal(report.authority.reworkPlanAcceptancePlanningAllowed, true);
 assert.equal(report.authority.reworkPlanAcceptanceImplementationAllowed, true);
 assert.equal(report.authority.builderReworkPreflightPlanningAllowed, true);
-assert.equal(report.authority.builderReworkPreflightImplementationAllowed, false);
+assert.equal(report.authority.builderReworkPreflightImplementationAllowed, true);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /Builder rework preflight implementation requires exact DEC-197/,
+  /Builder rework mutation Approval requires a later exact decision/,
 );
 
 process.stdout.write(

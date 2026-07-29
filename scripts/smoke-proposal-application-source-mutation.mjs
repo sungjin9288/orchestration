@@ -79,7 +79,7 @@ const proposalRecord = runtime.createProposalRecord({
   taskId: task.id,
   title: 'Reviewed growth remediation source mutation proposal',
   proposalType: 'runtime-contract',
-  expiresAt: '2026-07-29T00:00:00.000Z',
+  expiresAt: '2099-07-29T00:00:00.000Z',
   sourceClaimIds: ['growth-ledger-claim-001'],
   evidenceRefs: ['DEC-065', 'docs/38_proposal-application-source-mutation-planning-plan.md'],
   negativeEvidenceRefs: ['source mutation outside the named path remains blocked'],

@@ -164,6 +164,7 @@ try {
             'specialistCellRetries',
             'reworkPlans',
             'reworkPlanAcceptances',
+            'builderReworkDispatches',
           ].includes(key),
       )
       .sort(),
@@ -190,7 +191,7 @@ try {
   const council = configuredRuntime.createCouncilSessionForMission({ missionId: mission.id });
   const configuredSnapshot = configuredRuntime.getSnapshot();
 
-  assert.equal(configuredSnapshot.schemaVersion, 23);
+  assert.equal(configuredSnapshot.schemaVersion, 24);
   assert.equal(configuredSnapshot.companyRuntime.status, 'ready');
   assert.equal(configuredSnapshot.companyRuntime.blueprint.agentProfiles.length, 9);
   assert.equal(Object.isFrozen(configuredSnapshot.companyRuntime), true);
@@ -202,7 +203,7 @@ try {
   assert.ok(council.councilSession.transcript.length > 0);
 
   const persistedState = readJson(path.join(configuredRuntimeRoot, 'state.json'));
-  assert.equal(persistedState.schemaVersion, 23);
+  assert.equal(persistedState.schemaVersion, 24);
   assert.equal(Object.hasOwn(persistedState, 'companyRuntime'), false);
   assert.equal(Object.hasOwn(persistedState, 'companyBlueprint'), false);
   assert.equal(Object.hasOwn(persistedState, 'agentProfiles'), false);
@@ -358,7 +359,7 @@ try {
   const server = fs.readFileSync(path.join(repoRoot, 'scripts/serve-ui-slice-01.mjs'), 'utf8');
   const companyConfig = fs.readFileSync(path.join(repoRoot, 'ui/company-config.js'), 'utf8');
 
-  assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 23/);
+  assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 24/);
   assert.doesNotMatch(fileStore, /companyRuntime|companyBlueprint|agentProfiles/);
   assert.match(server, /companyBlueprintPath: path\.join\(repoRoot, 'company', 'blueprint\.json'\)/);
   assert.match(server, /companyRepoRoot: repoRoot/);

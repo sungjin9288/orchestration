@@ -460,8 +460,9 @@ Planning-only `DEC-195` and handoff-only `DEC-196` define one future schema-v24
 BuilderReworkDispatch from the exact accepted ReworkPlan. The proposed coordinator may reuse the
 original planner, architecture, and task-breaker evidence as read input, but it must not rerun
 Council or those roles, revise alignment, add a fourth WorkOrder, resolve the Reviewer decision,
-create a mutation Approval, mutate source, or execute Reviewer/QA. Implementation remains blocked
-until the exact `DEC-197` operator decision.
+create a mutation Approval, mutate source, or execute Reviewer/QA. `DEC-197` implements only that
+local-stub no-write dispatch and existing-Builder attempt boundary; every later mutation or role
+transition still requires separate authority.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

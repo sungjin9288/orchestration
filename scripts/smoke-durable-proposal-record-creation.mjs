@@ -40,7 +40,7 @@ function buildCreationInput(overrides = {}) {
     taskId: task.id,
     title: 'Store reviewed growth evidence as a durable proposal record',
     proposalType: 'runtime-contract',
-    expiresAt: '2026-07-29T00:00:00.000Z',
+    expiresAt: '2099-07-29T00:00:00.000Z',
     sourceClaimIds: ['growth-ledger-claim-001'],
     evidenceRefs: ['DEC-056', 'docs/30_durable-proposal-record-implementation-plan.md'],
     negativeEvidenceRefs: ['no proposal application approval', 'provider calls remain blocked'],

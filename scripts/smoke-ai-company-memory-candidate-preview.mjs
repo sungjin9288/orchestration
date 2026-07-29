@@ -201,7 +201,7 @@ async function main() {
     const stateBytesBefore = fs.readFileSync(statePath, 'utf8');
     const sourceBytesBefore = fs.readFileSync(sourcePath, 'utf8');
 
-    assert.equal(stateBefore.schemaVersion, 23);
+    assert.equal(stateBefore.schemaVersion, 24);
     assert.equal(seed.review.decision, 'accepted');
     assert.equal(
       Object.prototype.hasOwnProperty.call(stateBefore, 'memoryCandidates'),

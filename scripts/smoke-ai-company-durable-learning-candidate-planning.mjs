@@ -158,7 +158,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-learning-candidate-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 23/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 24/);
 assert.match(contracts, /learningCandidate: 0/);
 assert.match(fileStore, /validateLearningCandidateRecords/);
 assert.match(runtimeService, /function previewMissionLearningCandidate\(/);

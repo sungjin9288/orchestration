@@ -2468,6 +2468,101 @@ const server = createServer(async (request, response) => {
   const reworkPlanAcceptanceMatch = url.pathname.match(
     /^\/api\/rework-plans\/([^/]+)\/acceptance$/,
   );
+  const builderReworkDispatchMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/builder-rework-dispatch$/,
+  );
+  if (builderReworkDispatchMatch) {
+    if (method !== 'GET') {
+      json(response, 405, { error: 'BuilderReworkDispatch inspection은 GET만 지원합니다.' });
+      return;
+    }
+    try {
+      const result = runtime.getBuilderReworkDispatch(
+        decodeURIComponent(builderReworkDispatchMatch[1]),
+      );
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        builderReworkDispatch: result.builderReworkDispatch,
+        workOrderAttempt: result.workOrderAttempt,
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || 400, {
+        error: String(error.message || 'BuilderReworkDispatch 조회에 실패했습니다.').slice(0, 240),
+      });
+      return;
+    }
+  }
+
+  const builderReworkPreflightMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/builder-rework-preflight$/,
+  );
+  if (builderReworkPreflightMatch) {
+    if (method !== 'POST') {
+      json(response, 405, { error: 'Builder rework preflight은 POST만 지원합니다.' });
+      return;
+    }
+    try {
+      const input = await readBoundedJsonBody(request, 8 * 1024);
+      const expectedFields = [
+        'acceptanceDigest',
+        'builderWorkOrderDigest',
+        'builderWorkOrderId',
+        'dispatchApproval',
+        'evaluatedAt',
+        'reworkAttemptNumber',
+        'reworkPlanAcceptanceId',
+        'reworkPlanRecordDigest',
+        'sourceAttemptRecordDigest',
+        'sourceExecutionPlanDigest',
+        'sourceProgressDigest',
+        'workOrderAttemptNumber',
+      ];
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error('BuilderReworkDispatch body has unexpected or missing fields');
+        error.statusCode = 400;
+        throw error;
+      }
+      const started = runtime.beginBuilderReworkPreflight({
+        reworkPlanId: decodeURIComponent(builderReworkPreflightMatch[1]),
+        ...input,
+      });
+      if (started.idempotent) {
+        json(response, 200, { ...started, generatedAt: new Date().toISOString() });
+        return;
+      }
+      let result;
+      try {
+        result = await executionCoordinator.runBuilderReworkPreflight({
+          builderReworkDispatchId: started.builderReworkDispatch.id,
+          workOrderAttemptId: started.workOrderAttempt.id,
+        });
+      } catch (_error) {
+        result = { artifact: null, failed: true, run: null };
+      }
+      const settled = runtime.settleBuilderReworkPreflight({
+        builderReworkDispatchId: started.builderReworkDispatch.id,
+        runId: result.run?.id || null,
+        artifactId: result.artifact?.id || null,
+        failed: result.failed === true,
+      });
+      json(response, 201, {
+        ...settled,
+        generatedAt: new Date().toISOString(),
+        idempotent: false,
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || (/not found/i.test(error.message) ? 404 : 400), {
+        error: String(error.message || 'Builder rework preflight 실행에 실패했습니다.').slice(0, 240),
+      });
+      return;
+    }
+  }
   if (reworkPlanAcceptanceMatch) {
     if (method === 'GET') {
       try {

@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 23;
+const STATE_SCHEMA_VERSION = 24;
+const BUILDER_REWORK_DISPATCH_STATE_SCHEMA_VERSION = 24;
 const REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION = 23;
 const REWORK_PLAN_STATE_SCHEMA_VERSION = 22;
 const SPECIALIST_CELL_RETRY_STATE_SCHEMA_VERSION = 21;
@@ -408,6 +409,7 @@ function createEmptyState() {
       specialistCellRetry: 0,
       reworkPlan: 0,
       reworkPlanAcceptance: 0,
+      builderReworkDispatch: 0,
     },
     missions: {},
     councilSessions: {},
@@ -441,6 +443,7 @@ function createEmptyState() {
     specialistCellRetries: {},
     reworkPlans: {},
     reworkPlanAcceptances: {},
+    builderReworkDispatches: {},
   };
 }
 
@@ -451,6 +454,7 @@ module.exports = {
   ARTIFACT_PREVIEW_MODE,
   ARTIFACT_RETENTION_TIER,
   ARTIFACT_TYPE,
+  BUILDER_REWORK_DISPATCH_STATE_SCHEMA_VERSION,
   BUILDER_ACTION,
   DECISION_INBOX_ALLOWED_KIND_BY_SOURCE_TYPE,
   COMMIT_ACTION,

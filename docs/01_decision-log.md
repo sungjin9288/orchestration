@@ -1292,6 +1292,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one dispatch-and-preflight-only slice. It explicitly excludes another WorkOrder, mutation Approval creation or resolution, source mutation, Reviewer/QA execution, second rework, retry, recovery, resume, checkpoint creation, scheduling, provider-backed execution, memory, runtime-agent Git/release, policy mutation, collections, bypass, and connectors. No implementation authority is recorded.
 - Needed Before: The operator must supply every required field in one valid implementation decision. `DEC-195`, this handoff, broad approval, delegated self-approval, or continuation does not authorize schema migration, attempt append, or worker execution. A valid implementation outcome is reserved for `DEC-197`.
 
+### DEC-197
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic local schema-v24 `BuilderReworkDispatch` and one existing-Builder `WorkOrderAttempt` #3 running a bounded local-stub no-write rework preflight.
+- Why: `DEC-195` and `DEC-196` fixed the source-current DEC-194 lineage, immutable sidecar, additive attempt action, active-before-worker save, local-only execution mode, success/failure settlement, exact inspection, replay, interruption, rollback, and every downstream authority that must remain closed. The supplied decision matches that 15-field outcome exactly.
+- Impact: Implementation may add only the dispatch-and-preflight boundary described in `docs/133_ai-company-builder-rework-preflight-plan.md`. The exact three-WorkOrder graph stays blocked at Reviewer changes-requested, success stops at a separate mutation-approval gate, failure is terminal without retry, and no Approval, Decision Inbox item, WorkflowCheckpoint, source mutation, Reviewer/QA execution, provider-backed WorkOrder, scheduling, memory application, Git/release, policy mutation, collection, bypass, or connector authority opens.
+- Needed Before: Mutation Approval creation or resolution, Builder source mutation, Reviewer or QA execution, another rework, retry, recovery, resume, checkpoint creation, scheduling, provider-backed execution, result or memory application, runtime-agent Git/release, policy mutation, collections, approval bypass, and connectors require separate complete fielded decisions.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

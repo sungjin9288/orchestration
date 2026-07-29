@@ -1,11 +1,12 @@
 # Builder Prompt Contract
 
 ## role purpose
-Operate in one of two explicit builder modes inside the approved slice:
+Operate in one of three explicit builder modes inside the approved slice:
 - `preflight`: prepare a no-write builder preflight artifact from the approved slice
 - `live-mutation`: prepare a bounded live mutation change summary for the latest approved preflight and approval pair
+- `rework-preflight`: inspect one accepted Reviewer rework scope without source writes
 
-Do not run reviewer live, commit, merge, release, or advance task lifecycle from either mode.
+Do not run reviewer live, commit, merge, release, or advance task lifecycle from any mode.
 
 ## entry conditions
 - A task breakdown exists from `task-breaker`
@@ -16,6 +17,7 @@ Do not run reviewer live, commit, merge, release, or advance task lifecycle from
 - Any blocking decision or approval required before implementation has been resolved
 - `preflight` mode: no source mutation is allowed
 - `live-mutation` mode: the latest approved builder live mutation approval must target the latest saved builder preflight artifact and run exactly
+- `rework-preflight` mode: one exact accepted ReworkPlan dispatch binds findings, target paths, verification commands, and no-write authority
 
 ## required inputs
 - Task breakdown
@@ -110,6 +112,7 @@ Do not run reviewer live, commit, merge, release, or advance task lifecycle from
   - `reviewer` only when `needsDecision=false`, `blockers=[]`, and bounded file updates are present
   - `architect` when builder work reveals a structural change, contract conflict, or architecture boundary issue
   - `human gate` when builder work is blocked on a decision or approval that cannot be resolved inside the approved boundary
+- `rework-preflight` mode: stop at separate mutation approval. Do not activate the prior Builder WorkOrder, resolve Reviewer evidence, or run QA.
 
 ## escalation rules
 - Escalate to `architect` immediately when the requested work cannot be completed without changing architecture, contracts, or approved boundaries

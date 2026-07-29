@@ -18,6 +18,7 @@ const WORK_ORDER_ATTEMPT_COMMAND = Object.freeze({
 const WORK_ORDER_ATTEMPT_ACTION = Object.freeze({
   START_BUILDER: 'start-builder',
   CONTINUE_BUILDER: 'continue-builder',
+  START_BUILDER_REWORK_PREFLIGHT: 'start-builder-rework-preflight',
   RUN_REVIEWER: 'run-reviewer',
   RUN_QA: 'run-qa',
 });

@@ -8993,6 +8993,19 @@ h3 {
   border-top: 1px solid var(--surface-control-border);
 }
 
+.builder-rework-dispatch {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+  padding: 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.builder-rework-dispatch code {
+  overflow-wrap: anywhere;
+}
+
 .reviewer-rework-acceptance span,
 .reviewer-rework-acceptance code {
   min-width: 0;

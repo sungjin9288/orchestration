@@ -148,7 +148,7 @@ async function main() {
     writeState(runtimeRoot, v22State);
     const v22Bytes = fs.readFileSync(statePath);
     const runtime = createRuntime();
-    assert.equal(runtime.getSnapshot().schemaVersion, 23);
+    assert.equal(runtime.getSnapshot().schemaVersion, 24);
     assert.deepEqual(fs.readFileSync(statePath), v22Bytes, 'readonly load must not migrate on disk');
 
     const reviewedAt = new Date(Math.max(Date.now(), Date.parse(recordResult.reworkPlan.createdAt))).toISOString();
@@ -318,7 +318,7 @@ async function main() {
 
     const persistedState = readState();
     const persistedBytes = fs.readFileSync(statePath);
-    assert.equal(persistedState.schemaVersion, 23);
+    assert.equal(persistedState.schemaVersion, 24);
     assert.equal(Object.keys(persistedState.reworkPlanAcceptances).length, 1);
     assert.deepEqual(persistedState.reworkPlans, v22State.reworkPlans);
     assert.deepEqual(
@@ -392,11 +392,11 @@ async function main() {
 
     const futureRoot = copyRuntime('future-schema');
     const futureState = readState(futureRoot);
-    futureState.schemaVersion = 24;
+    futureState.schemaVersion = 25;
     writeState(futureRoot, futureState);
     assert.throws(
       () => createRuntime(futureRoot).getSnapshot(),
-      /Unsupported runtime state schemaVersion: 24/,
+      /Unsupported runtime state schemaVersion: 25/,
     );
 
     server = spawn(process.execPath, [
@@ -473,7 +473,7 @@ async function main() {
     );
     assert.deepEqual(fs.readFileSync(statePath), persistedBytes);
 
-    process.stdout.write(`${JSON.stringify({ ok: true, mode: MODE, schemaVersion: 23, records: 1, idempotentReplay: true, sourceDriftRetained: true, snapshotExcluded: true, malformedGetBounded: true, sequenceAndTimestampValidated: true, sourceRefusalsCovered: ['missing-finding', 'widened-scope', 'qa-already-run', 'provider-backed', 'legacy-unbound', 'lineage-conflict'], rollbackEvidenceRetained: true }, null, 2)}\n`);
+    process.stdout.write(`${JSON.stringify({ ok: true, mode: MODE, schemaVersion: 24, records: 1, idempotentReplay: true, sourceDriftRetained: true, snapshotExcluded: true, malformedGetBounded: true, sequenceAndTimestampValidated: true, sourceRefusalsCovered: ['missing-finding', 'widened-scope', 'qa-already-run', 'provider-backed', 'legacy-unbound', 'lineage-conflict'], rollbackEvidenceRetained: true }, null, 2)}\n`);
   } finally {
     if (server && server.exitCode === null) {
       server.kill('SIGTERM');

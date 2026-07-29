@@ -44,6 +44,7 @@ const acceptancePlan = read('docs/131_ai-company-rework-plan-acceptance-plan.md'
 const readme = read('README.md');
 const contracts = read('src/runtime/contracts.js');
 const assertions = read('src/runtime/assertions.js');
+const builderReworkDispatches = read('src/runtime/builder-rework-dispatches.js');
 const workOrderAttempts = read('src/runtime/work-order-attempts.js');
 const fileStore = read('src/runtime/file-store.js');
 const runtimeService = read('src/runtime/runtime-service.js');
@@ -91,6 +92,8 @@ assertHasAll(plan, [
   /scripts\/smoke-ai-company-builder-rework-preflight\.mjs/,
   /scripts\/smoke-ui-slice-706\.mjs/,
   /Planning approval,[\s\S]*does not open implementation/,
+  /Exact fielded implementation authority: accepted as `DEC-197`/,
+  /Schema\/runtime\/API\/UI\/local-stub implementation: completed under `DEC-197`/,
 ]);
 
 const dispatchBlocks = textBlocks(
@@ -296,9 +299,10 @@ assertHasAll(approval.stillBlockedAuthorities, [
 
 assertHasAll(handoff, [
   /^# AI Company Builder Rework Preflight Implementation Decision Handoff$/m,
-  /Complete fielded implementation decision: not supplied/,
-  /Current runtime: schema v23/,
-  /Reserved implementation decision: `DEC-197`/,
+  /Complete fielded implementation decision: accepted as `DEC-197`/,
+  /Current runtime: schema v24/,
+  /Implementation authority: consumed by the dispatch-and-preflight-only slice/,
+  /Implementation decision: `DEC-197`/,
   /decisionId=operator-decision-ai-company-builder-rework-preflight-implementation-001/,
   /decisionStatus=approve-ai-company-builder-rework-preflight-implementation-slice/,
   /one deterministic local schema-v24 BuilderReworkDispatch/,
@@ -310,7 +314,7 @@ assertHasAll(handoff, [
   /exact approval outcome, if supplied, is recorded as `DEC-197`/,
 ]);
 
-for (const decisionId of ['DEC-194', 'DEC-195', 'DEC-196']) {
+for (const decisionId of ['DEC-194', 'DEC-195', 'DEC-196', 'DEC-197']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 assert.match(
@@ -320,6 +324,10 @@ assert.match(
 assert.match(
   decisionLog,
   /### DEC-196[\s\S]*Status: `Accepted`[\s\S]*No implementation authority is recorded[\s\S]*reserved for `DEC-197`/,
+);
+assert.match(
+  decisionLog,
+  /### DEC-197[\s\S]*Status: `Accepted`[\s\S]*schema-v24 `BuilderReworkDispatch`[\s\S]*bounded local-stub no-write rework preflight/,
 );
 
 for (const text of [
@@ -337,67 +345,55 @@ for (const text of [
 
 assert.match(acceptancePlan, /builderAttemptAppendAllowed=false/);
 assert.match(acceptancePlan, /preflightAllowed=false/);
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 23;/);
-assert.doesNotMatch(contracts, /BUILDER_REWORK_DISPATCH_STATE_SCHEMA_VERSION/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 24;/);
+assert.match(contracts, /const BUILDER_REWORK_DISPATCH_STATE_SCHEMA_VERSION = 24;/);
 assert.match(workOrderAttempts, /START_BUILDER: 'start-builder'/);
 assert.match(workOrderAttempts, /CONTINUE_BUILDER: 'continue-builder'/);
-assert.doesNotMatch(workOrderAttempts, /START_BUILDER_REWORK_PREFLIGHT/);
+assert.match(
+  workOrderAttempts,
+  /START_BUILDER_REWORK_PREFLIGHT: 'start-builder-rework-preflight'/,
+);
+assert.match(builderReworkDispatches, /const AUTHORITY_SUMMARY = Object\.freeze/);
+assert.match(builderReworkDispatches, /existingBuilderAttemptAppendAllowed: true/);
+assert.match(builderReworkDispatches, /approvalCreationAllowed: false/);
+assert.match(builderReworkDispatches, /sourceMutationAllowed: false/);
 assert.match(fileStore, /plan\.sourceDigest !== attempt\.sourceDigest/);
 assert.match(fileStore, /attempt\.attemptNumber !== index \+ 1/);
+assert.match(fileStore, /validateBuilderReworkDispatchRecords/);
 assert.match(runtimeService, /workOrders\.length !== 3/);
 assert.match(executionCoordinator, /async function runBuilderPreflight\(input\)/);
-assert.doesNotMatch(executionCoordinator, /runBuilderReworkPreflight/);
-const implementationSources = {
-  'prompts/builder.md': builderPrompt,
-  'src/runtime/contracts.js': contracts,
-  'src/runtime/assertions.js': assertions,
-  'src/runtime/file-store.js': fileStore,
-  'src/runtime/runtime-service.js': runtimeService,
-  'src/execution/coordinator/execution-requests.js': executionRequests,
-  'src/execution/execution-coordinator.js': executionCoordinator,
-  'src/execution/providers/local-stub-adapter.js': localStub,
-  'scripts/serve-ui-slice-01.mjs': serveUi,
-  'ui/council-signals.js': councilSignals,
-  'ui/app.js': uiApp,
-  'ui/styles.css': uiStyles,
-  'scripts/ui_qa_status.mjs': uiQaStatus,
-};
-for (const [relativePath, source] of Object.entries(implementationSources)) {
-  for (const forbidden of [
-    /BuilderReworkDispatch/,
-    /builderReworkDispatch/,
-    /START_BUILDER_REWORK_PREFLIGHT/,
-    /start-builder-rework-preflight/,
-    /builder-rework-preflight/,
-    /runBuilderReworkPreflight/,
-  ]) {
-    assert.doesNotMatch(
-      source,
-      forbidden,
-      `${relativePath} must not contain Stage 5D implementation before DEC-197`,
-    );
-  }
-}
+assert.match(executionCoordinator, /async function runBuilderReworkPreflight\(input\)/);
+assert.match(executionRequests, /executionMode: 'rework-preflight'/);
+assert.match(localStub, /Unsupported local stub builder mode/);
+assert.match(runtimeService, /function beginBuilderReworkPreflight\(input\)/);
+assert.match(runtimeService, /function settleBuilderReworkPreflight\(input\)/);
+assert.match(runtimeService, /delete snapshotForPublicProjection\.builderReworkDispatches/);
+assert.match(assertions, /function assertBuilderReworkDispatch/);
+assert.match(serveUi, /builder-rework-preflight/);
+assert.match(councilSignals, /getBuilderReworkPreflightRequest/);
+assert.match(uiApp, /data-action="start-builder-rework-preflight"/);
+assert.match(uiStyles, /\.builder-rework-dispatch/);
+assert.match(builderPrompt, /`rework-preflight`/);
 assert.match(
   verificationStatus,
   /script: 'scripts\/smoke-ai-company-builder-rework-preflight-planning\.mjs'/,
 );
-assert.doesNotMatch(
+assert.match(
   verificationStatus,
   /script: 'scripts\/smoke-ai-company-builder-rework-preflight\.mjs'/,
 );
-assert.doesNotMatch(uiQaStatus, /smoke-ui-slice-706\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-706\.mjs/);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'src/runtime/builder-rework-dispatches.js')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-builder-rework-preflight.mjs')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-706.mjs')),
-  false,
+  true,
 );
 
 console.log(
@@ -407,12 +403,11 @@ console.log(
       mode,
       planningDecision: 'DEC-195',
       handoffDecision: 'DEC-196',
-      reservedImplementationDecision: 'DEC-197',
-      currentSchemaVersion: 23,
-      plannedSchemaVersion: 24,
+      implementationDecision: 'DEC-197',
+      currentSchemaVersion: 24,
       reworkAttemptNumber: 2,
       workOrderAttemptNumber: 3,
-      implementationAuthorized: false,
+      implementationAuthorized: true,
     },
     null,
     2,

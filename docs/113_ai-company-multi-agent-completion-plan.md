@@ -193,8 +193,9 @@ Planning-only `DEC-195` fixes Stage 5D as one future schema-v24 immutable
 #2 and durable Builder attempt #3 remain distinct. Handoff-only `DEC-196` fixes the complete
 implementation gate, active-before-worker persistence, one local-stub no-write preflight, exact
 inspection, interruption, cap consumption, rollback, and blocked downstream authority.
-Implementation remains closed until `DEC-197`; no fourth WorkOrder, mutation Approval, source
-mutation, Reviewer/QA execution, retry, recovery, scheduling, or provider-backed WorkOrder opens.
+`DEC-197` implements only that schema-v24 sidecar and existing-Builder attempt path. No fourth
+WorkOrder, mutation Approval, source mutation, Reviewer/QA execution, retry, recovery, scheduling,
+or provider-backed WorkOrder opens.
 
 ### Stage 6: Ops Supervision And Recovery
 

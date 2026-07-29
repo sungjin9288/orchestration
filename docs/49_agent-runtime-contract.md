@@ -430,7 +430,7 @@ content와 derived UI preview의 source-of-truth 경계를 유지한다.
 ## Implementation Boundary
 
 `CompanyBlueprint`와 `AgentProfile` source loading은 `DEC-079`로 구현됐다. 이 path가
-schema-v6 foundation을 만들었고, current persisted runtime은 schema v23이며 company policy는 여전히 `state.json`에 저장되지 않는다.
+schema-v6 foundation을 만들었고, current persisted runtime은 schema v24이며 company policy는 여전히 `state.json`에 저장되지 않는다.
 Direct runtime caller가 blueprint path를 생략하면 기존 snapshot shape를
 유지하고, configured local server만 additive read-only `companyRuntime` envelope를 노출한다.
 One exact immutable StaffingPlan preview/accept/inspection path는 `DEC-166`으로 구현됐다.
@@ -500,9 +500,10 @@ exact `DEC-194` acceptance plus one additive existing-Builder
 `WorkOrderAttempt(action=start-builder-rework-preflight, attemptNumber=3)`. Handoff-only `DEC-196`
 fixes the complete implementation decision shape, active-before-worker save, logical rework round
 #2 versus durable attempt #3, one local-stub no-write preflight, success/failure settlement, exact
-inspection, replay, interruption, rollback, and focused verification contracts. No implementation
-authority exists until `DEC-197`; another WorkOrder, mutation Approval, source mutation,
-Reviewer/QA execution, retry, recovery, scheduling, and provider-backed execution remain absent.
+inspection, replay, interruption, rollback, and focused verification contracts. `DEC-197`
+implements only that schema-v24 sidecar and existing-Builder attempt path. Another WorkOrder,
+mutation Approval, source mutation, Reviewer/QA execution, retry, recovery, scheduling, and
+provider-backed execution remain absent.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

@@ -164,7 +164,7 @@ async function main() {
     const v21Bytes = fs.readFileSync(statePath);
     const sourceBytes = fs.readFileSync(path.join(projectPath, targetPath));
     const runtime = createRuntime();
-    assert.equal(runtime.getSnapshot().schemaVersion, 23);
+    assert.equal(runtime.getSnapshot().schemaVersion, 24);
     assert.deepEqual(fs.readFileSync(statePath), v21Bytes);
 
     const reviewedAt = new Date(
@@ -232,7 +232,7 @@ async function main() {
     assertReworkPlanRecord(record);
 
     const persistedState = readState();
-    assert.equal(persistedState.schemaVersion, 23);
+    assert.equal(persistedState.schemaVersion, 24);
     assert.equal(persistedState.sequences.reworkPlan, 1);
     assert.equal(persistedState.sequences.reworkPlanAcceptance, 0);
     assert.deepEqual(Object.keys(persistedState.reworkPlans), [record.id]);
@@ -282,7 +282,7 @@ async function main() {
 
     const futureRoot = copyRuntime('future-schema');
     const futureState = readState(futureRoot);
-    futureState.schemaVersion = 24;
+    futureState.schemaVersion = 25;
     writeState(futureRoot, futureState);
     assert.throws(() => createRuntime(futureRoot).getSnapshot(), /Unsupported runtime state/);
 

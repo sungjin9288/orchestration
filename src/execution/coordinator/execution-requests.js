@@ -128,6 +128,38 @@ function buildBuilderPreflightExecutionRequest(input) {
   };
 }
 
+function buildBuilderReworkPreflightExecutionRequest(input) {
+  return {
+    role: 'builder',
+    anchor: {
+      projectId: input.project.id,
+      taskId: input.task.id,
+      executionPlanId: input.dispatch.executionPlanId,
+      builderWorkOrderId: input.dispatch.builderWorkOrderId,
+      reworkPlanId: input.dispatch.reworkPlanId,
+      reworkPlanAcceptanceId: input.dispatch.reworkPlanAcceptanceId,
+      workOrderAttemptId: input.dispatch.workOrderAttemptId,
+    },
+    executionMode: 'rework-preflight',
+    mutationAllowed: false,
+    task: toExecutionTask(input.task),
+    project: toExecutionProject(input.project),
+    planArtifact: toExecutionArtifact(input.planArtifact),
+    architectureArtifact: toExecutionArtifact(input.architectureArtifact),
+    breakdownArtifact: toExecutionArtifact(input.breakdownArtifact),
+    promptContract: input.promptContract,
+    sourceOfTruth: input.sourceOfTruth,
+    rework: {
+      findings: [...input.reworkPlan.findings],
+      targetPathAllowlist: [...input.reworkPlan.targetPathAllowlist],
+      verificationCommands: [...input.reworkPlan.verificationCommands],
+      evidenceRefs: structuredClone(input.reworkPlan.evidenceRefs),
+      dispatchApprovalDigest: input.dispatch.dispatchApprovalDigest,
+    },
+    expectedArtifactType: 'preflight',
+  };
+}
+
 function buildBuilderLiveMutationExecutionRequest(input) {
   return {
     role: 'builder',
@@ -223,6 +255,7 @@ module.exports = {
   buildArchitectExecutionRequest,
   buildBuilderLiveMutationExecutionRequest,
   buildBuilderPreflightExecutionRequest,
+  buildBuilderReworkPreflightExecutionRequest,
   buildPlannerExecutionRequest,
   buildReviewerExecutionRequest,
   buildTaskBreakerExecutionRequest,

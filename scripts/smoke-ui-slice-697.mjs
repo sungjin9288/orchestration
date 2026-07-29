@@ -199,7 +199,7 @@ async function main() {
 
     const snapshot = await fetchJson('/api/snapshot');
     assert.equal(snapshot.response.status, 200);
-    assert.equal(snapshot.payload.snapshot.schemaVersion, 23);
+    assert.equal(snapshot.payload.snapshot.schemaVersion, 24);
     assert.deepEqual(snapshot.payload.snapshot.staffingEntries, {});
     assert.equal(
       getMissionStaffingPlanSummary(
