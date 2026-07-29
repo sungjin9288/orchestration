@@ -176,12 +176,15 @@ for (const decisionId of [
   'DEC-206',
   'DEC-207',
   'DEC-208',
+  'DEC-209',
+  'DEC-210',
+  'DEC-211',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-208`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-211`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -228,6 +231,10 @@ assert.match(masterPlan, /Stage 5H planning: `DEC-207`/);
 assert.match(runtimeContract, /Planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209`/);
 assert.match(councilProtocol, /Planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209`/);
 assert.match(deliveryRoadmap, /Stage 5H planning-only `DEC-207`/);
+assert.match(masterPlan, /Stage 5I planning: `DEC-210`/);
+assert.match(runtimeContract, /Planning-only `DEC-210` and handoff-only `DEC-211`/);
+assert.match(councilProtocol, /Planning-only `DEC-210` and handoff-only `DEC-211`/);
+assert.match(deliveryRoadmap, /Stage 5I planning-only `DEC-210`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
@@ -326,6 +333,8 @@ process.stdout.write(
         reworkQaExecutionPlanning: 'accepted-dec-207',
         reworkQaExecutionHandoff: 'documented-dec-208',
         reworkQaExecutionImplementation: 'accepted-dec-209',
+        reworkDeliveryPackagePreviewPlanning: 'accepted-dec-210',
+        reworkDeliveryPackagePreviewHandoff: 'documented-dec-211',
       },
       currentRuntime: {
         schemaVersion: 24,
@@ -349,9 +358,9 @@ process.stdout.write(
       },
       nextImplementationTarget: {
         stage: '5I',
-        object: 'rework-delivery-package',
+        object: 'rework-delivery-package-preview',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-210',
+        nextDecisionLogEntry: 'DEC-212',
       },
       authority: {
         documentationAllowed: true,
@@ -385,6 +394,8 @@ process.stdout.write(
         reviewerReexecutionImplementationAllowed: true,
         reworkQaExecutionPlanningAllowed: true,
         reworkQaExecutionImplementationAllowed: true,
+        reworkDeliveryPackagePreviewPlanningAllowed: true,
+        reworkDeliveryPackagePreviewImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

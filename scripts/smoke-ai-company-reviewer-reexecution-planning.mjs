@@ -138,13 +138,13 @@ for (const source of [
 assert.match(inventory, /AI Company Reviewer re-execution implementation/);
 assert.match(inventory, /DEC-204/);
 assert.match(inventory, /DEC-205/);
-assert.match(inventory, /informational `299\/299`, total `300\/300`/);
+assert.match(inventory, /informational `300\/300`, total `301\/301`/);
 assert.match(readme, /docs\/139_ai-company-reviewer-reexecution-plan\.md/);
 assert.match(
   readme,
   /docs\/140_ai-company-reviewer-reexecution-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /993 smoke files/);
+assert.match(readme, /994 smoke files/);
 assert.match(readme, /710 UI smoke files/);
 assert.match(todo, /ai-company-reviewer-reexecution-implementation-post-m7-2037/);
 assert.match(
@@ -186,7 +186,7 @@ assert.match(coordinator, /async function runReviewerReexecution\(input\)/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 993);
+assert.equal(smokeFileCount, 994);
 assert.equal(uiSmokeFileCount, 710);
 
 process.stdout.write(`${JSON.stringify({

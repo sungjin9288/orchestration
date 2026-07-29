@@ -1,5 +1,9 @@
 # lessons
 
+- A rework delivery preview must not widen the generic durable DeliveryPackage path. When the
+  original path's approval and digest payload omit later mutation, Reviewer, QA, raw Artifact, and
+  checkpoint lineage, use a dedicated response-only projection and keep persistence, acceptance,
+  and close-out ineligible until separately authorized.
 - A `QA_READY` checkpoint is not enough to prove that QA execution is authorized. When a bounded
   stage stops for a separate downstream decision, carry that provenance in the checkpoint and
   enforce it in runtime commands, recovery projections, and UI signals; otherwise a generic

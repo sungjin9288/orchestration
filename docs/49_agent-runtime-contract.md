@@ -535,6 +535,15 @@ running `rework-qa-node-check` Run atomically before one source-bound shell-free
 request/input evidence and validate the attempt, Run, Artifact, and checkpoint lineage. No
 DeliveryPackage may be composed in the same request.
 
+Planning-only `DEC-210` and handoff-only `DEC-211` define the Stage 5I
+`ReworkDeliveryPackagePreview` contract. The future candidate must load schema v24 without
+migration or save, bind exact DEC-203 mutation, DEC-206 Reviewer attempt #2, DEC-209 QA attempt #1,
+bounded raw Artifact bytes, current source digests, and the terminal `DELIVERY_READY` checkpoint,
+then return one deterministic deeply frozen response-only projection with `allowedActions=[]`.
+Exact `DEC-212` is required before runtime/API/UI implementation. The generic DeliveryPackage
+preview, persistence, acceptance, and Mission close-out functions must remain ineligible for rework
+evidence.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

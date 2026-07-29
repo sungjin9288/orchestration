@@ -1383,6 +1383,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation may change only the named Stage 5H runtime, execution, API, UI, smoke, and coupled evidence surfaces. Schema remains v24, the fixed three-WorkOrder graph is preserved, the QA attempt and running Run are persisted atomically, reload validation binds their exact lineage and evidence, and pass stops at `DELIVERY_READY` without composing a DeliveryPackage. QA attempt #2, retry, recovery, DeliveryPackage composition, Mission/task close-out, provider or source mutation, Git/release authority, memory, scheduling, policy mutation, bypass, and connectors remain blocked.
 - Needed Before: Every Stage 5H start must prove the exact DEC-206 tuple and current target bytes, consume only its actionless `QA_READY` checkpoint, persist QA attempt #1 and its running Run atomically before the worker, settle bounded source-bound Node checks with exact durable evidence, and stop at `DELIVERY_READY` or terminal QA failure. Any later DeliveryPackage, retry, or recovery requires a separate complete fielded decision.
 
+### DEC-210
+- Status: `Accepted`
+- Decision: Approve planning only for one deterministic response-only schema-v24 `ReworkDeliveryPackagePreview` from one operator-selected exact source-current completed DEC-209 rework QA execution and terminal `DELIVERY_READY` checkpoint.
+- Why: The existing generic DeliveryPackage preview validates the original terminal Builder approval and generic Reviewer/QA evidence. It omits the DEC-203 mutation, DEC-206 Reviewer attempt #2, DEC-209 QA attempt #1, raw Artifact, and rework checkpoint digest lineage, while its existing UI and runtime connect directly to durable persistence and acceptance.
+- Impact: Planning may define only the exact source gate, nine-key GET contract, response shape, rework evidence digest, browser-memory lifecycle, rollback, and focused verification. Schema, runtime, API, UI, durable package, acceptance, close-out, retry, recovery, provider, source, Git/release, memory, scheduling, policy, bypass, and connector behavior remain unchanged and blocked.
+- Needed Before: Runtime implementation requires the complete fielded Stage 5I decision recorded by DEC-211 and must be accepted separately as exact DEC-212.
+
+### DEC-211
+- Status: `Accepted`
+- Decision: Record the complete fielded implementation handoff for the Stage 5I response-only `ReworkDeliveryPackagePreview` in `docs/144_ai-company-rework-delivery-package-preview-implementation-decision-handoff.md`.
+- Why: A generic continuation or broad approval cannot prove the exact DEC-203/206/209 source tuple, no-write schema-v24 boundary, generic durable-path exclusion, rollback, and blocked downstream authorities required for this projection.
+- Impact: The handoff fixes fifteen required fields, a dedicated module and exact GET route, browser-memory-only UI, focused runtime/API/UI smokes, compatibility gates, and a hard stop before durable DeliveryPackage handling. It authorizes no implementation by itself.
+- Needed Before: The operator must supply one value-matching complete decision. Missing, renamed, broadened, or shortcut approval remains non-authorizing.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
