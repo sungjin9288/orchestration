@@ -151,7 +151,8 @@ assertIncludesAll(plan, [
 assertIncludesAll(handoff, [
   /operator-decision-ai-company-rework-qa-execution-implementation-001/,
   /approve-ai-company-rework-qa-execution-implementation-slice/,
-  /existing QA WorkOrder and WorkOrderAttempt #1/,
+  /existing QA WorkOrder and appending exactly one QA WorkOrderAttempt #1/,
+  /This permits appending exactly one QA WorkOrderAttempt #1 to the existing QA WorkOrder and a stop at DELIVERY_READY only\./,
   /src\/runtime\/rework-qa-execution\.js/,
   /exact path plus fifteen-key request/,
   /executionMode=rework-qa-node-check/,
@@ -163,6 +164,26 @@ assertIncludesAll(handoff, [
   /scripts\/smoke-ui-slice-710\.mjs/,
   /reserved for `DEC-209`/,
 ], 'rework QA execution handoff');
+assert.doesNotMatch(
+  handoff,
+  /existing QA WorkOrder and WorkOrderAttempt #1/,
+  'rework QA execution handoff must not imply that QA WorkOrderAttempt #1 already exists',
+);
+for (const [source, label] of [
+  [readme, 'README'],
+  [todo, 'task ledger'],
+]) {
+  assert.match(
+    source,
+    /reuses the existing QA WorkOrder and plans exactly one new\s+WorkOrderAttempt #1 append/,
+    `${label} must distinguish the existing QA WorkOrder from the new attempt`,
+  );
+  assert.doesNotMatch(
+    source,
+    /reuses the existing QA WorkOrder as WorkOrderAttempt #1/,
+    `${label} must not imply that the QA WorkOrder is the attempt`,
+  );
+}
 
 assertIncludesAll(decisionLog, [
   /^### DEC-207$/m,

@@ -307,7 +307,8 @@ Planning-only `DEC-207` defines the Stage 5H rework QA boundary in
 `docs/141_ai-company-rework-qa-execution-plan.md`, and `DEC-208` records its complete fielded
 implementation handoff in
 `docs/142_ai-company-rework-qa-execution-implementation-decision-handoff.md`. The planned path
-keeps schema v24 and the fixed graph, reuses the existing QA WorkOrder as WorkOrderAttempt #1,
+keeps schema v24 and the fixed graph, reuses the existing QA WorkOrder and plans exactly one new
+WorkOrderAttempt #1 append,
 atomically persists that attempt and its running Run, binds exact DEC-206 Reviewer and current
 source-byte evidence, runs only shell-free source-bound Node syntax checks, and stops at
 `DELIVERY_READY` without composing a DeliveryPackage. Runtime/API/UI/worker implementation remains
