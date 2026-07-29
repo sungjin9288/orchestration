@@ -145,6 +145,7 @@ import {
   getBuilderReworkMutationApprovalRequest,
   getBuilderReworkSourceMutationRequest,
   getReviewerReexecutionRequest,
+  getReworkQaExecutionRequest,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -446,6 +447,7 @@ const state = {
   builderReworkMutationApproval: null,
   builderReworkSourceMutation: null,
   reviewerReexecution: null,
+  reworkQaExecution: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5151,6 +5153,7 @@ function applySnapshotPayload(payload) {
     state.builderReworkMutationApproval = null;
     state.builderReworkSourceMutation = null;
     state.reviewerReexecution = null;
+    state.reworkQaExecution = null;
   }
 
   state.payload = {
@@ -5675,6 +5678,14 @@ async function hydrateSelectedDetails() {
                 `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/reviewer-reexecution`,
               )
             )?.reviewerReexecution || null
+          : null;
+      state.reworkQaExecution =
+        state.reviewerReexecution?.status === 'completed'
+          ? (
+              await fetchOptionalJson(
+                `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/qa-execution`,
+              )
+            )?.reworkQaExecution || null
           : null;
     }
   }
@@ -7665,12 +7676,67 @@ async function runReviewerReexecution(actionButton) {
       throw new Error('Reviewer 재실행 응답이 exact evidence와 다릅니다.');
     }
     state.reviewerReexecution = result;
+    state.reworkQaExecution =
+      result.status === 'completed'
+        ? (
+            await fetchOptionalJson(
+              `/api/rework-plans/${encodeURIComponent(reworkPlan.id)}/qa-execution`,
+            )
+          )?.reworkQaExecution || null
+        : null;
     elements.refreshStatus.textContent =
       result.status === 'completed'
         ? `${result.reviewerRun?.id || 'Reviewer'} pass evidence를 기록했습니다`
         : `${result.reviewerRun?.id || 'Reviewer'} ${result.status} evidence를 보존했습니다`;
   } catch (error) {
     state.reviewerReexecution = null;
+    throw error;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function runReworkQaExecution(actionButton) {
+  const reworkPlan = state.reviewerReworkPlan;
+  const envelope = state.reworkQaExecution;
+  const form = actionButton?.closest?.('[data-form="run-rework-qa-execution"]');
+  if (!reworkPlan || !envelope || !form) {
+    throw new Error('source-current 재작업 QA evidence가 필요합니다.');
+  }
+  const formData = new FormData(form);
+  const request = getReworkQaExecutionRequest(envelope, {
+    acknowledgement: String(formData.get('reworkQaAcknowledgement') || ''),
+    rationale: String(formData.get('reworkQaRationale') || ''),
+    reviewedAt: new Date().toISOString(),
+  });
+  if (!request) {
+    throw new Error('exact acknowledgement와 재작업 QA rationale이 필요합니다.');
+  }
+  state.mutating = true;
+  state.reworkQaExecution = null;
+  elements.refreshStatus.textContent = `${reworkPlan.id} QA attempt #1을 실행하는 중…`;
+  render();
+  try {
+    const payload = await postJson(
+      `/api/rework-plans/${encodeURIComponent(reworkPlan.id)}/qa-execution`,
+      request,
+    );
+    const result = payload.reworkQaExecution;
+    if (
+      result?.reworkPlanId !== reworkPlan.id ||
+      !['running', 'completed', 'failed', 'interrupted'].includes(result.status) ||
+      result.blockedActions?.includes('delivery-package') !== true
+    ) {
+      throw new Error('재작업 QA 응답이 exact evidence와 다릅니다.');
+    }
+    state.reworkQaExecution = result;
+    elements.refreshStatus.textContent =
+      result.status === 'completed'
+        ? `${result.qaRun?.id || 'QA'} pass evidence를 기록했습니다`
+        : `${result.qaRun?.id || 'QA'} ${result.status} evidence를 보존했습니다`;
+  } catch (error) {
+    state.reworkQaExecution = null;
     throw error;
   } finally {
     state.mutating = false;
@@ -13961,6 +14027,94 @@ function renderReviewerReexecution(reworkPlanId) {
   `;
 }
 
+function renderReworkQaExecution(reworkPlanId) {
+  const result = state.reworkQaExecution;
+  if (!result || result.reworkPlanId !== reworkPlanId) return '';
+  const statusTone =
+    result.status === 'completed'
+      ? 'success'
+      : result.status === 'failed'
+        ? 'danger'
+        : 'warning';
+  const source = result.requestSource || {};
+  const sourceRows = (result.sourceDigests || [])
+    .map((entry) => `<li><code>${escapeHtml(entry.path)} · ${escapeHtml(entry.digest.slice(0, 12))}</code></li>`)
+    .join('');
+  const commandRows = (result.verificationCommands || [])
+    .map((command) => `<li><code>${escapeHtml(command)}</code></li>`)
+    .join('');
+  return `
+    <section
+      class="rework-qa-execution"
+      aria-label="Rework QA execution"
+      data-rework-qa-status="${escapeHtml(result.status)}"
+    >
+      <div class="card-title-row card-title-row-tight">
+        <strong>QA attempt #1</strong>
+        ${createToken(result.status, statusTone)}
+        ${createToken('local-stub', 'neutral')}
+      </div>
+      <dl class="reviewer-rework-evidence">
+        <div><dt>QA WorkOrder</dt><dd>${escapeHtml(result.qaWorkOrder?.id || source.qaWorkOrderId || '')}</dd></div>
+        <div><dt>Reviewer evidence</dt><dd>${escapeHtml(result.reviewerEvidenceDigest || source.reviewerEvidenceDigest || '')}</dd></div>
+        <div><dt>QA input</dt><dd>${escapeHtml(result.qaInputDigest || source.qaInputDigest || '')}</dd></div>
+        <div><dt>Command mode</dt><dd>process.execPath --check -</dd></div>
+      </dl>
+      <div class="rework-qa-source-evidence">
+        <strong>Source-bound evidence</strong>
+        <ul>${sourceRows || '<li>not recorded</li>'}</ul>
+        <ul>${commandRows || '<li>not recorded</li>'}</ul>
+      </div>
+      ${
+        result.status === 'ready'
+          ? `
+            <form class="reviewer-rework-record-form" data-form="run-rework-qa-execution">
+              <label class="field">
+                <span>QA rationale</span>
+                <input
+                  name="reworkQaRationale"
+                  type="text"
+                  maxlength="500"
+                  required
+                  placeholder="Why the exact reworked source should receive one syntax check"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                />
+              </label>
+              <label class="builder-rework-acknowledgement">
+                <input
+                  name="reworkQaAcknowledgement"
+                  type="checkbox"
+                  value="run-only-source-bound-node-checks-and-stop-before-delivery-package"
+                  required
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                />
+                <span>source-bound node check만 실행하고 DeliveryPackage 전에서 중단</span>
+              </label>
+              <button
+                class="primary-button"
+                type="button"
+                data-action="run-rework-qa-execution"
+                data-id="${escapeHtml(reworkPlanId)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                재작업 QA 실행
+              </button>
+            </form>
+          `
+          : `
+            <dl class="reviewer-rework-evidence">
+              <div><dt>Attempt</dt><dd>${escapeHtml(result.workOrderAttempt?.id || 'not recorded')}</dd></div>
+              <div><dt>Run</dt><dd>${escapeHtml(result.qaRun?.id || 'not recorded')}</dd></div>
+              <div><dt>Artifact</dt><dd>${escapeHtml(result.qaArtifact?.id || 'none')}</dd></div>
+              <div><dt>Next gate</dt><dd>${escapeHtml(result.nextGate || 'blocked')}</dd></div>
+            </dl>
+            <p class="detail-copy detail-copy-compact">DeliveryPackage, retry, recovery, Mission close-out, commit, push, release는 계속 차단됩니다.</p>
+          `
+      }
+    </section>
+  `;
+}
+
 function renderBuilderReworkSourceMutation(reworkPlanId) {
   const mutation = state.builderReworkSourceMutation;
   if (!mutation || mutation.reworkPlanId !== reworkPlanId) return '';
@@ -14057,6 +14211,11 @@ function renderBuilderReworkSourceMutation(reworkPlanId) {
             ${
               mutation.status === 'completed'
                 ? renderReviewerReexecution(reworkPlanId)
+                : ''
+            }
+            ${
+              mutation.status === 'completed'
+                ? renderReworkQaExecution(reworkPlanId)
                 : ''
             }
           `
@@ -23446,6 +23605,10 @@ document.addEventListener('click', async (event) => {
       }
       if (actionButton.dataset.action === 'run-reviewer-reexecution') {
         await runReviewerReexecution(actionButton);
+        return;
+      }
+      if (actionButton.dataset.action === 'run-rework-qa-execution') {
+        await runReworkQaExecution(actionButton);
         return;
       }
 

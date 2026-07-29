@@ -225,8 +225,8 @@ assert.match(
 );
 assert.match(deliveryRoadmap, /Stage 5G planning-only `DEC-204`/);
 assert.match(masterPlan, /Stage 5H planning: `DEC-207`/);
-assert.match(runtimeContract, /Planning-only `DEC-207` and handoff-only `DEC-208`/);
-assert.match(councilProtocol, /Planning-only `DEC-207` and handoff-only `DEC-208`/);
+assert.match(runtimeContract, /Planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209`/);
+assert.match(councilProtocol, /Planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209`/);
 assert.match(deliveryRoadmap, /Stage 5H planning-only `DEC-207`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
@@ -325,6 +325,7 @@ process.stdout.write(
         reviewerReexecutionImplementation: 'accepted-dec-206',
         reworkQaExecutionPlanning: 'accepted-dec-207',
         reworkQaExecutionHandoff: 'documented-dec-208',
+        reworkQaExecutionImplementation: 'accepted-dec-209',
       },
       currentRuntime: {
         schemaVersion: 24,
@@ -341,15 +342,16 @@ process.stdout.write(
         builderReworkMutationApproval: true,
         builderReworkSourceMutation: 'bounded-local-stub-mutation',
         reviewerReexecution: 'exact-local-stub-attempt-two',
+        reworkQaExecution: 'exact-source-bound-attempt-one',
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '5H',
-        object: 'qa-execution',
+        stage: '5I',
+        object: 'rework-delivery-package',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-209',
+        nextDecisionLogEntry: 'DEC-210',
       },
       authority: {
         documentationAllowed: true,
@@ -382,7 +384,7 @@ process.stdout.write(
         reviewerReexecutionPlanningAllowed: true,
         reviewerReexecutionImplementationAllowed: true,
         reworkQaExecutionPlanningAllowed: true,
-        reworkQaExecutionImplementationAllowed: false,
+        reworkQaExecutionImplementationAllowed: true,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

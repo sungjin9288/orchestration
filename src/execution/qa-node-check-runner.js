@@ -71,6 +71,13 @@ function sameDigestEntries(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+function sameRelativePathSet(left, right) {
+  const normalize = (entries, label) =>
+    [...new Set((entries || []).map((entry) => normalizeRelativePath(entry, label)))].sort();
+  return JSON.stringify(normalize(left, 'Specialist path')) ===
+    JSON.stringify(normalize(right, 'Specialist path'));
+}
+
 function createSpecialistRunnerError(code) {
   const error = new Error(code);
   error.code = code;
@@ -287,7 +294,7 @@ function runNodeCheck(input, options = {}) {
       clearTimeout(timer);
       resolve({
         kind: 'node-check',
-        argv: [process.execPath, '--check', input.relativePath],
+        argv: [process.execPath, '--check', checkArgument],
         exitCode: Number.isInteger(exitCode) ? exitCode : null,
         durationMs: Math.max(0, Date.now() - startedAtMs),
         stdoutDigest: stdoutHash.digest('hex'),
@@ -475,6 +482,21 @@ async function runSpecialistSourceBoundNodeChecks(input, options = {}) {
   } catch {
     throw createSpecialistRunnerError('runner-contract-failed');
   }
+  const changedFiles = [...new Set((input.changedFiles || []).map((entry) =>
+    normalizeRelativePath(entry, 'Builder changed file')))].sort();
+  const hasChangedFiles = Object.prototype.hasOwnProperty.call(input, 'changedFiles');
+  const targetPathAllowlist = [...new Set((input.targetPathAllowlist || []).map((entry) =>
+    normalizeRelativePath(entry, 'Verification target allowlist path')))].sort();
+  if (
+    (hasChangedFiles && (
+      changedFiles.length === 0 ||
+      !sameRelativePathSet(changedFiles, targetPathAllowlist)
+    )) ||
+    !sameRelativePathSet(targetPathAllowlist, prepared.relativePaths) ||
+    !sameRelativePathSet(targetPathAllowlist, baseline.inputPathDigests.map((entry) => entry.path))
+  ) {
+    throw createSpecialistRunnerError('runner-contract-failed');
+  }
 
   const checks = [];
   for (const check of prepared.checks) {
@@ -512,6 +534,7 @@ async function runSpecialistSourceBoundNodeChecks(input, options = {}) {
       throw createSpecialistRunnerError('cell-deadline-exceeded');
     }
     checks.push({
+      argv: result.argv,
       relativePath: check.relativePath,
       exitCode: result.exitCode,
       timedOut: result.timedOut,
@@ -546,6 +569,7 @@ async function runSpecialistSourceBoundNodeChecks(input, options = {}) {
   return {
     observedInputDigest: baseline.inputDigest,
     resultSummary: {
+      changedFiles,
       kind: 'node-syntax-check',
       checks,
       mutationDetected: false,

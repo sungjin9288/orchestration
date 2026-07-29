@@ -169,6 +169,11 @@ const {
   computeReviewerReexecutionWorkOrderDigest,
 } = require('./reviewer-reexecution');
 const {
+  computeQaInputDigest,
+  computeReviewerEvidenceDigest,
+  computeReworkQaExecutionRequestDigest,
+} = require('./rework-qa-execution');
+const {
   computeExecutionPlanRecordDigest,
   computeWorkOrderRecordDigest,
 } = require('./workorder-verification-plan-preview');
@@ -246,7 +251,11 @@ function validateWorkflowCheckpointRecords(state) {
       throw new Error(`${label} has invalid nextAllowedActions`);
     }
     const expectedActions =
-      checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY
+      checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.QA_READY &&
+      checkpoint.status === WORKFLOW_CHECKPOINT_STATUS.CONSUMED &&
+      checkpoint.stopReason === 'rework-qa-execution-started'
+        ? []
+        : checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.REVIEWER_READY
         ? [WORKFLOW_CHECKPOINT_ACTION.RESUME_REVIEWER]
         : checkpoint.stage === WORKFLOW_CHECKPOINT_STAGE.QA_READY
           ? checkpoint.stopReason === 'reviewer-reexecution-passed-qa-ready'
@@ -2276,6 +2285,16 @@ function validateBuilderReworkDispatchRecords(state, artifactsDir) {
             candidate.attemptNumber === 2,
         ) || null
       : null;
+    const reworkQaAttempt = planWorkOrders.length === 3
+      ? Object.values(state.workOrderAttempts).find(
+          (candidate) =>
+            candidate.executionPlanId === plan?.id &&
+            candidate.workOrderId === qa?.id &&
+            candidate.action === 'run-qa' &&
+            candidate.command === 'step' &&
+            candidate.attemptNumber === 1,
+        ) || null
+      : null;
     const isReviewerReexecutionLifecycle = Boolean(reviewerReexecutionAttempt);
     if (
       !plan || !builder || !reviewer || !qa || !reworkPlan || !acceptance || !attempt ||
@@ -2590,7 +2609,7 @@ function validateBuilderReworkDispatchRecords(state, artifactsDir) {
         }
       }
     }
-    if (isReviewerReexecutionLifecycle) {
+    if (isReviewerReexecutionLifecycle && !reworkQaAttempt) {
       const sourceReviewerAttempt = state.workOrderAttempts[reworkPlan.reviewerAttemptId];
       const sourceReviewerRun = state.runs[reworkPlan.reviewerRunId];
       const sourceReviewArtifact = state.artifacts[reworkPlan.reviewArtifactId];
@@ -2880,6 +2899,296 @@ function validateBuilderReworkDispatchRecords(state, artifactsDir) {
         plan.stoppedAt !== 'reviewer'
       ) {
         throw new Error(`${label} has invalid failed Stage 5G Reviewer state`);
+      }
+    } else if (isReviewerReexecutionLifecycle) {
+      const qaAttempts = Object.values(state.workOrderAttempts).filter(
+        (candidate) =>
+          candidate.executionPlanId === plan.id && candidate.workOrderId === qa.id,
+      );
+      const qaRun = reworkQaAttempt.runRefs.length === 1
+        ? state.runs[reworkQaAttempt.runRefs[0]]
+        : null;
+      const qaArtifact = reworkQaAttempt.artifactRefs.length === 1
+        ? state.artifacts[reworkQaAttempt.artifactRefs[0]]
+        : null;
+      const attemptCheckpoint = state.workflowCheckpoints[reworkQaAttempt.checkpointRef];
+      const deliveryCheckpoint = reworkQaAttempt.status === WORK_ORDER_ATTEMPT_STATUS.COMPLETED
+        ? state.workflowCheckpoints[reworkQaAttempt.checkpointRef]
+        : null;
+      const reviewerCheckpoint = state.workflowCheckpoints[reviewerReexecutionAttempt.checkpointRef];
+      const sourceMutationRun = state.runs[attempt.runRefs[1]];
+      const sourceMutationArtifacts = attempt.artifactRefs
+        .slice(1)
+        .map((artifactId) => state.artifacts[artifactId]);
+      const sourceReviewerAttempt = state.workOrderAttempts[reworkPlan.reviewerAttemptId];
+      const sourceReviewerRun = state.runs[reworkPlan.reviewerRunId];
+      const sourceReviewArtifact = state.artifacts[reworkPlan.reviewArtifactId];
+      const reviewerRun = state.runs[reviewerReexecutionAttempt.runRefs[0]];
+      const reviewerArtifact = state.artifacts[reviewerReexecutionAttempt.artifactRefs[0]];
+      let mutationEvidenceDigest;
+      let reviewerEvidenceDigest;
+      try {
+        mutationEvidenceDigest = computeMutationEvidenceDigest({
+          approval: state.approvals[attempt.approvalRefs[0]],
+          artifacts: sourceMutationArtifacts.map((artifact) => ({
+            artifact,
+            bytes: readBuilderReworkPreflightArtifactBytes(artifact.path, artifactsDir, label),
+          })),
+          builderAttempt: attempt,
+          currentTargetDigests: sourceMutationRun?.summary?.targetFilePostMutationDigests,
+          dispatch,
+          mutationRun: sourceMutationRun,
+          postMutationTargetDigests: sourceMutationRun?.summary?.targetFilePostMutationDigests,
+          sourceReviewerAttempt,
+          sourceReviewerRun,
+        });
+        reviewerEvidenceDigest = computeReviewerEvidenceDigest({
+          reviewerAttempt: reviewerReexecutionAttempt,
+          reviewerRun,
+          reviewArtifact: reviewerArtifact,
+          reviewArtifactBytes: readBuilderReworkPreflightArtifactBytes(
+            reviewerArtifact.path,
+            artifactsDir,
+            label,
+          ),
+          mutationEvidenceDigest,
+          qaReadyCheckpoint: reviewerCheckpoint,
+        });
+      } catch (error) {
+        throw new Error(`${label} cannot recompute Stage 5H evidence: ${error.message}`);
+      }
+      const qaWorkOrderAtStart = qaRun?.metadata?.qaWorkOrderAtStart;
+      if (!qaWorkOrderAtStart || typeof qaWorkOrderAtStart !== 'object') {
+        throw new Error(`${label} is missing its Stage 5H QA WorkOrder source`);
+      }
+      const expectedQaInputDigest = computeQaInputDigest({
+        builderRunId: sourceMutationRun.id,
+        reviewerRunId: reviewerRun.id,
+        qaWorkOrder: qaWorkOrderAtStart,
+        changedFiles: sourceMutationRun.summary?.changedFiles || [],
+        targetPathAllowlist: reworkPlan.targetPathAllowlist,
+        verificationCommands: reworkPlan.verificationCommands,
+        targetFileDigests: sourceMutationRun.summary?.targetFilePostMutationDigests || [],
+      });
+      let qaEvidence = null;
+      if (qaArtifact) {
+        try {
+          qaEvidence = JSON.parse(
+            readBuilderReworkPreflightArtifactBytes(
+              qaArtifact.path,
+              artifactsDir,
+              label,
+            ).toString('utf8'),
+          );
+        } catch (error) {
+          throw new Error(`${label} has invalid Stage 5H QA Artifact evidence: ${error.message}`);
+        }
+      }
+      const active = reworkQaAttempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE;
+      const completed = reworkQaAttempt.status === WORK_ORDER_ATTEMPT_STATUS.COMPLETED;
+      const failed = reworkQaAttempt.status === WORK_ORDER_ATTEMPT_STATUS.FAILED;
+      const expectedRunStatus = active ? RUN_STATUS.RUNNING : RUN_STATUS.COMPLETED;
+      const resultSummary = qaRun?.summary?.resultSummary;
+      const resultChecks = resultSummary?.checks;
+      const expectedCheckPaths = reworkPlan.verificationCommands
+        .map((command) => command.slice('node --check '.length))
+        .sort();
+      const exactCheckEvidence = Array.isArray(resultChecks) &&
+        resultChecks.length === expectedCheckPaths.length &&
+        new Set(resultChecks.map((check) => check?.relativePath)).size === resultChecks.length &&
+        resultChecks.every(
+          (check) =>
+            check &&
+            Array.isArray(check.argv) &&
+            check.argv.length === 3 &&
+            check.argv[0] === process.execPath &&
+            check.argv[1] === '--check' &&
+            check.argv[2] === '-' &&
+            expectedCheckPaths.includes(check.relativePath) &&
+            typeof check.passed === 'boolean' &&
+            typeof check.timedOut === 'boolean' &&
+            typeof check.truncated === 'boolean' &&
+            (Number.isInteger(check.exitCode) || check.exitCode === null) &&
+            /^[a-f0-9]{64}$/.test(check.stdoutDigest || '') &&
+            /^[a-f0-9]{64}$/.test(check.stderrDigest || ''),
+        ) &&
+        resultChecks
+          .map((check) => check.relativePath)
+          .sort()
+          .every((relativePath, index) => relativePath === expectedCheckPaths[index]);
+      const boundedWorkerFailureEvidence = failed &&
+        Array.isArray(resultChecks) &&
+        resultChecks.length === 0 &&
+        Array.isArray(resultSummary?.reasons) &&
+        resultSummary.reasons.length > 0;
+      const terminalCheckEvidenceExact = !active &&
+        resultSummary?.kind === 'node-syntax-check' &&
+        resultSummary.mutationDetected === false &&
+        resultSummary.verdict === (completed ? 'passed' : 'failed') &&
+        (exactCheckEvidence || boundedWorkerFailureEvidence) &&
+        (completed
+          ? resultChecks.every((check) => check.passed)
+          : boundedWorkerFailureEvidence || resultChecks.some((check) => !check.passed));
+      const terminalArtifactEnvelopeExact = !active &&
+        qaEvidence?.schemaVersion === 1 &&
+        qaEvidence?.executionMode === 'rework-qa-node-check' &&
+        qaEvidence?.requestDigest === qaRun?.metadata?.requestDigest &&
+        qaEvidence?.reviewerEvidenceDigest === reviewerEvidenceDigest &&
+        qaEvidence?.mutationEvidenceDigest === mutationEvidenceDigest &&
+        qaEvidence?.qaInputDigest === expectedQaInputDigest &&
+        qaEvidence?.expectedInputDigest === qaRun?.metadata?.workerInputDigest &&
+        qaEvidence?.observedInputDigest === qaRun?.metadata?.workerInputDigest &&
+        qaEvidence?.createdAt === qaRun?.finishedAt &&
+        JSON.stringify(qaEvidence?.result) === JSON.stringify(resultSummary);
+      if (
+        qaAttempts.length !== 1 ||
+        !qaRun ||
+        !reviewerRun ||
+        !reviewerArtifact ||
+        reviewerRun.status !== RUN_STATUS.COMPLETED ||
+        reviewerRun.summary?.rawVerdict !== 'pass' ||
+        reviewerArtifact.type !== ARTIFACT_TYPE.REVIEW ||
+        reviewerArtifact.runId !== reviewerRun.id ||
+        reviewerCheckpoint?.stage !== WORKFLOW_CHECKPOINT_STAGE.QA_READY ||
+        reviewerCheckpoint.status !== WORKFLOW_CHECKPOINT_STATUS.CONSUMED ||
+        reviewerCheckpoint.stopReason !== 'rework-qa-execution-started' ||
+        reworkQaAttempt.workOrderId !== qa.id ||
+        reworkQaAttempt.role !== 'qa' ||
+        reworkQaAttempt.position !== qa.position ||
+        reworkQaAttempt.action !== 'run-qa' ||
+        reworkQaAttempt.command !== 'step' ||
+        reworkQaAttempt.attemptNumber !== 1 ||
+        reworkQaAttempt.runRefs.length !== 1 ||
+        reworkQaAttempt.runRefs[0] !== qaRun.id ||
+        qaRun.taskId !== plan.controlTaskId ||
+        qaRun.role !== 'qa' ||
+        qaRun.status !== expectedRunStatus ||
+        qaRun.metadata?.executionMode !== 'rework-qa-node-check' ||
+        qaRun.metadata?.requestDigest !==
+          computeReworkQaExecutionRequestDigest(qaRun.metadata?.request) ||
+        qaRun.metadata?.workOrderAttemptId !== reworkQaAttempt.id ||
+        qaRun.metadata?.reworkPlanId !== reworkPlan.id ||
+        qaRun.metadata?.reviewerReexecutionAttemptId !== reviewerReexecutionAttempt.id ||
+        qaRun.metadata?.reviewerReexecutionAttemptRecordDigest !== reviewerReexecutionAttempt.recordDigest ||
+        qaRun.metadata?.reviewerRunId !== reviewerRun.id ||
+        qaRun.metadata?.mutationEvidenceDigest !== mutationEvidenceDigest ||
+        qaRun.metadata?.reviewerEvidenceDigest !== reviewerEvidenceDigest ||
+        qaRun.metadata?.qaInputDigest !== expectedQaInputDigest ||
+        qaRun.metadata?.qaWorkOrderId !== qa.id ||
+        qaRun.metadata?.qaWorkOrderDigest !== computeWorkOrderRecordDigest(qaWorkOrderAtStart) ||
+        qaRun.metadata?.qaWorkOrderDigest !== reworkQaAttempt.workOrderDigest ||
+        !/^[a-f0-9]{64}$/.test(qaRun.metadata?.workerInputDigest || '') ||
+        qaRun.metadata?.sourceDigest !== plan.sourceDigest ||
+        qaRun.metadata?.checkpointDigest !== reviewerCheckpoint.checkpointDigest ||
+        qaRun.metadata?.inputDigest !== reviewerCheckpoint.inputDigest ||
+        qaRun.metadata?.authorityDigest !== reviewerCheckpoint.authorityDigest ||
+        reworkQaAttempt.authorityDigest !== computeWorkOrderAttemptAuthorityDigest({
+          executionPlanId: plan.id,
+          expectedWorkOrderId: qa.id,
+          command: 'step',
+          action: 'run-qa',
+          sourceDigest: plan.sourceDigest,
+          checkpointRef: reviewerCheckpoint.id,
+          checkpointDigest: reviewerCheckpoint.checkpointDigest,
+          approvalRefs: [],
+        }) ||
+        reworkQaAttempt.recordDigest !== computeWorkOrderAttemptRecordDigest(reworkQaAttempt) ||
+        ![active, completed, failed].some(Boolean)
+      ) {
+        throw new Error(`${label} has invalid Stage 5H QA lineage`);
+      }
+      if (active) {
+        const activeViolations = [
+          reworkQaAttempt.artifactRefs.length !== 0 && 'attempt artifacts',
+          reworkQaAttempt.checkpointRef !== reviewerCheckpoint.id && 'attempt checkpoint',
+          attemptCheckpoint !== reviewerCheckpoint && 'attempt checkpoint record',
+          reworkQaAttempt.completedAt !== null && 'attempt completedAt',
+          reworkQaAttempt.stopReason !== null && 'attempt stopReason',
+          qaRun.summary !== null && 'run summary',
+          qaRun.finishedAt !== null && 'run finishedAt',
+          qa.status !== WORK_ORDER_STATUS.ACTIVE && 'QA status',
+          qa.runRefs.includes(qaRun.id) && 'QA run refs',
+          qa.artifactRefs.length !== 0 && 'QA artifact refs',
+          plan.status !== EXECUTION_PLAN_STATUS.REVIEWING && 'plan status',
+          plan.activeWorkOrderId !== qa.id && 'plan active work order',
+          plan.stopReason !== null && 'plan stopReason',
+          plan.stoppedAt !== null && 'plan stoppedAt',
+          plan.runRefs.includes(qaRun.id) && 'plan run refs',
+          plan.latestCheckpointId !== reviewerCheckpoint.id && 'plan latest checkpoint',
+        ].filter(Boolean);
+        if (activeViolations.length > 0) {
+          throw new Error(
+            `${label} has invalid active Stage 5H QA state: ${activeViolations.join(', ')}`,
+          );
+        }
+      } else if (completed) {
+        if (
+          !qaArtifact ||
+          qaArtifact.type !== ARTIFACT_TYPE.QA_EVIDENCE ||
+          qaArtifact.runId !== qaRun.id ||
+          qaRun.summary?.executionMode !== 'rework-qa-node-check' ||
+          qaRun.summary?.verdict !== 'passed' ||
+          qaRun.summary?.qaEvidenceArtifactId !== qaArtifact.id ||
+          qaRun.summary?.qaInputDigest !== expectedQaInputDigest ||
+          qaRun.summary?.expectedInputDigest !== qaRun.metadata.workerInputDigest ||
+          qaRun.summary?.observedInputDigest !== qaRun.metadata.workerInputDigest ||
+          qaRun.summary?.mutationDetected !== false ||
+          !terminalCheckEvidenceExact ||
+          !terminalArtifactEnvelopeExact ||
+          deliveryCheckpoint?.stage !== WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY ||
+          deliveryCheckpoint.status !== WORKFLOW_CHECKPOINT_STATUS.TERMINAL ||
+          deliveryCheckpoint.resumedFromCheckpointId !== reviewerCheckpoint.id ||
+          deliveryCheckpoint.stopReason !== 'rework-qa-passed-delivery-ready' ||
+          reworkQaAttempt.checkpointRef !== deliveryCheckpoint.id ||
+          attemptCheckpoint !== deliveryCheckpoint ||
+          reworkQaAttempt.completedAt !== qaRun.finishedAt ||
+          qa.completedAt !== qaRun.finishedAt ||
+          qa.completionRunId !== qaRun.id ||
+          qa.runRefs.length !== 1 ||
+          qa.runRefs[0] !== qaRun.id ||
+          qa.artifactRefs.length !== 1 ||
+          qa.artifactRefs[0] !== qaArtifact.id ||
+          qa.status !== WORK_ORDER_STATUS.COMPLETED ||
+          plan.status !== EXECUTION_PLAN_STATUS.DELIVERY_READY ||
+          plan.activeWorkOrderId !== null ||
+          plan.stopReason !== 'separate-delivery-package-decision-required' ||
+          plan.stoppedAt !== 'delivery' ||
+          plan.latestCheckpointId !== deliveryCheckpoint.id ||
+          !plan.runRefs.includes(qaRun.id) ||
+          !plan.artifactRefs.includes(qaArtifact.id)
+        ) {
+          throw new Error(`${label} has invalid completed Stage 5H QA state`);
+        }
+      } else if (
+        !qaArtifact ||
+        qaArtifact.type !== ARTIFACT_TYPE.QA_EVIDENCE ||
+        qaArtifact.runId !== qaRun.id ||
+        qaRun.summary?.executionMode !== 'rework-qa-node-check' ||
+        qaRun.summary?.verdict !== 'failed' ||
+        qaRun.summary?.qaInputDigest !== expectedQaInputDigest ||
+        qaRun.summary?.expectedInputDigest !== qaRun.metadata.workerInputDigest ||
+        qaRun.summary?.observedInputDigest !== qaRun.metadata.workerInputDigest ||
+        qaRun.summary?.mutationDetected !== false ||
+        !terminalCheckEvidenceExact ||
+        !terminalArtifactEnvelopeExact ||
+        reworkQaAttempt.checkpointRef !== null ||
+        attemptCheckpoint !== undefined ||
+        reworkQaAttempt.stopReason !== 'rework-qa-failed-no-retry-authority' ||
+        reworkQaAttempt.completedAt !== qaRun.finishedAt ||
+        qa.status !== WORK_ORDER_STATUS.FAILED ||
+        qa.runRefs.length !== 1 ||
+        qa.runRefs[0] !== qaRun.id ||
+        qa.artifactRefs.length !== 1 ||
+        qa.artifactRefs[0] !== qaArtifact.id ||
+        plan.status !== EXECUTION_PLAN_STATUS.BLOCKED ||
+        plan.activeWorkOrderId !== null ||
+        plan.stopReason !== 'rework-qa-failed-no-retry-authority' ||
+        plan.stoppedAt !== 'qa' ||
+        plan.latestCheckpointId !== reviewerCheckpoint.id ||
+        !plan.runRefs.includes(qaRun.id) ||
+        !plan.artifactRefs.includes(qaArtifact.id)
+      ) {
+        throw new Error(`${label} has invalid failed Stage 5H QA state`);
       }
     }
   }

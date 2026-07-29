@@ -59,7 +59,10 @@ const {
   renderReleasePackageArtifact,
 } = require('./coordinator/artifact-content');
 const { executeWithAdapter } = require('./provider-adapter');
-const { runQaNodeChecks } = require('./qa-node-check-runner');
+const {
+  runQaNodeChecks,
+  runSpecialistSourceBoundNodeChecks,
+} = require('./qa-node-check-runner');
 const {
   createOpenAIResponsesProviderAdapter,
 } = require('./providers/openai-responses-adapter');
@@ -1014,6 +1017,8 @@ function createExecutionCoordinator(options = {}) {
   const builderPreflightCodeContextPaths =
     options.builderPreflightCodeContextPaths || DEFAULT_BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS;
   const qaNodeCheckRunner = options.qaNodeCheckRunner || runQaNodeChecks;
+  const reworkQaNodeCheckRunner =
+    options.reworkQaNodeCheckRunner || runSpecialistSourceBoundNodeChecks;
 
   function resolveSourceOfTruthPaths(project) {
     if (sourceOfTruthPathOverride) {
@@ -4382,6 +4387,68 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runReworkQaExecution(input) {
+    if (!input?.reworkPlanId || !input?.request) {
+      throw new Error('reworkPlanId and request are required');
+    }
+    const started = runtime.beginReworkQaExecution({
+      reworkPlanId: input.reworkPlanId,
+      request: input.request,
+    });
+    if (started.idempotent) return started;
+
+    const requestDigest = started.reworkQaExecution.requestDigest;
+    const runId = started.reworkQaExecution.qaRun?.id;
+    if (!runId) {
+      throw new Error('Rework QA start did not retain its running Run evidence');
+    }
+    let worker;
+    try {
+      worker = runtime.getReworkQaExecutionWorkerInput({
+        reworkPlanId: input.reworkPlanId,
+        requestDigest,
+      });
+      runtime.appendLog({
+        runId: worker.qaRun.id,
+        message: `rework QA node-check started for exact Reviewer evidence ${worker.reviewerEvidenceDigest}`,
+      });
+      const result = await reworkQaNodeCheckRunner({
+        projectRoot: worker.project.projectPath,
+        inputPathDigests: worker.inputPathDigests,
+        changedFiles: worker.mutationRun.summary?.changedFiles,
+        targetPathAllowlist: worker.reworkPlan.targetPathAllowlist,
+        commands: worker.reworkPlan.verificationCommands,
+        deadlineAt: new Date(Date.now() + 5_000).toISOString(),
+      });
+      const reworkQaExecution = runtime.completeReworkQaExecution({
+        reworkPlanId: input.reworkPlanId,
+        runId: worker.qaRun.id,
+        requestDigest,
+        result,
+      });
+      return { idempotent: false, reworkQaExecution };
+    } catch (error) {
+      if (runId) {
+        try {
+          runtime.appendLog({
+            runId,
+            level: 'error',
+            message: `rework QA node-check failed: ${error.message}`,
+          });
+          runtime.failReworkQaExecution({
+            reworkPlanId: input.reworkPlanId,
+            runId,
+            requestDigest,
+            error: error.message,
+          });
+        } catch (settlementError) {
+          error.reworkQaSettlementError = settlementError.message;
+        }
+      }
+      throw error;
+    }
+  }
+
   async function runQaWorkOrder(input) {
     if (!input?.taskId || !input.executionPlanId || !input.workOrderId) {
       throw new Error('taskId, executionPlanId, and workOrderId are required');
@@ -5338,6 +5405,7 @@ function createExecutionCoordinator(options = {}) {
     runLocalCommit,
     runReleasePackage,
     runPlanner,
+    runReworkQaExecution,
     runQaWorkOrder,
     runReviewer,
     runReviewerReexecution,

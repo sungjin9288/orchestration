@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -13,8 +14,8 @@ import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const tempRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-660');
-const port = 7500 + (process.pid % 300);
-const baseUrl = `http://127.0.0.1:${port}`;
+let port;
+let baseUrl;
 const MODE = 'ui-slice-660-learning-candidate-preview-smoke';
 const keepFixture = process.env.ORCHESTRATION_UI_SLICE_660_KEEP_FIXTURE === '1';
 
@@ -32,6 +33,20 @@ function postJson(pathname, body) {
     method: 'POST',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+  });
+}
+
+function reserveLocalPort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      server.close((error) => {
+        if (error) reject(error);
+        else resolve(address.port);
+      });
+    });
   });
 }
 
@@ -71,6 +86,8 @@ function seedCompletedMission() {
 }
 
 async function main() {
+  port = await reserveLocalPort();
+  baseUrl = `http://127.0.0.1:${port}`;
   const seeded = seedCompletedMission();
   const runtimeRoot = seeded.runtimeRoot;
   const statePath = path.join(runtimeRoot, 'state.json');

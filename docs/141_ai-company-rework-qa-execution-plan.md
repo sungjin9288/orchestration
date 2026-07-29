@@ -5,9 +5,9 @@
 This document defines the narrow Stage 5H boundary after one exact
 source-current `DEC-206` Reviewer re-execution has passed. Planning-only
 authority is recorded as `DEC-207`; `DEC-208` records the complete fielded
-implementation handoff. Runtime, API, UI, worker, Run, Artifact, WorkOrderAttempt,
-checkpoint, or graph mutation remains reserved for a later exact `DEC-209`
-operator decision.
+implementation handoff; exact `DEC-209` accepts the bounded runtime, API, UI,
+worker, Run, Artifact, WorkOrderAttempt, checkpoint, and graph transition
+described here.
 
 The planned implementation keeps schema v24 and the fixed three-WorkOrder
 graph. It reuses the existing QA WorkOrder, appends only QA WorkOrderAttempt #1,
@@ -262,7 +262,7 @@ Git, release, memory, scheduling, policy, bypass, or connector controls.
 
 ## Required Verification
 
-The future focused runtime smoke is
+The focused runtime smoke is
 `scripts/smoke-ai-company-rework-qa-execution.mjs`. It must prove exact request
 normalization, canonical Reviewer and QA-input digests, raw review Artifact
 byte binding, current source bytes, fixed graph, local-stub-only mode, unrelated
@@ -279,7 +279,7 @@ interruption, exact replay, divergent `409`, file-store tamper refusal,
 DEC-203/206 and generic QA compatibility, no automatic DeliveryPackage preview,
 and zero provider/source/Git/release/memory/policy/connector authority.
 
-The future focused UI smoke is `scripts/smoke-ui-slice-710.mjs`. It must prove
+The focused UI smoke is `scripts/smoke-ui-slice-710.mjs`. It must prove
 exact visibility, acknowledgement and rationale gating, source and command
 evidence, safe running and terminal states, stale clearing, generic-step
 suppression, absent downstream controls, and desktop/mobile fit.
@@ -288,12 +288,12 @@ suppression, absent downstream controls, and desktop/mobile fit.
 
 - Planning authority: accepted as `DEC-207`.
 - Complete fielded implementation handoff: recorded as `DEC-208`.
-- Runtime/API/UI implementation: not authorized.
-- Reserved implementation decision: `DEC-209`.
+- Runtime/API/UI implementation: accepted and implemented under exact `DEC-209`.
+- Consumed implementation decision: `DEC-209`.
 
-QA execution, QA WorkOrderAttempt #1, Run, Artifact, checkpoint, and graph
-mutation remain blocked until the exact complete fielded `DEC-209` operator
-decision is supplied. Second QA attempt, retry, recovery, DeliveryPackage,
+Only the bounded QA execution, QA WorkOrderAttempt #1, Run, Artifact,
+checkpoint, and graph transition described above are implemented. Second QA
+attempt, retry, recovery, DeliveryPackage,
 Mission/task close-out, provider execution, source mutation, runtime-agent
 commit/push/release, memory, scheduling, policy mutation, approval bypass, and
 connectors remain separately blocked.

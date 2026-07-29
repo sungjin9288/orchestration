@@ -4,13 +4,13 @@
 
 This document is the complete fielded decision shape for Stage 5H in
 `docs/141_ai-company-rework-qa-execution-plan.md`. `DEC-207` accepts planning
-only and `DEC-208` records this handoff. Runtime, API, UI, worker, Run, Artifact,
-WorkOrderAttempt, checkpoint, or graph mutation remains reserved for a later
-complete matching `DEC-209` operator decision.
+only, `DEC-208` records this handoff, and exact `DEC-209` consumes it for the
+bounded runtime, API, UI, worker, Run, Artifact, WorkOrderAttempt, checkpoint,
+and graph transition named below.
 
-This handoff authorizes no QA execution. Broad approval, continuation,
-delegated self-approval, DEC-206 completion, or this document alone is not a
-valid implementation decision.
+This handoff alone authorizes no QA execution. Broad approval, continuation,
+delegated self-approval, or DEC-206 completion is not a valid implementation
+decision; the accepted authority is the exact matching `DEC-209` record.
 
 ## Required Decision Fields
 
@@ -74,7 +74,7 @@ inert.
 
 ## Acceptance Rule
 
-Implementation may begin only after the operator supplies every required field
-in one value-matching decision. `DEC-207`, `DEC-208`, broad approval, delegated
+Implementation began only after the operator supplied every required field in
+one value-matching decision. `DEC-207`, `DEC-208`, broad approval, delegated
 self-approval, continuation, or this handoff alone does not authorize
-implementation. A valid implementation outcome is reserved for `DEC-209`.
+implementation. The complete matching decision was accepted as `DEC-209`.

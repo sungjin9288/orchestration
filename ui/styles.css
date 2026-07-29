@@ -9080,6 +9080,32 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+.rework-qa-execution {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.rework-qa-source-evidence {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.rework-qa-source-evidence ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.rework-qa-execution dd,
+.rework-qa-execution li {
+  overflow-wrap: anywhere;
+}
+
 .builder-rework-mutation-targets {
   display: grid;
   gap: 5px;

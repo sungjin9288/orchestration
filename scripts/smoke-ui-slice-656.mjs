@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -27,8 +28,8 @@ const tempRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-656');
 const runtimeRoot = path.join(tempRoot, 'runtime');
 const projectPath = path.join(tempRoot, 'project');
 const targetPath = 'src/runtime/runtime-service.js';
-const port = 6600 + (process.pid % 300);
-const baseUrl = `http://127.0.0.1:${port}`;
+let port;
+let baseUrl;
 const MODE = 'ui-slice-656-checkpoint-recovery-smoke';
 const keepFixture = process.env.ORCHESTRATION_UI_SLICE_656_KEEP_FIXTURE === '1';
 
@@ -217,8 +218,22 @@ function postJson(pathname, body = {}) {
   });
 }
 
+function reserveLocalPort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      server.close((error) => {
+        if (error) reject(error);
+        else resolve(address.port);
+      });
+    });
+  });
+}
+
 async function waitForServer() {
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
     try {
       const response = await fetch(`${baseUrl}/api/snapshot`);
       if (response.ok) return;
@@ -241,6 +256,8 @@ function exactTuple(recovery, action) {
 }
 
 async function main() {
+  port = await reserveLocalPort();
+  baseUrl = `http://127.0.0.1:${port}`;
   const seeded = await seedReviewerReadyState();
   const executionPlanId = seeded.persisted.executionPlan.id;
   const statePath = path.join(runtimeRoot, 'state.json');

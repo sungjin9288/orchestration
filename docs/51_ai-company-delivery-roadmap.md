@@ -648,12 +648,11 @@ and recovery projection until that gate is explicitly approved, with no durable 
 Durable replay and reload bind the request and Run metadata to mutation evidence recomputed from
 exact Artifact bytes.
 
-Stage 5H planning-only `DEC-207` and handoff-only `DEC-208` define one future dedicated QA path
+Stage 5H planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209` define one dedicated QA path
 from that exact actionless `QA_READY` checkpoint. It keeps schema v24 and the fixed graph, appends
-only existing-QA WorkOrderAttempt #1 plus a running Run in one pre-worker save, binds the worker to
+only one WorkOrderAttempt #1 to the existing QA WorkOrder plus a running Run in one pre-worker save, binds the worker to
 exact DEC-206 and current file-byte evidence, executes shell-free Node syntax checks, and stops at
-`DELIVERY_READY` without a DeliveryPackage preview. Runtime implementation remains reserved for
-`DEC-209`.
+`DELIVERY_READY` without a DeliveryPackage preview.
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy
 changes remain blocked.

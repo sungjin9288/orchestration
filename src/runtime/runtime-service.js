@@ -143,6 +143,7 @@ const {
 } = require('./verification-proofs');
 const {
   computeSourceBoundVerificationInputDigest,
+  digestSpecialistInputPathDigests,
   runSourceBoundNodeChecks,
 } = require('../execution/qa-node-check-runner');
 const {
@@ -283,6 +284,15 @@ const {
   isExactReviewerReexecutionReplay,
   normalizeReviewerReexecutionRequest,
 } = require('./reviewer-reexecution');
+const {
+  buildPreConsumeQaReadyProjection,
+  computeQaInputDigest,
+  computeReviewerEvidenceDigest,
+  computeReworkQaExecutionRequestDigest,
+  deepFreeze: deepFreezeReworkQaExecution,
+  isExactReworkQaExecutionReplay,
+  normalizeReworkQaExecutionRequest,
+} = require('./rework-qa-execution');
 const {
   parseReviewerArtifactContent,
 } = require('../execution/coordinator/artifact-content');
@@ -6420,6 +6430,644 @@ function createRuntimeService(options = {}) {
       { ...source, reexecutionAttempt: state.workOrderAttempts[source.reviewerAttempt.id] },
       input.requestDigest,
     );
+  }
+
+  function findReworkQaAttempt(state, executionPlanId, qaWorkOrderId) {
+    return getPlanWorkOrderAttempts(state, executionPlanId).find(
+      (attempt) =>
+        attempt.workOrderId === qaWorkOrderId &&
+        attempt.action === WORK_ORDER_ATTEMPT_ACTION.RUN_QA &&
+        attempt.command === WORK_ORDER_ATTEMPT_COMMAND.STEP &&
+        attempt.attemptNumber === 1,
+    ) || null;
+  }
+
+  function buildReworkQaExecutionSource(state, reworkPlanId, options = {}) {
+    const allowSourceDrift = options.allowSourceDrift === true;
+    const reviewerSource = buildReviewerReexecutionSource(state, reworkPlanId, {
+      durableReplay: allowSourceDrift,
+    });
+    const { executionPlan, byRole, project, reexecutionAttempt, reexecutionRun } = reviewerSource;
+    const qaWorkOrder = byRole.qa;
+    const qaReadyCheckpoint = reexecutionAttempt?.checkpointRef
+      ? assertWorkflowCheckpoint(reexecutionAttempt.checkpointRef, state)
+      : null;
+    const qaAttempt = findReworkQaAttempt(state, executionPlan.id, qaWorkOrder.id);
+    const qaRun = qaAttempt?.runRefs.length === 1
+      ? assertRun(qaAttempt.runRefs[0], state)
+      : null;
+    const qaArtifact = qaAttempt?.artifactRefs.length === 1
+      ? assertArtifact(qaAttempt.artifactRefs[0], state)
+      : null;
+
+    if (
+      !reexecutionAttempt ||
+      reexecutionAttempt.status !== WORK_ORDER_ATTEMPT_STATUS.COMPLETED ||
+      reexecutionAttempt.action !== WORK_ORDER_ATTEMPT_ACTION.RUN_REVIEWER ||
+      reexecutionAttempt.attemptNumber !== 2 ||
+      !reexecutionRun ||
+      reexecutionRun.status !== RUN_STATUS.COMPLETED ||
+      reexecutionRun.metadata?.executionMode !== 'rework-reviewer' ||
+      reexecutionRun.metadata?.workOrderAttemptId !== reexecutionAttempt.id ||
+      reexecutionRun.summary?.rawVerdict !== 'pass' ||
+      !reviewerSource.reexecutionReviewArtifact ||
+      reviewerSource.reexecutionReviewArtifact.type !== ARTIFACT_TYPE.REVIEW ||
+      reviewerSource.reexecutionReviewArtifact.runId !== reexecutionRun.id ||
+      !qaReadyCheckpoint ||
+      qaReadyCheckpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.QA_READY
+    ) {
+      throw conflict('Rework QA execution requires exact DEC-206 Reviewer pass evidence');
+    }
+
+    let currentTargets = null;
+    try {
+      currentTargets = readBoundedBuilderReworkSourceTargets(
+        project.projectPath,
+        reviewerSource.reworkPlan.targetPathAllowlist,
+      );
+    } catch (error) {
+      if (!allowSourceDrift) throw error;
+    }
+    const expectedTargetDigests = reviewerSource.mutationRun.summary?.targetFilePostMutationDigests;
+    if (
+      !allowSourceDrift &&
+      (
+        !Array.isArray(expectedTargetDigests) ||
+        expectedTargetDigests.length !== currentTargets.length ||
+        currentTargets.some(
+          (entry, index) =>
+            entry.path !== expectedTargetDigests[index]?.path ||
+            entry.digest !== expectedTargetDigests[index]?.digest,
+        )
+      )
+    ) {
+      throw conflict('Rework QA execution sources no longer match DEC-203 mutation evidence');
+    }
+
+    const reviewerEvidenceDigest = computeReviewerEvidenceDigest({
+      reviewerAttempt: reexecutionAttempt,
+      reviewerRun: reexecutionRun,
+      reviewArtifact: reviewerSource.reexecutionReviewArtifact,
+      reviewArtifactBytes: readReexecutionArtifactBytes(reviewerSource.reexecutionReviewArtifact),
+      mutationEvidenceDigest: reviewerSource.mutationEvidenceDigest,
+      qaReadyCheckpoint,
+    });
+    const qaWorkOrderAtStart = qaAttempt
+      ? qaRun?.metadata?.qaWorkOrderAtStart
+      : qaWorkOrder;
+    if (!qaWorkOrderAtStart || typeof qaWorkOrderAtStart !== 'object') {
+      throw conflict('Rework QA execution is missing its durable QA WorkOrder source');
+    }
+    const computedQaInputDigest = !allowSourceDrift && currentTargets
+      ? computeQaInputDigest({
+          builderRunId: reviewerSource.mutationRun.id,
+          reviewerRunId: reexecutionRun.id,
+          qaWorkOrder: qaWorkOrderAtStart,
+          changedFiles: reviewerSource.mutationRun.summary?.changedFiles || [],
+          targetPathAllowlist: reviewerSource.reworkPlan.targetPathAllowlist,
+          verificationCommands: reviewerSource.reworkPlan.verificationCommands,
+          targetFileDigests: currentTargets.map((entry) => ({
+            path: entry.path,
+            digest: entry.digest,
+          })),
+        })
+      : null;
+    const qaInputDigest = qaRun?.metadata?.qaInputDigest || computedQaInputDigest;
+    const qaWorkOrderDigest = qaRun?.metadata?.qaWorkOrderDigest ||
+      computeWorkOrderRecordDigest(qaWorkOrder);
+    const durableRequestDigest = qaRun
+      ? computeReworkQaExecutionRequestDigest(qaRun.metadata?.request)
+      : null;
+    const workerInputDigest = qaRun?.metadata?.workerInputDigest ||
+      (currentTargets
+        ? digestSpecialistInputPathDigests(
+            currentTargets.map((entry) => ({
+              path: entry.path,
+              sha256: entry.digest,
+              byteLength: entry.bytes.length,
+            })),
+          )
+        : null);
+    if (
+      !/^[a-f0-9]{64}$/.test(qaInputDigest || '') ||
+      !/^[a-f0-9]{64}$/.test(qaWorkOrderDigest || '') ||
+      !/^[a-f0-9]{64}$/.test(workerInputDigest || '') ||
+      computeWorkOrderRecordDigest(qaWorkOrderAtStart) !== qaWorkOrderDigest ||
+      (qaRun && durableRequestDigest !== qaRun.metadata?.requestDigest) ||
+      (computedQaInputDigest && qaInputDigest !== computedQaInputDigest)
+    ) {
+      throw conflict('Rework QA execution has invalid durable QA input evidence');
+    }
+
+    if (
+      project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+      project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB ||
+      executionPlan.workOrderIds.length !== 3 ||
+      byRole.builder.position !== 1 ||
+      byRole.reviewer.position !== 2 ||
+      qaWorkOrder.position !== 3 ||
+      byRole.reviewer.dependencyIds.length !== 1 ||
+      byRole.reviewer.dependencyIds[0] !== byRole.builder.id ||
+      qaWorkOrder.dependencyIds.length !== 1 ||
+      qaWorkOrder.dependencyIds[0] !== byRole.reviewer.id ||
+      qaAttempt && qaAttempt.workOrderId !== qaWorkOrder.id ||
+      (qaAttempt && qaRun?.metadata?.workOrderAttemptId !== qaAttempt.id) ||
+      (qaAttempt && qaAttempt.runRefs.length !== 1) ||
+      (qaAttempt && qaAttempt.artifactRefs.length > 1) ||
+      (qaAttempt && ![WORK_ORDER_ATTEMPT_STATUS.ACTIVE, WORK_ORDER_ATTEMPT_STATUS.COMPLETED, WORK_ORDER_ATTEMPT_STATUS.FAILED].includes(qaAttempt.status))
+    ) {
+      throw conflict('Rework QA execution source evidence is stale or widened');
+    }
+
+    return {
+      ...reviewerSource,
+      currentTargets,
+      qaArtifact,
+      qaAttempt,
+      qaInputDigest,
+      qaReadyCheckpoint,
+      qaRun,
+      qaWorkOrder,
+      qaWorkOrderDigest,
+      reviewerEvidenceDigest,
+      workerInputDigest,
+    };
+  }
+
+  function assertReworkQaRequestMatchesSource(request, source) {
+    const expected = {
+      reviewerReexecutionAttemptId: source.reexecutionAttempt.id,
+      reviewerReexecutionAttemptRecordDigest: source.reexecutionAttempt.recordDigest,
+      reviewerRunId: source.reexecutionRun.id,
+      reviewerEvidenceDigest: source.reviewerEvidenceDigest,
+      mutationEvidenceDigest: source.mutationEvidenceDigest,
+      qaWorkOrderId: source.qaWorkOrder.id,
+      qaWorkOrderDigest: source.qaWorkOrderDigest,
+      qaReadyCheckpointId: source.qaReadyCheckpoint.id,
+      checkpointDigest: source.qaReadyCheckpoint.checkpointDigest,
+      inputDigest: source.qaReadyCheckpoint.inputDigest,
+      authorityDigest: source.qaReadyCheckpoint.authorityDigest,
+      sourceDigest: source.executionPlan.sourceDigest,
+      qaInputDigest: source.qaInputDigest,
+    };
+    for (const [field, value] of Object.entries(expected)) {
+      if (request[field] !== value) {
+        throw conflict(`Rework QA execution ${field} does not match source evidence`);
+      }
+    }
+  }
+
+  function projectReworkQaExecution(source, requestDigest = null) {
+    const attempt = source.qaAttempt;
+    const status = !attempt
+      ? 'ready'
+      : attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE
+        ? 'running'
+        : attempt.status;
+    const requestSource = !attempt
+      ? buildPreConsumeQaReadyProjection(source)
+      : null;
+    return deepFreezeReworkQaExecution({
+      reworkPlanId: source.reworkPlan.id,
+      persisted: Boolean(attempt),
+      status,
+      requestDigest,
+      requestSource,
+      reviewerEvidenceDigest: source.reviewerEvidenceDigest,
+      mutationEvidenceDigest: source.mutationEvidenceDigest,
+      qaInputDigest: source.qaInputDigest,
+      qaWorkOrder: structuredClone(source.qaWorkOrder),
+      workOrderAttempt: attempt ? structuredClone(attempt) : null,
+      qaRun: source.qaRun ? structuredClone(source.qaRun) : null,
+      qaArtifact: source.qaArtifact ? structuredClone(source.qaArtifact) : null,
+      changedFiles: [...(source.mutationRun.summary?.changedFiles || [])],
+      targetPathAllowlist: [...source.reworkPlan.targetPathAllowlist],
+      verificationCommands: [...source.reworkPlan.verificationCommands],
+      sourceDigests: source.currentTargets.map((entry) => ({
+        path: entry.path,
+        digest: entry.digest,
+      })),
+      nextGate:
+        attempt?.status === WORK_ORDER_ATTEMPT_STATUS.COMPLETED
+          ? 'separate-delivery-package-decision-required'
+          : attempt?.status === WORK_ORDER_ATTEMPT_STATUS.FAILED
+            ? 'no-qa-retry-authority'
+            : attempt?.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE
+              ? 'separate-recovery-decision-required'
+              : 'run-rework-qa-once',
+      blockedActions: [
+        'generic-qa-step',
+        'retry',
+        'recovery',
+        'delivery-package',
+        'mission-close-out',
+        'commit',
+        'push',
+        'release',
+      ],
+    });
+  }
+
+  function beginReworkQaExecution(input) {
+    if (
+      !input ||
+      typeof input !== 'object' ||
+      Array.isArray(input) ||
+      Object.keys(input).sort().join('\u0000') !== 'request\u0000reworkPlanId'
+    ) {
+      throw conflict('Rework QA execution start has unexpected or missing fields');
+    }
+    const now = builderReworkNowIso();
+    const request = normalizeReworkQaExecutionRequest(input.request, { now });
+    const requestDigest = computeReworkQaExecutionRequestDigest(request);
+    const state = store.loadStateSupportedReadonly();
+    const source = buildReworkQaExecutionSource(state, input.reworkPlanId);
+
+    if (source.qaAttempt) {
+      assertReworkQaRequestMatchesSource(request, source);
+      const exactReplay = source.qaRun && isExactReworkQaExecutionReplay(
+        source.qaRun,
+        requestDigest,
+        source,
+      );
+      if (!exactReplay) {
+        throw conflict(`ReworkPlan ${input.reworkPlanId} already has a divergent QA execution`);
+      }
+      return {
+        idempotent: true,
+        reworkQaExecution: projectReworkQaExecution(source, requestDigest),
+      };
+    }
+
+    assertReworkQaRequestMatchesSource(request, source);
+    if (
+      listPendingBlockingDecisionItems(source.task.id, state).length > 0 ||
+      source.executionPlan.status !== EXECUTION_PLAN_STATUS.REVIEWING ||
+      source.executionPlan.activeWorkOrderId !== source.qaWorkOrder.id ||
+      source.executionPlan.stopReason !== 'separate-qa-execution-decision-required' ||
+      source.executionPlan.stoppedAt !== 'qa' ||
+      source.byRole.builder.status !== WORK_ORDER_STATUS.COMPLETED ||
+      source.byRole.reviewer.status !== WORK_ORDER_STATUS.COMPLETED ||
+      source.qaWorkOrder.status !== WORK_ORDER_STATUS.QUEUED ||
+      source.qaReadyCheckpoint.status !== WORKFLOW_CHECKPOINT_STATUS.READY ||
+      source.qaReadyCheckpoint.stopReason !== 'reviewer-reexecution-passed-qa-ready' ||
+      source.qaReadyCheckpoint.nextAllowedActions.length !== 0
+    ) {
+      throw conflict('Rework QA execution is not at the exact actionless QA_READY stop');
+    }
+
+    const startedAt = new Date(
+      Math.max(Date.parse(now), Date.parse(request.evaluatedAt), Date.parse(source.reexecutionRun.finishedAt)),
+    ).toISOString();
+    const qaDependencies = source.qaWorkOrder.dependencyIds.map((dependencyId) => {
+      const dependency = assertWorkOrder(dependencyId, state);
+      return { id: dependency.id, status: dependency.status };
+    });
+    const authorityDigest = computeWorkOrderAttemptAuthorityDigest({
+      executionPlanId: source.executionPlan.id,
+      expectedWorkOrderId: source.qaWorkOrder.id,
+      command: WORK_ORDER_ATTEMPT_COMMAND.STEP,
+      action: WORK_ORDER_ATTEMPT_ACTION.RUN_QA,
+      sourceDigest: source.executionPlan.sourceDigest,
+      checkpointRef: source.qaReadyCheckpoint.id,
+      checkpointDigest: source.qaReadyCheckpoint.checkpointDigest,
+      approvalRefs: [],
+    });
+    const attempt = createWorkOrderAttempt({
+      id: nextWorkOrderAttemptId(state),
+      executionPlanId: source.executionPlan.id,
+      workOrderId: source.qaWorkOrder.id,
+      missionId: source.mission.id,
+      projectId: source.executionPlan.projectId,
+      staffingPlanId: source.reexecutionAttempt.staffingPlanId,
+      staffingEntryId: source.reexecutionAttempt.staffingEntryId,
+      councilSessionId: source.councilSession.id,
+      role: 'qa',
+      position: source.qaWorkOrder.position,
+      attemptNumber: 1,
+      command: WORK_ORDER_ATTEMPT_COMMAND.STEP,
+      action: WORK_ORDER_ATTEMPT_ACTION.RUN_QA,
+      sourceDigest: source.executionPlan.sourceDigest,
+      workOrderDigest: computeWorkOrderRecordDigest(source.qaWorkOrder),
+      dependencyDigest: computeWorkOrderAttemptDependencyDigest({
+        executionPlanId: source.executionPlan.id,
+        workOrderId: source.qaWorkOrder.id,
+        dependencies: qaDependencies,
+      }),
+      authorityDigest,
+      checkpointRef: source.qaReadyCheckpoint.id,
+      approvalRefs: [],
+      startedAt,
+    });
+    const runId = nextId(state, 'run');
+    const run = {
+      id: runId,
+      taskId: source.task.id,
+      kind: 'verification',
+      role: 'qa',
+      status: RUN_STATUS.RUNNING,
+      metadata: {
+        authorityDigest: source.qaReadyCheckpoint.authorityDigest,
+        checkpointDigest: source.qaReadyCheckpoint.checkpointDigest,
+        executionMode: 'rework-qa-node-check',
+        inputDigest: source.qaReadyCheckpoint.inputDigest,
+        mutationEvidenceDigest: source.mutationEvidenceDigest,
+        qaInputDigest: source.qaInputDigest,
+        qaWorkOrderAtStart: structuredClone(source.qaWorkOrder),
+        qaWorkOrderDigest: computeWorkOrderRecordDigest(source.qaWorkOrder),
+        qaWorkOrderId: source.qaWorkOrder.id,
+        request: structuredClone(request),
+        requestDigest,
+        reviewerEvidenceDigest: source.reviewerEvidenceDigest,
+        reviewerReexecutionAttemptId: source.reexecutionAttempt.id,
+        reviewerReexecutionAttemptRecordDigest: source.reexecutionAttempt.recordDigest,
+        reviewerRunId: source.reexecutionRun.id,
+        reworkPlanId: source.reworkPlan.id,
+        sourceDigest: source.executionPlan.sourceDigest,
+        workerInputDigest: source.workerInputDigest,
+        workOrderAttemptId: attempt.id,
+      },
+      summary: null,
+      startedAt,
+      finishedAt: null,
+      logPath: path.join(store.logsDir, `${runId}.jsonl`),
+    };
+    const activeAttempt = { ...attempt, runRefs: [run.id] };
+    delete activeAttempt.recordDigest;
+    activeAttempt.recordDigest = computeWorkOrderAttemptRecordDigest(activeAttempt);
+    consumeLatestCheckpoint(
+      state,
+      source.executionPlan,
+      WORKFLOW_CHECKPOINT_STAGE.QA_READY,
+      'rework-qa-execution-started',
+    );
+    source.qaWorkOrder.status = WORK_ORDER_STATUS.ACTIVE;
+    source.qaWorkOrder.startedAt ||= startedAt;
+    source.qaWorkOrder.updatedAt = startedAt;
+    source.executionPlan.status = EXECUTION_PLAN_STATUS.REVIEWING;
+    source.executionPlan.activeWorkOrderId = source.qaWorkOrder.id;
+    source.executionPlan.stopReason = null;
+    source.executionPlan.stoppedAt = null;
+    source.executionPlan.updatedAt = startedAt;
+    state.runs[run.id] = run;
+    state.workOrderAttempts[activeAttempt.id] = activeAttempt;
+    source.task.latestRunId = run.id;
+    source.task.updatedAt = startedAt;
+    store.saveState(state);
+
+    return {
+      idempotent: false,
+      reworkQaExecution: projectReworkQaExecution(
+        { ...source, qaAttempt: activeAttempt, qaRun: run },
+        requestDigest,
+      ),
+    };
+  }
+
+  function getReworkQaExecutionWorkerInput(input) {
+    if (!input || Object.keys(input).sort().join('\u0000') !== 'requestDigest\u0000reworkPlanId') {
+      throw conflict('Rework QA execution worker input has unexpected or missing fields');
+    }
+    const state = store.loadStateReadonly();
+    const source = buildReworkQaExecutionSource(state, input.reworkPlanId);
+    if (
+      !source.qaAttempt ||
+      source.qaAttempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE ||
+      !source.qaRun ||
+      source.qaRun.status !== RUN_STATUS.RUNNING ||
+      !isExactReworkQaExecutionReplay(source.qaRun, input.requestDigest, source)
+    ) {
+      throw conflict('Rework QA execution has no exact active worker state');
+    }
+    return {
+      ...source,
+      requestDigest: input.requestDigest,
+      inputPathDigests: source.currentTargets.map((entry) => ({
+        path: entry.path,
+        sha256: entry.digest,
+        byteLength: entry.bytes.length,
+      })),
+    };
+  }
+
+  function assertActiveReworkQaExecution(state, input, options = {}) {
+    const source = buildReworkQaExecutionSource(state, input.reworkPlanId, options);
+    if (
+      !source.qaAttempt ||
+      source.qaAttempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE ||
+      !source.qaRun ||
+      source.qaRun.id !== input.runId ||
+      source.qaRun.status !== RUN_STATUS.RUNNING ||
+      !isExactReworkQaExecutionReplay(source.qaRun, input.requestDigest, source)
+    ) {
+      throw conflict('Rework QA execution Run is not the exact active evidence');
+    }
+    return source;
+  }
+
+  function assertReworkQaWorkerResult(source, result) {
+    const summary = result?.resultSummary;
+    const expectedPaths = source.reworkPlan.verificationCommands
+      .map((command) => command.slice('node --check '.length))
+      .sort();
+    const checks = summary?.checks;
+    if (
+      result?.observedInputDigest !== source.workerInputDigest ||
+      summary?.kind !== 'node-syntax-check' ||
+      summary?.mutationDetected !== false ||
+      !['passed', 'failed'].includes(summary?.verdict) ||
+      !Array.isArray(checks) ||
+      checks.length !== expectedPaths.length ||
+      checks.some(
+        (check) =>
+          !check ||
+          typeof check.relativePath !== 'string' ||
+          !expectedPaths.includes(check.relativePath) ||
+          !Array.isArray(check.argv) ||
+          check.argv.length !== 3 ||
+          check.argv[0] !== process.execPath ||
+          check.argv[1] !== '--check' ||
+          check.argv[2] !== '-' ||
+          typeof check.passed !== 'boolean' ||
+          typeof check.timedOut !== 'boolean' ||
+          typeof check.truncated !== 'boolean' ||
+          !(Number.isInteger(check.exitCode) || check.exitCode === null) ||
+          !/^[a-f0-9]{64}$/.test(check.stdoutDigest || '') ||
+          !/^[a-f0-9]{64}$/.test(check.stderrDigest || ''),
+      ) ||
+      new Set(checks.map((check) => check.relativePath)).size !== checks.length ||
+      checks.map((check) => check.relativePath).sort().some((path, index) => path !== expectedPaths[index]) ||
+      (summary.verdict === 'passed' && !checks.every((check) => check.passed)) ||
+      (summary.verdict === 'failed' && checks.every((check) => check.passed))
+    ) {
+      throw conflict('Rework QA execution worker result is not exact source-bound evidence');
+    }
+  }
+
+  function settleReworkQaExecution(input, options = {}) {
+    const state = store.loadState();
+    const source = assertActiveReworkQaExecution(state, input, {
+      allowSourceDrift: options.allowSourceDrift === true,
+    });
+    const finishedAt = new Date(
+      Math.max(Date.parse(builderReworkNowIso()), Date.parse(source.qaRun.startedAt)),
+    ).toISOString();
+    const result = input.result;
+    if (!result || typeof result !== 'object' || !result.resultSummary) {
+      throw conflict('Rework QA execution result is invalid');
+    }
+    if (options.workerFailure === true) {
+      if (
+        result.observedInputDigest !== source.workerInputDigest ||
+        result.resultSummary.kind !== 'node-syntax-check' ||
+        result.resultSummary.mutationDetected !== false ||
+        result.resultSummary.verdict !== 'failed' ||
+        !Array.isArray(result.resultSummary.checks) ||
+        result.resultSummary.checks.length !== 0
+      ) {
+        throw conflict('Rework QA execution failure evidence is invalid');
+      }
+    } else {
+      assertReworkQaWorkerResult(source, result);
+    }
+    const passed = result.resultSummary.verdict === 'passed';
+    const evidence = {
+      schemaVersion: 1,
+      executionMode: 'rework-qa-node-check',
+      requestDigest: input.requestDigest,
+      reviewerEvidenceDigest: source.reviewerEvidenceDigest,
+      mutationEvidenceDigest: source.mutationEvidenceDigest,
+      qaInputDigest: source.qaInputDigest,
+      expectedInputDigest: source.workerInputDigest,
+      observedInputDigest: result.observedInputDigest,
+      result: result.resultSummary,
+      createdAt: finishedAt,
+    };
+    let writtenArtifactPaths = [];
+    try {
+      const artifactBundle = recordArtifactBundleInState(state, {
+        taskId: source.task.id,
+        runId: source.qaRun.id,
+        artifacts: [{ key: 'qaEvidence', type: ARTIFACT_TYPE.QA_EVIDENCE, extension: 'json', content: `${JSON.stringify(evidence, null, 2)}\n` }],
+      });
+      writtenArtifactPaths = artifactBundle.writtenArtifactPaths;
+      const qaArtifact = artifactBundle.artifactsByKey.qaEvidence;
+      source.qaRun.status = RUN_STATUS.COMPLETED;
+      source.qaRun.finishedAt = finishedAt;
+      source.qaRun.summary = {
+        executionMode: 'rework-qa-node-check',
+        mutationEvidenceDigest: source.mutationEvidenceDigest,
+        qaEvidenceArtifactId: qaArtifact.id,
+        qaInputDigest: source.qaInputDigest,
+        expectedInputDigest: source.workerInputDigest,
+        observedInputDigest: result.observedInputDigest,
+        mutationDetected: result.resultSummary.mutationDetected,
+        requestDigest: input.requestDigest,
+        reviewerEvidenceDigest: source.reviewerEvidenceDigest,
+        resultSummary: result.resultSummary,
+        terminal: true,
+        verdict: result.resultSummary.verdict,
+      };
+      source.qaWorkOrder.runRefs = appendUniqueRefs(source.qaWorkOrder.runRefs, [source.qaRun.id]);
+      source.qaWorkOrder.artifactRefs = appendUniqueRefs(source.qaWorkOrder.artifactRefs, [qaArtifact.id]);
+      source.executionPlan.runRefs = appendUniqueRefs(source.executionPlan.runRefs, [source.qaRun.id]);
+      source.executionPlan.artifactRefs = appendUniqueRefs(source.executionPlan.artifactRefs, [qaArtifact.id]);
+      source.qaWorkOrder.updatedAt = finishedAt;
+      source.executionPlan.updatedAt = finishedAt;
+      let checkpoint = null;
+      if (passed) {
+        source.qaWorkOrder.status = WORK_ORDER_STATUS.COMPLETED;
+        source.qaWorkOrder.completionRunId = source.qaRun.id;
+        source.qaWorkOrder.completedAt = finishedAt;
+        source.executionPlan.status = EXECUTION_PLAN_STATUS.DELIVERY_READY;
+        source.executionPlan.activeWorkOrderId = null;
+        source.executionPlan.stopReason = 'separate-delivery-package-decision-required';
+        source.executionPlan.stoppedAt = 'delivery';
+        source.executionPlan.deliveryReadyAt = finishedAt;
+        checkpoint = appendWorkflowCheckpoint(
+          state,
+          source.bundle,
+          WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY,
+          {
+            createdAt: finishedAt,
+            resumedFromCheckpointId: source.qaReadyCheckpoint.id,
+            stopReason: 'rework-qa-passed-delivery-ready',
+          },
+        );
+      } else {
+        source.qaWorkOrder.status = WORK_ORDER_STATUS.FAILED;
+        source.executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
+        source.executionPlan.activeWorkOrderId = null;
+        source.executionPlan.stopReason = 'rework-qa-failed-no-retry-authority';
+        source.executionPlan.stoppedAt = 'qa';
+      }
+      state.workOrderAttempts[source.qaAttempt.id] = transitionWorkOrderAttempt(
+        source.qaAttempt,
+        {
+          status: passed ? WORK_ORDER_ATTEMPT_STATUS.COMPLETED : WORK_ORDER_ATTEMPT_STATUS.FAILED,
+          checkpointRef: checkpoint?.id || null,
+          approvalRefs: [],
+          runRefs: [source.qaRun.id],
+          artifactRefs: [qaArtifact.id],
+          decisionInboxItemRefs: [],
+          stopReason: passed ? null : 'rework-qa-failed-no-retry-authority',
+          completedAt: finishedAt,
+        },
+      );
+      source.task.updatedAt = finishedAt;
+      store.saveState(state);
+      return projectReworkQaExecution(
+        {
+          ...source,
+          qaArtifact,
+          qaAttempt: state.workOrderAttempts[source.qaAttempt.id],
+          qaRun: source.qaRun,
+        },
+        input.requestDigest,
+      );
+    } catch (error) {
+      for (const artifactPath of writtenArtifactPaths) fs.rmSync(artifactPath, { force: true });
+      throw error;
+    }
+  }
+
+  function completeReworkQaExecution(input) {
+    if (!input || Object.keys(input).sort().join('\u0000') !== 'requestDigest\u0000result\u0000reworkPlanId\u0000runId') {
+      throw conflict('Rework QA execution settlement has unexpected or missing fields');
+    }
+    return settleReworkQaExecution(input);
+  }
+
+  function failReworkQaExecution(input) {
+    if (!input || Object.keys(input).sort().join('\u0000') !== 'error\u0000requestDigest\u0000reworkPlanId\u0000runId') {
+      throw conflict('Rework QA execution failure has unexpected or missing fields');
+    }
+    const state = store.loadStateReadonly();
+    const source = assertActiveReworkQaExecution(state, input, {
+      allowSourceDrift: true,
+    });
+    return settleReworkQaExecution({
+      ...input,
+      result: {
+        observedInputDigest: source.workerInputDigest,
+        resultSummary: {
+          kind: 'node-syntax-check',
+          checks: [],
+          mutationDetected: false,
+          reasons: [String(input.error || 'rework-qa-worker-failed').slice(0, 240)],
+          verdict: 'failed',
+        },
+      },
+    }, {
+      allowSourceDrift: true,
+      workerFailure: true,
+    });
+  }
+
+  function getReworkQaExecution(reworkPlanId) {
+    const state = store.loadStateSupportedReadonly();
+    const source = buildReworkQaExecutionSource(state, reworkPlanId);
+    return projectReworkQaExecution(source, source.qaRun?.metadata?.requestDigest || null);
   }
 
   function getBuilderReworkMutationApproval(reworkPlanId) {
@@ -12619,9 +13267,11 @@ function createRuntimeService(options = {}) {
     finalizeBuilderLiveMutationSuccess,
     finalizeBuilderReworkSourceMutation,
     completeReviewerReexecution,
+    completeReworkQaExecution,
     failSequentialWorkOrderExecution,
     failBuilderReworkSourceMutation,
     failReviewerReexecution,
+    failReworkQaExecution,
     failReviewedDeliveryContinuation,
     finalizeSequentialWorkOrderExecution,
     finishRunWithReviewPending,
@@ -12644,6 +13294,8 @@ function createRuntimeService(options = {}) {
     getReviewerReworkPlanPreview,
     getReviewerReexecution,
     getReviewerReexecutionWorkerInput,
+    getReworkQaExecution,
+    getReworkQaExecutionWorkerInput,
     getReworkPlan,
     getReworkPlanAcceptance,
     getBuilderReworkDispatch,
@@ -12691,6 +13343,7 @@ function createRuntimeService(options = {}) {
     previewExecutionPlanContinuation,
     prepareBuilderReworkSourceMutation,
     beginReviewerReexecution,
+    beginReworkQaExecution,
     persistExecutionPlanDeliveryPackage,
     persistMissionLearningCandidate,
     persistLearningCandidateMemoryItem,

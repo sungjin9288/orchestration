@@ -562,6 +562,72 @@ export function getReviewerReexecutionRequest(
   };
 }
 
+export function getReworkQaExecutionRequest(
+  envelope,
+  { acknowledgement, rationale, reviewedAt },
+) {
+  const source = envelope?.requestSource || envelope?.readiness?.requestSource;
+  const identifiers = [
+    'qaWorkOrderId',
+    'qaReadyCheckpointId',
+    'reviewerReexecutionAttemptId',
+    'reviewerRunId',
+  ];
+  const digests = [
+    'authorityDigest',
+    'checkpointDigest',
+    'inputDigest',
+    'mutationEvidenceDigest',
+    'qaInputDigest',
+    'qaWorkOrderDigest',
+    'reviewerEvidenceDigest',
+    'reviewerReexecutionAttemptRecordDigest',
+    'sourceDigest',
+  ];
+  if (
+    !source ||
+    identifiers.some(
+      (field) =>
+        typeof source[field] !== 'string' ||
+        !source[field] ||
+        source[field] !== source[field].trim(),
+    ) ||
+    digests.some((field) => !/^[a-f0-9]{64}$/.test(source[field] || '')) ||
+    acknowledgement !==
+      'run-only-source-bound-node-checks-and-stop-before-delivery-package' ||
+    typeof rationale !== 'string' ||
+    !rationale.trim() ||
+    typeof reviewedAt !== 'string' ||
+    Number.isNaN(Date.parse(reviewedAt)) ||
+    new Date(reviewedAt).toISOString() !== reviewedAt
+  ) {
+    return null;
+  }
+  return {
+    reviewerReexecutionAttemptId: source.reviewerReexecutionAttemptId,
+    reviewerReexecutionAttemptRecordDigest:
+      source.reviewerReexecutionAttemptRecordDigest,
+    reviewerRunId: source.reviewerRunId,
+    reviewerEvidenceDigest: source.reviewerEvidenceDigest,
+    mutationEvidenceDigest: source.mutationEvidenceDigest,
+    qaWorkOrderId: source.qaWorkOrderId,
+    qaWorkOrderDigest: source.qaWorkOrderDigest,
+    qaReadyCheckpointId: source.qaReadyCheckpointId,
+    checkpointDigest: source.checkpointDigest,
+    inputDigest: source.inputDigest,
+    authorityDigest: source.authorityDigest,
+    sourceDigest: source.sourceDigest,
+    qaInputDigest: source.qaInputDigest,
+    evaluatedAt: reviewedAt,
+    qaRequest: {
+      decision: 'run-rework-qa-once',
+      acknowledgement,
+      rationale: rationale.trim(),
+      reviewedAt,
+    },
+  };
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

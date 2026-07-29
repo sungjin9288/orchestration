@@ -407,6 +407,12 @@ const smokeChecks = [
       'Reviewer re-execution UI and API preserve one exact source-current local-stub attempt number two command, mutation and retained-review evidence, safe ready running terminal rendering, responsive fit, and absent QA retry recovery mutation commit push or release controls',
   },
   {
+    id: 'ai-company-rework-qa-execution-ui-api',
+    script: 'scripts/smoke-ui-slice-710.mjs',
+    purpose:
+      'Rework QA UI and API preserve one exact source-current QA attempt number one command, acknowledgement and rationale gating, source and command evidence, safe ready running terminal rendering, responsive fit, and absent generic QA DeliveryPackage retry recovery close-out commit push or release controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

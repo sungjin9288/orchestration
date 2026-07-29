@@ -462,6 +462,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 5G runtime and API prove one source-current DEC-203 mutation reconciliation, atomic existing-Reviewer attempt number two and running Run persistence, exact local-stub settlement, attempt-specific evidence, no-write replay, divergent refusal, schema-v24 reload, pass-to-QA-ready stop, and terminal changes-requested or failure without QA execution',
   },
   {
+    id: 'ai-company-rework-qa-execution',
+    script: 'scripts/smoke-ai-company-rework-qa-execution.mjs',
+    purpose: 'AI Company Stage 5H runtime proves one exact source-current DEC-206 Reviewer pass, existing QA WorkOrder attempt number one and atomic running Run persistence, source-bound stdin Node checks, exact replay, tamper refusal, DELIVERY_READY stop, failed-check blocking, and absent DeliveryPackage or downstream authority',
+  },
+  {
     id: 'ai-company-rework-qa-execution-planning',
     script: 'scripts/smoke-ai-company-rework-qa-execution-planning.mjs',
     purpose: 'AI Company Stage 5H planning fixes one future exact source-bound shell-free QA execution over DEC-206 pass evidence, existing-QA attempt number one, atomic attempt-plus-running-Run persistence, pass-to-delivery-ready or terminal QA failure, no same-request DeliveryPackage composition, and reserved DEC-209 implementation authority',

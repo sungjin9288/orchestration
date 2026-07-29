@@ -61,6 +61,7 @@ const fileStore = read('src/runtime/file-store.js');
 const runtime = read('src/runtime/runtime-service.js');
 const coordinator = read('src/execution/execution-coordinator.js');
 const qaRunner = read('src/execution/qa-node-check-runner.js');
+const reworkQaExecution = read('src/runtime/rework-qa-execution.js');
 const server = read('scripts/serve-ui-slice-01.mjs');
 
 const decisionFields = [
@@ -120,7 +121,7 @@ assert.deepEqual(
 assertIncludesAll(plan, [
   /Planning-only\s+authority is recorded as `DEC-207`/,
   /`DEC-208` records the complete fielded\s+implementation handoff/,
-  /reserved for a later exact `DEC-209`/,
+  /exact `DEC-209` accepts the bounded runtime/,
   /keeps schema v24 and the fixed three-WorkOrder/,
   /existing QA WorkOrder/,
   /QA WorkOrderAttempt #1/,
@@ -145,7 +146,7 @@ assertIncludesAll(plan, [
   /strict pre-Stage-5H branch/,
   /scripts\/smoke-ai-company-rework-qa-execution\.mjs/,
   /scripts\/smoke-ui-slice-710\.mjs/,
-  /Runtime\/API\/UI implementation: not authorized/,
+  /Runtime\/API\/UI implementation: accepted and implemented under exact `DEC-209`/,
 ], 'rework QA execution plan');
 
 assertIncludesAll(handoff, [
@@ -162,22 +163,24 @@ assertIncludesAll(handoff, [
   /no schema migration sequence map WorkOrder or new durable domain record/,
   /scripts\/smoke-ai-company-rework-qa-execution\.mjs/,
   /scripts\/smoke-ui-slice-710\.mjs/,
-  /reserved for `DEC-209`/,
+  /complete matching decision was accepted as `DEC-209`/,
 ], 'rework QA execution handoff');
 assert.doesNotMatch(
   handoff,
   /existing QA WorkOrder and WorkOrderAttempt #1/,
   'rework QA execution handoff must not imply that QA WorkOrderAttempt #1 already exists',
 );
-for (const [source, label] of [
-  [readme, 'README'],
-  [todo, 'task ledger'],
-]) {
-  assert.match(
-    source,
-    /reuses the existing QA WorkOrder and plans exactly one new\s+WorkOrderAttempt #1 append/,
-    `${label} must distinguish the existing QA WorkOrder from the new attempt`,
-  );
+assert.match(
+  readme,
+  /reuses the existing QA\s+WorkOrder and appends exactly one new WorkOrderAttempt #1/,
+  'README must distinguish the existing QA WorkOrder from the new attempt',
+);
+assert.match(
+  todo,
+  /reuses the existing QA WorkOrder and plans exactly one new\s+WorkOrderAttempt #1 append/,
+  'task ledger must preserve the planning distinction between the existing QA WorkOrder and the new attempt',
+);
+for (const [source, label] of [[readme, 'README'], [todo, 'task ledger']]) {
   assert.doesNotMatch(
     source,
     /reuses the existing QA WorkOrder as WorkOrderAttempt #1/,
@@ -188,6 +191,7 @@ for (const [source, label] of [
 assertIncludesAll(decisionLog, [
   /^### DEC-207$/m,
   /^### DEC-208$/m,
+  /^### DEC-209$/m,
 ], 'decision log');
 
 for (const source of [
@@ -205,17 +209,19 @@ for (const source of [
 }
 
 assert.match(inventory, /AI Company rework QA execution planning/);
+assert.match(inventory, /AI Company rework QA execution implementation/);
 assert.match(inventory, /DEC-207/);
 assert.match(inventory, /DEC-208/);
-assert.match(inventory, /informational `298\/298`, total `299\/299`/);
+assert.match(inventory, /DEC-209/);
 assert.match(readme, /docs\/141_ai-company-rework-qa-execution-plan\.md/);
 assert.match(
   readme,
   /docs\/142_ai-company-rework-qa-execution-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /991 smoke files/);
-assert.match(readme, /709 UI smoke files/);
+assert.match(readme, /993 smoke files/);
+assert.match(readme, /710 UI smoke files/);
 assert.match(todo, /ai-company-rework-qa-execution-planning-post-m7-2038/);
+assert.match(todo, /ai-company-rework-qa-execution-implementation-post-m7-2039/);
 assert.match(
   lessons,
   /A QA authority transition must persist its attempt and running Run together/,
@@ -247,22 +253,28 @@ assert.match(coordinator, /async function runQaWorkOrder\(input\)/);
 assert.match(qaRunner, /spawnImpl\(process\.execPath, \['--check', checkArgument\]/);
 assert.match(qaRunner, /async function runSpecialistSourceBoundNodeChecks/);
 assert.match(server, /deliveryPackagePreview = runtime\.previewExecutionPlanDelivery/);
+assert.match(reworkQaExecution, /function normalizeReworkQaExecutionRequest/);
+assert.match(runtime, /function beginReworkQaExecution\(input\)/);
+assert.match(runtime, /function completeReworkQaExecution\(input\)/);
+assert.match(runtime, /function failReworkQaExecution\(input\)/);
+assert.match(coordinator, /async function runReworkQaExecution\(input\)/);
+assert.match(server, /runtime\.getReworkQaExecution\(reworkPlanId\)/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 991);
-assert.equal(uiSmokeFileCount, 709);
+assert.equal(smokeFileCount, 993);
+assert.equal(uiSmokeFileCount, 710);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode,
   planningDecision: 'accepted-dec-207',
   handoffDecision: 'documented-dec-208',
-  implementationDecision: 'reserved-dec-209',
+  implementationDecision: 'accepted-dec-209',
   schemaVersion: 24,
   existingQaWorkOrderPlanned: true,
   qaAttemptNumber: 1,
-  runtimeImplementationAllowed: false,
+  runtimeImplementationAllowed: true,
   deliveryPackageAllowed: false,
   smokeFileCount,
   uiSmokeFileCount,

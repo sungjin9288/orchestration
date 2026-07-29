@@ -120,11 +120,11 @@ operator-stepped model after DEC-203: reuse the existing Reviewer WorkOrder, app
 WorkOrderAttempt #2, run one local-stub Reviewer boundary, and stop at `QA_READY` on pass.
 QA is not part of that slice.
 
-Stage 5H planning-only `DEC-207` and handoff-only `DEC-208` define the next bounded return: reuse
+Stage 5H planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209` define the
+next bounded return: reuse
 the existing QA WorkOrder, append QA WorkOrderAttempt #1 and its running Run atomically, run only
 source-bound shell-free Node syntax checks over exact DEC-206 evidence, and stop at
-`DELIVERY_READY` on pass. DeliveryPackage composition is not part of that slice, and implementation
-remains reserved for `DEC-209`.
+`DELIVERY_READY` on pass. DeliveryPackage composition is not part of that slice.
 
 ### Stage 4A: SpecialistBatchPreview
 
@@ -232,12 +232,13 @@ the Stage 5G checkpoint. QA execution, another attempt or rework, retry, recover
 execution, source widening, Git/release, memory, scheduling, policy mutation, bypass, and
 connectors remain closed.
 
-Planning-only `DEC-207` fixes Stage 5H as one existing-QA WorkOrderAttempt #1 after exact current
+Planning-only `DEC-207` fixes Stage 5H as one existing QA WorkOrder plus a new WorkOrderAttempt #1 after exact current
 DEC-206 Reviewer, mutation, checkpoint, and target-byte evidence. Handoff-only `DEC-208` binds the
 fifteen-key request, canonical Reviewer and QA-input digests, atomic attempt-plus-running-Run start,
 source-bound shell-free worker, pass-to-`DELIVERY_READY`, terminal failure, replay, interruption,
-rollback, and a hard stop before DeliveryPackage. Runtime/API/UI/worker implementation is reserved
-for `DEC-209`.
+rollback, and a hard stop before DeliveryPackage. Implementation `DEC-209` consumes that exact
+boundary and leaves retry, recovery, DeliveryPackage, Mission/task close-out, provider/source
+mutation, Git/release, memory, scheduling, policy mutation, bypass, and connectors closed.
 
 ### Stage 6: Ops Supervision And Recovery
 

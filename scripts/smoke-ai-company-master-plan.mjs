@@ -354,8 +354,8 @@ assert.match(
 );
 assert.match(deliveryRoadmapText, /Stage 5G planning-only `DEC-204`/);
 assert.match(masterPlanText, /Stage 5H planning: `DEC-207`/);
-assert.match(runtimeContractText, /Planning-only `DEC-207` and handoff-only `DEC-208`/);
-assert.match(councilProtocolText, /Planning-only `DEC-207` and handoff-only `DEC-208`/);
+assert.match(runtimeContractText, /Planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209`/);
+assert.match(councilProtocolText, /Planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209`/);
 assert.match(deliveryRoadmapText, /Stage 5H planning-only `DEC-207`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
@@ -499,6 +499,7 @@ const report = {
         'DEC-206',
         'DEC-207',
         'DEC-208',
+        'DEC-209',
       ],
       currentRuntime: {
         schemaVersion: 24,
@@ -539,6 +540,7 @@ const report = {
         builderReworkMutationApproval: 'schema-v24-exact-source-bound-evidence-only',
         builderReworkSourceMutation: 'schema-v24-exact-bounded-local-stub-mutation',
         reviewerReexecution: 'schema-v24-exact-local-stub-attempt-two',
+        reworkQaExecution: 'schema-v24-exact-source-bound-attempt-one',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -611,7 +613,7 @@ const report = {
         reviewerReexecutionPlanningAllowed: true,
         reviewerReexecutionImplementationAllowed: true,
         reworkQaExecutionPlanningAllowed: true,
-        reworkQaExecutionImplementationAllowed: false,
+        reworkQaExecutionImplementationAllowed: true,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
@@ -624,7 +626,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'Rework QA execution is planned by DEC-207 and DEC-208; implementation requires DEC-209',
+      'DEC-209 rework QA execution stops at DELIVERY_READY; a rework DeliveryPackage requires a separate decision',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -646,13 +648,13 @@ assert.equal(report.authority.builderReworkSourceMutationImplementationAllowed, 
 assert.equal(report.authority.reviewerReexecutionPlanningAllowed, true);
 assert.equal(report.authority.reviewerReexecutionImplementationAllowed, true);
 assert.equal(report.authority.reworkQaExecutionPlanningAllowed, true);
-assert.equal(report.authority.reworkQaExecutionImplementationAllowed, false);
+assert.equal(report.authority.reworkQaExecutionImplementationAllowed, true);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /Rework QA execution is planned by DEC-207 and DEC-208/,
+  /DEC-209 rework QA execution stops at DELIVERY_READY/,
 );
 
 process.stdout.write(

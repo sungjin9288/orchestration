@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -18,8 +19,8 @@ const __filename = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(__filename), '..');
 const blueprintPath = path.join(repoRoot, 'company', 'blueprint.json');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-654');
-const port = 6000 + (process.pid % 300);
-const baseUrl = `http://127.0.0.1:${port}`;
+let port;
+let baseUrl;
 const MODE = 'ui-slice-654-workorder-persistence-execution-smoke';
 
 requireNoCliArgs(process.argv.slice(2), { mode: MODE });
@@ -64,8 +65,22 @@ function postJson(pathname, body = {}) {
   });
 }
 
+function reserveLocalPort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      server.close((error) => {
+        if (error) reject(error);
+        else resolve(address.port);
+      });
+    });
+  });
+}
+
 async function waitForServer() {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
     try {
       const response = await fetch(`${baseUrl}/api/snapshot`);
       if (response.ok) return;
@@ -78,6 +93,8 @@ async function waitForServer() {
 }
 
 async function main() {
+  port = await reserveLocalPort();
+  baseUrl = `http://127.0.0.1:${port}`;
   fs.rmSync(runtimeRoot, { force: true, recursive: true, maxRetries: 10, retryDelay: 50 });
   const seedRuntime = createRuntimeService({
     runtimeRoot,

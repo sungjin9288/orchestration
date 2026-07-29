@@ -2732,6 +2732,80 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  const reworkQaExecutionMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/qa-execution$/,
+  );
+  if (reworkQaExecutionMatch) {
+    const reworkPlanId = decodeURIComponent(reworkQaExecutionMatch[1]);
+    if (method === 'GET') {
+      try {
+        json(response, 200, {
+          generatedAt: new Date().toISOString(),
+          reworkQaExecution: runtime.getReworkQaExecution(reworkPlanId),
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message || 'Rework QA execution inspection에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    if (method === 'POST') {
+      try {
+        const input = await readBoundedJsonBody(request, 8 * 1024);
+        const expectedFields = [
+          'authorityDigest',
+          'checkpointDigest',
+          'evaluatedAt',
+          'inputDigest',
+          'mutationEvidenceDigest',
+          'qaInputDigest',
+          'qaReadyCheckpointId',
+          'qaRequest',
+          'qaWorkOrderDigest',
+          'qaWorkOrderId',
+          'reviewerEvidenceDigest',
+          'reviewerReexecutionAttemptId',
+          'reviewerReexecutionAttemptRecordDigest',
+          'reviewerRunId',
+          'sourceDigest',
+        ];
+        const actualFields = Object.keys(input).sort();
+        if (
+          actualFields.length !== expectedFields.length ||
+          actualFields.some((field, index) => field !== expectedFields[index])
+        ) {
+          const error = new Error('Rework QA execution body has unexpected or missing fields');
+          error.statusCode = 400;
+          throw error;
+        }
+        const result = await executionCoordinator.runReworkQaExecution({
+          reworkPlanId,
+          request: input,
+        });
+        json(response, result.idempotent ? 200 : 201, {
+          generatedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message || 'Rework QA execution에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    json(response, 405, {
+      error: 'Rework QA execution은 GET과 POST만 지원합니다.',
+    });
+    return;
+  }
+
   const builderReworkPreflightMatch = url.pathname.match(
     /^\/api\/rework-plans\/([^/]+)\/builder-rework-preflight$/,
   );
