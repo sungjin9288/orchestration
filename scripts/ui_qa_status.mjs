@@ -419,6 +419,12 @@ const smokeChecks = [
       'Rework DeliveryPackage preview UI and API preserve one exact bounded nine-key GET over completed DEC-209 evidence, browser-memory-only response rendering, deterministic source binding, responsive fit, and absent persistence acceptance close-out retry provider source Git release or scheduling controls',
   },
   {
+    id: 'ai-company-durable-rework-delivery-package-ui-api',
+    script: 'scripts/smoke-ui-slice-712.mjs',
+    purpose:
+      'Durable ReworkDeliveryPackage UI and API preserve exact preview-bound rationale and acknowledgement gating, bounded thirteen-key record creation, exact and ReworkPlan-bound inspection, immutable refresh hydration, responsive fit, and absent package decision close-out retry recovery execution provider source Git release memory scheduling policy bypass or connector controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

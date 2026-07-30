@@ -149,7 +149,7 @@ async function runSuccessAndReplaySmoke() {
     new RegExp(`builder-rework-live-mutation ${fixture.approved.approval.id}`),
   );
   const stateAfter = readState();
-  assert.equal(stateAfter.schemaVersion, 24);
+  assert.equal(stateAfter.schemaVersion, 25);
   assert.deepEqual(
     stateAfter.approvals[fixture.approved.approval.id],
     approvalBefore,
@@ -740,7 +740,7 @@ async function main() {
         {
           ok: true,
           mode: MODE,
-          schemaVersion: 24,
+          schemaVersion: 25,
           workerCalls: 'one-per-new-request',
           sourceMutation: 'bounded-local-stub',
           nextGate: 'separate-reviewer-reexecution-decision-required',

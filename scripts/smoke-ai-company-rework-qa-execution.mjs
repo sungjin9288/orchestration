@@ -401,7 +401,7 @@ async function runPassAndReplaySmoke() {
     active.executionPlans[context.bundle.executionPlan.id].latestCheckpointId
   ];
   assert.equal(started.idempotent, false);
-  assert.equal(active.schemaVersion, 24);
+  assert.equal(active.schemaVersion, 25);
   assert.equal(Object.keys(active.workOrders).length, 3);
   assert.equal(activeAttempt.attemptNumber, 1);
   assert.equal(activeAttempt.status, 'active');
@@ -736,7 +736,7 @@ async function main() {
     process.stdout.write(`${JSON.stringify({
       ok: true,
       mode: MODE,
-      schemaVersion: 24,
+      schemaVersion: 25,
       proofs: {
         exactRequestContract: true,
         atomicAttemptAndRun: true,

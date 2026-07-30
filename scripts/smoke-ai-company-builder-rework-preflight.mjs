@@ -356,11 +356,11 @@ async function main() {
   const v23Bytes = fs.readFileSync(statePath);
 
   const runtime = createRuntime(runtimeRoot);
-  assert.equal(runtime.getSnapshot().schemaVersion, 24);
+  assert.equal(runtime.getSnapshot().schemaVersion, 25);
   assert.deepEqual(fs.readFileSync(statePath), v23Bytes, 'readonly snapshot must not migrate v23');
   const store = createFileStore({ runtimeRoot });
   const genericLoadedState = store.loadState();
-  assert.equal(genericLoadedState.schemaVersion, 24);
+  assert.equal(genericLoadedState.schemaVersion, 25);
   assert.deepEqual(
     fs.readFileSync(statePath),
     v23Bytes,
@@ -412,11 +412,11 @@ async function main() {
   );
 
   const futureState = structuredClone(acceptedState);
-  futureState.schemaVersion = 25;
+  futureState.schemaVersion = 26;
   writeState(futureState);
   assert.throws(
     () => createRuntime(runtimeRoot).getSnapshot(),
-    /Unsupported runtime state schemaVersion: 25/,
+    /Unsupported runtime state schemaVersion: 26/,
   );
   writeState(acceptedState);
 
@@ -458,7 +458,7 @@ async function main() {
   assertBuilderReworkDispatchRecord(started.builderReworkDispatch);
 
   const persistedState = readState();
-  assert.equal(persistedState.schemaVersion, 24);
+  assert.equal(persistedState.schemaVersion, 25);
   assert.equal(Object.keys(persistedState.builderReworkDispatches).length, 1);
   assert.equal(Object.keys(persistedState.workOrders).length, 3);
   assert.deepEqual(persistedState.executionPlans, acceptedState.executionPlans);
@@ -565,7 +565,7 @@ async function main() {
   assert.notDeepEqual(initialBytes, fs.readFileSync(statePath));
   await runFailureSmoke();
   await runApiSmoke();
-  process.stdout.write(`${JSON.stringify({ ok: true, mode: 'ai-company-builder-rework-preflight-smoke', schemaVersion: 24, dispatch: 'one', attempt: 'waiting-gate', graph: 'unchanged' }, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({ ok: true, mode: 'ai-company-builder-rework-preflight-smoke', schemaVersion: 25, dispatch: 'one', attempt: 'waiting-gate', graph: 'unchanged' }, null, 2)}\n`);
 }
 
 main().catch((error) => {

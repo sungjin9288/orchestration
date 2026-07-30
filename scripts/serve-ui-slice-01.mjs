@@ -73,6 +73,22 @@ const REWORK_DELIVERY_PREVIEW_DIGEST_KEYS = Object.freeze([
 const REWORK_DELIVERY_PREVIEW_IDENTIFIER_PATTERN =
   /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/;
 const REWORK_DELIVERY_PREVIEW_DIGEST_PATTERN = /^[a-f0-9]{64}$/;
+const REWORK_DELIVERY_PACKAGE_BODY_KEYS = Object.freeze([
+  'checkpointDigest',
+  'deliveryReadyCheckpointId',
+  'evaluatedAt',
+  'previewDigest',
+  'previewId',
+  'qaEvidenceArtifactId',
+  'qaInputDigest',
+  'qaRunId',
+  'qaWorkOrderAttemptId',
+  'qaWorkOrderAttemptRecordDigest',
+  'recordApproval',
+  'reworkDeliveryEvidenceDigest',
+  'sourceDigest',
+]);
+const REWORK_DELIVERY_PACKAGE_MAX_BODY_BYTES = 8192;
 let latestHarnessExecution = null;
 let recentHarnessExecutions = [];
 let harnessExecutionSequence = 0;
@@ -2991,6 +3007,120 @@ const server = createServer(async (request, response) => {
     }
     json(response, 405, { error: 'ReworkPlanAcceptance inspection은 GET만 지원합니다.' });
     return;
+  }
+
+  const reworkDeliveryPackagePersistMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/delivery-packages$/,
+  );
+  if (reworkDeliveryPackagePersistMatch) {
+    if (method !== 'POST') {
+      json(response, 405, {
+        error: 'ReworkDeliveryPackage 기록은 POST만 지원합니다.',
+      });
+      return;
+    }
+    try {
+      const reworkPlanId = decodeURIComponent(
+        reworkDeliveryPackagePersistMatch[1],
+      );
+      if (!REWORK_DELIVERY_PREVIEW_IDENTIFIER_PATTERN.test(reworkPlanId)) {
+        const error = new Error('ReworkPlan id is invalid');
+        error.statusCode = 400;
+        throw error;
+      }
+      const input = await readBoundedJsonBody(
+        request,
+        REWORK_DELIVERY_PACKAGE_MAX_BODY_BYTES,
+      );
+      const actualKeys = Object.keys(input).sort();
+      if (
+        actualKeys.length !== REWORK_DELIVERY_PACKAGE_BODY_KEYS.length ||
+        actualKeys.some(
+          (key, index) =>
+            key !== REWORK_DELIVERY_PACKAGE_BODY_KEYS[index],
+        )
+      ) {
+        const error = new Error(
+          'ReworkDeliveryPackage body requires exactly thirteen fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.persistReworkDeliveryPackage({
+        reworkPlanId,
+        ...input,
+      });
+      json(response, result.idempotent ? 200 : 201, {
+        generatedAt: new Date().toISOString(),
+        ...result,
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || 400, {
+        error: String(
+          error.message || 'ReworkDeliveryPackage 기록에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
+
+  const reworkPlanDeliveryPackageMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/delivery-package$/,
+  );
+  if (reworkPlanDeliveryPackageMatch) {
+    if (method !== 'GET') {
+      json(response, 405, {
+        error: 'ReworkPlan DeliveryPackage inspection은 GET만 지원합니다.',
+      });
+      return;
+    }
+    try {
+      const result = runtime.getReworkPlanDeliveryPackage(
+        decodeURIComponent(reworkPlanDeliveryPackageMatch[1]),
+      );
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        ...result,
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || 400, {
+        error: String(
+          error.message || 'ReworkDeliveryPackage 조회에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
+
+  const reworkDeliveryPackageInspectMatch = url.pathname.match(
+    /^\/api\/rework-delivery-packages\/([^/]+)$/,
+  );
+  if (reworkDeliveryPackageInspectMatch) {
+    if (method !== 'GET') {
+      json(response, 405, {
+        error: 'ReworkDeliveryPackage inspection은 GET만 지원합니다.',
+      });
+      return;
+    }
+    try {
+      const result = runtime.getReworkDeliveryPackage(
+        decodeURIComponent(reworkDeliveryPackageInspectMatch[1]),
+      );
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        ...result,
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || 400, {
+        error: String(
+          error.message || 'ReworkDeliveryPackage 조회에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
   }
 
   const reworkPlanAcceptMatch = url.pathname.match(

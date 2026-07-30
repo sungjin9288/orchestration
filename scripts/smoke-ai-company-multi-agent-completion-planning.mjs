@@ -273,7 +273,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 24/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 25/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -345,7 +345,7 @@ process.stdout.write(
         reworkDeliveryPackagePreviewImplementation: 'accepted-dec-212',
       },
       currentRuntime: {
-        schemaVersion: 24,
+        schemaVersion: 25,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,

@@ -164,7 +164,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-rework-delivery-package-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 24/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 25/);
 assert.match(runtimeService, /function previewReworkDeliveryPackage\(input\)/);
 assert.match(previewModule, /status: 'rework-delivery-preview-ready'/);
 assert.match(previewModule, /persisted: false/);
@@ -172,7 +172,7 @@ assert.equal(
   fs.existsSync(
     path.join(repoRoot, 'src/runtime/rework-delivery-packages.js'),
   ),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(
@@ -181,28 +181,28 @@ assert.equal(
       'scripts/smoke-ai-company-durable-rework-delivery-package.mjs',
     ),
   ),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-712.mjs')),
-  false,
+  true,
 );
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 997);
-assert.equal(uiSmokeFileCount, 711);
+assert.equal(smokeFileCount, 999);
+assert.equal(uiSmokeFileCount, 712);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode,
   planningDecision: 'accepted-dec-213',
   handoffDecision: 'documented-dec-214',
-  implementationDecision: 'blocked-dec-215',
-  currentSchemaVersion: 24,
+  implementationDecision: 'accepted-dec-215',
+  currentSchemaVersion: 25,
   plannedSchemaVersion: 25,
-  runtimeMutation: false,
-  durableCreationAllowed: false,
+  runtimeMutation: true,
+  durableCreationAllowed: true,
   smokeFileCount,
   uiSmokeFileCount,
 }, null, 2)}\n`);

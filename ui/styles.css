@@ -9116,8 +9116,24 @@ h3 {
 }
 
 .rework-delivery-package-preview dd,
-.rework-delivery-package-preview li {
+.rework-delivery-package-preview li,
+.rework-delivery-package-record dd,
+.rework-delivery-package-record li {
   overflow-wrap: anywhere;
+}
+
+.rework-delivery-record-form {
+  margin-top: 2px;
+}
+
+.rework-delivery-package-record {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--surface-control-border);
+  border-left: 2px solid var(--warning);
+  background: var(--surface-control);
 }
 
 .rework-delivery-workorders {

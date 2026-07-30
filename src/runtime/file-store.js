@@ -45,6 +45,7 @@ const {
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
+  REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
   REWORK_PLAN_STATE_SCHEMA_VERSION,
   REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION,
   RETENTION_CONSUMER_STATUS,
@@ -147,6 +148,9 @@ const {
 const {
   assertReworkPlanRecord,
 } = require('./rework-plans');
+const {
+  assertReworkDeliveryPackageRecord,
+} = require('./rework-delivery-packages');
 const {
   REWORK_PLAN_ACCEPTANCE_AUTHORITY_SUMMARY,
   assertReworkPlanAcceptanceRecord,
@@ -3781,6 +3785,102 @@ function validateReworkPlanRecords(state) {
   }
 }
 
+function validateReworkDeliveryPackageRecords(state) {
+  const reworkPlanIds = new Set();
+  const qaAttemptIds = new Set();
+  const previewIds = new Set();
+  const evidenceDigests = new Set();
+
+  for (const [key, record] of Object.entries(state.reworkDeliveryPackages)) {
+    const label = `ReworkDeliveryPackage ${key}`;
+    if (
+      !record ||
+      typeof record !== 'object' ||
+      Array.isArray(record) ||
+      record.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    assertReworkDeliveryPackageRecord(record);
+
+    const project = state.projects[record.projectId];
+    const mission = state.missions[record.missionId];
+    const executionPlan = state.executionPlans[record.executionPlanId];
+    const reworkPlan = state.reworkPlans[record.reworkPlanId];
+    const qaWorkOrder = state.workOrders[record.qaWorkOrderId];
+    const qaAttempt = state.workOrderAttempts[record.qaWorkOrderAttemptId];
+    const qaRun = state.runs[record.qaRunId];
+    const qaArtifact = state.artifacts[record.qaEvidenceArtifactId];
+    const checkpoint = state.workflowCheckpoints[record.terminalCheckpointId];
+
+    if (
+      !project ||
+      !mission ||
+      mission.projectId !== project.id ||
+      !executionPlan ||
+      executionPlan.projectId !== project.id ||
+      executionPlan.missionId !== mission.id ||
+      !reworkPlan ||
+      reworkPlan.projectId !== project.id ||
+      reworkPlan.missionId !== mission.id ||
+      reworkPlan.executionPlanId !== executionPlan.id ||
+      !qaWorkOrder ||
+      qaWorkOrder.executionPlanId !== executionPlan.id ||
+      qaWorkOrder.role !== 'qa' ||
+      !qaAttempt ||
+      qaAttempt.executionPlanId !== executionPlan.id ||
+      qaAttempt.workOrderId !== qaWorkOrder.id ||
+      !qaRun ||
+      qaRun.taskId !== executionPlan.controlTaskId ||
+      qaRun.role !== 'qa' ||
+      qaRun.status !== RUN_STATUS.COMPLETED ||
+      !qaArtifact ||
+      qaArtifact.taskId !== executionPlan.controlTaskId ||
+      qaArtifact.runId !== qaRun.id ||
+      qaArtifact.type !== ARTIFACT_TYPE.QA_EVIDENCE ||
+      !checkpoint ||
+      checkpoint.executionPlanId !== executionPlan.id ||
+      checkpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY ||
+      checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.TERMINAL ||
+      checkpoint.checkpointDigest !== record.terminalCheckpointDigest ||
+      executionPlan.sourceDigest !== record.sourceDigest
+    ) {
+      throw new Error(`${label} has invalid immutable source lineage`);
+    }
+
+    const resultByWorkOrderId = new Map(
+      record.workOrderResults.map((result) => [result.workOrderId, result]),
+    );
+    if (
+      resultByWorkOrderId.size !== executionPlan.workOrderIds.length ||
+      executionPlan.workOrderIds.some(
+        (workOrderId) => !resultByWorkOrderId.has(workOrderId),
+      ) ||
+      record.deliveredArtifactRefs.some(
+        (artifactId) => !state.artifacts[artifactId],
+      )
+    ) {
+      throw new Error(`${label} has invalid delivered result references`);
+    }
+
+    for (const [value, seen, field] of [
+      [record.reworkPlanId, reworkPlanIds, 'reworkPlanId'],
+      [record.qaWorkOrderAttemptId, qaAttemptIds, 'qaWorkOrderAttemptId'],
+      [record.previewId, previewIds, 'previewId'],
+      [
+        record.reworkDeliveryEvidenceDigest,
+        evidenceDigests,
+        'reworkDeliveryEvidenceDigest',
+      ],
+    ]) {
+      if (seen.has(value)) {
+        throw new Error(`${label} has duplicate ${field}`);
+      }
+      seen.add(value);
+    }
+  }
+}
+
 function validateReworkPlanAcceptanceRecords(state) {
   const acceptedReworkPlanIds = new Set();
   let highestSequence = 0;
@@ -4457,6 +4557,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== REWORK_PLAN_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== BUILDER_REWORK_DISPATCH_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -4723,6 +4824,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.reworkDeliveryPackage) ||
+        !state.reworkDeliveryPackages ||
+        typeof state.reworkDeliveryPackages !== 'object' ||
+        Array.isArray(state.reworkDeliveryPackages)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing ReworkDeliveryPackage fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -4764,6 +4878,7 @@ function createFileStore(options = {}) {
       reworkPlans: state.reworkPlans || {},
       reworkPlanAcceptances: state.reworkPlanAcceptances || {},
       builderReworkDispatches: state.builderReworkDispatches || {},
+      reworkDeliveryPackages: state.reworkDeliveryPackages || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -5054,6 +5169,7 @@ function createFileStore(options = {}) {
     validateReworkPlanAcceptanceRecords(normalizedState);
     validateBuilderReworkDispatchRecords(normalizedState, artifactsDir);
     validateBuilderReworkMutationApprovalRecords(normalizedState, artifactsDir);
+    validateReworkDeliveryPackageRecords(normalizedState);
     return normalizedState;
   }
 

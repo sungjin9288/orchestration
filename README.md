@@ -161,7 +161,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v24 after the additive BuilderReworkDispatch migration, while
+execution state is schema v25 after the additive ReworkDeliveryPackage migration, while
 `companyRuntime` remains an additive read-only snapshot on the configured local server path. The
 editable company roster remains browser presentation only.
 
@@ -334,11 +334,13 @@ Planning-only `DEC-213` defines the Stage 5J durable rework DeliveryPackage boun
 `docs/145_ai-company-durable-rework-delivery-package-plan.md`, and `DEC-214` records its complete
 fielded implementation handoff in
 `docs/146_ai-company-durable-rework-delivery-package-implementation-decision-handoff.md`. The plan
-keeps runtime at schema v24 and fixes one future schema-v25 sequence/map-only immutable
+fixes one schema-v25 sequence/map-only immutable
 `ReworkDeliveryPackage(status=review-required)` record from a fresh exact DEC-212 recomputation
-plus separate operator record approval. Generic package paths, package decisions, Mission/task
-close-out, retry/recovery/execution, provider/source mutation, Git/release, memory, scheduling,
-policy, collections, bypass, and connectors remain blocked pending exact `DEC-215`.
+plus separate operator record approval. Exact `DEC-215` implements that record-and-inspect path,
+including idempotent replay, exact-id and ReworkPlan-bound inspection, generic snapshot exclusion,
+and rationale-gated UI hydration. Generic package paths, package decisions, Mission/task close-out,
+retry/recovery/execution, provider/source mutation, Git/release authority, memory, scheduling,
+policy, collections, bypass, and connectors remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -845,8 +847,8 @@ DEC-201 through DEC-203 Stage 5F source mutation, DEC-204 through DEC-206 Stage 
 re-execution planning, handoff, and bounded implementation evidence, and DEC-207 through DEC-209
 Stage 5H rework QA planning, fielded handoff, and bounded implementation evidence plus DEC-210
 through DEC-212 Stage 5I response-only rework DeliveryPackage planning, fielded handoff, and
-bounded implementation evidence plus DEC-213 through DEC-214 Stage 5J durable rework
-DeliveryPackage planning and fielded handoff evidence pass the focused,
+bounded implementation evidence plus DEC-213 through DEC-215 Stage 5J durable rework
+DeliveryPackage planning, fielded handoff, and record-and-inspect implementation evidence pass the focused,
 aggregate, and UI QA
 gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
@@ -2519,9 +2521,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 997 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 999 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 711 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 712 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -3094,8 +3096,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
-  multi-agent completion implementation slices are current through DEC-212, while bounded
-  planning and handoff evidence is current through DEC-214. DEC-173
+  multi-agent completion implementation slices are current through DEC-215. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell
@@ -3158,10 +3159,12 @@ Playwright CLI:
   and browser-memory preview exist; durable package persistence, package decisions, Mission/task
   close-out, retry, recovery, provider/source execution, Git/release, memory, scheduling, policy,
   bypass, and connectors remain unimplemented.
-- `DEC-213` and `DEC-214` are planning and fielded handoff evidence for one future schema-v25
-  immutable `ReworkDeliveryPackage(status=review-required)` record. Runtime remains schema v24;
-  record creation, exact inspection, package decisions, close-out, and every downstream authority
-  remain unimplemented until exact `DEC-215`.
+- `DEC-213` through `DEC-215` are consumed planning, fielded handoff, and implementation evidence
+  for one schema-v25 immutable `ReworkDeliveryPackage(status=review-required)` record. Exact
+  preview-bound creation, no-write replay, exact-id and ReworkPlan-bound inspection, snapshot
+  exclusion, and read-only UI hydration exist; package decisions, Mission/task close-out,
+  retry/recovery/execution, provider/source mutation, Git/release authority, memory/learning
+  application, scheduling, policy, collections, bypass, and connectors remain unimplemented.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.

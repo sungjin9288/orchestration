@@ -1418,6 +1418,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one record-and-inspect-only slice. It explicitly excludes package acceptance/rejection/changes-requested, Mission/task close-out, retry/recovery/execution, provider/source mutation, Git/release, memory/learning application, scheduling, policy, collections, bypass, and connectors. No implementation authority is recorded.
 - Needed Before: One complete value-matching approval may be accepted separately as `DEC-215`; missing, renamed, broadened, shortcut, or generic approval remains non-authorizing.
 
+### DEC-215
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic local schema-v25 immutable `ReworkDeliveryPackage(status=review-required)` record from one source-current DEC-212 preview and separate operator record approval.
+- Why: `DEC-213` and `DEC-214` fixed the sequence/map-only migration, exact thirteen-key request, fresh preview recomputation, bounded credential-safe approval, immutable record and digests, replay-before-recompute rule, exact inspection, snapshot exclusion, rollback, compatibility, and blocked-authority boundary. The supplied decision matches all fifteen fields without widening package decisions or close-out.
+- Impact: Implementation adds schema v25, one `reworkDeliveryPackage` sequence and `reworkDeliveryPackages` map, one dedicated record contract, atomic append, exact-id and ReworkPlan-bound GETs, rationale-gated UI recording and refresh hydration, and focused runtime/API/UI verification. Generic DeliveryPackage paths, package acceptance/rejection/changes-requested, Mission/task close-out, retry/recovery/execution, provider/source mutation, Git/release authority, memory/learning application, scheduling, policy mutation, collections, bypass, and connectors remain blocked.
+- Needed Before: Any ReworkDeliveryPackage decision, Mission/task close-out, retry/recovery/execution, source/provider action, Git/release action, or other downstream transition requires a separate complete fielded decision.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

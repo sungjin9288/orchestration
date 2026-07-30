@@ -1,5 +1,9 @@
 # AI Company Durable Rework DeliveryPackage Implementation Decision Handoff
 
+The exact approval block in this handoff was consumed as `DEC-215`. The accepted
+authority is exhausted by the schema-v25 record-and-inspect implementation;
+every listed downstream authority remains blocked.
+
 ## Purpose
 
 This document is the complete fielded implementation decision shape for

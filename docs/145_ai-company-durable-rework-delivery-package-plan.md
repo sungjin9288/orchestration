@@ -351,4 +351,7 @@ Implementation remains reserved for exact `DEC-215`.
 
 ## Planning Status
 
-Planning is complete. Implementation is not approved by this document.
+Planning is complete. Exact implementation authority was accepted separately as
+`DEC-215`; the implemented slice is limited to schema-v25 immutable record
+creation and exact inspection. Every package decision and downstream transition
+remains blocked.

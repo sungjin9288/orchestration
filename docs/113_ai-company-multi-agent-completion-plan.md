@@ -133,10 +133,10 @@ Reviewer, DEC-209 QA, current source, raw Artifact, and terminal checkpoint evid
 dedicated response/browser-memory projection and keeps generic durable package, acceptance, and
 close-out paths ineligible. Only the dedicated response/browser-memory projection is implemented.
 
-Stage 5J planning-only `DEC-213` and handoff-only `DEC-214` define the next record-retention
-boundary without opening it. A future exact DEC-215 may migrate only to schema v25, recompute the
-complete DEC-212 preview, require a separate record approval, append one immutable
-`ReworkDeliveryPackage(status=review-required)`, and expose exact inspection. Generic package
+Stage 5J planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215` define the
+record-retention boundary. DEC-215 migrates only to schema v25, recomputes the complete DEC-212
+preview, requires a separate record approval, appends one immutable
+`ReworkDeliveryPackage(status=review-required)`, and exposes exact inspection. Generic package
 promotion, package decisions, close-out, execution, and every downstream authority remain blocked.
 
 ### Stage 4A: SpecialistBatchPreview
@@ -265,7 +265,10 @@ Planning-only `DEC-213` fixes Stage 5J as one future schema-v25 immutable
 `ReworkDeliveryPackage(status=review-required)` record from exact DEC-212 evidence and a separate
 operator record approval. Handoff-only `DEC-214` binds the sequence/map-only migration, thirteen-key
 request, recomputation, immutable digests, replay, exact inspection, snapshot exclusion, rollback,
-and focused verification. No implementation authority exists before exact `DEC-215`.
+and focused verification. Implementation `DEC-215` consumes only that exact record-and-inspect
+boundary; package decisions, close-out, retry/recovery/execution, provider/source mutation,
+Git/release authority, memory/learning application, scheduling, policy, collections, bypass, and
+connectors remain closed.
 
 ### Stage 6: Ops Supervision And Recovery
 

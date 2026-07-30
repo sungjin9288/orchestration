@@ -120,6 +120,7 @@ const {
   assertMemoryItem,
   assertMemoryRecall,
   assertMissionCloseOut,
+  assertReworkDeliveryPackage,
   assertReworkPlan,
   assertReworkPlanAcceptance,
   assertRun,
@@ -297,6 +298,12 @@ const {
   buildReworkDeliveryPackagePreview,
 } = require('./rework-delivery-package-preview');
 const {
+  assertReworkDeliveryPackageRecord,
+  createReworkDeliveryPackage,
+  isExactReworkDeliveryPackageReplay,
+  normalizeReworkDeliveryPackageRequest,
+} = require('./rework-delivery-packages');
+const {
   parseReviewerArtifactContent,
 } = require('../execution/coordinator/artifact-content');
 const {
@@ -468,6 +475,13 @@ function createRuntimeService(options = {}) {
     state.sequences.reworkPlanAcceptance += 1;
     return `rework-plan-acceptance-${String(
       state.sequences.reworkPlanAcceptance,
+    ).padStart(4, '0')}`;
+  }
+
+  function nextReworkDeliveryPackageId(state) {
+    state.sequences.reworkDeliveryPackage += 1;
+    return `rework-delivery-package-${String(
+      state.sequences.reworkDeliveryPackage,
     ).padStart(4, '0')}`;
   }
 
@@ -7124,7 +7138,7 @@ function createRuntimeService(options = {}) {
     return buildReworkDeliveryPackagePreview(
       input,
       {
-        schemaVersion: state.schemaVersion,
+        schemaVersion: 24,
         reworkPlan: source.reworkPlan,
         reworkPlanAcceptance: source.acceptance,
         builderReworkDispatch: source.dispatch,
@@ -7170,6 +7184,151 @@ function createRuntimeService(options = {}) {
       },
       { now: builderReworkNowIso() },
     );
+  }
+
+  function findReworkDeliveryPackageCollision(state, request) {
+    return (
+      Object.values(state.reworkDeliveryPackages || {}).find(
+        (record) =>
+          record.reworkPlanId === request.reworkPlanId ||
+          record.qaWorkOrderAttemptId === request.qaWorkOrderAttemptId ||
+          record.previewId === request.previewId ||
+          record.reworkDeliveryEvidenceDigest ===
+            request.reworkDeliveryEvidenceDigest,
+      ) || null
+    );
+  }
+
+  function persistReworkDeliveryPackage(input) {
+    const now = reviewerReworkNowIso();
+    let request;
+    try {
+      request = normalizeReworkDeliveryPackageRequest(input, { now });
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReworkDeliveryPackage requires supported state: ${error.message}`,
+      );
+    }
+
+    const existing = findReworkDeliveryPackageCollision(state, request);
+    if (existing) {
+      assertReworkDeliveryPackageRecord(existing);
+      const attempt =
+        state.workOrderAttempts[existing.qaWorkOrderAttemptId];
+      if (
+        !attempt ||
+        attempt.recordDigest !== request.qaWorkOrderAttemptRecordDigest ||
+        !isExactReworkDeliveryPackageReplay(existing, request)
+      ) {
+        throw conflict(
+          'ReworkPlan delivery lineage already has a different ReworkDeliveryPackage',
+        );
+      }
+      return {
+        idempotent: true,
+        reworkDeliveryPackage: existing,
+      };
+    }
+
+    const preview = previewReworkDeliveryPackage({
+      reworkPlanId: request.reworkPlanId,
+      qaWorkOrderAttemptId: request.qaWorkOrderAttemptId,
+      qaWorkOrderAttemptRecordDigest:
+        request.qaWorkOrderAttemptRecordDigest,
+      qaRunId: request.qaRunId,
+      qaEvidenceArtifactId: request.qaEvidenceArtifactId,
+      deliveryReadyCheckpointId: request.deliveryReadyCheckpointId,
+      checkpointDigest: request.checkpointDigest,
+      sourceDigest: request.sourceDigest,
+      qaInputDigest: request.qaInputDigest,
+      evaluatedAt: request.evaluatedAt,
+    });
+    if (
+      request.previewId !== preview.id ||
+      request.previewDigest !== preview.previewDigest ||
+      request.reworkDeliveryEvidenceDigest !==
+        preview.reworkDeliveryEvidenceDigest
+    ) {
+      throw conflict(
+        'ReworkDeliveryPackage preview or evidence digest is stale',
+      );
+    }
+
+    const prospectiveId = `rework-delivery-package-${String(
+      state.sequences.reworkDeliveryPackage + 1,
+    ).padStart(4, '0')}`;
+    const reworkDeliveryPackage = createReworkDeliveryPackage(
+      {
+        id: prospectiveId,
+        preview,
+        recordApproval: request.recordApproval,
+      },
+      { now },
+    );
+    const id = nextReworkDeliveryPackageId(state);
+    if (id !== reworkDeliveryPackage.id) {
+      throw new Error('ReworkDeliveryPackage sequence is not deterministic');
+    }
+    state.reworkDeliveryPackages[id] = reworkDeliveryPackage;
+    store.saveState(state);
+    return {
+      idempotent: false,
+      reworkDeliveryPackage,
+    };
+  }
+
+  function getReworkDeliveryPackage(reworkDeliveryPackageId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReworkDeliveryPackage inspection requires supported state: ${error.message}`,
+      );
+    }
+    try {
+      const reworkDeliveryPackage = assertReworkDeliveryPackage(
+        reworkDeliveryPackageId,
+        state,
+      );
+      assertReworkDeliveryPackageRecord(reworkDeliveryPackage);
+      return { reworkDeliveryPackage };
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+  }
+
+  function getReworkPlanDeliveryPackage(reworkPlanId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReworkDeliveryPackage inspection requires supported state: ${error.message}`,
+      );
+    }
+    if (!state.reworkPlans?.[reworkPlanId]) {
+      throw reviewerReworkNotFound('ReworkPlan not found');
+    }
+    const reworkDeliveryPackage = Object.values(
+      state.reworkDeliveryPackages || {},
+    ).find((record) => record.reworkPlanId === reworkPlanId);
+    if (!reworkDeliveryPackage) {
+      throw reviewerReworkNotFound(
+        'ReworkDeliveryPackage not found for ReworkPlan',
+      );
+    }
+    assertReworkDeliveryPackageRecord(reworkDeliveryPackage);
+    return { reworkDeliveryPackage };
   }
 
   function getBuilderReworkMutationApproval(reworkPlanId) {
@@ -13281,6 +13440,7 @@ function createRuntimeService(options = {}) {
     delete snapshotForPublicProjection.reworkPlans;
     delete snapshotForPublicProjection.reworkPlanAcceptances;
     delete snapshotForPublicProjection.builderReworkDispatches;
+    delete snapshotForPublicProjection.reworkDeliveryPackages;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -13397,6 +13557,8 @@ function createRuntimeService(options = {}) {
     getReviewerReexecution,
     getReviewerReexecutionWorkerInput,
     getReworkQaExecution,
+    getReworkDeliveryPackage,
+    getReworkPlanDeliveryPackage,
     getReworkQaExecutionWorkerInput,
     getReworkPlan,
     getReworkPlanAcceptance,
@@ -13435,6 +13597,7 @@ function createRuntimeService(options = {}) {
     previewCouncilSpecialistBatch,
     previewWorkOrderVerificationPlan,
     persistReviewerReworkPlan,
+    persistReworkDeliveryPackage,
     persistWorkOrderAcceptanceCriteria,
     recordWorkOrderVerificationProof,
     reportContextBudget,

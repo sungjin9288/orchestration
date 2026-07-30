@@ -147,7 +147,9 @@ import {
   getReviewerReexecutionRequest,
   getReworkQaExecutionRequest,
   getReworkDeliveryPackagePreviewQuery,
+  getReworkDeliveryPackageRecordRequest,
   isExactReworkDeliveryPackagePreview,
+  isExactReworkDeliveryPackageRecord,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -451,6 +453,7 @@ const state = {
   reviewerReexecution: null,
   reworkQaExecution: null,
   reworkDeliveryPackagePreview: null,
+  reworkDeliveryPackage: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5158,6 +5161,7 @@ function applySnapshotPayload(payload) {
     state.reviewerReexecution = null;
     state.reworkQaExecution = null;
     state.reworkDeliveryPackagePreview = null;
+    state.reworkDeliveryPackage = null;
   }
 
   state.payload = {
@@ -5429,6 +5433,7 @@ async function hydrateSelectedDetails() {
   state.builderReworkDispatch = null;
   state.builderReworkMutationApproval = null;
   state.reworkDeliveryPackagePreview = null;
+  state.reworkDeliveryPackage = null;
   state.workOrderAcceptanceCriteriaRationale = '';
   state.workOrderProofDrafts = {};
   state.executionContinuationPreview = null;
@@ -5703,6 +5708,12 @@ async function hydrateSelectedDetails() {
               )
             )?.reworkQaExecution || null
           : null;
+      state.reworkDeliveryPackage =
+        (
+          await fetchOptionalJson(
+            `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/delivery-package`,
+          )
+        )?.reworkDeliveryPackage || null;
     }
   }
 
@@ -7807,6 +7818,81 @@ async function previewReworkDeliveryPackage(actionButton) {
     state.reworkDeliveryPackagePreview = null;
     throw error;
   } finally {
+    render();
+  }
+}
+
+async function recordReworkDeliveryPackage(actionButton) {
+  const reworkPlan = state.reviewerReworkPlan;
+  const preview = state.reworkDeliveryPackagePreview;
+  const envelope = state.reworkQaExecution;
+  const form = actionButton?.closest?.(
+    '[data-form="record-rework-delivery-package"]',
+  );
+  const requestedReworkPlanId = String(actionButton?.dataset.id || '').trim();
+  if (
+    !reworkPlan ||
+    reworkPlan.id !== requestedReworkPlanId ||
+    !preview ||
+    !envelope ||
+    !form
+  ) {
+    state.reworkDeliveryPackage = null;
+    throw new Error(
+      'source-current Rework DeliveryPackage preview와 QA evidence가 필요합니다.',
+    );
+  }
+  const formData = new FormData(form);
+  const request = getReworkDeliveryPackageRecordRequest(
+    preview,
+    envelope,
+    {
+      acknowledgement: String(
+        formData.get('reworkDeliveryPackageAcknowledgement') || '',
+      ),
+      rationale: String(
+        formData.get('reworkDeliveryPackageRationale') || '',
+      ),
+      reviewedAt: new Date().toISOString(),
+    },
+  );
+  if (!request) {
+    state.reworkDeliveryPackage = null;
+    throw new Error(
+      'exact acknowledgement와 package 기록 rationale이 필요합니다.',
+    );
+  }
+
+  state.mutating = true;
+  state.reworkDeliveryPackage = null;
+  elements.refreshStatus.textContent =
+    `${reworkPlan.id} DeliveryPackage evidence를 기록하는 중…`;
+  render();
+  try {
+    const payload = await postJson(
+      `/api/rework-plans/${encodeURIComponent(reworkPlan.id)}/delivery-packages`,
+      request,
+    );
+    const record = payload.reworkDeliveryPackage;
+    if (
+      !isExactReworkDeliveryPackageRecord(
+        record,
+        preview,
+        reworkPlan,
+      )
+    ) {
+      throw new Error(
+        'ReworkDeliveryPackage record가 exact preview evidence와 다릅니다.',
+      );
+    }
+    state.reworkDeliveryPackage = record;
+    elements.refreshStatus.textContent =
+      `${record.id} immutable review-required evidence를 기록했습니다`;
+  } catch (error) {
+    state.reworkDeliveryPackage = null;
+    throw error;
+  } finally {
+    state.mutating = false;
     render();
   }
 }
@@ -14191,6 +14277,11 @@ function renderReworkQaExecution(reworkPlanId) {
                     </button>
                   </div>
                   ${renderReworkDeliveryPackagePreview(reworkPlanId)}
+                  ${
+                    state.reworkDeliveryPackagePreview
+                      ? ''
+                      : renderReworkDeliveryPackageRecord(reworkPlanId)
+                  }
                 `
                 : ''
             }
@@ -14236,9 +14327,95 @@ function renderReworkDeliveryPackagePreview(reworkPlanId) {
         <ul>${workOrderRows}</ul>
       </div>
       <p class="detail-copy detail-copy-compact">
-        이 결과는 browser memory에만 유지됩니다. package 기록, 승인, Mission/task close-out 및 모든 downstream action은 허용되지 않습니다.
+        이 preview는 browser memory에만 유지됩니다. 명시적 기록은 immutable review evidence만 만들며 승인, Mission/task close-out 및 downstream action은 허용하지 않습니다.
       </p>
+      ${
+        state.reworkDeliveryPackage
+          ? ''
+          : `
+            <form
+              class="reviewer-rework-record-form rework-delivery-record-form"
+              data-form="record-rework-delivery-package"
+            >
+              <label class="field">
+                <span>Record rationale</span>
+                <input
+                  name="reworkDeliveryPackageRationale"
+                  type="text"
+                  maxlength="500"
+                  required
+                  placeholder="Why this exact rework delivery evidence should be retained"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                />
+              </label>
+              <label class="builder-rework-acknowledgement">
+                <input
+                  name="reworkDeliveryPackageAcknowledgement"
+                  type="checkbox"
+                  value="record-exact-rework-delivery-package-without-acceptance-or-close-out"
+                  required
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                />
+                <span>exact evidence만 기록하고 acceptance와 close-out은 열지 않음</span>
+              </label>
+              <button
+                class="primary-button"
+                type="button"
+                data-action="record-rework-delivery-package"
+                data-id="${escapeHtml(reworkPlanId)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                재작업 DeliveryPackage 기록
+              </button>
+            </form>
+          `
+      }
+      ${renderReworkDeliveryPackageRecord(reworkPlanId)}
     </div>
+  `;
+}
+
+function renderReworkDeliveryPackageRecord(reworkPlanId) {
+  const record = state.reworkDeliveryPackage;
+  if (!record || record.reworkPlanId !== reworkPlanId) return '';
+  const workOrderRows = (record.workOrderResults || [])
+    .map(
+      (entry) => `
+        <li>
+          <strong>${escapeHtml(entry.role)}</strong>
+          <span>${escapeHtml(entry.status)}</span>
+          <code>${escapeHtml(entry.workOrderId)}</code>
+        </li>
+      `,
+    )
+    .join('');
+  return `
+    <section
+      class="rework-delivery-package-record"
+      aria-label="Durable ReworkDeliveryPackage evidence"
+      data-rework-delivery-record-status="${escapeHtml(record.status)}"
+    >
+      <div class="card-title-row card-title-row-tight">
+        <strong>Durable ReworkDeliveryPackage</strong>
+        ${createToken(record.status, 'warning')}
+        ${createToken('immutable', 'neutral')}
+      </div>
+      <dl class="reviewer-rework-evidence">
+        <div><dt>Record</dt><dd>${escapeHtml(record.id)}</dd></div>
+        <div><dt>Preview</dt><dd>${escapeHtml(record.previewId)}</dd></div>
+        <div><dt>Record digest</dt><dd>${escapeHtml(record.recordDigest)}</dd></div>
+        <div><dt>Approval digest</dt><dd>${escapeHtml(record.recordApprovalDigest)}</dd></div>
+        <div><dt>Evidence digest</dt><dd>${escapeHtml(record.reworkDeliveryEvidenceDigest)}</dd></div>
+        <div><dt>Checkpoint</dt><dd>${escapeHtml(record.terminalCheckpointId)}</dd></div>
+      </dl>
+      <div class="rework-delivery-workorders">
+        <strong>Retained role results</strong>
+        <ul>${workOrderRows}</ul>
+      </div>
+      <p class="detail-copy detail-copy-compact">
+        이 record는 review-required audit evidence입니다. acceptance, rejection, changes-requested, Mission/task close-out, retry, recovery, commit, push, release control은 제공되지 않습니다.
+      </p>
+    </section>
   `;
 }
 
@@ -14559,9 +14736,11 @@ function renderReviewerReworkPlanRecord(executionPlanId) {
                   ${
                     state.reworkQaExecution?.reworkPlanId === record.id
                       ? renderReworkQaExecution(record.id)
-                      : state.reviewerReexecution?.reworkPlanId === record.id
-                        ? renderReviewerReexecution(record.id)
-                        : renderBuilderReworkMutationApproval(record.id)
+                      : state.reworkDeliveryPackage?.reworkPlanId === record.id
+                        ? renderReworkDeliveryPackageRecord(record.id)
+                        : state.reviewerReexecution?.reworkPlanId === record.id
+                          ? renderReviewerReexecution(record.id)
+                          : renderBuilderReworkMutationApproval(record.id)
                   }
                 `
                 : `
@@ -23749,6 +23928,13 @@ document.addEventListener('click', async (event) => {
         'preview-rework-delivery-package'
       ) {
         await previewReworkDeliveryPackage(actionButton);
+        return;
+      }
+      if (
+        actionButton.dataset.action ===
+        'record-rework-delivery-package'
+      ) {
+        await recordReworkDeliveryPackage(actionButton);
         return;
       }
 

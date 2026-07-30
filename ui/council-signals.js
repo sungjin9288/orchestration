@@ -871,6 +871,93 @@ export function isExactReworkDeliveryPackagePreview(
   );
 }
 
+export function getReworkDeliveryPackageRecordRequest(
+  preview,
+  envelope,
+  { acknowledgement, rationale, reviewedAt },
+) {
+  if (
+    !preview ||
+    preview.persisted !== false ||
+    preview.status !== 'rework-delivery-preview-ready' ||
+    !envelope?.workOrderAttempt ||
+    preview.qaWorkOrderAttemptId !== envelope.workOrderAttempt.id ||
+    preview.qaRunId !== envelope.qaRun?.id ||
+    preview.qaEvidenceArtifactId !== envelope.qaArtifact?.id ||
+    !/^[a-f0-9]{64}$/.test(envelope.workOrderAttempt.recordDigest || '') ||
+    !/^[a-f0-9]{64}$/.test(preview.previewDigest || '') ||
+    !/^[a-f0-9]{64}$/.test(preview.reworkDeliveryEvidenceDigest || '') ||
+    acknowledgement !==
+      'record-exact-rework-delivery-package-without-acceptance-or-close-out' ||
+    typeof rationale !== 'string' ||
+    !rationale.trim() ||
+    typeof reviewedAt !== 'string' ||
+    Number.isNaN(Date.parse(reviewedAt)) ||
+    new Date(reviewedAt).toISOString() !== reviewedAt
+  ) {
+    return null;
+  }
+  return {
+    qaWorkOrderAttemptId: preview.qaWorkOrderAttemptId,
+    qaWorkOrderAttemptRecordDigest: envelope.workOrderAttempt.recordDigest,
+    qaRunId: preview.qaRunId,
+    qaEvidenceArtifactId: preview.qaEvidenceArtifactId,
+    deliveryReadyCheckpointId: preview.terminalCheckpointId,
+    checkpointDigest: preview.terminalCheckpointDigest,
+    sourceDigest: preview.sourceDigest,
+    qaInputDigest: preview.qaInputDigest,
+    evaluatedAt: preview.evaluatedAt,
+    previewId: preview.id,
+    previewDigest: preview.previewDigest,
+    reworkDeliveryEvidenceDigest: preview.reworkDeliveryEvidenceDigest,
+    recordApproval: {
+      decision: 'record-rework-delivery-package',
+      acknowledgement,
+      rationale: rationale.trim(),
+      reviewedAt,
+    },
+  };
+}
+
+export function isExactReworkDeliveryPackageRecord(
+  record,
+  preview,
+  reworkPlan,
+) {
+  return Boolean(
+    record &&
+      record.persisted === true &&
+      record.status === 'review-required' &&
+      record.reworkPlanId === reworkPlan?.id &&
+      record.projectId === reworkPlan?.projectId &&
+      record.missionId === reworkPlan?.missionId &&
+      record.executionPlanId === reworkPlan?.executionPlanId &&
+      record.previewId === preview?.id &&
+      record.previewDigest === preview?.previewDigest &&
+      record.reworkDeliveryEvidenceDigest ===
+        preview?.reworkDeliveryEvidenceDigest &&
+      record.qaWorkOrderAttemptId === preview?.qaWorkOrderAttemptId &&
+      record.qaRunId === preview?.qaRunId &&
+      record.qaEvidenceArtifactId === preview?.qaEvidenceArtifactId &&
+      record.terminalCheckpointId === preview?.terminalCheckpointId &&
+      record.terminalCheckpointDigest ===
+        preview?.terminalCheckpointDigest &&
+      record.sourceDigest === preview?.sourceDigest &&
+      record.qaInputDigest === preview?.qaInputDigest &&
+      /^[a-f0-9]{64}$/.test(record.recordApprovalDigest || '') &&
+      /^[a-f0-9]{64}$/.test(record.recordDigest || '') &&
+      Array.isArray(record.allowedActions) &&
+      record.allowedActions.length === 0 &&
+      Array.isArray(record.blockedActions) &&
+      record.blockedActions.length ===
+        REWORK_DELIVERY_PREVIEW_BLOCKED_ACTIONS.length &&
+      record.blockedActions.every(
+        (action, index) =>
+          action === REWORK_DELIVERY_PREVIEW_BLOCKED_ACTIONS[index],
+      )
+  );
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

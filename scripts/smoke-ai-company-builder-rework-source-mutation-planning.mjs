@@ -117,14 +117,14 @@ for (const text of [
 
 assert.match(inventory, /AI Company Builder rework source mutation planning/);
 assert.match(inventory, /AI Company Builder rework source mutation implementation/);
-assert.match(inventory, /informational `302\/302`, total `303\/303`/);
+assert.match(inventory, /informational `303\/303`, total `304\/304`/);
 assert.match(readme, /docs\/137_ai-company-builder-rework-source-mutation-plan\.md/);
 assert.match(
   readme,
   /docs\/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /997 smoke files/);
-assert.match(readme, /711 UI smoke files/);
+assert.match(readme, /999 smoke files/);
+assert.match(readme, /712 UI smoke files/);
 assert.match(todo, /ai-company-builder-rework-source-mutation-implementation-post-m7-2035/);
 assert.match(
   lessons,
@@ -132,7 +132,7 @@ assert.match(
 );
 assert.match(verification, /ai-company-builder-rework-source-mutation-planning/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 24/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 25/);
 assert.match(contracts, /REWORK_LIVE_MUTATION: 'builder-rework-live-mutation'/);
 assert.match(attempts, /START_BUILDER_REWORK_PREFLIGHT: 'start-builder-rework-preflight'/);
 assert.match(approvalRuntime, /const ACTION = 'builder-rework-live-mutation'/);
@@ -153,8 +153,8 @@ assert.equal(
 );
 assert.match(app, /run-builder-rework-source-mutation/);
 
-assert.equal(countFiles(/^smoke-.*\.mjs$/), 997);
-assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 711);
+assert.equal(countFiles(/^smoke-.*\.mjs$/), 999);
+assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 712);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
@@ -165,6 +165,6 @@ process.stdout.write(`${JSON.stringify({
   schemaVersion: 24,
   sourceMutationAllowed: true,
   reviewerQaExecutionAllowed: false,
-  smokeFileCount: 997,
-  uiSmokeFileCount: 711,
+  smokeFileCount: 999,
+  uiSmokeFileCount: 712,
 }, null, 2)}\n`);

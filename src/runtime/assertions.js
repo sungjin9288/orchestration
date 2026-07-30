@@ -78,6 +78,17 @@ function assertBuilderReworkDispatch(builderReworkDispatchId, state) {
   return dispatch;
 }
 
+function assertReworkDeliveryPackage(reworkDeliveryPackageId, state) {
+  const reworkDeliveryPackage =
+    state.reworkDeliveryPackages[reworkDeliveryPackageId];
+  if (!reworkDeliveryPackage) {
+    throw new Error(
+      `ReworkDeliveryPackage not found: ${reworkDeliveryPackageId}`,
+    );
+  }
+  return reworkDeliveryPackage;
+}
+
 function assertBuilderReworkMutationApproval(approvalId, state) {
   const approval = state.approvals[approvalId];
   if (!approval) {
@@ -210,6 +221,7 @@ module.exports = {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertRun,
+  assertReworkDeliveryPackage,
   assertReworkPlan,
   assertReworkPlanAcceptance,
   assertSpecialistBatch,

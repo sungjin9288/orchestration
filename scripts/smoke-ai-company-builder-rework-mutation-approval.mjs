@@ -696,7 +696,7 @@ async function main() {
       {
         ok: true,
         mode: 'ai-company-builder-rework-mutation-approval-smoke',
-        schemaVersion: 24,
+        schemaVersion: 25,
         approval: 'source-bound-one-way',
         sourceMutation: 'blocked',
       },

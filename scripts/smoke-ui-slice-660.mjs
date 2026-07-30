@@ -141,7 +141,7 @@ async function main() {
     const snapshotResult = await fetchJson('/api/snapshot');
     assert.equal(snapshotResult.response.status, 200);
     const snapshot = snapshotResult.payload.snapshot;
-    assert.equal(snapshot.schemaVersion, 24);
+    assert.equal(snapshot.schemaVersion, 25);
     assert.deepEqual(snapshot.learningCandidates, {});
     const mission = snapshot.missions[seeded.missionId];
     const councilSession = snapshot.councilSessions[mission.councilSessionId];

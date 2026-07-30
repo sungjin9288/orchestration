@@ -196,7 +196,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-specialist-cell-retry\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 24/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 25/);
 assert.match(contracts, /specialistCellRetry: 0/);
 assert.match(
   cellAttempts,
