@@ -1404,6 +1404,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation adds only the dedicated no-write runtime projection, bounded exact GET, browser-memory-only UI result, and focused runtime/API/UI smokes. Schema remains v24; generic DeliveryPackage persistence, package decisions, Mission/task close-out, retry, recovery, provider/source execution, Git/release, memory/learning application, scheduling, policy mutation, bypass, and connectors remain blocked.
 - Needed Before: Any durable rework DeliveryPackage, package decision, close-out, retry, recovery, provider/source action, Git/release action, or other downstream transition requires a separate complete fielded decision.
 
+### DEC-213
+- Status: `Accepted`
+- Decision: Accept `docs/145_ai-company-durable-rework-delivery-package-plan.md` as planning-only authority for one deterministic local schema-v25 immutable `ReworkDeliveryPackage(status=review-required)` record from one exact source-current schema-v24 DEC-212 preview and separate operator record approval.
+- Why: DEC-212 intentionally returns only a response/browser-memory projection, while the generic DeliveryPackage path validates the original non-rework lineage and must remain ineligible. Durable audit retention therefore needs a dedicated record type, exact preview recomputation, bounded record approval, additive migration, immutable digest, idempotent replay, exact inspection, and a hard stop before package decisions or close-out.
+- Impact: Planning fixes the future thirteen-key persist request, schema-v25 sequence/map-only migration, immutable record contract, exact-id and bounded ReworkPlan current-chain inspection, snapshot exclusion, rollback, UI boundary, and focused verification. It changes no runtime, schema, API, UI, state, source, provider, Git/release, memory, scheduling, policy, bypass, collection, or connector behavior.
+- Needed Before: Runtime/schema/API/UI implementation requires one complete fielded decision matching `docs/146_ai-company-durable-rework-delivery-package-implementation-decision-handoff.md`.
+
+### DEC-214
+- Status: `Accepted`
+- Decision: Record `docs/146_ai-company-durable-rework-delivery-package-implementation-decision-handoff.md` as the complete fifteen-field input shape for the bounded schema-v25 durable ReworkDeliveryPackage implementation gate.
+- Why: Broad continuation, delegated self-approval, DEC-212 preview authority, QA pass, or this handoff cannot prove the exact migration, recomputation, approval, record, compatibility, rollback, and blocked-authority contract required before persistence.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one record-and-inspect-only slice. It explicitly excludes package acceptance/rejection/changes-requested, Mission/task close-out, retry/recovery/execution, provider/source mutation, Git/release, memory/learning application, scheduling, policy, collections, bypass, and connectors. No implementation authority is recorded.
+- Needed Before: One complete value-matching approval may be accepted separately as `DEC-215`; missing, renamed, broadened, shortcut, or generic approval remains non-authorizing.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

@@ -180,12 +180,14 @@ for (const decisionId of [
   'DEC-210',
   'DEC-211',
   'DEC-212',
+  'DEC-213',
+  'DEC-214',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-212`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-214`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -236,6 +238,10 @@ assert.match(masterPlan, /Stage 5I implementation: `DEC-210`/);
 assert.match(runtimeContract, /Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212`/);
 assert.match(councilProtocol, /Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212`/);
 assert.match(deliveryRoadmap, /Stage 5I planning-only `DEC-210`/);
+assert.match(masterPlan, /Stage 5J planning: `DEC-213`/);
+assert.match(runtimeContract, /Planning-only `DEC-213` and handoff-only `DEC-214`/);
+assert.match(councilProtocol, /Planning-only `DEC-213` and handoff-only `DEC-214`/);
+assert.match(deliveryRoadmap, /Stage 5J planning-only `DEC-213`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
@@ -360,10 +366,10 @@ process.stdout.write(
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '5I',
-        object: 'rework-delivery-package-preview',
-        implementationAllowed: true,
-        nextDecisionLogEntry: null,
+        stage: '5J',
+        object: 'durable-rework-delivery-package',
+        implementationAllowed: false,
+        nextDecisionLogEntry: 'DEC-215',
       },
       authority: {
         documentationAllowed: true,
@@ -399,6 +405,8 @@ process.stdout.write(
         reworkQaExecutionImplementationAllowed: true,
         reworkDeliveryPackagePreviewPlanningAllowed: true,
         reworkDeliveryPackagePreviewImplementationAllowed: true,
+        durableReworkDeliveryPackagePlanningAllowed: true,
+        durableReworkDeliveryPackageImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

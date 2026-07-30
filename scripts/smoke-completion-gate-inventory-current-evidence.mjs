@@ -38,9 +38,9 @@ function assertReadmeHas(pattern) {
 const inventoryGateRows = [
   /Starting head checked before this inventory edit: `965a35b`/,
   /Planning baseline head checked before this document update: `965a35b`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `301\/301`, total `302\/302` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `302\/302`, total `303\/303` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
   /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `89\/89` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `302\/302`, UI QA `89\/89`, zero unchecked task lines,[^|]+DEC-201 through DEC-203 Stage 5F Builder rework source mutation planning\/handoff\/implementation, DEC-204 through DEC-206 Stage 5G Reviewer re-execution planning\/handoff\/implementation, DEC-207 through DEC-209 Stage 5H rework QA planning\/handoff\/implementation, and DEC-210 through DEC-212 Stage 5I rework DeliveryPackage preview planning\/handoff\/implementation\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `303\/303`, UI QA `89\/89`, zero unchecked task lines,[^|]+DEC-210 through DEC-212 Stage 5I rework DeliveryPackage preview planning\/handoff\/implementation, and DEC-213 through DEC-214 Stage 5J durable Rework DeliveryPackage planning\/handoff\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| AI Company Reviewer re-execution planning \| pass \| `DEC-204`, `DEC-205`, `docs\/139_ai-company-reviewer-reexecution-plan\.md`, `docs\/140_ai-company-reviewer-reexecution-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-reviewer-reexecution-planning\.mjs` \|/,
   /\| AI Company Reviewer re-execution implementation \| pass \| `DEC-206`, `src\/runtime\/reviewer-reexecution\.js`, `node scripts\/smoke-ai-company-reviewer-reexecution\.mjs`, `node scripts\/smoke-ui-slice-709\.mjs` \|/,
   /\| AI Company rework QA execution planning \| pass \| `DEC-207`, `DEC-208`, `docs\/141_ai-company-rework-qa-execution-plan\.md`, `docs\/142_ai-company-rework-qa-execution-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-rework-qa-execution-planning\.mjs` \|/,
@@ -140,7 +140,8 @@ const inventoryGateRows = [
   /\| AI Company Builder rework source mutation implementation \| pass \| `DEC-203`, `src\/runtime\/builder-rework-source-mutations\.js`, `node scripts\/smoke-ai-company-builder-rework-source-mutation\.mjs`, `node scripts\/smoke-ui-slice-708\.mjs` \|/,
   /\| AI Company rework QA execution implementation \| pass \| `DEC-209`, `src\/runtime\/rework-qa-execution\.js`, `node scripts\/smoke-ai-company-rework-qa-execution\.mjs`, `node scripts\/smoke-ui-slice-710\.mjs` \|/,
   /\| AI Company rework DeliveryPackage preview implementation \| pass \| `DEC-210`, `DEC-211`, `DEC-212`, `src\/runtime\/rework-delivery-package-preview\.js`, `node scripts\/smoke-ai-company-rework-delivery-package-preview\.mjs`, `node scripts\/smoke-ui-slice-711\.mjs` \|/,
-  /The required implementation baseline is current through `DEC-212`\.[\s\S]*Planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209` define one QA[\s\S]*stops at `DELIVERY_READY` before any DeliveryPackage[\s\S]*Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212` define one/,
+  /\| AI Company durable Rework DeliveryPackage planning \| pass \| `DEC-213`, `DEC-214`, `docs\/145_ai-company-durable-rework-delivery-package-plan\.md`, `docs\/146_ai-company-durable-rework-delivery-package-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-durable-rework-delivery-package-planning\.mjs` \|/,
+  /The required implementation baseline is current through `DEC-212`; planning and handoff evidence\s+is current through `DEC-214`\.[\s\S]*Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212` define one[\s\S]*Planning-only `DEC-213` and handoff-only `DEC-214` define one future schema-v25/,
   /Planning-only `DEC-198` and handoff-only `DEC-199` define Stage 5E as one existing task-owned[\s\S]*`DEC-200` implements the\s+dedicated source-bound wrappers[\s\S]*Builder source mutation remains closed/,
   /Planning-only `DEC-201`, handoff-only `DEC-202`, and implementation `DEC-203` define one dedicated[\s\S]*before Reviewer\/QA/,
 ];
@@ -371,8 +372,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '301/301',
-        total: '302/302',
+        informational: '302/302',
+        total: '303/303',
       },
     },
     null,

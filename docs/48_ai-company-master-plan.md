@@ -107,6 +107,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `DEC-210` plans one schema-v24-preserving response-only `ReworkDeliveryPackagePreview`,
   `DEC-211` records its complete fielded implementation handoff, and `DEC-212` implements the exact
   no-write runtime/API/UI projection.
+  `DEC-213` plans one future schema-v25 immutable `ReworkDeliveryPackage(status=review-required)`
+  record from an exact recomputed DEC-212 preview and separate record approval, while `DEC-214`
+  records the complete fielded implementation handoff. Runtime remains schema v24 until exact
+  `DEC-215`.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, QA execution, interrupted-attempt recovery,
   provider/background WorkOrders, Ops commands, and Mission context application은 아직 구현되지
@@ -150,7 +154,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-212`
+- Recorded decisions: `DEC-163` through `DEC-214`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -238,6 +242,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `ReworkDeliveryPackagePreview` over exact DEC-203 mutation, DEC-206 Reviewer, DEC-209 QA, raw
   Artifact, current source, and terminal checkpoint evidence; `DEC-211` records the complete
   fielded implementation handoff and `DEC-212` implements only that bounded projection
+- Stage 5J planning: `DEC-213` fixes one future schema-v25 sequence/map-only immutable
+  `ReworkDeliveryPackage(status=review-required)` record from an exact DEC-212 recomputation plus
+  separate operator record approval; `DEC-214` records the complete fielded implementation handoff
+  and keeps implementation reserved for exact `DEC-215`
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -595,6 +603,10 @@ Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212` de
 response-only Stage 5I `ReworkDeliveryPackagePreview`; the dedicated exact GET and browser-memory
 result exist, and generic
 durable package, acceptance, and close-out paths remain ineligible.
+Planning-only `DEC-213` and handoff-only `DEC-214` define one future record-and-inspect-only Stage
+5J boundary. The dedicated record must be recomputed from DEC-212 and may not reuse the generic
+package path, mutate immutable source records, decide the package, or close Mission/task state.
+Implementation remains blocked until exact `DEC-215`.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

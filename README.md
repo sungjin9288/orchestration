@@ -146,6 +146,8 @@ Planning source files:
 - `docs/142_ai-company-rework-qa-execution-implementation-decision-handoff.md`
 - `docs/143_ai-company-rework-delivery-package-preview-plan.md`
 - `docs/144_ai-company-rework-delivery-package-preview-implementation-decision-handoff.md`
+- `docs/145_ai-company-durable-rework-delivery-package-plan.md`
+- `docs/146_ai-company-durable-rework-delivery-package-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -327,6 +329,16 @@ Reviewer, DEC-209 QA, raw Artifact, current source, and terminal `DELIVERY_READY
 not widen the generic durable DeliveryPackage, acceptance, or close-out path. Exact `DEC-212`
 implements the dedicated deeply frozen runtime projection, bounded nine-key GET, and
 browser-memory-only preview while every downstream authority remains blocked.
+
+Planning-only `DEC-213` defines the Stage 5J durable rework DeliveryPackage boundary in
+`docs/145_ai-company-durable-rework-delivery-package-plan.md`, and `DEC-214` records its complete
+fielded implementation handoff in
+`docs/146_ai-company-durable-rework-delivery-package-implementation-decision-handoff.md`. The plan
+keeps runtime at schema v24 and fixes one future schema-v25 sequence/map-only immutable
+`ReworkDeliveryPackage(status=review-required)` record from a fresh exact DEC-212 recomputation
+plus separate operator record approval. Generic package paths, package decisions, Mission/task
+close-out, retry/recovery/execution, provider/source mutation, Git/release, memory, scheduling,
+policy, collections, bypass, and connectors remain blocked pending exact `DEC-215`.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -833,7 +845,8 @@ DEC-201 through DEC-203 Stage 5F source mutation, DEC-204 through DEC-206 Stage 
 re-execution planning, handoff, and bounded implementation evidence, and DEC-207 through DEC-209
 Stage 5H rework QA planning, fielded handoff, and bounded implementation evidence plus DEC-210
 through DEC-212 Stage 5I response-only rework DeliveryPackage planning, fielded handoff, and
-bounded implementation evidence pass the focused,
+bounded implementation evidence plus DEC-213 through DEC-214 Stage 5J durable rework
+DeliveryPackage planning and fielded handoff evidence pass the focused,
 aggregate, and UI QA
 gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
@@ -2506,7 +2519,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 996 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 997 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 711 UI smoke files
 ```
@@ -2663,6 +2676,7 @@ node scripts/smoke-ui-slice-666.mjs
 node scripts/smoke-ai-company-mission-memory-context-preview-planning.mjs
 node scripts/smoke-ai-company-mission-memory-context-preview.mjs
 node scripts/smoke-ui-slice-667.mjs
+node scripts/smoke-ai-company-durable-rework-delivery-package-planning.mjs
 node scripts/smoke-ai-company-mission-evidence-graph.mjs
 node scripts/smoke-ui-slice-672.mjs
 node scripts/smoke-ui-slice-673.mjs
@@ -3080,7 +3094,8 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
-  multi-agent completion implementation slices are current through DEC-212. DEC-173
+  multi-agent completion implementation slices are current through DEC-212, while bounded
+  planning and handoff evidence is current through DEC-214. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell
@@ -3143,6 +3158,10 @@ Playwright CLI:
   and browser-memory preview exist; durable package persistence, package decisions, Mission/task
   close-out, retry, recovery, provider/source execution, Git/release, memory, scheduling, policy,
   bypass, and connectors remain unimplemented.
+- `DEC-213` and `DEC-214` are planning and fielded handoff evidence for one future schema-v25
+  immutable `ReworkDeliveryPackage(status=review-required)` record. Runtime remains schema v24;
+  record creation, exact inspection, package decisions, close-out, and every downstream authority
+  remain unimplemented until exact `DEC-215`.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.
