@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-211`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-212`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -357,9 +357,9 @@ assert.match(masterPlanText, /Stage 5H planning: `DEC-207`/);
 assert.match(runtimeContractText, /Planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209`/);
 assert.match(councilProtocolText, /Planning-only `DEC-207`, handoff-only `DEC-208`, and implementation `DEC-209`/);
 assert.match(deliveryRoadmapText, /Stage 5H planning-only `DEC-207`/);
-assert.match(masterPlanText, /Stage 5I planning: `DEC-210`/);
-assert.match(runtimeContractText, /Planning-only `DEC-210` and handoff-only `DEC-211`/);
-assert.match(councilProtocolText, /Planning-only `DEC-210` and handoff-only `DEC-211`/);
+assert.match(masterPlanText, /Stage 5I implementation: `DEC-210`/);
+assert.match(runtimeContractText, /Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212`/);
+assert.match(councilProtocolText, /Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212`/);
 assert.match(deliveryRoadmapText, /Stage 5I planning-only `DEC-210`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
@@ -506,6 +506,7 @@ const report = {
         'DEC-209',
         'DEC-210',
         'DEC-211',
+        'DEC-212',
       ],
       currentRuntime: {
         schemaVersion: 24,
@@ -547,6 +548,8 @@ const report = {
         builderReworkSourceMutation: 'schema-v24-exact-bounded-local-stub-mutation',
         reviewerReexecution: 'schema-v24-exact-local-stub-attempt-two',
         reworkQaExecution: 'schema-v24-exact-source-bound-attempt-one',
+        reworkDeliveryPackagePreview:
+          'schema-v24-response-browser-memory-only',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -621,7 +624,7 @@ const report = {
         reworkQaExecutionPlanningAllowed: true,
         reworkQaExecutionImplementationAllowed: true,
         reworkDeliveryPackagePreviewPlanningAllowed: true,
-        reworkDeliveryPackagePreviewImplementationAllowed: false,
+        reworkDeliveryPackagePreviewImplementationAllowed: true,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
@@ -634,7 +637,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'DEC-210 and DEC-211 plan a response-only rework DeliveryPackage preview; exact DEC-212 is required for implementation',
+      'DEC-212 implements only the response-only rework DeliveryPackage preview; every downstream authority requires a separate decision',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -658,13 +661,13 @@ assert.equal(report.authority.reviewerReexecutionImplementationAllowed, true);
 assert.equal(report.authority.reworkQaExecutionPlanningAllowed, true);
 assert.equal(report.authority.reworkQaExecutionImplementationAllowed, true);
 assert.equal(report.authority.reworkDeliveryPackagePreviewPlanningAllowed, true);
-assert.equal(report.authority.reworkDeliveryPackagePreviewImplementationAllowed, false);
+assert.equal(report.authority.reworkDeliveryPackagePreviewImplementationAllowed, true);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /exact DEC-212 is required for implementation/,
+  /every downstream authority requires a separate decision/,
 );
 
 process.stdout.write(

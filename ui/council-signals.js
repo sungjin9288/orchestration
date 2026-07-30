@@ -628,6 +628,249 @@ export function getReworkQaExecutionRequest(
   };
 }
 
+export function getReworkDeliveryPackagePreviewQuery(
+  envelope,
+  evaluatedAt,
+) {
+  const attempt = envelope?.workOrderAttempt;
+  const run = envelope?.qaRun;
+  const artifact = envelope?.qaArtifact;
+  const checkpoint = envelope?.terminalCheckpoint;
+  const digests = [
+    attempt?.recordDigest,
+    checkpoint?.checkpointDigest,
+    envelope?.sourceDigest,
+    envelope?.qaInputDigest,
+  ];
+  const identifiers = [
+    attempt?.id,
+    run?.id,
+    artifact?.id,
+    checkpoint?.id,
+  ];
+  const qaFinishedAt = run?.finishedAt;
+  if (
+    envelope?.status !== 'completed' ||
+    envelope?.nextGate !== 'separate-delivery-package-decision-required' ||
+    attempt?.status !== 'completed' ||
+    run?.status !== 'completed' ||
+    run?.summary?.verdict !== 'passed' ||
+    artifact?.type !== 'qa-evidence' ||
+    checkpoint?.stage !== 'delivery-ready' ||
+    checkpoint?.status !== 'terminal' ||
+    identifiers.some(
+      (value) =>
+        typeof value !== 'string' ||
+        !value ||
+        value !== value.trim(),
+    ) ||
+    digests.some((value) => !/^[a-f0-9]{64}$/.test(value || '')) ||
+    typeof evaluatedAt !== 'string' ||
+    Number.isNaN(Date.parse(evaluatedAt)) ||
+    new Date(evaluatedAt).toISOString() !== evaluatedAt ||
+    typeof qaFinishedAt !== 'string' ||
+    Number.isNaN(Date.parse(qaFinishedAt)) ||
+    new Date(qaFinishedAt).toISOString() !== qaFinishedAt ||
+    Date.parse(evaluatedAt) < Date.parse(qaFinishedAt)
+  ) {
+    return null;
+  }
+  return {
+    qaWorkOrderAttemptId: attempt.id,
+    qaWorkOrderAttemptRecordDigest: attempt.recordDigest,
+    qaRunId: run.id,
+    qaEvidenceArtifactId: artifact.id,
+    deliveryReadyCheckpointId: checkpoint.id,
+    checkpointDigest: checkpoint.checkpointDigest,
+    sourceDigest: envelope.sourceDigest,
+    qaInputDigest: envelope.qaInputDigest,
+    evaluatedAt,
+  };
+}
+
+export const REWORK_DELIVERY_PREVIEW_RESPONSE_KEYS = Object.freeze([
+  'acceptedRisks',
+  'allowedActions',
+  'authoritySummary',
+  'blockedActions',
+  'deliveredArtifactRefs',
+  'evaluatedAt',
+  'executionPlanId',
+  'generatedAt',
+  'id',
+  'missionId',
+  'mutationEvidenceDigest',
+  'persisted',
+  'previewDigest',
+  'projectId',
+  'qaEvidenceArtifactId',
+  'qaInputDigest',
+  'qaRunId',
+  'qaWorkOrderAttemptId',
+  'qaWorkOrderId',
+  'reviewerEvidenceDigest',
+  'reworkDeliveryEvidenceDigest',
+  'reworkPlanId',
+  'schemaVersion',
+  'sourceDigest',
+  'status',
+  'terminalCheckpointDigest',
+  'terminalCheckpointId',
+  'unresolvedItems',
+  'verificationSummary',
+  'workOrderResults',
+]);
+
+export const REWORK_DELIVERY_PREVIEW_AUTHORITY_KEYS = Object.freeze([
+  'approvalBypassAllowed',
+  'commitAllowed',
+  'durablePersistenceAllowed',
+  'learningApplicationAllowed',
+  'memoryApplicationAllowed',
+  'missionCloseOutAllowed',
+  'packageAcceptanceAllowed',
+  'packageDecisionAllowed',
+  'profilePolicyMutationAllowed',
+  'providerExecutionAllowed',
+  'pushAllowed',
+  'recoveryAllowed',
+  'releaseAllowed',
+  'retryAllowed',
+  'schedulingAllowed',
+  'sourceMutationAllowed',
+  'taskCloseOutAllowed',
+]);
+
+export const REWORK_DELIVERY_PREVIEW_BLOCKED_ACTIONS = Object.freeze([
+  'persist-delivery-package',
+  'accept-delivery-package',
+  'reject-delivery-package',
+  'request-package-changes',
+  'close-mission',
+  'close-task',
+  'retry-qa',
+  'recover-qa',
+  'execute-provider',
+  'mutate-source',
+  'apply-memory',
+  'commit',
+  'push',
+  'release',
+  'schedule-background',
+  'mutate-policy',
+  'bypass-approval',
+]);
+
+function hasExactKeys(value, expectedKeys) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const actual = Object.keys(value).sort();
+  return (
+    actual.length === expectedKeys.length &&
+    actual.every((key, index) => key === expectedKeys[index])
+  );
+}
+
+export function isExactReworkDeliveryPackagePreview(
+  preview,
+  reworkPlan,
+  envelope,
+  query,
+) {
+  const digestPattern = /^[a-f0-9]{64}$/;
+  const identifierPattern = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/;
+  const authority = preview?.authoritySummary;
+  const workOrderResults = preview?.workOrderResults;
+  const expectedWorkOrderIds = [
+    reworkPlan?.evidenceRefs?.builderWorkOrderRef,
+    reworkPlan?.reviewerWorkOrderId,
+    envelope?.qaWorkOrder?.id,
+  ];
+  const validWorkOrderResults =
+    Array.isArray(workOrderResults) &&
+    workOrderResults.length === 3 &&
+    workOrderResults.every((entry, index) => {
+      const refGroups = [
+        entry?.attemptRefs,
+        entry?.runRefs,
+        entry?.artifactRefs,
+      ];
+      return (
+        hasExactKeys(entry, [
+          'artifactRefs',
+          'attemptRefs',
+          'role',
+          'runRefs',
+          'status',
+          'workOrderId',
+        ]) &&
+        entry.workOrderId === expectedWorkOrderIds[index] &&
+        entry.role === ['builder', 'reviewer', 'qa'][index] &&
+        entry.status === 'completed' &&
+        refGroups.every(
+          (refs) =>
+            Array.isArray(refs) &&
+            refs.length > 0 &&
+            new Set(refs).size === refs.length &&
+            refs.every(
+              (ref) =>
+                typeof ref === 'string' && identifierPattern.test(ref),
+            ),
+        )
+      );
+    });
+  const expectedArtifactRefs = validWorkOrderResults
+    ? [
+        ...new Set(
+          workOrderResults.flatMap((entry) => entry.artifactRefs),
+        ),
+      ]
+    : [];
+  return Boolean(
+    hasExactKeys(preview, REWORK_DELIVERY_PREVIEW_RESPONSE_KEYS) &&
+      preview.schemaVersion === 24 &&
+      preview.persisted === false &&
+      preview.status === 'rework-delivery-preview-ready' &&
+      preview.projectId === reworkPlan?.projectId &&
+      preview.missionId === reworkPlan?.missionId &&
+      preview.executionPlanId === reworkPlan?.executionPlanId &&
+      preview.reworkPlanId === reworkPlan?.id &&
+      preview.qaWorkOrderId === expectedWorkOrderIds[2] &&
+      preview.qaWorkOrderAttemptId === query?.qaWorkOrderAttemptId &&
+      preview.qaRunId === query?.qaRunId &&
+      preview.qaEvidenceArtifactId === query?.qaEvidenceArtifactId &&
+      preview.terminalCheckpointId === query?.deliveryReadyCheckpointId &&
+      preview.terminalCheckpointDigest === query?.checkpointDigest &&
+      preview.sourceDigest === query?.sourceDigest &&
+      preview.qaInputDigest === query?.qaInputDigest &&
+      preview.evaluatedAt === query?.evaluatedAt &&
+      digestPattern.test(preview.previewDigest || '') &&
+      digestPattern.test(preview.reworkDeliveryEvidenceDigest || '') &&
+      preview.id ===
+        `rework-delivery-package-preview-${preview.previewDigest.slice(0, 16)}` &&
+      Array.isArray(preview.allowedActions) &&
+      preview.allowedActions.length === 0 &&
+      Array.isArray(preview.unresolvedItems) &&
+      preview.unresolvedItems.length === 0 &&
+      Array.isArray(preview.blockedActions) &&
+      preview.blockedActions.length ===
+        REWORK_DELIVERY_PREVIEW_BLOCKED_ACTIONS.length &&
+      preview.blockedActions.every(
+        (action, index) =>
+          action === REWORK_DELIVERY_PREVIEW_BLOCKED_ACTIONS[index],
+      ) &&
+      hasExactKeys(authority, REWORK_DELIVERY_PREVIEW_AUTHORITY_KEYS) &&
+      Object.values(authority).every((value) => value === false) &&
+      validWorkOrderResults &&
+      Array.isArray(preview.deliveredArtifactRefs) &&
+      preview.deliveredArtifactRefs.length === expectedArtifactRefs.length &&
+      preview.deliveredArtifactRefs.every(
+        (ref, index) => ref === expectedArtifactRefs[index],
+      ) &&
+      preview.verificationSummary?.verdict === 'passed' &&
+      preview.verificationSummary?.mutationDetected === false
+  );
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

@@ -324,8 +324,9 @@ fielded implementation handoff in
 `docs/144_ai-company-rework-delivery-package-preview-implementation-decision-handoff.md`. The plan
 keeps schema v24 and requires one dedicated exact GET projection over DEC-203 mutation, DEC-206
 Reviewer, DEC-209 QA, raw Artifact, current source, and terminal `DELIVERY_READY` evidence. It does
-not widen the generic durable DeliveryPackage, acceptance, or close-out path. Runtime/API/UI
-implementation remains blocked until exact `DEC-212`.
+not widen the generic durable DeliveryPackage, acceptance, or close-out path. Exact `DEC-212`
+implements the dedicated deeply frozen runtime projection, bounded nine-key GET, and
+browser-memory-only preview while every downstream authority remains blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -830,8 +831,9 @@ plus DEC-195 through DEC-197 Stage 5D Builder rework preflight planning, fielded
 bounded implementation evidence plus DEC-198 through DEC-200 Stage 5E mutation Approval,
 DEC-201 through DEC-203 Stage 5F source mutation, DEC-204 through DEC-206 Stage 5G Reviewer
 re-execution planning, handoff, and bounded implementation evidence, and DEC-207 through DEC-209
-Stage 5H rework QA planning, fielded handoff, and bounded implementation evidence plus DEC-210 and
-DEC-211 Stage 5I response-only rework DeliveryPackage planning and fielded handoff evidence pass the focused,
+Stage 5H rework QA planning, fielded handoff, and bounded implementation evidence plus DEC-210
+through DEC-212 Stage 5I response-only rework DeliveryPackage planning, fielded handoff, and
+bounded implementation evidence pass the focused,
 aggregate, and UI QA
 gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
@@ -2504,9 +2506,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 994 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 996 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 710 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 711 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -3078,8 +3080,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
-  multi-agent completion implementation slices are current through DEC-209, with Stage 5I planning
-  and handoff recorded as DEC-210 and DEC-211. DEC-173
+  multi-agent completion implementation slices are current through DEC-212. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell
@@ -3137,9 +3138,11 @@ Playwright CLI:
   source-bound QA WorkOrderAttempt #1. The dedicated path persists its attempt and running Run
   atomically, executes shell-free Node syntax checks, and stops at `DELIVERY_READY` without a
   DeliveryPackage.
-- `DEC-210` and `DEC-211` are planning and handoff evidence only for one future response-only
-  `ReworkDeliveryPackagePreview`. No runtime module, route, browser preview, durable package,
-  acceptance, Mission/task close-out, retry, or recovery authority exists until exact `DEC-212`.
+- `DEC-210` through `DEC-212` are consumed planning, handoff, and implementation evidence for one
+  response-only `ReworkDeliveryPackagePreview`. The dedicated runtime module, exact nine-key GET,
+  and browser-memory preview exist; durable package persistence, package decisions, Mission/task
+  close-out, retry, recovery, provider/source execution, Git/release, memory, scheduling, policy,
+  bypass, and connectors remain unimplemented.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped
   at 250 nodes and adds no schema migration, dependency, graph write, automatic selection,
   approval, execution, source mutation, commit, push, or release authority.

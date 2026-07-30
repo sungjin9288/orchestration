@@ -294,6 +294,9 @@ const {
   normalizeReworkQaExecutionRequest,
 } = require('./rework-qa-execution');
 const {
+  buildReworkDeliveryPackagePreview,
+} = require('./rework-delivery-package-preview');
+const {
   parseReviewerArtifactContent,
 } = require('../execution/coordinator/artifact-content');
 const {
@@ -6627,6 +6630,14 @@ function createRuntimeService(options = {}) {
     const requestSource = !attempt
       ? buildPreConsumeQaReadyProjection(source)
       : null;
+    const terminalCheckpoint =
+      attempt?.status === WORK_ORDER_ATTEMPT_STATUS.COMPLETED &&
+      (
+        source.terminalCheckpoint ||
+        source.bundle.latestCheckpoint?.stage === WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY
+      )
+        ? source.terminalCheckpoint || source.bundle.latestCheckpoint
+        : null;
     return deepFreezeReworkQaExecution({
       reworkPlanId: source.reworkPlan.id,
       persisted: Boolean(attempt),
@@ -6640,6 +6651,10 @@ function createRuntimeService(options = {}) {
       workOrderAttempt: attempt ? structuredClone(attempt) : null,
       qaRun: source.qaRun ? structuredClone(source.qaRun) : null,
       qaArtifact: source.qaArtifact ? structuredClone(source.qaArtifact) : null,
+      terminalCheckpoint: terminalCheckpoint
+        ? structuredClone(terminalCheckpoint)
+        : null,
+      sourceDigest: source.executionPlan.sourceDigest,
       changedFiles: [...(source.mutationRun.summary?.changedFiles || [])],
       targetPathAllowlist: [...source.reworkPlan.targetPathAllowlist],
       verificationCommands: [...source.reworkPlan.verificationCommands],
@@ -7022,6 +7037,7 @@ function createRuntimeService(options = {}) {
           qaArtifact,
           qaAttempt: state.workOrderAttempts[source.qaAttempt.id],
           qaRun: source.qaRun,
+          terminalCheckpoint: checkpoint,
         },
         input.requestDigest,
       );
@@ -7068,6 +7084,92 @@ function createRuntimeService(options = {}) {
     const state = store.loadStateSupportedReadonly();
     const source = buildReworkQaExecutionSource(state, reworkPlanId);
     return projectReworkQaExecution(source, source.qaRun?.metadata?.requestDigest || null);
+  }
+
+  function previewReworkDeliveryPackage(input) {
+    const state = store.loadStateSupportedReadonly();
+    const source = buildReworkQaExecutionSource(state, input?.reworkPlanId);
+    const terminalCheckpoint = source.bundle.latestCheckpoint;
+    const builderReworkApproval =
+      source.builderAttempt.approvalRefs.length === 1
+        ? assertApproval(source.builderAttempt.approvalRefs[0], state)
+        : null;
+    const unresolvedItems = listPendingBlockingDecisionItems(source.task.id, state)
+      .map((item) => item.id);
+    let qaEvidence;
+    let qaArtifactBytes;
+    try {
+      qaArtifactBytes = readReexecutionArtifactBytes(source.qaArtifact);
+      qaEvidence = JSON.parse(qaArtifactBytes.toString('utf8'));
+    } catch (error) {
+      throw conflict(
+        `Rework DeliveryPackage QA Artifact cannot be read: ${error.message}`,
+      );
+    }
+    const hasDownstreamRecords =
+      source.bundle.deliveryPackages.length !== 0 ||
+      source.bundle.deliveryPackageAcceptances.length !== 0 ||
+      source.bundle.missionCloseOuts.length !== 0 ||
+      source.executionPlan.deliveryPackageRefs.length !== 0 ||
+      Boolean(source.executionPlan.latestDeliveryPackageId);
+    if (
+      !terminalCheckpoint ||
+      !builderReworkApproval ||
+      hasDownstreamRecords
+    ) {
+      throw conflict(
+        'Rework DeliveryPackage preview refuses downstream or incomplete evidence',
+      );
+    }
+    return buildReworkDeliveryPackagePreview(
+      input,
+      {
+        schemaVersion: state.schemaVersion,
+        reworkPlan: source.reworkPlan,
+        reworkPlanAcceptance: source.acceptance,
+        builderReworkDispatch: source.dispatch,
+        builderReworkApproval,
+        builderMutationAttempt: source.builderAttempt,
+        builderMutationRun: source.mutationRun,
+        builderMutationArtifacts: source.mutationArtifacts.map((record) => ({
+          record,
+          bytes: readReexecutionArtifactBytes(record),
+        })),
+        reviewerAttempt: source.reexecutionAttempt,
+        reviewerRun: source.reexecutionRun,
+        reviewArtifact: {
+          record: source.reexecutionReviewArtifact,
+          bytes: readReexecutionArtifactBytes(source.reexecutionReviewArtifact),
+        },
+        qaAttempt: source.qaAttempt,
+        qaRun: source.qaRun,
+        qaArtifact: {
+          record: source.qaArtifact,
+          bytes: qaArtifactBytes,
+        },
+        qaEvidence,
+        qaReadyCheckpoint: source.qaReadyCheckpoint,
+        deliveryReadyCheckpoint: terminalCheckpoint,
+        currentTargetFileDigests: source.currentTargets.map(
+          ({ path: targetFilePath, digest }) => ({
+            path: targetFilePath,
+            digest,
+          }),
+        ),
+        mutationEvidenceDigest: source.mutationEvidenceDigest,
+        reviewerEvidenceDigest: source.reviewerEvidenceDigest,
+        qaInputDigest: source.qaInputDigest,
+        executionPlan: source.executionPlan,
+        mission: source.mission,
+        task: source.task,
+        qaWorkOrder: source.qaWorkOrder,
+        workOrders: source.bundle.workOrders,
+        workOrderAttempts: source.bundle.workOrderAttempts,
+        unresolvedItems,
+        hasDownstreamRecords,
+      },
+      { now: builderReworkNowIso() },
+    );
   }
 
   function getBuilderReworkMutationApproval(reworkPlanId) {
@@ -13340,6 +13442,7 @@ function createRuntimeService(options = {}) {
     getWorkOrderVerificationStatus,
     previewMissionWorkOrders,
     previewExecutionPlanDelivery,
+    previewReworkDeliveryPackage,
     previewExecutionPlanContinuation,
     prepareBuilderReworkSourceMutation,
     beginReviewerReexecution,

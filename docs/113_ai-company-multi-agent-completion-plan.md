@@ -126,11 +126,12 @@ the existing QA WorkOrder, append QA WorkOrderAttempt #1 and its running Run ato
 source-bound shell-free Node syntax checks over exact DEC-206 evidence, and stop at
 `DELIVERY_READY` on pass. DeliveryPackage composition is not part of that slice.
 
-Stage 5I planning-only `DEC-210` and handoff-only `DEC-211` define the next no-write boundary: one
+Stage 5I planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212` define the
+no-write boundary: one
 operator-selected exact schema-v24 `ReworkDeliveryPackagePreview` over DEC-203 mutation, DEC-206
 Reviewer, DEC-209 QA, current source, raw Artifact, and terminal checkpoint evidence. It uses a
 dedicated response/browser-memory projection and keeps generic durable package, acceptance, and
-close-out paths ineligible. Implementation remains blocked until exact `DEC-212`.
+close-out paths ineligible. Only the dedicated response/browser-memory projection is implemented.
 
 ### Stage 4A: SpecialistBatchPreview
 
@@ -250,7 +251,7 @@ Planning-only `DEC-210` fixes Stage 5I as one deterministic response-only
 `ReworkDeliveryPackagePreview`. Handoff-only `DEC-211` binds the exact nine-key GET, current
 DEC-203/206/209 lineage, bounded raw Artifact hashing, current source bytes, terminal checkpoint,
 deterministic preview/evidence digests, generic durable-path exclusion, browser-memory lifecycle,
-rollback, and focused verification. Exact `DEC-212` remains required for implementation, and
+rollback, and focused verification. Implementation `DEC-212` consumes only that exact boundary, and
 durable package, acceptance, close-out, retry, recovery, provider/source execution, Git/release,
 memory, scheduling, policy mutation, bypass, and connectors remain closed.
 

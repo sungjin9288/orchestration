@@ -10,7 +10,9 @@ authorizes planning only, and `DEC-211` records this handoff.
 This handoff creates no runtime, API, UI, schema, package, Mission, task,
 source, provider, Git, release, memory, scheduling, policy, bypass, or connector
 authority. Implementation may begin only after one exact complete matching
-decision is supplied and accepted as `DEC-212`.
+decision is supplied and accepted as `DEC-212`. That exact decision has now
+been supplied and accepted; this document remains the immutable field contract
+for the bounded implementation.
 
 ## Required Decision Fields
 
@@ -78,4 +80,5 @@ source byte unchanged.
 
 Planning may close under `DEC-210` and `DEC-211`. Runtime/API/UI implementation
 must not begin until one complete decision matches every value above and is
-accepted as `DEC-212`.
+accepted as `DEC-212`. This condition is satisfied. No authority beyond the
+response-only projection is implied.

@@ -1397,6 +1397,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff fixes fifteen required fields, a dedicated module and exact GET route, browser-memory-only UI, focused runtime/API/UI smokes, compatibility gates, and a hard stop before durable DeliveryPackage handling. It authorizes no implementation by itself.
 - Needed Before: The operator must supply one value-matching complete decision. Missing, renamed, broadened, or shortcut approval remains non-authorizing.
 
+### DEC-212
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic schema-v24-preserving response-only `ReworkDeliveryPackagePreview` from one operator-selected source-current completed DEC-209 rework QA execution and terminal `DELIVERY_READY` checkpoint.
+- Why: `DEC-210` and `DEC-211` fixed the exact nine-key GET, DEC-203/206/209 raw-evidence lineage, current-source and checkpoint binding, deterministic digest contract, generic durable-path exclusion, rollback, and focused verification boundary. The supplied decision matches all fifteen required fields without widening any downstream authority.
+- Impact: Implementation adds only the dedicated no-write runtime projection, bounded exact GET, browser-memory-only UI result, and focused runtime/API/UI smokes. Schema remains v24; generic DeliveryPackage persistence, package decisions, Mission/task close-out, retry, recovery, provider/source execution, Git/release, memory/learning application, scheduling, policy mutation, bypass, and connectors remain blocked.
+- Needed Before: Any durable rework DeliveryPackage, package decision, close-out, retry, recovery, provider/source action, Git/release action, or other downstream transition requires a separate complete fielded decision.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

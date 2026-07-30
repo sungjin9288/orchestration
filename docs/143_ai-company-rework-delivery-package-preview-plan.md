@@ -5,7 +5,8 @@
 This document defines the planning-only Stage 5I boundary after one exact
 source-current `DEC-209` rework QA execution has passed and stopped at
 `DELIVERY_READY`. Planning-only authority is recorded as `DEC-210`, and
-`DEC-211` records the complete fielded implementation handoff.
+`DEC-211` records the complete fielded implementation handoff, and `DEC-212`
+accepts and implements that exact no-write boundary.
 
 The future implementation candidate returns one deterministic response-only
 `ReworkDeliveryPackagePreview`. It keeps schema v24, creates no durable
@@ -355,15 +356,16 @@ aggregate verification remain required before planning close-out.
 
 ## Stop Condition
 
-This planning slice is complete when:
+This slice is complete when:
 
 - `DEC-210` records planning-only authority;
 - `DEC-211` records the complete fielded implementation handoff;
 - focused planning, documentation coupling, UI QA, and aggregate verification
   pass;
-- no runtime, API, UI, schema, durable state, source, provider, Git, release,
-  memory, scheduling, policy, bypass, or connector behavior changes.
+- the dedicated runtime/API/UI projection changes no schema, durable state,
+  source, provider, Git, release, memory, scheduling, policy, bypass, or
+  connector behavior.
 
-Implementation remains blocked until the operator supplies the exact complete
-fielded decision in
-`docs/144_ai-company-rework-delivery-package-preview-implementation-decision-handoff.md`.
+`DEC-212` satisfies the implementation gate. Durable DeliveryPackage handling,
+package decisions, Mission/task close-out, retry, recovery, and every other
+downstream authority remain separately blocked.

@@ -654,11 +654,10 @@ only one WorkOrderAttempt #1 to the existing QA WorkOrder plus a running Run in 
 exact DEC-206 and current file-byte evidence, executes shell-free Node syntax checks, and stops at
 `DELIVERY_READY` without a DeliveryPackage preview.
 
-Stage 5I planning-only `DEC-210` and handoff-only `DEC-211` define one future schema-v24-preserving
-response-only `ReworkDeliveryPackagePreview` from exact DEC-203 mutation, DEC-206 Reviewer,
+Stage 5I planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212` define one
+schema-v24-preserving response-only `ReworkDeliveryPackagePreview` from exact DEC-203 mutation, DEC-206 Reviewer,
 DEC-209 QA, bounded raw Artifact, current source, and terminal `DELIVERY_READY` evidence. The
-candidate uses a dedicated exact GET route and browser memory only. Runtime/API/UI implementation
-requires exact `DEC-212`; generic durable package persistence, acceptance, Mission/task close-out,
+candidate uses a dedicated exact GET route and browser memory only. Generic durable package persistence, acceptance, Mission/task close-out,
 retry, and recovery remain separate gates.
 
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,

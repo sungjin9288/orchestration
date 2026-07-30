@@ -104,8 +104,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   local-stub path with a stop before QA. `DEC-207` plans one exact source-bound shell-free QA
   execution, `DEC-208` records its complete fielded implementation handoff, and `DEC-209`
   implements the bounded existing-QA WorkOrderAttempt #1 path with a stop before DeliveryPackage.
-  `DEC-210` plans one schema-v24-preserving response-only `ReworkDeliveryPackagePreview`, and
-  `DEC-211` records its complete fielded implementation handoff reserved for exact `DEC-212`.
+  `DEC-210` plans one schema-v24-preserving response-only `ReworkDeliveryPackagePreview`,
+  `DEC-211` records its complete fielded implementation handoff, and `DEC-212` implements the exact
+  no-write runtime/API/UI projection.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, QA execution, interrupted-attempt recovery,
   provider/background WorkOrders, Ops commands, and Mission context application은 아직 구현되지
@@ -149,7 +150,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-211`
+- Recorded decisions: `DEC-163` through `DEC-212`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -233,10 +234,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   checkpoint lineage and exact current input evidence on replay and reload, executes only
   source-bound shell-free Node checks, and stops at `DELIVERY_READY` or terminal QA failure without
   composing a DeliveryPackage
-- Stage 5I planning: `DEC-210` fixes one dedicated schema-v24 response-only
+- Stage 5I implementation: `DEC-210` fixes one dedicated schema-v24 response-only
   `ReworkDeliveryPackagePreview` over exact DEC-203 mutation, DEC-206 Reviewer, DEC-209 QA, raw
   Artifact, current source, and terminal checkpoint evidence; `DEC-211` records the complete
-  fielded implementation handoff reserved for exact `DEC-212`
+  fielded implementation handoff and `DEC-212` implements only that bounded projection
 - Still blocked: solo entry/execution, bound revision/resume/retry/rework/auto-chain,
   active-attempt recovery, parallel execution,
   Ops commands, memory application, provider-backed
@@ -590,8 +591,9 @@ stops before Reviewer/QA. Planning-only `DEC-204`, handoff-only `DEC-205`, and i
 using Reviewer attempt #2 and stopping at `QA_READY` on pass. Planning-only `DEC-207`,
 handoff-only `DEC-208`, and implementation `DEC-209` define one exact source-bound QA attempt #1
 that stops at `DELIVERY_READY` without composing a DeliveryPackage.
-Planning-only `DEC-210` and handoff-only `DEC-211` define one future response-only Stage 5I
-`ReworkDeliveryPackagePreview`; implementation remains blocked until exact `DEC-212`, and generic
+Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212` define one
+response-only Stage 5I `ReworkDeliveryPackagePreview`; the dedicated exact GET and browser-memory
+result exist, and generic
 durable package, acceptance, and close-out paths remain ineligible.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and

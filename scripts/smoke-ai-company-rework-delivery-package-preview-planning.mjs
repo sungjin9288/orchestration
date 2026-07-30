@@ -162,7 +162,7 @@ assertIncludesAll(plan, [
   /scripts\/smoke-ai-company-rework-delivery-package-preview\.mjs/,
   /scripts\/smoke-ui-slice-711\.mjs/,
   /terminal rework fixture actually calls the generic preview/,
-  /Implementation remains blocked/,
+  /`DEC-212` satisfies the implementation gate/,
 ], 'rework DeliveryPackage preview plan');
 
 assertIncludesAll(handoff, [
@@ -183,6 +183,7 @@ assertIncludesAll(decisionLog, [
   /^### DEC-209$/m,
   /^### DEC-210$/m,
   /^### DEC-211$/m,
+  /^### DEC-212$/m,
 ], 'decision log');
 
 for (const source of [
@@ -199,14 +200,14 @@ for (const source of [
   assert.match(source, /DEC-212/);
 }
 
-assert.match(inventory, /AI Company rework DeliveryPackage preview planning/);
+assert.match(inventory, /AI Company rework DeliveryPackage preview implementation/);
 assert.match(readme, /docs\/143_ai-company-rework-delivery-package-preview-plan\.md/);
 assert.match(
   readme,
   /docs\/144_ai-company-rework-delivery-package-preview-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /994 smoke files/);
-assert.match(readme, /710 UI smoke files/);
+assert.match(readme, /996 smoke files/);
+assert.match(readme, /711 UI smoke files/);
 assert.match(todo, /ai-company-rework-delivery-package-preview-planning-post-m7-2040/);
 assert.match(
   lessons,
@@ -230,28 +231,28 @@ assert.match(server, /runtime\.previewExecutionPlanDelivery/);
 assert.match(app, /data-action="persist-delivery-package"/);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'src/runtime/rework-delivery-package-preview.js')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-rework-delivery-package-preview.mjs')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-711.mjs')),
-  false,
+  true,
 );
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 994);
-assert.equal(uiSmokeFileCount, 710);
+assert.equal(smokeFileCount, 996);
+assert.equal(uiSmokeFileCount, 711);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode,
   planningDecision: 'accepted-dec-210',
   handoffDecision: 'documented-dec-211',
-  implementationDecision: 'blocked-until-exact-dec-212',
+  implementationDecision: 'accepted-dec-212',
   schemaVersion: 24,
   genericDeliveryPathEligible: false,
   durableDeliveryPackageAllowed: false,

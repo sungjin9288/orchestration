@@ -477,6 +477,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 5I planning fixes one future schema-v24 response-only rework DeliveryPackage projection over exact DEC-203 mutation, DEC-206 Reviewer, DEC-209 QA, current source, raw Artifact, and terminal checkpoint evidence while keeping generic durable package, acceptance, close-out, and every downstream authority blocked',
   },
   {
+    id: 'ai-company-rework-delivery-package-preview',
+    script: 'scripts/smoke-ai-company-rework-delivery-package-preview.mjs',
+    purpose: 'AI Company Stage 5I runtime and API prove one deterministic schema-v24 response-only ReworkDeliveryPackagePreview over exact DEC-203 mutation, DEC-206 Reviewer, DEC-209 QA, current bounded Artifact bytes, source digests, and terminal checkpoint evidence while refusing generic durable package, acceptance, close-out, provider, retry, Git, release, and every downstream authority',
+  },
+  {
     id: 'ai-company-builder-rework-preflight',
     script: 'scripts/smoke-ai-company-builder-rework-preflight.mjs',
     purpose: 'AI Company Stage 5D runtime proves one schema-v23 to v24 BuilderReworkDispatch and existing Builder WorkOrderAttempt append, replay-safe exact inspection, sidecar-only lifecycle, snapshot exclusion, and blocked mutation authority',

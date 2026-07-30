@@ -486,12 +486,11 @@ are proven. It may stop at
 `DELIVERY_READY` only; it cannot revise Council output, compose a DeliveryPackage, close Mission or
 task state, call a provider, mutate source, or open retry or recovery.
 
-Planning-only `DEC-210` and handoff-only `DEC-211` keep Stage 5I outside Council authority. The
-planned `ReworkDeliveryPackagePreview` is a no-write projection over already-approved Council,
+Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212` keep Stage 5I outside
+Council authority. The `ReworkDeliveryPackagePreview` is a no-write projection over already-approved Council,
 rework, Reviewer, QA, current source, and terminal checkpoint evidence. It cannot revise or rerun
 Council, promote the result through the generic durable DeliveryPackage path, persist or accept a
-package, close Mission/task state, or authorize any role execution. Exact `DEC-212` is required
-before implementation.
+package, close Mission/task state, or authorize any role execution.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

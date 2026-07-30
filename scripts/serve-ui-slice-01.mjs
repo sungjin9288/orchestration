@@ -46,6 +46,33 @@ const REVIEWER_REWORK_QUERY_KEYS = Object.freeze([
   'reviewerWorkOrderId',
 ]);
 const REVIEWER_REWORK_MAX_REQUEST_TARGET_LENGTH = 3072;
+const REWORK_DELIVERY_PREVIEW_QUERY_KEYS = Object.freeze([
+  'checkpointDigest',
+  'deliveryReadyCheckpointId',
+  'evaluatedAt',
+  'qaEvidenceArtifactId',
+  'qaInputDigest',
+  'qaRunId',
+  'qaWorkOrderAttemptId',
+  'qaWorkOrderAttemptRecordDigest',
+  'sourceDigest',
+]);
+const REWORK_DELIVERY_PREVIEW_MAX_REQUEST_TARGET_LENGTH = 4096;
+const REWORK_DELIVERY_PREVIEW_IDENTIFIER_KEYS = Object.freeze([
+  'deliveryReadyCheckpointId',
+  'qaEvidenceArtifactId',
+  'qaRunId',
+  'qaWorkOrderAttemptId',
+]);
+const REWORK_DELIVERY_PREVIEW_DIGEST_KEYS = Object.freeze([
+  'checkpointDigest',
+  'qaInputDigest',
+  'qaWorkOrderAttemptRecordDigest',
+  'sourceDigest',
+]);
+const REWORK_DELIVERY_PREVIEW_IDENTIFIER_PATTERN =
+  /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/;
+const REWORK_DELIVERY_PREVIEW_DIGEST_PATTERN = /^[a-f0-9]{64}$/;
 let latestHarnessExecution = null;
 let recentHarnessExecutions = [];
 let harnessExecutionSequence = 0;
@@ -2804,6 +2831,76 @@ const server = createServer(async (request, response) => {
       error: 'Rework QA execution은 GET과 POST만 지원합니다.',
     });
     return;
+  }
+
+  const reworkDeliveryPackagePreviewMatch = url.pathname.match(
+    /^\/api\/rework-plans\/([^/]+)\/delivery-package-preview$/,
+  );
+  if (reworkDeliveryPackagePreviewMatch) {
+    if (method !== 'GET') {
+      json(response, 405, {
+        error: 'Rework DeliveryPackage preview는 GET만 지원합니다.',
+      });
+      return;
+    }
+    try {
+      const requestTarget = request.url || '';
+      const queryKeys = [...url.searchParams.keys()].sort();
+      const query = Object.fromEntries(
+        REWORK_DELIVERY_PREVIEW_QUERY_KEYS.map((key) => [
+          key,
+          url.searchParams.get(key),
+        ]),
+      );
+      const reworkPlanId = decodeURIComponent(
+        reworkDeliveryPackagePreviewMatch[1],
+      );
+      if (
+        requestTarget.length >
+          REWORK_DELIVERY_PREVIEW_MAX_REQUEST_TARGET_LENGTH ||
+        queryKeys.length !== REWORK_DELIVERY_PREVIEW_QUERY_KEYS.length ||
+        queryKeys.some(
+          (key, index) =>
+            key !== REWORK_DELIVERY_PREVIEW_QUERY_KEYS[index],
+        ) ||
+        REWORK_DELIVERY_PREVIEW_QUERY_KEYS.some(
+          (key) => url.searchParams.getAll(key).length !== 1,
+        ) ||
+        !REWORK_DELIVERY_PREVIEW_IDENTIFIER_PATTERN.test(reworkPlanId) ||
+        REWORK_DELIVERY_PREVIEW_IDENTIFIER_KEYS.some(
+          (key) =>
+            !REWORK_DELIVERY_PREVIEW_IDENTIFIER_PATTERN.test(query[key] || ''),
+        ) ||
+        REWORK_DELIVERY_PREVIEW_DIGEST_KEYS.some(
+          (key) =>
+            !REWORK_DELIVERY_PREVIEW_DIGEST_PATTERN.test(query[key] || ''),
+        ) ||
+        typeof query.evaluatedAt !== 'string' ||
+        Number.isNaN(Date.parse(query.evaluatedAt)) ||
+        new Date(query.evaluatedAt).toISOString() !== query.evaluatedAt
+      ) {
+        const error = new Error(
+          'ReworkDeliveryPackagePreview requires exactly nine canonical bounded query fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const preview = runtime.previewReworkDeliveryPackage({
+        reworkPlanId,
+        ...query,
+      });
+      json(response, 200, preview);
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: String(
+          error.message || 'Rework DeliveryPackage preview 조회에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
   }
 
   const builderReworkPreflightMatch = url.pathname.match(

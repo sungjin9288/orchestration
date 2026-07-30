@@ -146,6 +146,8 @@ import {
   getBuilderReworkSourceMutationRequest,
   getReviewerReexecutionRequest,
   getReworkQaExecutionRequest,
+  getReworkDeliveryPackagePreviewQuery,
+  isExactReworkDeliveryPackagePreview,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -448,6 +450,7 @@ const state = {
   builderReworkSourceMutation: null,
   reviewerReexecution: null,
   reworkQaExecution: null,
+  reworkDeliveryPackagePreview: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5154,6 +5157,7 @@ function applySnapshotPayload(payload) {
     state.builderReworkSourceMutation = null;
     state.reviewerReexecution = null;
     state.reworkQaExecution = null;
+    state.reworkDeliveryPackagePreview = null;
   }
 
   state.payload = {
@@ -5424,6 +5428,7 @@ async function hydrateSelectedDetails() {
   state.reviewerReworkPlanAcceptance = null;
   state.builderReworkDispatch = null;
   state.builderReworkMutationApproval = null;
+  state.reworkDeliveryPackagePreview = null;
   state.workOrderAcceptanceCriteriaRationale = '';
   state.workOrderProofDrafts = {};
   state.executionContinuationPreview = null;
@@ -5581,7 +5586,17 @@ async function hydrateSelectedDetails() {
     }
   }
 
-  if (executionPlanBundle?.executionPlan.status === 'delivery-ready') {
+  if (executionPlanBundle) {
+    const reworkPlanPayload = await fetchOptionalJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/rework-plan`,
+    );
+    state.reviewerReworkPlan = reworkPlanPayload?.reworkPlan || null;
+  }
+
+  if (
+    executionPlanBundle?.executionPlan.status === 'delivery-ready' &&
+    !state.reviewerReworkPlan
+  ) {
     const encodedExecutionPlanId = encodeURIComponent(executionPlanBundle.executionPlan.id);
     const [deliveryPayload, durablePayload] = await Promise.all([
       fetchJson(`/api/execution-plans/${encodedExecutionPlanId}/delivery-preview`),
@@ -5632,7 +5647,7 @@ async function hydrateSelectedDetails() {
     const builderWorkOrder = executionPlanBundle.workOrders.find(
       (workOrder) => workOrder.role === 'builder',
     );
-    const [recoveryPayload, verificationPayload, reworkPlanPayload] = await Promise.all([
+    const [recoveryPayload, verificationPayload] = await Promise.all([
       fetchJson(
         `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/recovery`,
       ),
@@ -5641,13 +5656,9 @@ async function hydrateSelectedDetails() {
             `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/work-orders/${encodeURIComponent(builderWorkOrder.id)}/verification-status`,
           )
         : Promise.resolve({ verificationStatus: null }),
-      fetchOptionalJson(
-        `/api/execution-plans/${encodeURIComponent(executionPlanBundle.executionPlan.id)}/rework-plan`,
-      ),
     ]);
     state.missionExecutionPlanRecovery = recoveryPayload.executionPlanRecovery || null;
     state.workOrderVerificationStatus = verificationPayload.verificationStatus || null;
-    state.reviewerReworkPlan = reworkPlanPayload?.reworkPlan || null;
     if (state.reviewerReworkPlan) {
       const acceptancePayload = await fetchOptionalJson(
         `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/acceptance`,
@@ -5658,12 +5669,17 @@ async function hydrateSelectedDetails() {
         `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/builder-rework-dispatch`,
       );
       state.builderReworkDispatch = dispatchPayload || null;
-      state.builderReworkMutationApproval = dispatchPayload
-        ? await fetchOptionalJson(
-            `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/builder-rework-mutation-approval`,
-          )
-        : null;
+      const mutationCompleted =
+        dispatchPayload?.workOrderAttempt?.workerState ===
+        'source-mutation-completed-reviewer-blocked';
+      state.builderReworkMutationApproval =
+        dispatchPayload && !mutationCompleted
+          ? await fetchOptionalJson(
+              `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/builder-rework-mutation-approval`,
+            )
+          : null;
       state.builderReworkSourceMutation =
+        !mutationCompleted &&
         state.builderReworkMutationApproval?.approval?.status === 'approved'
           ? (
               await fetchOptionalJson(
@@ -5672,7 +5688,7 @@ async function hydrateSelectedDetails() {
             )?.builderReworkSourceMutation || null
           : null;
       state.reviewerReexecution =
-        state.builderReworkSourceMutation?.status === 'completed'
+        mutationCompleted || state.builderReworkSourceMutation?.status === 'completed'
           ? (
               await fetchOptionalJson(
                 `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/reviewer-reexecution`,
@@ -5949,7 +5965,7 @@ function closeMissionComposer() {
 async function handleSurfaceChange(surface) {
   if (surface !== state.surface) {
     state.reviewerReworkPlanPreview = null;
-    state.reviewerReworkPlan = null;
+    state.reworkDeliveryPackagePreview = null;
   }
   state.menuGroup = getNavGroupForSurface(surface);
   state.surface = surface;
@@ -5965,7 +5981,7 @@ async function handleNavGroupChange(groupId) {
 
   if (!group.surfaces.includes(state.surface)) {
     state.reviewerReworkPlanPreview = null;
-    state.reviewerReworkPlan = null;
+    state.reworkDeliveryPackagePreview = null;
     state.surface = group.defaultSurface;
     rememberSurfaceVisit(state.surface);
   }
@@ -7715,6 +7731,7 @@ async function runReworkQaExecution(actionButton) {
   }
   state.mutating = true;
   state.reworkQaExecution = null;
+  state.reworkDeliveryPackagePreview = null;
   elements.refreshStatus.textContent = `${reworkPlan.id} QA attempt #1을 실행하는 중…`;
   render();
   try {
@@ -7737,9 +7754,59 @@ async function runReworkQaExecution(actionButton) {
         : `${result.qaRun?.id || 'QA'} ${result.status} evidence를 보존했습니다`;
   } catch (error) {
     state.reworkQaExecution = null;
+    state.reworkDeliveryPackagePreview = null;
     throw error;
   } finally {
     state.mutating = false;
+    render();
+  }
+}
+
+async function previewReworkDeliveryPackage(actionButton) {
+  const reworkPlan = state.reviewerReworkPlan;
+  const envelope = state.reworkQaExecution;
+  const requestedReworkPlanId = String(actionButton?.dataset.id || '').trim();
+  const query = getReworkDeliveryPackagePreviewQuery(
+    envelope,
+    new Date().toISOString(),
+  );
+  if (
+    !reworkPlan ||
+    reworkPlan.id !== requestedReworkPlanId ||
+    !query
+  ) {
+    state.reworkDeliveryPackagePreview = null;
+    throw new Error(
+      'source-current completed 재작업 QA와 terminal checkpoint가 필요합니다.',
+    );
+  }
+
+  state.reworkDeliveryPackagePreview = null;
+  elements.refreshStatus.textContent =
+    `${reworkPlan.id} DeliveryPackage preview를 계산하는 중…`;
+  render();
+  try {
+    const params = new URLSearchParams(query);
+    const preview = await fetchJson(
+      `/api/rework-plans/${encodeURIComponent(reworkPlan.id)}/delivery-package-preview?${params}`,
+    );
+    if (!isExactReworkDeliveryPackagePreview(
+      preview,
+      reworkPlan,
+      envelope,
+      query,
+    )) {
+      throw new Error(
+        'Rework DeliveryPackage preview 응답이 exact source와 다릅니다.',
+      );
+    }
+    state.reworkDeliveryPackagePreview = preview;
+    elements.refreshStatus.textContent =
+      `${preview.id} response-only preview를 계산했습니다`;
+  } catch (error) {
+    state.reworkDeliveryPackagePreview = null;
+    throw error;
+  } finally {
     render();
   }
 }
@@ -14109,9 +14176,69 @@ function renderReworkQaExecution(reworkPlanId) {
               <div><dt>Next gate</dt><dd>${escapeHtml(result.nextGate || 'blocked')}</dd></div>
             </dl>
             <p class="detail-copy detail-copy-compact">DeliveryPackage, retry, recovery, Mission close-out, commit, push, release는 계속 차단됩니다.</p>
+            ${
+              result.status === 'completed'
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="preview-rework-delivery-package"
+                      data-id="${escapeHtml(reworkPlanId)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      재작업 DeliveryPackage 미리보기
+                    </button>
+                  </div>
+                  ${renderReworkDeliveryPackagePreview(reworkPlanId)}
+                `
+                : ''
+            }
           `
       }
     </section>
+  `;
+}
+
+function renderReworkDeliveryPackagePreview(reworkPlanId) {
+  const preview = state.reworkDeliveryPackagePreview;
+  if (!preview || preview.reworkPlanId !== reworkPlanId) return '';
+  const workOrderRows = (preview.workOrderResults || [])
+    .map(
+      (entry) => `
+        <li>
+          <strong>${escapeHtml(entry.role)}</strong>
+          <span>${escapeHtml(entry.status)}</span>
+          <code>${escapeHtml(entry.workOrderId)}</code>
+        </li>
+      `,
+    )
+    .join('');
+  return `
+    <div
+      class="rework-delivery-package-preview"
+      aria-label="Rework DeliveryPackage preview"
+      data-rework-delivery-preview-status="${escapeHtml(preview.status)}"
+    >
+      <div class="card-title-row card-title-row-tight">
+        <strong>Response-only DeliveryPackage</strong>
+        ${createToken('미저장', 'warning')}
+        ${createToken('review-ready', 'success')}
+      </div>
+      <dl class="reviewer-rework-evidence">
+        <div><dt>Preview</dt><dd>${escapeHtml(preview.id)}</dd></div>
+        <div><dt>Evidence digest</dt><dd>${escapeHtml(preview.reworkDeliveryEvidenceDigest)}</dd></div>
+        <div><dt>Checkpoint</dt><dd>${escapeHtml(preview.terminalCheckpointId)}</dd></div>
+        <div><dt>QA checks</dt><dd>${escapeHtml(`${preview.verificationSummary?.passedCheckCount || 0}/${preview.verificationSummary?.checkCount || 0}`)}</dd></div>
+      </dl>
+      <div class="rework-delivery-workorders">
+        <strong>Builder · Reviewer · QA</strong>
+        <ul>${workOrderRows}</ul>
+      </div>
+      <p class="detail-copy detail-copy-compact">
+        이 결과는 browser memory에만 유지됩니다. package 기록, 승인, Mission/task close-out 및 모든 downstream action은 허용되지 않습니다.
+      </p>
+    </div>
   `;
 }
 
@@ -14429,7 +14556,13 @@ function renderReviewerReworkPlanRecord(executionPlanId) {
                         'none',
                     )}</code>
                   </div>
-                  ${renderBuilderReworkMutationApproval(record.id)}
+                  ${
+                    state.reworkQaExecution?.reworkPlanId === record.id
+                      ? renderReworkQaExecution(record.id)
+                      : state.reviewerReexecution?.reworkPlanId === record.id
+                        ? renderReviewerReexecution(record.id)
+                        : renderBuilderReworkMutationApproval(record.id)
+                  }
                 `
                 : `
                   <form class="reviewer-rework-record-form" data-form="start-builder-rework-preflight">
@@ -23609,6 +23742,13 @@ document.addEventListener('click', async (event) => {
       }
       if (actionButton.dataset.action === 'run-rework-qa-execution') {
         await runReworkQaExecution(actionButton);
+        return;
+      }
+      if (
+        actionButton.dataset.action ===
+        'preview-rework-delivery-package'
+      ) {
+        await previewReworkDeliveryPackage(actionButton);
         return;
       }
 

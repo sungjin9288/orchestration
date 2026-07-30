@@ -413,6 +413,12 @@ const smokeChecks = [
       'Rework QA UI and API preserve one exact source-current QA attempt number one command, acknowledgement and rationale gating, source and command evidence, safe ready running terminal rendering, responsive fit, and absent generic QA DeliveryPackage retry recovery close-out commit push or release controls',
   },
   {
+    id: 'ai-company-rework-delivery-package-preview-ui-api',
+    script: 'scripts/smoke-ui-slice-711.mjs',
+    purpose:
+      'Rework DeliveryPackage preview UI and API preserve one exact bounded nine-key GET over completed DEC-209 evidence, browser-memory-only response rendering, deterministic source binding, responsive fit, and absent persistence acceptance close-out retry provider source Git release or scheduling controls',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:
