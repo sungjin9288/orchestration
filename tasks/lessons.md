@@ -1,5 +1,8 @@
 # lessons
 
+- Rework package acceptance must be an append-only fact and not a package status rewrite. Require a
+  fresh source-current recomputation for first acceptance, but validate exact durable replay before
+  mutable source recomputation so later source drift cannot erase valid acceptance evidence.
 - A response-only rework delivery projection needs two independent guards: exact durable lineage plus current bounded bytes. Durable ids and record digests alone cannot prove the post-mutation source or retained Artifact content is still the evidence being previewed, while raw bytes must be hashed internally and never returned. Keep the projection dedicated, deterministic, and disconnected from generic persistence and acceptance entrypoints.
 - A rework delivery preview must not widen the generic durable DeliveryPackage path. When the
   original path's approval and digest payload omit later mutation, Reviewer, QA, raw Artifact, and

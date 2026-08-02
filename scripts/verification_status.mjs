@@ -492,6 +492,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 5J runtime and API prove one atomic schema-v24 to v25 immutable review-required ReworkDeliveryPackage append from fresh exact DEC-212 evidence and separate record approval, exact replay and inspection, snapshot exclusion, rollback retention, and zero package decision close-out retry execution provider source Git memory scheduling policy collection bypass or connector authority',
   },
   {
+    id: 'ai-company-rework-delivery-package-acceptance-planning',
+    script: 'scripts/smoke-ai-company-rework-delivery-package-acceptance-planning.mjs',
+    purpose: 'AI Company Stage 5K planning fixes one future schema-v26 append-only ReworkDeliveryPackageAcceptance from one exact source-current immutable DEC-215 package, first-write fresh DEC-212 recomputation, replay-before-source-recompute, exact inspection, rollback retention, and zero package mutation close-out retry recovery execution provider source Git memory scheduling policy collection bypass or connector authority',
+  },
+  {
     id: 'ai-company-builder-rework-preflight',
     script: 'scripts/smoke-ai-company-builder-rework-preflight.mjs',
     purpose: 'AI Company Stage 5D runtime proves one schema-v23 to v24 BuilderReworkDispatch and existing Builder WorkOrderAttempt append, replay-safe exact inspection, sidecar-only lifecycle, snapshot exclusion, and blocked mutation authority',

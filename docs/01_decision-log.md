@@ -1425,6 +1425,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation adds schema v25, one `reworkDeliveryPackage` sequence and `reworkDeliveryPackages` map, one dedicated record contract, atomic append, exact-id and ReworkPlan-bound GETs, rationale-gated UI recording and refresh hydration, and focused runtime/API/UI verification. Generic DeliveryPackage paths, package acceptance/rejection/changes-requested, Mission/task close-out, retry/recovery/execution, provider/source mutation, Git/release authority, memory/learning application, scheduling, policy mutation, collections, bypass, and connectors remain blocked.
 - Needed Before: Any ReworkDeliveryPackage decision, Mission/task close-out, retry/recovery/execution, source/provider action, Git/release action, or other downstream transition requires a separate complete fielded decision.
 
+### DEC-216
+- Status: `Accepted`
+- Decision: Accept `docs/147_ai-company-rework-delivery-package-acceptance-plan.md` as planning-only authority for one deterministic local schema-v26 append-only `ReworkDeliveryPackageAcceptance` from one exact source-current schema-v25 `ReworkDeliveryPackage(status=review-required)`.
+- Why: DEC-215 intentionally stops at immutable review-required record and inspection evidence. The generic DeliveryPackageAcceptance path omits DEC-203/206/209/212/215 rework provenance and must remain ineligible, while directly changing the package status would destroy its immutable audit contract.
+- Impact: Planning fixes a sequence/map-only schema-v26 migration, exact fifteen-key accept request, first-write fresh DEC-212 recomputation, replay-before-source-recompute, immutable acceptance contract and digest, exact package-bound inspection, snapshot exclusion, rollback, UI boundary, and focused verification. Runtime, schema, API, UI, state, source, provider, Git/release, memory, scheduling, policy, collection, bypass, and connector behavior remain unchanged.
+- Needed Before: Runtime/schema/API/UI implementation requires one complete fielded decision matching `docs/148_ai-company-rework-delivery-package-acceptance-implementation-decision-handoff.md`.
+
+### DEC-217
+- Status: `Accepted`
+- Decision: Record `docs/148_ai-company-rework-delivery-package-acceptance-implementation-decision-handoff.md` as the complete fifteen-field input shape for the bounded schema-v26 ReworkDeliveryPackageAcceptance implementation gate.
+- Why: Broad continuation, delegated self-approval, DEC-215 package authority, or this handoff cannot prove the exact first-write recomputation, immutable package binding, replay ordering, migration, rollback, compatibility, and downstream stop contract.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one acceptance-and-inspect-only slice. It explicitly excludes package rejection/changes-requested/mutation, Mission/task close-out, retry/recovery/execution, provider/source action, Git/release, memory/learning, scheduling, policy, collections, bypass, and connectors. No implementation authority is recorded.
+- Needed Before: One complete value-matching approval may be accepted separately as `DEC-218`; missing, renamed, broadened, shortcut, or generic approval remains non-authorizing.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

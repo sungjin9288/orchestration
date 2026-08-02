@@ -139,6 +139,12 @@ preview, requires a separate record approval, appends one immutable
 `ReworkDeliveryPackage(status=review-required)`, and exposes exact inspection. Generic package
 promotion, package decisions, close-out, execution, and every downstream authority remain blocked.
 
+Stage 5K planning-only `DEC-216` and handoff-only `DEC-217` define one future schema-v26
+append-only `ReworkDeliveryPackageAcceptance`. The source package remains immutable; first write
+requires fresh DEC-212 current-source recomputation, exact replay resolves before source
+recomputation, and the slice stops before package mutation, close-out, retry, recovery, execution,
+or any broader authority. Implementation remains reserved for exact `DEC-218`.
+
 ### Stage 4A: SpecialistBatchPreview
 
 `DEC-173` accepts planning only, `DEC-174` records the fielded implementation handoff, `DEC-175`
@@ -269,6 +275,13 @@ and focused verification. Implementation `DEC-215` consumes only that exact reco
 boundary; package decisions, close-out, retry/recovery/execution, provider/source mutation,
 Git/release authority, memory/learning application, scheduling, policy, collections, bypass, and
 connectors remain closed.
+
+Planning-only `DEC-216` fixes Stage 5K as one future schema-v26 append-only acceptance fact bound
+to the exact source-current DEC-215 package. Handoff-only `DEC-217` binds the fifteen-key request,
+first-write fresh recomputation, replay-before-recompute, immutable digest, exact inspection,
+snapshot exclusion, rollback, and focused verification. Implementation and every package mutation,
+close-out, retry/recovery/execution, provider/source, Git/release, memory, scheduling, policy,
+collection, bypass, and connector authority remain closed until exact `DEC-218`.
 
 ### Stage 6: Ops Supervision And Recovery
 

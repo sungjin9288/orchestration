@@ -182,12 +182,15 @@ for (const decisionId of [
   'DEC-212',
   'DEC-213',
   'DEC-214',
+  'DEC-215',
+  'DEC-216',
+  'DEC-217',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-214`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-217`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -238,10 +241,20 @@ assert.match(masterPlan, /Stage 5I implementation: `DEC-210`/);
 assert.match(runtimeContract, /Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212`/);
 assert.match(councilProtocol, /Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212`/);
 assert.match(deliveryRoadmap, /Stage 5I planning-only `DEC-210`/);
-assert.match(masterPlan, /Stage 5J planning: `DEC-213`/);
-assert.match(runtimeContract, /Planning-only `DEC-213` and handoff-only `DEC-214`/);
-assert.match(councilProtocol, /Planning-only `DEC-213` and handoff-only `DEC-214`/);
+assert.match(masterPlan, /Stage 5J implementation: `DEC-213`/);
+assert.match(
+  runtimeContract,
+  /Planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215`/,
+);
+assert.match(
+  councilProtocol,
+  /Planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215`/,
+);
 assert.match(deliveryRoadmap, /Stage 5J planning-only `DEC-213`/);
+assert.match(masterPlan, /Stage 5K planning: `DEC-216`/);
+assert.match(runtimeContract, /Planning-only `DEC-216` and handoff-only `DEC-217`/);
+assert.match(councilProtocol, /Planning-only `DEC-216` and handoff-only `DEC-217`/);
+assert.match(deliveryRoadmap, /Stage 5K planning-only `DEC-216`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
 assert.match(readme, /docs\/113_ai-company-multi-agent-completion-plan\.md/);
@@ -343,6 +356,11 @@ process.stdout.write(
         reworkDeliveryPackagePreviewPlanning: 'accepted-dec-210',
         reworkDeliveryPackagePreviewHandoff: 'documented-dec-211',
         reworkDeliveryPackagePreviewImplementation: 'accepted-dec-212',
+        durableReworkDeliveryPackagePlanning: 'accepted-dec-213',
+        durableReworkDeliveryPackageHandoff: 'documented-dec-214',
+        durableReworkDeliveryPackageImplementation: 'accepted-dec-215',
+        reworkDeliveryPackageAcceptancePlanning: 'accepted-dec-216',
+        reworkDeliveryPackageAcceptanceHandoff: 'documented-dec-217',
       },
       currentRuntime: {
         schemaVersion: 25,
@@ -361,15 +379,16 @@ process.stdout.write(
         reviewerReexecution: 'exact-local-stub-attempt-two',
         reworkQaExecution: 'exact-source-bound-attempt-one',
         reworkDeliveryPackagePreview: 'exact-response-browser-memory-only',
+        durableReworkDeliveryPackage: 'exact-schema-v25-record-and-inspect',
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '5J',
-        object: 'durable-rework-delivery-package',
+        stage: '5K',
+        object: 'rework-delivery-package-acceptance',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-215',
+        nextDecisionLogEntry: 'DEC-218',
       },
       authority: {
         documentationAllowed: true,
@@ -406,7 +425,9 @@ process.stdout.write(
         reworkDeliveryPackagePreviewPlanningAllowed: true,
         reworkDeliveryPackagePreviewImplementationAllowed: true,
         durableReworkDeliveryPackagePlanningAllowed: true,
-        durableReworkDeliveryPackageImplementationAllowed: false,
+        durableReworkDeliveryPackageImplementationAllowed: true,
+        reworkDeliveryPackageAcceptancePlanningAllowed: true,
+        reworkDeliveryPackageAcceptanceImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

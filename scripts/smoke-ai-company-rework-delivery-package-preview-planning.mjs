@@ -206,7 +206,7 @@ assert.match(
   readme,
   /docs\/144_ai-company-rework-delivery-package-preview-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /999 smoke files/);
+assert.match(readme, /1000 smoke files/);
 assert.match(readme, /712 UI smoke files/);
 assert.match(todo, /ai-company-rework-delivery-package-preview-planning-post-m7-2040/);
 assert.match(
@@ -244,7 +244,7 @@ assert.equal(
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 999);
+assert.equal(smokeFileCount, 1000);
 assert.equal(uiSmokeFileCount, 712);
 
 process.stdout.write(`${JSON.stringify({

@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-214`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-217`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -361,10 +361,20 @@ assert.match(masterPlanText, /Stage 5I implementation: `DEC-210`/);
 assert.match(runtimeContractText, /Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212`/);
 assert.match(councilProtocolText, /Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212`/);
 assert.match(deliveryRoadmapText, /Stage 5I planning-only `DEC-210`/);
-assert.match(masterPlanText, /Stage 5J planning: `DEC-213`/);
-assert.match(runtimeContractText, /Planning-only `DEC-213` and handoff-only `DEC-214`/);
-assert.match(councilProtocolText, /Planning-only `DEC-213` and handoff-only `DEC-214`/);
+assert.match(masterPlanText, /Stage 5J implementation: `DEC-213`/);
+assert.match(
+  runtimeContractText,
+  /Planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215`/,
+);
+assert.match(
+  councilProtocolText,
+  /Planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215`/,
+);
 assert.match(deliveryRoadmapText, /Stage 5J planning-only `DEC-213`/);
+assert.match(masterPlanText, /Stage 5K planning: `DEC-216`/);
+assert.match(runtimeContractText, /Planning-only `DEC-216` and handoff-only `DEC-217`/);
+assert.match(councilProtocolText, /Planning-only `DEC-216` and handoff-only `DEC-217`/);
+assert.match(deliveryRoadmapText, /Stage 5K planning-only `DEC-216`/);
 assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
 assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
 assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
@@ -511,6 +521,11 @@ const report = {
         'DEC-210',
         'DEC-211',
         'DEC-212',
+        'DEC-213',
+        'DEC-214',
+        'DEC-215',
+        'DEC-216',
+        'DEC-217',
       ],
       currentRuntime: {
         schemaVersion: 25,
@@ -554,6 +569,8 @@ const report = {
         reworkQaExecution: 'schema-v24-exact-source-bound-attempt-one',
         reworkDeliveryPackagePreview:
           'schema-v24-response-browser-memory-only',
+        durableReworkDeliveryPackage:
+          'schema-v25-exact-review-required-record-and-inspection',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -630,7 +647,9 @@ const report = {
         reworkDeliveryPackagePreviewPlanningAllowed: true,
         reworkDeliveryPackagePreviewImplementationAllowed: true,
         durableReworkDeliveryPackagePlanningAllowed: true,
-        durableReworkDeliveryPackageImplementationAllowed: false,
+        durableReworkDeliveryPackageImplementationAllowed: true,
+        reworkDeliveryPackageAcceptancePlanningAllowed: true,
+        reworkDeliveryPackageAcceptanceImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
@@ -643,7 +662,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'DEC-214 records the Stage 5J fielded handoff; exact DEC-215 is required before durable rework DeliveryPackage implementation',
+      'DEC-217 records the Stage 5K fielded handoff; exact DEC-218 is required before ReworkDeliveryPackage acceptance implementation',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -669,13 +688,15 @@ assert.equal(report.authority.reworkQaExecutionImplementationAllowed, true);
 assert.equal(report.authority.reworkDeliveryPackagePreviewPlanningAllowed, true);
 assert.equal(report.authority.reworkDeliveryPackagePreviewImplementationAllowed, true);
 assert.equal(report.authority.durableReworkDeliveryPackagePlanningAllowed, true);
-assert.equal(report.authority.durableReworkDeliveryPackageImplementationAllowed, false);
+assert.equal(report.authority.durableReworkDeliveryPackageImplementationAllowed, true);
+assert.equal(report.authority.reworkDeliveryPackageAcceptancePlanningAllowed, true);
+assert.equal(report.authority.reworkDeliveryPackageAcceptanceImplementationAllowed, false);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /exact DEC-215 is required before durable rework DeliveryPackage implementation/,
+  /exact DEC-218 is required before ReworkDeliveryPackage acceptance implementation/,
 );
 
 process.stdout.write(

@@ -660,12 +660,18 @@ DEC-209 QA, bounded raw Artifact, current source, and terminal `DELIVERY_READY` 
 candidate uses a dedicated exact GET route and browser memory only. Generic durable package persistence, acceptance, Mission/task close-out,
 retry, and recovery remain separate gates.
 
-Stage 5J planning-only `DEC-213` and handoff-only `DEC-214` define one future schema-v25
+Stage 5J planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215` define one schema-v25
 sequence/map-only immutable `ReworkDeliveryPackage(status=review-required)` record from a fresh
 exact DEC-212 recomputation plus separate operator record approval. It adds no reverse reference to
 immutable source records and stops before every package decision, close-out, retry, recovery, role
 execution, provider/source action, Git/release, memory, scheduling, policy, collection, bypass, or
-connector boundary. Implementation remains reserved for exact `DEC-215`.
+connector boundary.
+
+Stage 5K planning-only `DEC-216` and handoff-only `DEC-217` define one future schema-v26
+append-only `ReworkDeliveryPackageAcceptance`. First acceptance must freshly recompute DEC-212 and
+bind the exact immutable DEC-215 package; exact replay resolves before source recomputation. Package
+status mutation, rejection, changes-requested, Mission/task close-out, retry/recovery/execution, and
+every broader authority remain blocked until a separate exact `DEC-218`.
 
 Collection exposure, cancellation, active-attempt recovery mutation, automatic or repeated retry,
 retries beyond attempt #2, provider calls, result application, background scheduling, and policy

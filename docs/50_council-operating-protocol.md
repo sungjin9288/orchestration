@@ -492,11 +492,13 @@ rework, Reviewer, QA, current source, and terminal checkpoint evidence. It canno
 Council, promote the result through the generic durable DeliveryPackage path, persist or accept a
 package, close Mission/task state, or authorize any role execution.
 
-Planning-only `DEC-213` and handoff-only `DEC-214` also remain outside Council authority. The
-future Stage 5J candidate may retain one exact DEC-212 projection as an immutable
+Planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215` remain outside Council
+authority. Stage 5J may retain one exact DEC-212 projection as an immutable
 `review-required` audit record only after separate operator record approval. It cannot revise
-Council evidence, infer package acceptance, close Mission/task state, or authorize role execution;
-implementation remains blocked until exact `DEC-215`.
+Council evidence, infer package acceptance, close Mission/task state, or authorize role execution.
+Planning-only `DEC-216` and handoff-only `DEC-217` similarly define acceptance evidence only. A
+future exact `DEC-218` may append one accepted fact after fresh source recomputation but may not
+revise Council output, mutate the package, close Mission/task state, or authorize role execution.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

@@ -544,13 +544,19 @@ The generic DeliveryPackage
 preview, persistence, acceptance, and Mission close-out functions must remain ineligible for rework
 evidence.
 
-Planning-only `DEC-213` and handoff-only `DEC-214` define the separate Stage 5J durable audit
-boundary. A future exact DEC-215 may add only schema v25
+Planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215` define the separate
+Stage 5J durable audit boundary. DEC-215 adds only schema v25
 `sequences.reworkDeliveryPackage` and `reworkDeliveryPackages`, recompute the complete DEC-212
 preview, require a separate bounded record approval, append one immutable
-`status=review-required` record, and expose exact-id plus one bounded ReworkPlan locator. Current
-runtime remains schema v24, creates no record, and grants no package decision or close-out
-authority.
+`status=review-required` record, and expose exact-id plus one bounded ReworkPlan locator.
+
+Planning-only `DEC-216` and handoff-only `DEC-217` define one future schema-v26
+`ReworkDeliveryPackageAcceptance` sequence/map. First acceptance must freshly recompute DEC-212
+from current source evidence; exact replay must validate the immutable package and existing
+acceptance before mutable source recomputation. The package status and digest never change, and no
+package rejection, changes-requested, close-out, retry, recovery, execution, provider/source, Git,
+release, memory, scheduling, policy, collection, bypass, or connector authority opens before exact
+`DEC-218`.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
