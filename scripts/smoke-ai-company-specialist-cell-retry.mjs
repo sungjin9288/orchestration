@@ -221,7 +221,7 @@ async function main() {
       const state = JSON.parse(fs.readFileSync(primary.statePath, 'utf8'));
       const retry = Object.values(state.specialistCellRetries)[0];
       const retryAttempt = state.specialistCellAttempts[retry.retryCellAttemptId];
-      assert.equal(state.schemaVersion, 25);
+      assert.equal(state.schemaVersion, 26);
       assert.equal(retry.status, 'active');
       assert.equal(retryAttempt.status, 'active');
       assert.equal(retryAttempt.attemptNumber, 2);
@@ -281,7 +281,7 @@ async function main() {
   assert.equal(primary.getQaCalls(), 2);
 
   const primaryState = JSON.parse(fs.readFileSync(primary.statePath, 'utf8'));
-  assert.equal(primaryState.schemaVersion, 25);
+  assert.equal(primaryState.schemaVersion, 26);
   assert.equal(Object.keys(primaryState.specialistCellRetries).length, 1);
   assert.equal(Object.keys(primaryState.specialistCellAttempts).length, 3);
   assert.deepEqual(

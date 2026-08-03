@@ -46,6 +46,7 @@ const {
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
+  REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION,
   REWORK_PLAN_STATE_SCHEMA_VERSION,
   REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION,
   RETENTION_CONSUMER_STATUS,
@@ -77,6 +78,10 @@ const {
   computeDeliveryPackageAcceptanceDigest,
 } = require('./delivery-package-acceptances');
 const { computeDeliveryPackageDigest } = require('./delivery-packages');
+const {
+  REWORK_DELIVERY_PACKAGE_ACCEPTANCE_AUTHORITY_SUMMARY,
+  assertReworkDeliveryPackageAcceptanceRecord,
+} = require('./rework-delivery-package-acceptances');
 const {
   MISSION_CLOSE_OUT_AUTHORITY_SUMMARY,
   MISSION_STATUS_TRANSITION,
@@ -3881,6 +3886,86 @@ function validateReworkDeliveryPackageRecords(state) {
   }
 }
 
+function validateReworkDeliveryPackageAcceptanceRecords(state) {
+  const packageIds = new Set();
+  const reworkPlanIds = new Set();
+  const previewIds = new Set();
+  const evidenceDigests = new Set();
+  let highestSequence = 0;
+
+  for (const [key, acceptance] of Object.entries(
+    state.reworkDeliveryPackageAcceptances,
+  )) {
+    const label = `ReworkDeliveryPackageAcceptance ${key}`;
+    if (
+      !acceptance ||
+      typeof acceptance !== 'object' ||
+      Array.isArray(acceptance) ||
+      acceptance.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    const idMatch = /^rework-delivery-package-acceptance-(\d+)$/.exec(key);
+    const recordSequence = idMatch ? Number(idMatch[1]) : Number.NaN;
+    if (
+      !Number.isSafeInteger(recordSequence) ||
+      recordSequence < 1 ||
+      key !==
+        `rework-delivery-package-acceptance-${String(recordSequence).padStart(4, '0')}`
+    ) {
+      throw new Error(`${label} has an invalid sequence identity`);
+    }
+    highestSequence = Math.max(highestSequence, recordSequence);
+    assertReworkDeliveryPackageAcceptanceRecord(acceptance);
+
+    const source =
+      state.reworkDeliveryPackages[acceptance.reworkDeliveryPackageId];
+    if (
+      !source ||
+      acceptance.projectId !== source.projectId ||
+      acceptance.missionId !== source.missionId ||
+      acceptance.executionPlanId !== source.executionPlanId ||
+      acceptance.reworkPlanId !== source.reworkPlanId ||
+      acceptance.previewId !== source.previewId ||
+      acceptance.previewDigest !== source.previewDigest ||
+      acceptance.sourceDigest !== source.sourceDigest ||
+      acceptance.reworkDeliveryEvidenceDigest !==
+        source.reworkDeliveryEvidenceDigest ||
+      acceptance.reworkDeliveryPackageRecordDigest !== source.recordDigest ||
+      JSON.stringify(acceptance.authoritySummary) !==
+        JSON.stringify(REWORK_DELIVERY_PACKAGE_ACCEPTANCE_AUTHORITY_SUMMARY)
+    ) {
+      throw new Error(`${label} has invalid immutable package bindings`);
+    }
+
+    for (const [value, seen, field] of [
+      [source.id, packageIds, 'reworkDeliveryPackageId'],
+      [source.reworkPlanId, reworkPlanIds, 'reworkPlanId'],
+      [source.previewId, previewIds, 'previewId'],
+      [source.reworkDeliveryEvidenceDigest, evidenceDigests, 'evidence digest'],
+    ]) {
+      if (seen.has(value)) {
+        throw new Error(`${label} duplicates ${field}`);
+      }
+      seen.add(value);
+    }
+  }
+
+  if (state.sequences.reworkDeliveryPackageAcceptance !== highestSequence) {
+    throw new Error(
+      'ReworkDeliveryPackageAcceptance sequence does not match retained records',
+    );
+  }
+  if (
+    Object.keys(state.reworkDeliveryPackageAcceptances).length !==
+    highestSequence
+  ) {
+    throw new Error(
+      'ReworkDeliveryPackageAcceptance sequence has a retained-record gap',
+    );
+  }
+}
+
 function validateReworkPlanAcceptanceRecords(state) {
   const acceptedReworkPlanIds = new Set();
   let highestSequence = 0;
@@ -4558,6 +4643,8 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== BUILDER_REWORK_DISPATCH_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !==
+        REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -4837,6 +4924,24 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (
+      sourceSchemaVersion >=
+      REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION
+    ) {
+      if (
+        !Number.isInteger(
+          state.sequences?.reworkDeliveryPackageAcceptance,
+        ) ||
+        !state.reworkDeliveryPackageAcceptances ||
+        typeof state.reworkDeliveryPackageAcceptances !== 'object' ||
+        Array.isArray(state.reworkDeliveryPackageAcceptances)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing ReworkDeliveryPackageAcceptance fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -4879,6 +4984,8 @@ function createFileStore(options = {}) {
       reworkPlanAcceptances: state.reworkPlanAcceptances || {},
       builderReworkDispatches: state.builderReworkDispatches || {},
       reworkDeliveryPackages: state.reworkDeliveryPackages || {},
+      reworkDeliveryPackageAcceptances:
+        state.reworkDeliveryPackageAcceptances || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -5170,6 +5277,7 @@ function createFileStore(options = {}) {
     validateBuilderReworkDispatchRecords(normalizedState, artifactsDir);
     validateBuilderReworkMutationApprovalRecords(normalizedState, artifactsDir);
     validateReworkDeliveryPackageRecords(normalizedState);
+    validateReworkDeliveryPackageAcceptanceRecords(normalizedState);
     return normalizedState;
   }
 

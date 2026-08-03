@@ -425,6 +425,12 @@ const smokeChecks = [
       'Durable ReworkDeliveryPackage UI and API preserve exact preview-bound rationale and acknowledgement gating, bounded thirteen-key record creation, exact and ReworkPlan-bound inspection, immutable refresh hydration, responsive fit, and absent package decision close-out retry recovery execution provider source Git release memory scheduling policy bypass or connector controls',
   },
   {
+    id: 'ai-company-rework-delivery-package-acceptance-ui-api',
+    script: 'scripts/smoke-ui-slice-713.mjs',
+    purpose:
+      'Durable ReworkDeliveryPackage exposes one exact package-bound acceptance command, hydrates immutable accepted evidence through its exact locator, and keeps rejection close-out retry recovery provider source Git release and scheduling controls absent across desktop and mobile',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

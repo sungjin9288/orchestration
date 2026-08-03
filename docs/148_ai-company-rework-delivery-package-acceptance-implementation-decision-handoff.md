@@ -130,4 +130,5 @@ node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-Implementation remains reserved for exact `DEC-218`.
+The exact value-matching decision was accepted as `DEC-218` and this handoff is consumed. Its
+downstream exclusions remain authoritative.

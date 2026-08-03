@@ -73,7 +73,7 @@ for (const pattern of [
   /replay validates the existing acceptance and immutable package before mutable source recomputation/,
   /POST \/api\/rework-delivery-packages\/:reworkDeliveryPackageId\/accept/,
   /GET \/api\/rework-delivery-packages\/:reworkDeliveryPackageId\/acceptance/,
-  /implementation remains blocked until one exact value-matching `DEC-218`/,
+  /implementation was accepted and completed by exact value-matching `DEC-218`/i,
 ]) {
   assert.match(planText, pattern);
 }
@@ -99,14 +99,14 @@ for (const pattern of [
   /targetAuthority=one deterministic local schema-v26 append-only ReworkDeliveryPackageAcceptance/,
   /replay before mutable source recomputation/,
   /stillBlockedAuthorities=ReworkDeliveryPackage rejection changes-requested/,
-  /Implementation remains reserved for exact `DEC-218`/,
+  /accepted as `DEC-218` and this handoff is consumed/,
 ]) {
   assert.match(handoffText, pattern);
 }
 
 assert.match(decisionLog, /^### DEC-216$/m);
 assert.match(decisionLog, /^### DEC-217$/m);
-assert.doesNotMatch(decisionLog, /^### DEC-218$/m);
+assert.match(decisionLog, /^### DEC-218$/m);
 for (const source of [masterPlan, runtimeContract, councilProtocol, roadmap, completionPlan]) {
   assert.match(source, /DEC-216/);
   assert.match(source, /DEC-217/);
@@ -127,22 +127,26 @@ assert.match(
   verification,
   /id: 'ai-company-rework-delivery-package-acceptance-planning'/,
 );
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 25/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 26/);
+assert.match(
+  contracts,
+  /const REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION = 26/,
+);
 assert.equal(
   fs.existsSync(
     path.join(repoRoot, 'src/runtime/rework-delivery-package-acceptances.js'),
   ),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(
     path.join(repoRoot, 'scripts/smoke-ai-company-rework-delivery-package-acceptance.mjs'),
   ),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-713.mjs')),
-  false,
+  true,
 );
 
 const smokeFileCount = fs
@@ -151,18 +155,18 @@ const smokeFileCount = fs
 const uiSmokeFileCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
-assert.equal(smokeFileCount, 1000);
-assert.equal(uiSmokeFileCount, 712);
-assert.match(readme, /1000 smoke files/);
-assert.match(readme, /712 UI smoke files/);
+assert.equal(smokeFileCount, 1002);
+assert.equal(uiSmokeFileCount, 713);
+assert.match(readme, /1002 smoke files/);
+assert.match(readme, /713 UI smoke files/);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode,
   planningDecision: 'accepted-dec-216',
   handoffDecision: 'documented-dec-217',
-  implementationDecision: 'blocked-dec-218',
-  currentSchemaVersion: 25,
+  implementationDecision: 'accepted-dec-218',
+  currentSchemaVersion: 26,
   plannedSchemaVersion: 26,
   sourcePackageImmutable: true,
   firstWriteFreshRecompute: true,

@@ -85,6 +85,7 @@ function toSchemaV16(state) {
   delete previous.sequences.reworkPlanAcceptance;
   delete previous.sequences.builderReworkDispatch;
   delete previous.sequences.reworkDeliveryPackage;
+  delete previous.sequences.reworkDeliveryPackageAcceptance;
   delete previous.staffingPlans;
   delete previous.specialistBatches;
   delete previous.specialistCellAttempts;
@@ -93,6 +94,7 @@ function toSchemaV16(state) {
   delete previous.reworkPlanAcceptances;
   delete previous.builderReworkDispatches;
   delete previous.reworkDeliveryPackages;
+  delete previous.reworkDeliveryPackageAcceptances;
   delete previous.companyRuntime;
   return previous;
 }
@@ -312,7 +314,7 @@ async function main() {
     );
 
     const persisted = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 25);
+    assert.equal(persisted.schemaVersion, 26);
     assert.equal(persisted.sequences.staffingPlan, 1);
     assert.equal(Object.keys(persisted.staffingPlans).length, 1);
     assert.deepEqual(toSchemaV16(persisted), schemaV16);
@@ -385,7 +387,7 @@ async function main() {
     const migrationOnlyRoot = path.join(tempRoot, 'migration-only');
     writeState(migrationOnlyRoot, schemaV16);
     const migratedOnly = createFileStore({ runtimeRoot: migrationOnlyRoot }).loadState();
-    assert.equal(migratedOnly.schemaVersion, 25);
+    assert.equal(migratedOnly.schemaVersion, 26);
     assert.equal(migratedOnly.sequences.staffingPlan, 0);
     assert.deepEqual(migratedOnly.staffingPlans, {});
 
@@ -410,7 +412,7 @@ async function main() {
     );
 
     const futureRoot = path.join(tempRoot, 'future-schema');
-    writeState(futureRoot, { ...persisted, schemaVersion: 26 });
+    writeState(futureRoot, { ...persisted, schemaVersion: 27 });
     assertNoWrite(
       futureRoot,
       () => createFileStore({ runtimeRoot: futureRoot }).loadStateSupportedReadonly(),

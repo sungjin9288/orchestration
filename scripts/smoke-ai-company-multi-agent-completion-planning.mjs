@@ -185,12 +185,13 @@ for (const decisionId of [
   'DEC-215',
   'DEC-216',
   'DEC-217',
+  'DEC-218',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-217`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-218`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -252,8 +253,8 @@ assert.match(
 );
 assert.match(deliveryRoadmap, /Stage 5J planning-only `DEC-213`/);
 assert.match(masterPlan, /Stage 5K planning: `DEC-216`/);
-assert.match(runtimeContract, /Planning-only `DEC-216` and handoff-only `DEC-217`/);
-assert.match(councilProtocol, /Planning-only `DEC-216` and handoff-only `DEC-217`/);
+assert.match(runtimeContract, /Planning-only `DEC-216`, handoff-only `DEC-217`, and implementation `DEC-218`/);
+assert.match(councilProtocol, /Planning-only `DEC-216`, handoff-only `DEC-217`, and implementation `DEC-218`/);
 assert.match(deliveryRoadmap, /Stage 5K planning-only `DEC-216`/);
 assert.match(inventory, /AI Company multi-agent completion planning \| pass/);
 assert.match(inventory, /`DEC-162`, `DEC-163`, `DEC-164`, `DEC-165`, `DEC-166`/);
@@ -286,7 +287,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 25/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 26/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -361,9 +362,10 @@ process.stdout.write(
         durableReworkDeliveryPackageImplementation: 'accepted-dec-215',
         reworkDeliveryPackageAcceptancePlanning: 'accepted-dec-216',
         reworkDeliveryPackageAcceptanceHandoff: 'documented-dec-217',
+        reworkDeliveryPackageAcceptanceImplementation: 'accepted-dec-218',
       },
       currentRuntime: {
-        schemaVersion: 25,
+        schemaVersion: 26,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,
@@ -380,6 +382,7 @@ process.stdout.write(
         reworkQaExecution: 'exact-source-bound-attempt-one',
         reworkDeliveryPackagePreview: 'exact-response-browser-memory-only',
         durableReworkDeliveryPackage: 'exact-schema-v25-record-and-inspect',
+        reworkDeliveryPackageAcceptance: 'exact-schema-v26-acceptance-and-inspect',
         fixedWorkOrderRoles: ['builder', 'reviewer', 'qa'],
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
@@ -387,8 +390,8 @@ process.stdout.write(
       nextImplementationTarget: {
         stage: '5K',
         object: 'rework-delivery-package-acceptance',
-        implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-218',
+        implementationAllowed: true,
+        nextDecisionLogEntry: null,
       },
       authority: {
         documentationAllowed: true,
@@ -427,7 +430,7 @@ process.stdout.write(
         durableReworkDeliveryPackagePlanningAllowed: true,
         durableReworkDeliveryPackageImplementationAllowed: true,
         reworkDeliveryPackageAcceptancePlanningAllowed: true,
-        reworkDeliveryPackageAcceptanceImplementationAllowed: false,
+        reworkDeliveryPackageAcceptanceImplementationAllowed: true,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

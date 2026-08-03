@@ -121,6 +121,7 @@ const {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertReworkDeliveryPackage,
+  assertReworkDeliveryPackageAcceptance,
   assertReworkPlan,
   assertReworkPlanAcceptance,
   assertRun,
@@ -173,6 +174,12 @@ const {
   computeDeliveryPackageAcceptanceDigest,
   createDeliveryPackageAcceptance,
 } = require('./delivery-package-acceptances');
+const {
+  assertReworkDeliveryPackageAcceptanceRecord,
+  createReworkDeliveryPackageAcceptance,
+  isExactReworkDeliveryPackageAcceptanceReplay,
+  normalizeReworkDeliveryPackageAcceptanceRequest,
+} = require('./rework-delivery-package-acceptances');
 const {
   computeMissionCloseOutDigest,
   createMissionCloseOut,
@@ -482,6 +489,13 @@ function createRuntimeService(options = {}) {
     state.sequences.reworkDeliveryPackage += 1;
     return `rework-delivery-package-${String(
       state.sequences.reworkDeliveryPackage,
+    ).padStart(4, '0')}`;
+  }
+
+  function nextReworkDeliveryPackageAcceptanceId(state) {
+    state.sequences.reworkDeliveryPackageAcceptance += 1;
+    return `rework-delivery-package-acceptance-${String(
+      state.sequences.reworkDeliveryPackageAcceptance,
     ).padStart(4, '0')}`;
   }
 
@@ -7331,6 +7345,193 @@ function createRuntimeService(options = {}) {
     return { reworkDeliveryPackage };
   }
 
+  function assertAcceptanceRequestPackageBinding(state, source, request) {
+    const attempt = state.workOrderAttempts[source.qaWorkOrderAttemptId];
+    if (
+      source.reworkPlanId !== request.reworkPlanId ||
+      source.qaWorkOrderAttemptId !== request.qaWorkOrderAttemptId ||
+      !attempt ||
+      attempt.recordDigest !== request.qaWorkOrderAttemptRecordDigest ||
+      source.qaRunId !== request.qaRunId ||
+      source.qaEvidenceArtifactId !== request.qaEvidenceArtifactId ||
+      source.terminalCheckpointId !== request.deliveryReadyCheckpointId ||
+      source.terminalCheckpointDigest !== request.checkpointDigest ||
+      source.sourceDigest !== request.sourceDigest ||
+      source.qaInputDigest !== request.qaInputDigest ||
+      source.previewEvaluatedAt !== request.evaluatedAt ||
+      source.previewId !== request.previewId ||
+      source.previewDigest !== request.previewDigest ||
+      source.reworkDeliveryEvidenceDigest !==
+        request.reworkDeliveryEvidenceDigest ||
+      source.recordDigest !== request.reworkDeliveryPackageRecordDigest
+    ) {
+      throw conflict(
+        'ReworkDeliveryPackageAcceptance request is not bound to the exact immutable package',
+      );
+    }
+  }
+
+  function findReworkDeliveryPackageAcceptanceCollision(state, source) {
+    return (
+      Object.values(state.reworkDeliveryPackageAcceptances || {}).find(
+        (record) =>
+          record.reworkDeliveryPackageId === source.id ||
+          record.reworkPlanId === source.reworkPlanId ||
+          record.previewId === source.previewId ||
+          record.reworkDeliveryEvidenceDigest ===
+            source.reworkDeliveryEvidenceDigest,
+      ) || null
+    );
+  }
+
+  function acceptReworkDeliveryPackage(reworkDeliveryPackageId, input) {
+    const now = reviewerReworkNowIso();
+    let request;
+    try {
+      request = normalizeReworkDeliveryPackageAcceptanceRequest(input, {
+        now,
+      });
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReworkDeliveryPackageAcceptance requires supported state: ${error.message}`,
+      );
+    }
+
+    let source;
+    try {
+      source = assertReworkDeliveryPackage(reworkDeliveryPackageId, state);
+      assertReworkDeliveryPackageRecord(source);
+      assertAcceptanceRequestPackageBinding(state, source, request);
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+
+    const existing = findReworkDeliveryPackageAcceptanceCollision(
+      state,
+      source,
+    );
+    if (existing) {
+      assertReworkDeliveryPackageAcceptanceRecord(existing);
+      if (
+        existing.reworkDeliveryPackageId !== source.id ||
+        !isExactReworkDeliveryPackageAcceptanceReplay(
+          existing,
+          source,
+          request,
+        )
+      ) {
+        throw conflict(
+          'Rework DeliveryPackage lineage already has a different acceptance',
+        );
+      }
+      return {
+        idempotent: true,
+        reworkDeliveryPackage: source,
+        reworkDeliveryPackageAcceptance: existing,
+        reviewStatus: 'accepted',
+      };
+    }
+
+    const preview = previewReworkDeliveryPackage({
+      reworkPlanId: request.reworkPlanId,
+      qaWorkOrderAttemptId: request.qaWorkOrderAttemptId,
+      qaWorkOrderAttemptRecordDigest:
+        request.qaWorkOrderAttemptRecordDigest,
+      qaRunId: request.qaRunId,
+      qaEvidenceArtifactId: request.qaEvidenceArtifactId,
+      deliveryReadyCheckpointId: request.deliveryReadyCheckpointId,
+      checkpointDigest: request.checkpointDigest,
+      sourceDigest: request.sourceDigest,
+      qaInputDigest: request.qaInputDigest,
+      evaluatedAt: request.evaluatedAt,
+    });
+    if (
+      preview.id !== source.previewId ||
+      preview.previewDigest !== source.previewDigest ||
+      preview.reworkDeliveryEvidenceDigest !==
+        source.reworkDeliveryEvidenceDigest
+    ) {
+      throw conflict(
+        'ReworkDeliveryPackage is no longer source-current for acceptance',
+      );
+    }
+
+    const prospectiveId =
+      `rework-delivery-package-acceptance-${String(
+        state.sequences.reworkDeliveryPackageAcceptance + 1,
+      ).padStart(4, '0')}`;
+    const acceptance = createReworkDeliveryPackageAcceptance({
+      id: prospectiveId,
+      reworkDeliveryPackage: source,
+      createdAt: now,
+    });
+    const id = nextReworkDeliveryPackageAcceptanceId(state);
+    if (id !== acceptance.id) {
+      throw new Error(
+        'ReworkDeliveryPackageAcceptance sequence is not deterministic',
+      );
+    }
+    state.reworkDeliveryPackageAcceptances[id] = acceptance;
+    store.saveState(state);
+    return {
+      idempotent: false,
+      reworkDeliveryPackage: source,
+      reworkDeliveryPackageAcceptance: acceptance,
+      reviewStatus: 'accepted',
+    };
+  }
+
+  function getReworkDeliveryPackageAcceptance(reworkDeliveryPackageId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `ReworkDeliveryPackageAcceptance inspection requires supported state: ${error.message}`,
+      );
+    }
+    try {
+      const reworkDeliveryPackage = assertReworkDeliveryPackage(
+        reworkDeliveryPackageId,
+        state,
+      );
+      assertReworkDeliveryPackageRecord(reworkDeliveryPackage);
+      const reworkDeliveryPackageAcceptance =
+        Object.values(state.reworkDeliveryPackageAcceptances || {}).find(
+          (record) =>
+            record.reworkDeliveryPackageId === reworkDeliveryPackage.id,
+        ) || null;
+      if (reworkDeliveryPackageAcceptance) {
+        assertReworkDeliveryPackageAcceptance(
+          reworkDeliveryPackageAcceptance.id,
+          state,
+        );
+        assertReworkDeliveryPackageAcceptanceRecord(
+          reworkDeliveryPackageAcceptance,
+        );
+      }
+      return {
+        reworkDeliveryPackage,
+        reworkDeliveryPackageAcceptance,
+        reviewStatus: reworkDeliveryPackageAcceptance
+          ? 'accepted'
+          : 'review-required',
+      };
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+  }
+
   function getBuilderReworkMutationApproval(reworkPlanId) {
     let state;
     try {
@@ -13441,6 +13642,7 @@ function createRuntimeService(options = {}) {
     delete snapshotForPublicProjection.reworkPlanAcceptances;
     delete snapshotForPublicProjection.builderReworkDispatches;
     delete snapshotForPublicProjection.reworkDeliveryPackages;
+    delete snapshotForPublicProjection.reworkDeliveryPackageAcceptances;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -13495,6 +13697,7 @@ function createRuntimeService(options = {}) {
     beginBuilderReworkPreflight,
     beginBuilderReworkSourceMutation,
     acceptDeliveryPackage,
+    acceptReworkDeliveryPackage,
     acceptReworkPlan,
     acceptMissionStaffingPlan,
     approveCouncilRecommendation,
@@ -13558,6 +13761,7 @@ function createRuntimeService(options = {}) {
     getReviewerReexecutionWorkerInput,
     getReworkQaExecution,
     getReworkDeliveryPackage,
+    getReworkDeliveryPackageAcceptance,
     getReworkPlanDeliveryPackage,
     getReworkQaExecutionWorkerInput,
     getReworkPlan,

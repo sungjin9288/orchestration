@@ -1439,6 +1439,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one acceptance-and-inspect-only slice. It explicitly excludes package rejection/changes-requested/mutation, Mission/task close-out, retry/recovery/execution, provider/source action, Git/release, memory/learning, scheduling, policy, collections, bypass, and connectors. No implementation authority is recorded.
 - Needed Before: One complete value-matching approval may be accepted separately as `DEC-218`; missing, renamed, broadened, shortcut, or generic approval remains non-authorizing.
 
+### DEC-218
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic local schema-v26 append-only `ReworkDeliveryPackageAcceptance` from one exact source-current immutable schema-v25 `ReworkDeliveryPackage(status=review-required)`.
+- Why: `DEC-216` and `DEC-217` fixed the fifteen-key accept request, first-write fresh DEC-212 recomputation, immutable package binding, replay-before-source-recompute rule, additive migration, canonical acceptance digest, exact package-bound inspection, rollback, compatibility, and downstream stop contract. The supplied decision matches every required field without widening package or workflow authority.
+- Impact: Implementation adds only one sequence/map pair, one immutable acceptance contract, exact accept and inspection routes, package-bound UI action and hydration, snapshot exclusion, and focused runtime/API/UI evidence. The source package and every upstream record remain immutable; exact replay performs no save and remains inspectable after later source drift.
+- Needed Before: Package rejection, changes-requested, mutation, supersession, deletion, Mission/task close-out, retry/recovery/execution, provider/source action, runtime-agent Git/release, memory/learning, scheduling, policy, collections, bypass, and connectors require separate complete fielded decisions.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

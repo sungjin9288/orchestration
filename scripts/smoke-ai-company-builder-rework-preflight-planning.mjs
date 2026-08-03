@@ -345,7 +345,7 @@ for (const text of [
 
 assert.match(acceptancePlan, /builderAttemptAppendAllowed=false/);
 assert.match(acceptancePlan, /preflightAllowed=false/);
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 25;/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 26;/);
 assert.match(contracts, /const BUILDER_REWORK_DISPATCH_STATE_SCHEMA_VERSION = 24;/);
 assert.match(workOrderAttempts, /START_BUILDER: 'start-builder'/);
 assert.match(workOrderAttempts, /CONTINUE_BUILDER: 'continue-builder'/);

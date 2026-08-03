@@ -89,6 +89,20 @@ function assertReworkDeliveryPackage(reworkDeliveryPackageId, state) {
   return reworkDeliveryPackage;
 }
 
+function assertReworkDeliveryPackageAcceptance(
+  reworkDeliveryPackageAcceptanceId,
+  state,
+) {
+  const acceptance =
+    state.reworkDeliveryPackageAcceptances[reworkDeliveryPackageAcceptanceId];
+  if (!acceptance) {
+    throw new Error(
+      `ReworkDeliveryPackageAcceptance not found: ${reworkDeliveryPackageAcceptanceId}`,
+    );
+  }
+  return acceptance;
+}
+
 function assertBuilderReworkMutationApproval(approvalId, state) {
   const approval = state.approvals[approvalId];
   if (!approval) {
@@ -222,6 +236,7 @@ module.exports = {
   assertMissionCloseOut,
   assertRun,
   assertReworkDeliveryPackage,
+  assertReworkDeliveryPackageAcceptance,
   assertReworkPlan,
   assertReworkPlanAcceptance,
   assertSpecialistBatch,

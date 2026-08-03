@@ -164,7 +164,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-rework-delivery-package-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 25/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 26/);
 assert.match(runtimeService, /function previewReworkDeliveryPackage\(input\)/);
 assert.match(previewModule, /status: 'rework-delivery-preview-ready'/);
 assert.match(previewModule, /persisted: false/);
@@ -190,8 +190,8 @@ assert.equal(
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1000);
-assert.equal(uiSmokeFileCount, 712);
+assert.equal(smokeFileCount, 1002);
+assert.equal(uiSmokeFileCount, 713);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,

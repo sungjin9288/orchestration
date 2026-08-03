@@ -9136,6 +9136,30 @@ h3 {
   background: var(--surface-control);
 }
 
+.rework-delivery-package-acceptance {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--surface-control-border);
+  border-left: 2px solid var(--success);
+  background: var(--surface-raised);
+}
+
+.rework-delivery-acceptance-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.rework-delivery-acceptance-form .primary-button {
+  justify-self: start;
+  max-width: 100%;
+  white-space: normal;
+}
+
 .rework-delivery-workorders {
   display: grid;
   gap: 6px;

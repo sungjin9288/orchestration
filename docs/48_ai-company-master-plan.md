@@ -61,7 +61,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
   runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
   envelope로 노출된다.
-- Persisted runtime은 schema v25이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
+- Persisted runtime은 schema v26이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
   WorkflowCheckpoint, DeliveryPackage, acceptance, MissionCloseOut, LearningCandidate, MemoryItem,
   MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan, StaffingEntry, and
   WorkOrderAttempt, SpecialistBatch, SpecialistCellAttempt, and SpecialistCellRetry evidence를
@@ -111,8 +111,8 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   from an exact recomputed DEC-212 preview and separate record approval, `DEC-214` records the
   complete fielded implementation handoff, and `DEC-215` implements record-and-inspect only.
   `DEC-216` plans one future schema-v26 append-only `ReworkDeliveryPackageAcceptance`, and
-  `DEC-217` records its complete fielded implementation handoff. Runtime remains schema v25 until
-  exact `DEC-218`.
+  `DEC-217` records its complete fielded implementation handoff, and `DEC-218` implements only the
+  append-only acceptance evidence and exact inspection boundary.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, QA execution, interrupted-attempt recovery,
   provider/background WorkOrders, Ops commands, and Mission context application은 아직 구현되지
@@ -156,7 +156,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-217`
+- Recorded decisions: `DEC-163` through `DEC-218`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -613,7 +613,8 @@ record-and-inspect-only Stage 5J boundary. The dedicated record is recomputed fr
 not reuse the generic package path, mutate immutable source records, decide the package, or close
 Mission/task state. Planning-only `DEC-216` and handoff-only `DEC-217` define Stage 5K as one future
 append-only acceptance fact with first-write fresh source recomputation and replay-before-recompute.
-Implementation remains blocked until exact `DEC-218`.
+Implementation `DEC-218` consumes only the append-only acceptance-and-inspect boundary. Package
+mutation, close-out, retry, recovery, execution, and every broader authority remain blocked.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

@@ -621,7 +621,9 @@ async function runDurableRuntimeSmoke(context, request, preview) {
   const schemaV24State = structuredClone(schemaV25State);
   schemaV24State.schemaVersion = 24;
   delete schemaV24State.sequences.reworkDeliveryPackage;
+  delete schemaV24State.sequences.reworkDeliveryPackageAcceptance;
   delete schemaV24State.reworkDeliveryPackages;
+  delete schemaV24State.reworkDeliveryPackageAcceptances;
   writeState(schemaV24State);
 
   const persistRequest = buildPersistRequest(request, preview);
@@ -649,7 +651,7 @@ async function runDurableRuntimeSmoke(context, request, preview) {
   );
 
   const persistedState = readState();
-  assert.equal(persistedState.schemaVersion, 25);
+  assert.equal(persistedState.schemaVersion, 26);
   assert.equal(persistedState.sequences.reworkDeliveryPackage, 1);
   assert.deepEqual(
     Object.keys(persistedState.reworkDeliveryPackages),
@@ -718,9 +720,10 @@ async function runDurableRuntimeSmoke(context, request, preview) {
   }
   assert.deepEqual(fs.readFileSync(statePath), bytesAfterCreate);
 
-  const partialV25 = readState();
-  delete partialV25.reworkDeliveryPackages;
-  writeState(partialV25);
+  const partialCurrentState = readState();
+  delete partialCurrentState.reworkDeliveryPackages;
+  delete partialCurrentState.reworkDeliveryPackageAcceptances;
+  writeState(partialCurrentState);
   try {
     assert.throws(
       () => createFileStore({ runtimeRoot }).loadStateSupportedReadonly(),
@@ -850,7 +853,7 @@ async function main() {
           openControlTaskBound: true,
           exactGetTransport: true,
           downstreamAuthorityAbsent: true,
-          atomicSchemaV25MigrationAndAppend: true,
+          atomicCurrentSchemaMigrationAndAppend: true,
           immutableRecordAndDigests: true,
           exactReplayBeforeSourceRecompute: true,
           exactAndBoundedInspection: true,
@@ -871,7 +874,21 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error.stack || error.message);
-  process.exitCode = 1;
-});
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  main().catch((error) => {
+    console.error(error.stack || error.message);
+    process.exitCode = 1;
+  });
+}
+
+export {
+  buildPersistRequest,
+  readState,
+  runDurableRuntimeSmoke,
+  runRuntimeSmoke,
+  withLocalApiServer,
+  writeState,
+};

@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 25;
+const STATE_SCHEMA_VERSION = 26;
+const REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION = 26;
 const REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION = 25;
 const BUILDER_REWORK_DISPATCH_STATE_SCHEMA_VERSION = 24;
 const REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION = 23;
@@ -413,6 +414,7 @@ function createEmptyState() {
       reworkPlanAcceptance: 0,
       builderReworkDispatch: 0,
       reworkDeliveryPackage: 0,
+      reworkDeliveryPackageAcceptance: 0,
     },
     missions: {},
     councilSessions: {},
@@ -448,6 +450,7 @@ function createEmptyState() {
     reworkPlanAcceptances: {},
     builderReworkDispatches: {},
     reworkDeliveryPackages: {},
+    reworkDeliveryPackageAcceptances: {},
   };
 }
 
@@ -487,6 +490,7 @@ module.exports = {
   RETENTION_CONSUMER_STATUS,
   RELEASE_ACTION,
   REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
+  REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION,
   REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION,
   REWORK_PLAN_STATE_SCHEMA_VERSION,
   REVIEW_STATUS,

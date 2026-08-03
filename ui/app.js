@@ -148,8 +148,10 @@ import {
   getReworkQaExecutionRequest,
   getReworkDeliveryPackagePreviewQuery,
   getReworkDeliveryPackageRecordRequest,
+  getReworkDeliveryPackageAcceptanceRequest,
   isExactReworkDeliveryPackagePreview,
   isExactReworkDeliveryPackageRecord,
+  isExactReworkDeliveryPackageAcceptance,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -454,6 +456,7 @@ const state = {
   reworkQaExecution: null,
   reworkDeliveryPackagePreview: null,
   reworkDeliveryPackage: null,
+  reworkDeliveryPackageAcceptance: null,
   missionStaffingPlanDraft: {
     mode: 'council',
     selectedAgentId: '',
@@ -5162,6 +5165,7 @@ function applySnapshotPayload(payload) {
     state.reworkQaExecution = null;
     state.reworkDeliveryPackagePreview = null;
     state.reworkDeliveryPackage = null;
+    state.reworkDeliveryPackageAcceptance = null;
   }
 
   state.payload = {
@@ -5434,6 +5438,7 @@ async function hydrateSelectedDetails() {
   state.builderReworkMutationApproval = null;
   state.reworkDeliveryPackagePreview = null;
   state.reworkDeliveryPackage = null;
+  state.reworkDeliveryPackageAcceptance = null;
   state.workOrderAcceptanceCriteriaRationale = '';
   state.workOrderProofDrafts = {};
   state.executionContinuationPreview = null;
@@ -5714,6 +5719,21 @@ async function hydrateSelectedDetails() {
             `/api/rework-plans/${encodeURIComponent(state.reviewerReworkPlan.id)}/delivery-package`,
           )
         )?.reworkDeliveryPackage || null;
+      if (state.reworkDeliveryPackage) {
+        const acceptancePayload = await fetchOptionalJson(
+          `/api/rework-delivery-packages/${encodeURIComponent(state.reworkDeliveryPackage.id)}/acceptance`,
+        );
+        const acceptance =
+          acceptancePayload?.reworkDeliveryPackageAcceptance || null;
+        state.reworkDeliveryPackageAcceptance =
+          acceptance &&
+          isExactReworkDeliveryPackageAcceptance(
+            acceptance,
+            state.reworkDeliveryPackage,
+          )
+            ? acceptance
+            : null;
+      }
     }
   }
 
@@ -7891,6 +7911,62 @@ async function recordReworkDeliveryPackage(actionButton) {
   } catch (error) {
     state.reworkDeliveryPackage = null;
     throw error;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function acceptReworkDeliveryPackage(actionButton) {
+  const record = state.reworkDeliveryPackage;
+  const envelope = state.reworkQaExecution;
+  const form = actionButton?.closest?.(
+    '[data-form="accept-rework-delivery-package"]',
+  );
+  const requestedPackageId = String(actionButton?.dataset.id || '').trim();
+  const acknowledgement = form
+    ? String(
+        new FormData(form).get(
+          'reworkDeliveryPackageAcceptanceAcknowledgement',
+        ) || '',
+      )
+    : '';
+  const request = getReworkDeliveryPackageAcceptanceRequest(
+    record,
+    envelope,
+  );
+  if (
+    !record ||
+    record.id !== requestedPackageId ||
+    !request ||
+    acknowledgement !== 'accept-exact-rework-delivery-package-only'
+  ) {
+    throw new Error(
+      'source-current package와 acceptance-only acknowledgement가 필요합니다.',
+    );
+  }
+
+  state.mutating = true;
+  state.reworkDeliveryPackageAcceptance = null;
+  elements.refreshStatus.textContent = `${record.id} acceptance evidence를 기록하는 중…`;
+  render();
+  try {
+    const payload = await postJson(
+      `/api/rework-delivery-packages/${encodeURIComponent(record.id)}/accept`,
+      request,
+    );
+    const acceptance = payload.reworkDeliveryPackageAcceptance;
+    if (
+      payload.reviewStatus !== 'accepted' ||
+      !isExactReworkDeliveryPackageAcceptance(acceptance, record)
+    ) {
+      throw new Error(
+        'ReworkDeliveryPackageAcceptance가 exact package evidence와 다릅니다.',
+      );
+    }
+    state.reworkDeliveryPackageAcceptance = acceptance;
+    elements.refreshStatus.textContent =
+      `${acceptance.id} immutable acceptance evidence를 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -14378,6 +14454,11 @@ function renderReworkDeliveryPackagePreview(reworkPlanId) {
 function renderReworkDeliveryPackageRecord(reworkPlanId) {
   const record = state.reworkDeliveryPackage;
   if (!record || record.reworkPlanId !== reworkPlanId) return '';
+  const acceptance = state.reworkDeliveryPackageAcceptance;
+  const acceptanceRequest = getReworkDeliveryPackageAcceptanceRequest(
+    record,
+    state.reworkQaExecution,
+  );
   const workOrderRows = (record.workOrderResults || [])
     .map(
       (entry) => `
@@ -14413,8 +14494,60 @@ function renderReworkDeliveryPackageRecord(reworkPlanId) {
         <ul>${workOrderRows}</ul>
       </div>
       <p class="detail-copy detail-copy-compact">
-        이 record는 review-required audit evidence입니다. acceptance, rejection, changes-requested, Mission/task close-out, retry, recovery, commit, push, release control은 제공되지 않습니다.
+        이 record는 immutable review evidence입니다. rejection, changes-requested, Mission/task close-out, retry, recovery, commit, push, release control은 제공되지 않습니다.
       </p>
+      ${
+        acceptance &&
+        isExactReworkDeliveryPackageAcceptance(acceptance, record)
+          ? `
+            <div
+              class="rework-delivery-package-acceptance"
+              aria-label="Accepted ReworkDeliveryPackage evidence"
+              data-rework-delivery-acceptance-status="accepted"
+            >
+              <div class="card-title-row card-title-row-tight">
+                <strong>Acceptance evidence</strong>
+                ${createToken('accepted', 'success')}
+                ${createToken('read-only', 'neutral')}
+              </div>
+              <dl class="reviewer-rework-evidence">
+                <div><dt>Acceptance</dt><dd>${escapeHtml(acceptance.id)}</dd></div>
+                <div><dt>Acceptance digest</dt><dd>${escapeHtml(acceptance.acceptanceDigest)}</dd></div>
+                <div><dt>Package digest</dt><dd>${escapeHtml(acceptance.reworkDeliveryPackageRecordDigest)}</dd></div>
+                <div><dt>Decision</dt><dd>${escapeHtml(acceptance.decision)}</dd></div>
+              </dl>
+              <p class="detail-copy detail-copy-compact">Acceptance evidence만 기록되었습니다. package와 source는 변경되지 않았고 downstream authority는 계속 닫혀 있습니다.</p>
+            </div>
+          `
+          : acceptanceRequest
+            ? `
+              <form
+                class="reviewer-rework-record-form rework-delivery-acceptance-form"
+                data-form="accept-rework-delivery-package"
+              >
+                <label class="builder-rework-acknowledgement">
+                  <input
+                    name="reworkDeliveryPackageAcceptanceAcknowledgement"
+                    type="checkbox"
+                    value="accept-exact-rework-delivery-package-only"
+                    required
+                    ${state.loading || state.mutating ? 'disabled' : ''}
+                  />
+                  <span>exact package의 acceptance evidence만 기록하고 downstream authority는 열지 않음</span>
+                </label>
+                <button
+                  class="primary-button"
+                  type="button"
+                  data-action="accept-rework-delivery-package"
+                  data-id="${escapeHtml(record.id)}"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                >
+                  재작업 DeliveryPackage 승인
+                </button>
+              </form>
+            `
+            : '<p class="inline-notice inline-notice-warning">현재 QA evidence와 package binding이 달라 승인을 실행할 수 없습니다.</p>'
+      }
     </section>
   `;
 }
@@ -23935,6 +24068,13 @@ document.addEventListener('click', async (event) => {
         'record-rework-delivery-package'
       ) {
         await recordReworkDeliveryPackage(actionButton);
+        return;
+      }
+      if (
+        actionButton.dataset.action ===
+        'accept-rework-delivery-package'
+      ) {
+        await acceptReworkDeliveryPackage(actionButton);
         return;
       }
 

@@ -163,7 +163,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v25 after the additive ReworkDeliveryPackage migration, while
+execution state is schema v26 after the additive ReworkDeliveryPackageAcceptance migration, while
 `companyRuntime` remains an additive read-only snapshot on the configured local server path. The
 editable company roster remains browser presentation only.
 
@@ -348,12 +348,12 @@ Planning-only `DEC-216` defines the Stage 5K rework DeliveryPackage acceptance b
 `docs/147_ai-company-rework-delivery-package-acceptance-plan.md`, and `DEC-217` records its complete
 fielded implementation handoff in
 `docs/148_ai-company-rework-delivery-package-acceptance-implementation-decision-handoff.md`. The
-plan keeps schema v25 current and fixes one future schema-v26 append-only
+plan fixes one schema-v26 append-only
 `ReworkDeliveryPackageAcceptance`: first acceptance requires a fresh exact DEC-212 recomputation,
 while exact replay validates durable package and acceptance evidence before source recomputation.
 Package mutation, rejection, changes-requested, Mission/task close-out, retry/recovery/execution,
 provider/source action, Git/release, memory, scheduling, policy, collections, bypass, and connectors
-remain blocked until exact `DEC-218`.
+remain blocked after exact `DEC-218`, which implements acceptance evidence and exact inspection only.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -862,7 +862,7 @@ Stage 5H rework QA planning, fielded handoff, and bounded implementation evidenc
 through DEC-212 Stage 5I response-only rework DeliveryPackage planning, fielded handoff, and
 bounded implementation evidence plus DEC-213 through DEC-215 Stage 5J durable rework
 DeliveryPackage planning, fielded handoff, and record-and-inspect implementation evidence plus
-DEC-216 through DEC-217 Stage 5K acceptance planning and fielded handoff evidence pass the focused,
+DEC-216 through DEC-218 Stage 5K acceptance planning, fielded handoff, and implementation evidence pass the focused,
 aggregate, and UI QA
 gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
@@ -2535,9 +2535,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1000 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1002 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 712 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 713 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -3110,8 +3110,8 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
-  multi-agent completion implementation slices are current through DEC-215, with Stage 5K
-  acceptance planning and handoff current through DEC-217. DEC-173
+  multi-agent completion implementation slices are current through DEC-218, including Stage 5K
+  acceptance evidence and exact inspection. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell
@@ -3180,9 +3180,9 @@ Playwright CLI:
   exclusion, and read-only UI hydration exist; package decisions, Mission/task close-out,
   retry/recovery/execution, provider/source mutation, Git/release authority, memory/learning
   application, scheduling, policy, collections, bypass, and connectors remain unimplemented.
-- `DEC-216` and `DEC-217` are consumed planning and fielded handoff evidence for one future
-  schema-v26 append-only `ReworkDeliveryPackageAcceptance`. Schema v25 remains current and no
-  acceptance record, route, accepted read model, or UI action exists before exact DEC-218. Package
+- `DEC-216` through `DEC-218` are consumed planning, fielded handoff, and implementation evidence
+  for one schema-v26 append-only `ReworkDeliveryPackageAcceptance`. Exact accept/replay, package-bound
+  inspection, snapshot exclusion, source-drift-safe evidence, and the gated UI action exist. Package
   mutation, Mission/task close-out, retry/recovery/execution, provider/source action, Git/release,
   memory/learning, scheduling, policy, collections, bypass, and connectors remain unimplemented.
 - `DEC-138` permits only the selected Mission's exact read-only graph projection. The view is capped

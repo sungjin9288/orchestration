@@ -138,14 +138,14 @@ for (const source of [
 assert.match(inventory, /AI Company Reviewer re-execution implementation/);
 assert.match(inventory, /DEC-204/);
 assert.match(inventory, /DEC-205/);
-assert.match(inventory, /informational `304\/304`, total `305\/305`/);
+assert.match(inventory, /informational `305\/305`, total `306\/306`/);
 assert.match(readme, /docs\/139_ai-company-reviewer-reexecution-plan\.md/);
 assert.match(
   readme,
   /docs\/140_ai-company-reviewer-reexecution-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /1000 smoke files/);
-assert.match(readme, /712 UI smoke files/);
+assert.match(readme, /1002 smoke files/);
+assert.match(readme, /713 UI smoke files/);
 assert.match(todo, /ai-company-reviewer-reexecution-implementation-post-m7-2037/);
 assert.match(
   lessons,
@@ -156,7 +156,7 @@ assert.match(
   /id: 'ai-company-reviewer-reexecution-planning'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 25/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 26/);
 assert.match(attempts, /RUN_REVIEWER: 'run-reviewer'/);
 assert.match(
   runtime,
@@ -186,8 +186,8 @@ assert.match(coordinator, /async function runReviewerReexecution\(input\)/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1000);
-assert.equal(uiSmokeFileCount, 712);
+assert.equal(smokeFileCount, 1002);
+assert.equal(uiSmokeFileCount, 713);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,

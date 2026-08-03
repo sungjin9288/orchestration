@@ -89,6 +89,24 @@ const REWORK_DELIVERY_PACKAGE_BODY_KEYS = Object.freeze([
   'sourceDigest',
 ]);
 const REWORK_DELIVERY_PACKAGE_MAX_BODY_BYTES = 8192;
+const REWORK_DELIVERY_PACKAGE_ACCEPTANCE_BODY_KEYS = Object.freeze([
+  'checkpointDigest',
+  'decision',
+  'deliveryReadyCheckpointId',
+  'evaluatedAt',
+  'previewDigest',
+  'previewId',
+  'qaEvidenceArtifactId',
+  'qaInputDigest',
+  'qaRunId',
+  'qaWorkOrderAttemptId',
+  'qaWorkOrderAttemptRecordDigest',
+  'reworkDeliveryEvidenceDigest',
+  'reworkDeliveryPackageRecordDigest',
+  'reworkPlanId',
+  'sourceDigest',
+]);
+const REWORK_DELIVERY_PACKAGE_ACCEPTANCE_MAX_BODY_BYTES = 8192;
 let latestHarnessExecution = null;
 let recentHarnessExecutions = [];
 let harnessExecutionSequence = 0;
@@ -3097,6 +3115,86 @@ const server = createServer(async (request, response) => {
   const reworkDeliveryPackageInspectMatch = url.pathname.match(
     /^\/api\/rework-delivery-packages\/([^/]+)$/,
   );
+  const reworkDeliveryPackageAcceptanceMatch = url.pathname.match(
+    /^\/api\/rework-delivery-packages\/([^/]+)\/(accept|acceptance)$/,
+  );
+  if (reworkDeliveryPackageAcceptanceMatch) {
+    const reworkDeliveryPackageId = decodeURIComponent(
+      reworkDeliveryPackageAcceptanceMatch[1],
+    );
+    const operation = reworkDeliveryPackageAcceptanceMatch[2];
+    if (
+      !REWORK_DELIVERY_PREVIEW_IDENTIFIER_PATTERN.test(
+        reworkDeliveryPackageId,
+      )
+    ) {
+      json(response, 400, { error: 'ReworkDeliveryPackage id is invalid' });
+      return;
+    }
+    if (operation === 'accept' && method === 'POST') {
+      try {
+        const input = await readBoundedJsonBody(
+          request,
+          REWORK_DELIVERY_PACKAGE_ACCEPTANCE_MAX_BODY_BYTES,
+        );
+        const actualKeys = Object.keys(input).sort();
+        if (
+          actualKeys.length !==
+            REWORK_DELIVERY_PACKAGE_ACCEPTANCE_BODY_KEYS.length ||
+          actualKeys.some(
+            (key, index) =>
+              key !== REWORK_DELIVERY_PACKAGE_ACCEPTANCE_BODY_KEYS[index],
+          )
+        ) {
+          const error = new Error(
+            'ReworkDeliveryPackageAcceptance body requires exactly fifteen fields',
+          );
+          error.statusCode = 400;
+          throw error;
+        }
+        const result = runtime.acceptReworkDeliveryPackage(
+          reworkDeliveryPackageId,
+          input,
+        );
+        json(response, result.idempotent ? 200 : 201, {
+          generatedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message || 'ReworkDeliveryPackage 승인에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    if (operation === 'acceptance' && method === 'GET') {
+      try {
+        const result = runtime.getReworkDeliveryPackageAcceptance(
+          reworkDeliveryPackageId,
+        );
+        json(response, 200, {
+          generatedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      } catch (error) {
+        json(response, error.statusCode || 400, {
+          error: String(
+            error.message ||
+              'ReworkDeliveryPackageAcceptance 조회에 실패했습니다.',
+          ).slice(0, 240),
+        });
+        return;
+      }
+    }
+    json(response, 405, {
+      error: 'ReworkDeliveryPackage acceptance route method is not allowed.',
+    });
+    return;
+  }
   if (reworkDeliveryPackageInspectMatch) {
     if (method !== 'GET') {
       json(response, 405, {

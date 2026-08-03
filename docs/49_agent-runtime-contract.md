@@ -550,13 +550,16 @@ Stage 5J durable audit boundary. DEC-215 adds only schema v25
 preview, require a separate bounded record approval, append one immutable
 `status=review-required` record, and expose exact-id plus one bounded ReworkPlan locator.
 
-Planning-only `DEC-216` and handoff-only `DEC-217` define one future schema-v26
+Planning-only `DEC-216`, handoff-only `DEC-217`, and implementation `DEC-218` define one schema-v26
 `ReworkDeliveryPackageAcceptance` sequence/map. First acceptance must freshly recompute DEC-212
 from current source evidence; exact replay must validate the immutable package and existing
 acceptance before mutable source recomputation. The package status and digest never change, and no
 package rejection, changes-requested, close-out, retry, recovery, execution, provider/source, Git,
-release, memory, scheduling, policy, collection, bypass, or connector authority opens before exact
-`DEC-218`.
+release, memory, scheduling, policy, collection, bypass, or connector authority opens. `DEC-218`
+implements only that append-only acceptance evidence and exact inspection boundary. It
+does not mutate the source package or open rejection, changes-requested, close-out, retry, recovery,
+execution, provider, source, Git/release, memory, scheduling, policy, collection, bypass, or connector
+authority.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

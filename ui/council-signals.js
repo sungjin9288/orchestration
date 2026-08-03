@@ -958,6 +958,97 @@ export function isExactReworkDeliveryPackageRecord(
   );
 }
 
+export const REWORK_DELIVERY_PACKAGE_ACCEPTANCE_AUTHORITY_KEYS = Object.freeze([
+  'approvalBypassAllowed',
+  'collectionAllowed',
+  'commitAllowed',
+  'connectorCallAllowed',
+  'executionAllowed',
+  'learningAllowed',
+  'memoryApplicationAllowed',
+  'missionCloseOutAllowed',
+  'packageAcceptanceEvidenceAllowed',
+  'packageChangesRequestedAllowed',
+  'packageMutationAllowed',
+  'packageRejectionAllowed',
+  'policyMutationAllowed',
+  'providerCallAllowed',
+  'pushAllowed',
+  'recoveryAllowed',
+  'releaseAllowed',
+  'retryAllowed',
+  'schedulingAllowed',
+  'sourceMutationAllowed',
+  'taskCloseOutAllowed',
+]);
+
+export function getReworkDeliveryPackageAcceptanceRequest(record, envelope) {
+  const attempt = envelope?.workOrderAttempt;
+  if (
+    !record ||
+    record.persisted !== true ||
+    record.status !== 'review-required' ||
+    !attempt ||
+    attempt.id !== record.qaWorkOrderAttemptId ||
+    !/^[a-f0-9]{64}$/.test(attempt.recordDigest || '') ||
+    !/^[a-f0-9]{64}$/.test(record.recordDigest || '')
+  ) {
+    return null;
+  }
+  return {
+    reworkPlanId: record.reworkPlanId,
+    qaWorkOrderAttemptId: record.qaWorkOrderAttemptId,
+    qaWorkOrderAttemptRecordDigest: attempt.recordDigest,
+    qaRunId: record.qaRunId,
+    qaEvidenceArtifactId: record.qaEvidenceArtifactId,
+    deliveryReadyCheckpointId: record.terminalCheckpointId,
+    checkpointDigest: record.terminalCheckpointDigest,
+    sourceDigest: record.sourceDigest,
+    qaInputDigest: record.qaInputDigest,
+    evaluatedAt: record.previewEvaluatedAt,
+    previewId: record.previewId,
+    previewDigest: record.previewDigest,
+    reworkDeliveryEvidenceDigest: record.reworkDeliveryEvidenceDigest,
+    reworkDeliveryPackageRecordDigest: record.recordDigest,
+    decision: 'accept',
+  };
+}
+
+export function isExactReworkDeliveryPackageAcceptance(
+  acceptance,
+  record,
+) {
+  const authority = acceptance?.authoritySummary;
+  return Boolean(
+    acceptance &&
+      record &&
+      acceptance.decision === 'accepted' &&
+      acceptance.projectId === record.projectId &&
+      acceptance.missionId === record.missionId &&
+      acceptance.executionPlanId === record.executionPlanId &&
+      acceptance.reworkPlanId === record.reworkPlanId &&
+      acceptance.reworkDeliveryPackageId === record.id &&
+      acceptance.previewId === record.previewId &&
+      acceptance.previewDigest === record.previewDigest &&
+      acceptance.sourceDigest === record.sourceDigest &&
+      acceptance.reworkDeliveryEvidenceDigest ===
+        record.reworkDeliveryEvidenceDigest &&
+      acceptance.reworkDeliveryPackageRecordDigest === record.recordDigest &&
+      /^[a-f0-9]{64}$/.test(acceptance.acceptanceDigest || '') &&
+      hasExactKeys(
+        authority,
+        REWORK_DELIVERY_PACKAGE_ACCEPTANCE_AUTHORITY_KEYS,
+      ) &&
+      authority.packageAcceptanceEvidenceAllowed === true &&
+      Object.entries(authority).every(
+        ([key, value]) =>
+          key === 'packageAcceptanceEvidenceAllowed'
+            ? value === true
+            : value === false,
+      )
+  );
+}
+
 export function isSpecialistBatchPreviewSourceCurrent(
   snapshot,
   preview,

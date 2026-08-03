@@ -38,9 +38,9 @@ function assertReadmeHas(pattern) {
 const inventoryGateRows = [
   /Starting head checked before this inventory edit: `965a35b`/,
   /Planning baseline head checked before this document update: `965a35b`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `304\/304`, total `305\/305` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `90\/90` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `305\/305`, UI QA `90\/90`, zero unchecked task lines,[^|]+DEC-210 through DEC-212 Stage 5I rework DeliveryPackage preview planning\/handoff\/implementation, DEC-213 through DEC-215 Stage 5J durable Rework DeliveryPackage planning\/handoff\/implementation, and DEC-216 through DEC-217 Stage 5K ReworkDeliveryPackage acceptance planning\/handoff\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current working-tree required `1\/1`, informational `305\/305`, total `306\/306` pass\. \| Keep as the default required docs\/runtime aggregate gate\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `91\/91` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current working-tree inventory is pinned to aggregate `306\/306`, UI QA `91\/91`, zero unchecked task lines,[^|]+DEC-218 including Stage 5K ReworkDeliveryPackage acceptance planning, handoff, and implementation\. \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| AI Company Reviewer re-execution planning \| pass \| `DEC-204`, `DEC-205`, `docs\/139_ai-company-reviewer-reexecution-plan\.md`, `docs\/140_ai-company-reviewer-reexecution-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-reviewer-reexecution-planning\.mjs` \|/,
   /\| AI Company Reviewer re-execution implementation \| pass \| `DEC-206`, `src\/runtime\/reviewer-reexecution\.js`, `node scripts\/smoke-ai-company-reviewer-reexecution\.mjs`, `node scripts\/smoke-ui-slice-709\.mjs` \|/,
   /\| AI Company rework QA execution planning \| pass \| `DEC-207`, `DEC-208`, `docs\/141_ai-company-rework-qa-execution-plan\.md`, `docs\/142_ai-company-rework-qa-execution-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-rework-qa-execution-planning\.mjs` \|/,
@@ -143,7 +143,8 @@ const inventoryGateRows = [
   /\| AI Company durable Rework DeliveryPackage planning \| pass \| `DEC-213`, `DEC-214`, `docs\/145_ai-company-durable-rework-delivery-package-plan\.md`, `docs\/146_ai-company-durable-rework-delivery-package-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-durable-rework-delivery-package-planning\.mjs` \|/,
   /\| AI Company durable Rework DeliveryPackage implementation \| pass \| `DEC-215`, `src\/runtime\/rework-delivery-packages\.js`, `node scripts\/smoke-ai-company-durable-rework-delivery-package\.mjs`, `node scripts\/smoke-ui-slice-712\.mjs` \|/,
   /\| AI Company ReworkDeliveryPackage acceptance planning \| pass \| `DEC-216`, `DEC-217`, `docs\/147_ai-company-rework-delivery-package-acceptance-plan\.md`, `docs\/148_ai-company-rework-delivery-package-acceptance-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-rework-delivery-package-acceptance-planning\.mjs` \|/,
-  /The required implementation baseline is current through `DEC-215`, while planning and handoff\s+evidence is current through `DEC-217`\.[\s\S]*Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212` define one[\s\S]*Planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215` define one schema-v25[\s\S]*Planning-only `DEC-216` and handoff-only `DEC-217` define one future schema-v26/,
+  /\| AI Company ReworkDeliveryPackage acceptance implementation \| pass \| `DEC-218`, `src\/runtime\/rework-delivery-package-acceptances\.js`, `node scripts\/smoke-ai-company-rework-delivery-package-acceptance\.mjs`, `node scripts\/smoke-ui-slice-713\.mjs` \|/,
+  /The required implementation baseline is current through `DEC-218`\.[\s\S]*Planning-only `DEC-210`, handoff-only `DEC-211`, and implementation `DEC-212` define one[\s\S]*Planning-only `DEC-213`, handoff-only `DEC-214`, and implementation `DEC-215` define one schema-v25[\s\S]*Planning-only `DEC-216`, handoff-only `DEC-217`, and implementation `DEC-218` define one schema-v26/,
   /Planning-only `DEC-198` and handoff-only `DEC-199` define Stage 5E as one existing task-owned[\s\S]*`DEC-200` implements the\s+dedicated source-bound wrappers[\s\S]*Builder source mutation remains closed/,
   /Planning-only `DEC-201`, handoff-only `DEC-202`, and implementation `DEC-203` define one dedicated[\s\S]*before Reviewer\/QA/,
 ];
@@ -365,6 +366,7 @@ assert.match(uiQaStatus, /smoke-ui-slice-708\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-709\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-710\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-712\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-713\.mjs/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -375,8 +377,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '304/304',
-        total: '305/305',
+        informational: '305/305',
+        total: '306/306',
       },
     },
     null,

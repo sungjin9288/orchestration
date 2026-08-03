@@ -22,7 +22,7 @@ or open Git, release, learning, scheduling, policy, collection, bypass, or conne
 | `rollbackRefs` | disable future accept and exact inspection entrypoints and UI action, stop new acceptance creation, preserve every valid schema-v26 acceptance and schema-v25 source record without downgrade deletion rewrite reopening or implicit close-out, keep DEC-215 package inspection available, and rerun migration focused UI compatibility README inventory UI QA and aggregate verification |
 | `focusedSmokeRefs` | planning smoke only in `scripts/smoke-ai-company-rework-delivery-package-acceptance-planning.mjs`; schema/runtime/API/UI implementation smokes remain blocked |
 | `aggregateVerificationRef` | `node scripts/verification_status.mjs` |
-| `stillBlockedAuthorities` | schema-v26 implementation, durable ReworkDeliveryPackageAcceptance creation, package rejection changes-requested supersession deletion replacement quarantine or source-package status mutation, Mission or task close-out or done, another QA attempt retry recovery resume cancellation or rework, provider-backed execution, source mutation expansion, runtime-agent commit push or release, memory or learning application, automatic parallel dynamic autonomous or background scheduling, profile or policy mutation, approval bypass, collection list history search ranking recommendation automatic selection, and external connectors |
+| `stillBlockedAuthorities` | package rejection changes-requested supersession deletion replacement quarantine or source-package status mutation, Mission or task close-out or done, another QA attempt retry recovery resume cancellation or rework, provider-backed execution, source mutation expansion, runtime-agent commit push or release, memory or learning application, automatic parallel dynamic autonomous or background scheduling, profile or policy mutation, approval bypass, collection list history search ranking recommendation automatic selection, and external connectors |
 | `approvalStatement` | The operator approves planning only for one exact append-only ReworkDeliveryPackage acceptance record. Implementation and every downstream lifecycle or execution authority require a later complete fielded decision. |
 
 ## Current Baseline Evidence
@@ -278,7 +278,9 @@ scripts/ui_qa_status.mjs
 
 Planning is complete as `DEC-216`. The complete fielded implementation handoff is `DEC-217` in
 `docs/148_ai-company-rework-delivery-package-acceptance-implementation-decision-handoff.md`.
-Schema/runtime/API/UI implementation remains blocked until one exact value-matching `DEC-218`.
+Schema/runtime/API/UI implementation was accepted and completed by exact value-matching `DEC-218`.
+This plan remains the source contract; every authority outside acceptance evidence and exact
+inspection stays blocked.
 
 ## Verification
 

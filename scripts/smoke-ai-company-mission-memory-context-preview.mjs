@@ -96,7 +96,7 @@ async function main() {
     const memoryItem = seededSnapshot.memoryItems[memoryRecall.sourceMemoryItemId];
     assert.ok(memoryRecall);
     assert.ok(memoryItem);
-    assert.equal(seededSnapshot.schemaVersion, 25);
+    assert.equal(seededSnapshot.schemaVersion, 26);
 
     const mission = runtime.createMission({
       projectId: memoryRecall.projectId,
