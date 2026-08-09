@@ -1446,6 +1446,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation adds only one sequence/map pair, one immutable acceptance contract, exact accept and inspection routes, package-bound UI action and hydration, snapshot exclusion, and focused runtime/API/UI evidence. The source package and every upstream record remain immutable; exact replay performs no save and remains inspectable after later source drift.
 - Needed Before: Package rejection, changes-requested, mutation, supersession, deletion, Mission/task close-out, retry/recovery/execution, provider/source action, runtime-agent Git/release, memory/learning, scheduling, policy, collections, bypass, and connectors require separate complete fielded decisions.
 
+### DEC-219
+- Status: `Accepted`
+- Decision: Accept planning only for Stage 6B: one schema-v27 append-only `OpsAttemptDisposition(decision=quarantine)` from one exact source-current DEC-185 `OpsSupervisionPreview`.
+- Why: The current runtime can identify an active attempt whose outcome is uncertain, but it cannot preserve an operator quarantine decision or prevent a late worker result from settling that exact record. Quarantine is the smallest command that protects evidence without inventing success, failure, cancellation, or recovery.
+- Impact: Planning defines an immutable disposition, exact eleven-key request, first-write preview recomputation, replay-before-recompute, exact inspection, and deterministic late-settlement denial across WorkOrder, specialist first-attempt, and specialist retry targets. It opens no schema, runtime, API, UI, settlement, worker, or recovery implementation authority.
+- Needed Before: One complete value-matching implementation decision may be accepted separately as `DEC-221`. Partial, generic, renamed, or broadened approval is non-authorizing.
+
+### DEC-220
+- Status: `Accepted`
+- Decision: Record the complete fielded implementation decision handoff for the DEC-219 Ops attempt quarantine plan.
+- Why: Schema migration and settlement denial alter durable execution semantics. The exact target, migration, replay, compatibility, rollback, verification, and still-blocked authority must be reviewable before implementation starts.
+- Impact: `docs/150_ai-company-ops-attempt-quarantine-implementation-decision-handoff.md` provides valid approval, evidence-request, rejection, and deferral outcomes. No implementation authority is recorded.
+- Needed Before: Runtime implementation remains blocked until one complete value-matching approval is accepted as `DEC-221`.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

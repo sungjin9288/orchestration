@@ -186,12 +186,14 @@ for (const decisionId of [
   'DEC-216',
   'DEC-217',
   'DEC-218',
+  'DEC-219',
+  'DEC-220',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-218`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-220`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -363,6 +365,8 @@ process.stdout.write(
         reworkDeliveryPackageAcceptancePlanning: 'accepted-dec-216',
         reworkDeliveryPackageAcceptanceHandoff: 'documented-dec-217',
         reworkDeliveryPackageAcceptanceImplementation: 'accepted-dec-218',
+        opsAttemptQuarantinePlanning: 'accepted-dec-219',
+        opsAttemptQuarantineHandoff: 'documented-dec-220',
       },
       currentRuntime: {
         schemaVersion: 26,
@@ -388,10 +392,10 @@ process.stdout.write(
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '5K',
-        object: 'rework-delivery-package-acceptance',
-        implementationAllowed: true,
-        nextDecisionLogEntry: null,
+        stage: '6B',
+        object: 'ops-attempt-quarantine',
+        implementationAllowed: false,
+        nextDecisionLogEntry: 'DEC-221',
       },
       authority: {
         documentationAllowed: true,
@@ -431,6 +435,8 @@ process.stdout.write(
         durableReworkDeliveryPackageImplementationAllowed: true,
         reworkDeliveryPackageAcceptancePlanningAllowed: true,
         reworkDeliveryPackageAcceptanceImplementationAllowed: true,
+        opsAttemptQuarantinePlanningAllowed: true,
+        opsAttemptQuarantineImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

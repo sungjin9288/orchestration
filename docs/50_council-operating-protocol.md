@@ -500,6 +500,12 @@ Planning-only `DEC-216`, handoff-only `DEC-217`, and implementation `DEC-218` si
 acceptance evidence only. DEC-218 appends only one accepted fact after fresh source recomputation but may not
 revise Council output, mutate the package, close Mission/task state, or authorize role execution.
 
+Planning-only `DEC-219` and handoff-only `DEC-220` place the first Ops command after exact
+DEC-185 inspection. Quarantine may eventually append one immutable disposition and reject late
+settlement for that exact record digest, but it may not edit an agent attempt, infer an outcome,
+cancel or terminate work, resume, retry, create another attempt, or alter Council evidence.
+Implementation remains blocked until exact `DEC-221`.
+
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한

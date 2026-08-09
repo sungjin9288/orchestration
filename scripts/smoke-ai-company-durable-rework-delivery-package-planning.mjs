@@ -190,7 +190,7 @@ assert.equal(
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1002);
+assert.equal(smokeFileCount, 1003);
 assert.equal(uiSmokeFileCount, 713);
 
 process.stdout.write(`${JSON.stringify({

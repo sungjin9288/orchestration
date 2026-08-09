@@ -123,7 +123,7 @@ assert.match(
   readme,
   /docs\/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /1002 smoke files/);
+assert.match(readme, /1003 smoke files/);
 assert.match(readme, /713 UI smoke files/);
 assert.match(todo, /ai-company-builder-rework-source-mutation-implementation-post-m7-2035/);
 assert.match(
@@ -153,7 +153,7 @@ assert.equal(
 );
 assert.match(app, /run-builder-rework-source-mutation/);
 
-assert.equal(countFiles(/^smoke-.*\.mjs$/), 1002);
+assert.equal(countFiles(/^smoke-.*\.mjs$/), 1003);
 assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 713);
 
 process.stdout.write(`${JSON.stringify({
@@ -165,6 +165,6 @@ process.stdout.write(`${JSON.stringify({
   schemaVersion: 24,
   sourceMutationAllowed: true,
   reviewerQaExecutionAllowed: false,
-  smokeFileCount: 1002,
+  smokeFileCount: 1003,
   uiSmokeFileCount: 713,
 }, null, 2)}\n`);

@@ -156,7 +156,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-218`
+- Recorded decisions: `DEC-163` through `DEC-220`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -191,6 +191,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `allowedActions=[]`, and `DEC-184` records its complete fielded implementation handoff
 - Stage 6A implementation: `DEC-185` adds one exact six-key GET and browser-memory inspection path
   without schema migration, persistence, execution, or recovery authority
+- Stage 6B planning: `DEC-219` fixes one future schema-v27 append-only
+  `OpsAttemptDisposition(decision=quarantine)` from an exact DEC-185 preview, and `DEC-220` records
+  its complete fielded implementation handoff. Runtime, schema, settlement guard, API, and UI
+  implementation remain blocked until exact `DEC-221`
 - Stage 5 planning: `DEC-186` fixes one exact schema-v21-preserving response-only
   ReviewerReworkPlanPreview, and `DEC-187` records its complete fielded implementation handoff
 - Stage 5 implementation: `DEC-188` adds the exact seven-key GET and browser-memory preview with a
@@ -615,6 +619,10 @@ Mission/task state. Planning-only `DEC-216` and handoff-only `DEC-217` define St
 append-only acceptance fact with first-write fresh source recomputation and replay-before-recompute.
 Implementation `DEC-218` consumes only the append-only acceptance-and-inspect boundary. Package
 mutation, close-out, retry, recovery, execution, and every broader authority remain blocked.
+Stage 6B planning-only `DEC-219` and handoff-only `DEC-220` define quarantine as the first Ops
+command: preserve the active source record, append exact disposition evidence, and deny its late
+settlement. Implementation remains blocked until exact `DEC-221`; cancellation, resume, retry,
+worker termination, inferred settlement, and new attempts remain separate authorities.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

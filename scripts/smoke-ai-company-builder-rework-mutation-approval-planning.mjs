@@ -116,7 +116,7 @@ assert.match(inventory, /AI Company Builder rework mutation Approval planning/);
 assert.match(inventory, /informational `305\/305`, total `306\/306`/);
 assert.match(readme, /docs\/135_ai-company-builder-rework-mutation-approval-plan\.md/);
 assert.match(readme, /docs\/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff\.md/);
-assert.match(readme, /1002 smoke files/);
+assert.match(readme, /1003 smoke files/);
 assert.match(readme, /713 UI smoke files/);
 assert.match(todo, /ai-company-builder-rework-mutation-approval-planning-post-m7-2030/);
 assert.match(lessons, /Builder rework mutation Approval must bind the exact waiting-gate lineage/);

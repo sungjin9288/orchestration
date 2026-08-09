@@ -508,6 +508,13 @@ handoff를 기록한다. 이 response-only classifier는 Reviewer rework나 reco
 바꾸지 않는다. `DEC-185`는 exact six-key GET과 browser-memory inspection만 구현하며
 `allowedActions=[]`로 멈춘다.
 
+`DEC-219`는 Stage 6B의 첫 command를 quarantine 하나로 제한한다. Exact DEC-185 preview를
+fresh state에서 다시 확인하고 future schema-v27 immutable disposition을 append한 뒤 같은
+target record digest의 late settlement를 거부하는 계획이다. `DEC-220`은 complete fielded
+handoff를 기록하며 implementation은 exact `DEC-221` 전까지 blocked다. Cancel, process
+termination, resume, retry, rework, inferred result, new attempt, provider, source, Git/release,
+memory, scheduling, policy, collection, bypass, connector authority는 열리지 않는다.
+
 `DEC-186`은 Stage 5 Reviewer rework의 첫 단계를 schema-v21-preserving response-only
 ReviewerReworkPlanPreview로 고정하고, `DEC-187`은 complete fielded implementation handoff를
 기록한다. 이 preview는 one exact bound `changes-requested` stop, bounded review Artifact,

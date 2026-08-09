@@ -53,12 +53,10 @@ StaffingPlan부터 한 단계씩 추가하고, 각 단계에서 operator가 다�
 
 ### Not Implemented
 
-- Accepted StaffingPlan binding to Council or solo execution entry.
-- `parallel-specialists` activation or runtime execution.
-- A scheduler that dispatches any dependency-ready WorkOrder rather than one fixed active role.
-- Safe parallel read-only specialist cells and failed-cell-only retry.
-- Reviewer `changes-requested` to a new bounded Builder attempt.
-- Ops supervision commands over durable attempts and checkpoints.
+- Solo StaffingPlan entry and automatic Council revision/resume/auto-chain.
+- Broad `parallel-specialists` activation beyond the fixed Researcher and QA batch.
+- Automatic or background scheduling beyond one explicit operator step.
+- Ops quarantine, cancel, and safe-resume commands over durable attempts.
 - Reviewed memory context attachment to Mission planning input.
 - Provider-backed WorkOrder roles outside the current Council boundary.
 - Complete Phase 9 dogfood evidence.
@@ -298,6 +296,13 @@ records the complete fielded implementation handoff. Every valid preview has `al
 it classifies exact durable lineage and deadline evidence without list/search, migration, persistence,
 settlement, cancellation, quarantine mutation, replay, retry, or resume. `DEC-185` implements only
 that exact runtime/API/UI inspection path.
+
+Stage 6B planning-only `DEC-219` chooses one command from that closed action set: append one
+immutable `OpsAttemptDisposition(decision=quarantine)` for an exact source-current DEC-185 target
+and deny later settlement for the same target record digest. `DEC-220` records the complete fielded
+implementation handoff. No schema-v27, disposition record, settlement guard, POST route, or UI
+command exists until exact `DEC-221` approval. Cancel, worker termination, resume, replay, retry,
+rework, and new-attempt authority stay separate.
 
 ### Stage 7: Reviewed Mission Context Attachment
 
@@ -551,5 +556,10 @@ fit.
 - Operator-stepped WorkOrder scheduler planning is recorded as `DEC-170`; its complete fielded
   schema-v19 implementation handoff is recorded as `DEC-171`.
 - Operator-stepped WorkOrder scheduler implementation is recorded as `DEC-172`.
-- Solo entry/execution, bound revision/resume/auto-chain, and every later completion stage remain
-  blocked pending their own complete fielded decisions.
+- Fixed specialist first-attempt, retry, Reviewer rework, QA, durable package, and acceptance
+  implementation evidence is recorded through `DEC-218`.
+- Ops attempt quarantine planning is recorded as `DEC-219`; its complete fielded implementation
+  handoff is `DEC-220`. Exact implementation remains reserved for `DEC-221`.
+- Solo entry/execution, bound revision/resume/auto-chain, broader parallelism, cancel/resume,
+  reviewed Mission context attachment, provider WorkOrders, and dogfood closure remain blocked
+  pending their own complete fielded decisions.

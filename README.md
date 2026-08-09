@@ -150,6 +150,8 @@ Planning source files:
 - `docs/146_ai-company-durable-rework-delivery-package-implementation-decision-handoff.md`
 - `docs/147_ai-company-rework-delivery-package-acceptance-plan.md`
 - `docs/148_ai-company-rework-delivery-package-acceptance-implementation-decision-handoff.md`
+- `docs/149_ai-company-ops-attempt-quarantine-plan.md`
+- `docs/150_ai-company-ops-attempt-quarantine-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -354,6 +356,15 @@ while exact replay validates durable package and acceptance evidence before sour
 Package mutation, rejection, changes-requested, Mission/task close-out, retry/recovery/execution,
 provider/source action, Git/release, memory, scheduling, policy, collections, bypass, and connectors
 remain blocked after exact `DEC-218`, which implements acceptance evidence and exact inspection only.
+
+Planning-only `DEC-219` defines Stage 6B as one future schema-v27 append-only
+`OpsAttemptDisposition(decision=quarantine)` from one exact source-current DEC-185 supervision
+preview. `DEC-220` records the complete fielded implementation handoff in
+`docs/150_ai-company-ops-attempt-quarantine-implementation-decision-handoff.md`. The current
+runtime remains schema v26 and exposes no disposition record, quarantine route, settlement guard,
+or UI command. Exact `DEC-221` is required before implementation; cancel, resume, retry, inferred
+outcome, worker termination, source or parent mutation, provider work, Git/release authority,
+memory, scheduling, policy changes, bypass, and connectors remain blocked.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -862,7 +873,8 @@ Stage 5H rework QA planning, fielded handoff, and bounded implementation evidenc
 through DEC-212 Stage 5I response-only rework DeliveryPackage planning, fielded handoff, and
 bounded implementation evidence plus DEC-213 through DEC-215 Stage 5J durable rework
 DeliveryPackage planning, fielded handoff, and record-and-inspect implementation evidence plus
-DEC-216 through DEC-218 Stage 5K acceptance planning, fielded handoff, and implementation evidence pass the focused,
+DEC-216 through DEC-218 Stage 5K acceptance planning, fielded handoff, and implementation evidence,
+plus DEC-219 and DEC-220 Stage 6B quarantine planning and fielded handoff, pass the focused,
 aggregate, and UI QA
 gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
@@ -2535,7 +2547,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1002 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1003 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 713 UI smoke files
 ```
@@ -3111,7 +3123,9 @@ Playwright CLI:
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
   multi-agent completion implementation slices are current through DEC-218, including Stage 5K
-  acceptance evidence and exact inspection. DEC-173
+  acceptance evidence and exact inspection. DEC-219 and DEC-220 add Stage 6B planning and a
+  fielded handoff only; schema v27, durable quarantine evidence, settlement guards, and the UI
+  command remain unimplemented pending exact DEC-221. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell

@@ -542,6 +542,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 6A runtime and API prove all three exact active attempt types, canonical source and parent digest binding, deterministic deadline equality, deep-frozen bounded responses, exact 200 400 404 and 409 transport, zero state and source mutation, and blocked recovery provider Git memory policy collection bypass and connector authority',
   },
   {
+    id: 'ai-company-ops-attempt-quarantine-planning',
+    script: 'scripts/smoke-ai-company-ops-attempt-quarantine-planning.mjs',
+    purpose: 'AI Company Stage 6B planning fixes one future schema-v27 append-only OpsAttemptDisposition quarantine from one exact source-current DEC-185 preview, exact replay, target-wide late-settlement denial, immutable attempt and parent evidence, rollback retention, and blocked cancel resume retry inferred settlement worker provider source Git memory scheduling policy collection bypass and connector authority',
+  },
+  {
     id: 'ai-company-specialist-batch-preview',
     script: 'scripts/smoke-ai-company-specialist-batch-preview.mjs',
     purpose: 'AI Company Stage 4A runtime and API prove one exact source-current schema-v19 response-only SpecialistBatchPreview with two fixed read-only cells, raw-byte path digests, exact transport errors, unchanged state bytes, and no worker provider persistence scheduling mutation Git release or policy authority',

@@ -561,6 +561,14 @@ does not mutate the source package or open rejection, changes-requested, close-o
 execution, provider, source, Git/release, memory, scheduling, policy, collection, bypass, or connector
 authority.
 
+Stage 6B planning-only `DEC-219` and handoff-only `DEC-220` define one future schema-v27
+`OpsAttemptDisposition(decision=quarantine)`. First write must recompute the exact DEC-185 preview
+from current durable evidence; exact replay resolves before mutable recomputation. The source attempt
+and parent remain immutable. A retained disposition permits only deterministic late-settlement
+denial for the same target record digest. Schema, persistence, API, UI, and settlement-guard
+implementation remain blocked until exact `DEC-221`; cancel, process termination, resume, replay,
+retry, rework, inferred result, and new-attempt authority remain closed.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-218`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-220`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -527,6 +527,8 @@ const report = {
         'DEC-216',
         'DEC-217',
         'DEC-218',
+        'DEC-219',
+        'DEC-220',
       ],
       currentRuntime: {
         schemaVersion: 26,
@@ -651,6 +653,8 @@ const report = {
         durableReworkDeliveryPackageImplementationAllowed: true,
         reworkDeliveryPackageAcceptancePlanningAllowed: true,
         reworkDeliveryPackageAcceptanceImplementationAllowed: true,
+        opsAttemptQuarantinePlanningAllowed: true,
+        opsAttemptQuarantineImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
@@ -663,7 +667,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'DEC-218 implements exact ReworkDeliveryPackage acceptance evidence; every downstream authority remains separately gated',
+      'DEC-219 and DEC-220 define Stage 6B quarantine planning and handoff; exact DEC-221 is required before implementation',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -692,12 +696,14 @@ assert.equal(report.authority.durableReworkDeliveryPackagePlanningAllowed, true)
 assert.equal(report.authority.durableReworkDeliveryPackageImplementationAllowed, true);
 assert.equal(report.authority.reworkDeliveryPackageAcceptancePlanningAllowed, true);
 assert.equal(report.authority.reworkDeliveryPackageAcceptanceImplementationAllowed, true);
+assert.equal(report.authority.opsAttemptQuarantinePlanningAllowed, true);
+assert.equal(report.authority.opsAttemptQuarantineImplementationAllowed, false);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /DEC-218 implements exact ReworkDeliveryPackage acceptance evidence/,
+  /DEC-219 and DEC-220 define Stage 6B quarantine planning and handoff/,
 );
 
 process.stdout.write(
