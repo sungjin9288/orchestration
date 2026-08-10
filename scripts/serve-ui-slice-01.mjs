@@ -36,6 +36,22 @@ const OPS_SUPERVISION_QUERY_KEYS = Object.freeze([
   'targetType',
 ]);
 const OPS_SUPERVISION_MAX_REQUEST_TARGET_LENGTH = 2048;
+const OPS_ATTEMPT_DISPOSITION_BODY_KEYS = Object.freeze([
+  'acknowledgement',
+  'decision',
+  'evaluatedAt',
+  'expectedParentDigest',
+  'expectedTargetRecordDigest',
+  'parentId',
+  'previewDigest',
+  'previewId',
+  'reasonCode',
+  'targetId',
+  'targetType',
+]);
+const OPS_ATTEMPT_DISPOSITION_MAX_BODY_BYTES = 8192;
+const OPS_ATTEMPT_DISPOSITION_ID_PATTERN =
+  /^ops-attempt-disposition-[0-9]{4,}$/;
 const REVIEWER_REWORK_QUERY_KEYS = Object.freeze([
   'evaluatedAt',
   'expectedAttemptRecordDigest',
@@ -1139,6 +1155,75 @@ const server = createServer(async (request, response) => {
       json(response, statusCode, {
         error: String(
           error.message || 'OpsSupervisionPreview 조회에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
+
+  if (
+    method === 'POST' &&
+    url.pathname === '/api/ops/attempt-dispositions/quarantine'
+  ) {
+    try {
+      const input = await readBoundedJsonBody(
+        request,
+        OPS_ATTEMPT_DISPOSITION_MAX_BODY_BYTES,
+      );
+      const actualKeys = Object.keys(input).sort();
+      if (
+        actualKeys.length !== OPS_ATTEMPT_DISPOSITION_BODY_KEYS.length ||
+        actualKeys.some(
+          (key, index) => key !== OPS_ATTEMPT_DISPOSITION_BODY_KEYS[index],
+        )
+      ) {
+        const error = new Error(
+          'OpsAttemptDisposition body requires exactly eleven fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.quarantineOpsAttempt(input);
+      json(response, result.idempotent ? 200 : 201, {
+        generatedAt: new Date().toISOString(),
+        ...result,
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || 400, {
+        error: String(
+          error.message || 'OpsAttemptDisposition 생성에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
+
+  const opsAttemptDispositionMatch = url.pathname.match(
+    /^\/api\/ops\/attempt-dispositions\/([^/]+)$/,
+  );
+  if (opsAttemptDispositionMatch) {
+    if (method !== 'GET') {
+      json(response, 405, {
+        error: 'OpsAttemptDisposition inspection은 GET만 지원합니다.',
+      });
+      return;
+    }
+    const dispositionId = decodeURIComponent(opsAttemptDispositionMatch[1]);
+    if (!OPS_ATTEMPT_DISPOSITION_ID_PATTERN.test(dispositionId)) {
+      json(response, 400, { error: 'OpsAttemptDisposition id is invalid' });
+      return;
+    }
+    try {
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        ...runtime.getOpsAttemptDisposition(dispositionId),
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || 400, {
+        error: String(
+          error.message || 'OpsAttemptDisposition 조회에 실패했습니다.',
         ).slice(0, 240),
       });
       return;

@@ -390,7 +390,7 @@ async function main() {
   );
   assert.deepEqual(fs.readFileSync(statePath), stateBytes);
   const specialistSnapshot = context.runtime.getSnapshot();
-  assert.equal(specialistSnapshot.schemaVersion, 26);
+  assert.equal(specialistSnapshot.schemaVersion, 27);
   assert.equal(Object.hasOwn(specialistSnapshot, 'specialistBatches'), false);
   assert.equal(Object.hasOwn(specialistSnapshot, 'specialistCellAttempts'), false);
   assert.equal(

@@ -105,7 +105,7 @@ async function main() {
 
     const finalBytes = fs.readFileSync(firstStore.statePath, 'utf8');
     assert.doesNotThrow(() => JSON.parse(finalBytes));
-    assert.equal(JSON.parse(finalBytes).schemaVersion, 26);
+    assert.equal(JSON.parse(finalBytes).schemaVersion, 27);
 
     console.log(
       JSON.stringify(

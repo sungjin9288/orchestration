@@ -61,11 +61,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
   runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
   envelope로 노출된다.
-- Persisted runtime은 schema v26이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
+- Persisted runtime은 schema v27이다. Durable ExecutionPlan, WorkOrder, HandoffPacket,
   WorkflowCheckpoint, DeliveryPackage, acceptance, MissionCloseOut, LearningCandidate, MemoryItem,
   MemoryRecall, AcceptanceCriterion, VerificationProof, StaffingPlan, StaffingEntry, and
-  WorkOrderAttempt, SpecialistBatch, SpecialistCellAttempt, and SpecialistCellRetry evidence를
-  보존한다.
+  WorkOrderAttempt, SpecialistBatch, SpecialistCellAttempt, SpecialistCellRetry, and exact
+  OpsAttemptDisposition quarantine evidence를 보존한다.
 - One exact MissionMemoryContextPreview, WorkOrderVerificationPlanPreview, and bounded one-step
   continuation preview는 response/browser memory에서만 동작한다.
 - Provider 기본값은 local stub이다. OpenAI Responses는 현재 Council 역할에만 명시적 opt-in으로
@@ -110,13 +110,16 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `DEC-213` plans one schema-v25 immutable `ReworkDeliveryPackage(status=review-required)` record
   from an exact recomputed DEC-212 preview and separate record approval, `DEC-214` records the
   complete fielded implementation handoff, and `DEC-215` implements record-and-inspect only.
-  `DEC-216` plans one future schema-v26 append-only `ReworkDeliveryPackageAcceptance`, and
+  `DEC-216` plans one schema-v26 append-only `ReworkDeliveryPackageAcceptance`, and
   `DEC-217` records its complete fielded implementation handoff, and `DEC-218` implements only the
   append-only acceptance evidence and exact inspection boundary.
+  `DEC-219` plans one schema-v27 append-only `OpsAttemptDisposition(decision=quarantine)`,
+  `DEC-220` records the complete handoff, and `DEC-221` implements exact disposition persistence,
+  inspection, and late-settlement denial without source or parent mutation.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, QA execution, interrupted-attempt recovery,
-  provider/background WorkOrders, Ops commands, and Mission context application은 아직 구현되지
-  않았다.
+  provider/background WorkOrders, Ops recovery beyond exact quarantine, and Mission context
+  application은 아직 구현되지 않았다.
 
 ## Approved Real Council Planning Authority
 
@@ -156,7 +159,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-220`
+- Recorded decisions: `DEC-163` through `DEC-221`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -193,8 +196,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   without schema migration, persistence, execution, or recovery authority
 - Stage 6B planning: `DEC-219` fixes one future schema-v27 append-only
   `OpsAttemptDisposition(decision=quarantine)` from an exact DEC-185 preview, and `DEC-220` records
-  its complete fielded implementation handoff. Runtime, schema, settlement guard, API, and UI
-  implementation remain blocked until exact `DEC-221`
+  its complete fielded implementation handoff
+- Stage 6B implementation: `DEC-221` adds the sequence/map-only schema-v27 migration, exact
+  eleven-key quarantine command, immutable exact-id evidence, and target-digest-bound settlement
+  denial for WorkOrder, specialist first-attempt, and specialist retry attempts
 - Stage 5 planning: `DEC-186` fixes one exact schema-v21-preserving response-only
   ReviewerReworkPlanPreview, and `DEC-187` records its complete fielded implementation handoff
 - Stage 5 implementation: `DEC-188` adds the exact seven-key GET and browser-memory preview with a

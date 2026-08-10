@@ -356,11 +356,11 @@ async function main() {
   const v23Bytes = fs.readFileSync(statePath);
 
   const runtime = createRuntime(runtimeRoot);
-  assert.equal(runtime.getSnapshot().schemaVersion, 26);
+  assert.equal(runtime.getSnapshot().schemaVersion, 27);
   assert.deepEqual(fs.readFileSync(statePath), v23Bytes, 'readonly snapshot must not migrate v23');
   const store = createFileStore({ runtimeRoot });
   const genericLoadedState = store.loadState();
-  assert.equal(genericLoadedState.schemaVersion, 26);
+  assert.equal(genericLoadedState.schemaVersion, 27);
   assert.deepEqual(
     fs.readFileSync(statePath),
     v23Bytes,
@@ -412,11 +412,11 @@ async function main() {
   );
 
   const futureState = structuredClone(acceptedState);
-  futureState.schemaVersion = 27;
+  futureState.schemaVersion = 28;
   writeState(futureState);
   assert.throws(
     () => createRuntime(runtimeRoot).getSnapshot(),
-    /Unsupported runtime state schemaVersion: 27/,
+    /Unsupported runtime state schemaVersion: 28/,
   );
   writeState(acceptedState);
 
@@ -458,7 +458,7 @@ async function main() {
   assertBuilderReworkDispatchRecord(started.builderReworkDispatch);
 
   const persistedState = readState();
-  assert.equal(persistedState.schemaVersion, 26);
+  assert.equal(persistedState.schemaVersion, 27);
   assert.equal(Object.keys(persistedState.builderReworkDispatches).length, 1);
   assert.equal(Object.keys(persistedState.workOrders).length, 3);
   assert.deepEqual(persistedState.executionPlans, acceptedState.executionPlans);

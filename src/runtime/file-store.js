@@ -45,6 +45,7 @@ const {
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
+  OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION,
   REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
   REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION,
   REWORK_PLAN_STATE_SCHEMA_VERSION,
@@ -82,6 +83,14 @@ const {
   REWORK_DELIVERY_PACKAGE_ACCEPTANCE_AUTHORITY_SUMMARY,
   assertReworkDeliveryPackageAcceptanceRecord,
 } = require('./rework-delivery-package-acceptances');
+const {
+  OPS_ATTEMPT_DISPOSITION_AUTHORITY_SUMMARY,
+  assertOpsAttemptDispositionRecord,
+} = require('./ops-attempt-dispositions');
+const {
+  OPS_SUPERVISION_TARGET_TYPE,
+  buildOpsSupervisionPreview,
+} = require('./ops-supervision-preview');
 const {
   MISSION_CLOSE_OUT_AUTHORITY_SUMMARY,
   MISSION_STATUS_TRANSITION,
@@ -3966,6 +3975,185 @@ function validateReworkDeliveryPackageAcceptanceRecords(state) {
   }
 }
 
+function validateOpsAttemptDispositionRecords(state) {
+  const targetTuples = new Set();
+  let highestSequence = 0;
+
+  for (const [key, disposition] of Object.entries(
+    state.opsAttemptDispositions,
+  )) {
+    const label = `OpsAttemptDisposition ${key}`;
+    if (
+      !disposition ||
+      typeof disposition !== 'object' ||
+      Array.isArray(disposition) ||
+      disposition.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    const idMatch = /^ops-attempt-disposition-(\d+)$/.exec(key);
+    const recordSequence = idMatch ? Number(idMatch[1]) : Number.NaN;
+    if (
+      !Number.isSafeInteger(recordSequence) ||
+      recordSequence < 1 ||
+      key !==
+        `ops-attempt-disposition-${String(recordSequence).padStart(4, '0')}`
+    ) {
+      throw new Error(`${label} has an invalid sequence identity`);
+    }
+    highestSequence = Math.max(highestSequence, recordSequence);
+    assertOpsAttemptDispositionRecord(disposition);
+
+    let target;
+    let parent;
+    let projectId;
+    let source;
+    if (
+      disposition.targetType ===
+      OPS_SUPERVISION_TARGET_TYPE.WORK_ORDER_ATTEMPT
+    ) {
+      target = state.workOrderAttempts[disposition.targetId];
+      parent = state.executionPlans[disposition.parentId];
+      const workOrder = target
+        ? state.workOrders[target.workOrderId]
+        : null;
+      if (!target || !parent || !workOrder) {
+        throw new Error(`${label} has missing WorkOrder lineage`);
+      }
+      assertWorkOrderAttemptRecord(target);
+      projectId = target.projectId;
+      source = {
+        targetRecordDigest: target.recordDigest,
+        parentDigest: computeExecutionPlanRecordDigest(parent),
+        sourceDigest: target.sourceDigest,
+        attemptNumber: target.attemptNumber,
+        role: target.role,
+        startedAt: target.startedAt,
+        deadlineAt: null,
+        evidenceRefs: {
+          targetRef: target.id,
+          parentRef: parent.id,
+          executionPlanRef: parent.id,
+          workOrderRef: workOrder.id,
+          sourceBatchRef: null,
+          sourceAttemptRef: null,
+          checkpointRef: target.checkpointRef,
+        },
+      };
+    } else if (
+      disposition.targetType ===
+      OPS_SUPERVISION_TARGET_TYPE.SPECIALIST_FIRST_ATTEMPT
+    ) {
+      target = state.specialistCellAttempts[disposition.targetId];
+      parent = state.specialistBatches[disposition.parentId];
+      if (!target || !parent) {
+        throw new Error(`${label} has missing specialist first-attempt lineage`);
+      }
+      assertSpecialistBatchRecord(parent);
+      assertSpecialistCellAttemptRecord(target, {
+        expectedAttemptNumber: 1,
+        batchDeadlineAt: parent.deadlineAt,
+      });
+      projectId = parent.projectId;
+      source = {
+        targetRecordDigest: target.recordDigest,
+        parentDigest: parent.recordDigest,
+        sourceDigest: target.sourceDigest,
+        attemptNumber: target.attemptNumber,
+        role: target.role,
+        startedAt: target.startedAt,
+        deadlineAt: target.deadlineAt,
+        evidenceRefs: {
+          targetRef: target.id,
+          parentRef: parent.id,
+          executionPlanRef: null,
+          workOrderRef: null,
+          sourceBatchRef: parent.id,
+          sourceAttemptRef: null,
+          checkpointRef: null,
+        },
+      };
+    } else {
+      target = state.specialistCellAttempts[disposition.targetId];
+      parent = state.specialistCellRetries[disposition.parentId];
+      const batch = parent
+        ? state.specialistBatches[parent.specialistBatchId]
+        : null;
+      const sourceAttempt = parent
+        ? state.specialistCellAttempts[parent.sourceCellAttemptId]
+        : null;
+      if (!target || !parent || !batch || !sourceAttempt) {
+        throw new Error(`${label} has missing specialist retry lineage`);
+      }
+      assertSpecialistCellRetryRecord(parent);
+      assertSpecialistCellAttemptRecord(target, { expectedAttemptNumber: 2 });
+      projectId = batch.projectId;
+      source = {
+        targetRecordDigest: target.recordDigest,
+        parentDigest: parent.recordDigest,
+        sourceDigest: target.sourceDigest,
+        attemptNumber: target.attemptNumber,
+        role: target.role,
+        startedAt: target.startedAt,
+        deadlineAt: target.deadlineAt,
+        evidenceRefs: {
+          targetRef: target.id,
+          parentRef: parent.id,
+          executionPlanRef: null,
+          workOrderRef: null,
+          sourceBatchRef: batch.id,
+          sourceAttemptRef: sourceAttempt.id,
+          checkpointRef: null,
+        },
+      };
+    }
+
+    const preview = buildOpsSupervisionPreview(
+      {
+        targetType: disposition.targetType,
+        targetId: disposition.targetId,
+        parentId: disposition.parentId,
+        expectedTargetRecordDigest: disposition.targetRecordDigest,
+        expectedParentDigest: disposition.parentDigest,
+        evaluatedAt: disposition.evaluatedAt,
+      },
+      source,
+      { now: disposition.createdAt },
+    );
+    if (
+      target.status !== 'active' ||
+      disposition.projectId !== projectId ||
+      disposition.previewId !== preview.id ||
+      disposition.previewDigest !== preview.previewDigest ||
+      JSON.stringify(disposition.authoritySummary) !==
+        JSON.stringify(OPS_ATTEMPT_DISPOSITION_AUTHORITY_SUMMARY)
+    ) {
+      throw new Error(`${label} has invalid source-current bindings`);
+    }
+
+    const targetTuple = [
+      disposition.targetType,
+      disposition.targetId,
+      disposition.targetRecordDigest,
+    ].join(':');
+    if (targetTuples.has(targetTuple)) {
+      throw new Error(`${label} duplicates an exact target tuple`);
+    }
+    targetTuples.add(targetTuple);
+  }
+
+  if (state.sequences.opsAttemptDisposition !== highestSequence) {
+    throw new Error(
+      'OpsAttemptDisposition sequence does not match retained records',
+    );
+  }
+  if (Object.keys(state.opsAttemptDispositions).length !== highestSequence) {
+    throw new Error(
+      'OpsAttemptDisposition sequence has a retained-record gap',
+    );
+  }
+}
+
 function validateReworkPlanAcceptanceRecords(state) {
   const acceptedReworkPlanIds = new Set();
   let highestSequence = 0;
@@ -4645,6 +4833,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !==
         REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -4942,6 +5131,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.opsAttemptDisposition) ||
+        !state.opsAttemptDispositions ||
+        typeof state.opsAttemptDispositions !== 'object' ||
+        Array.isArray(state.opsAttemptDispositions)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing OpsAttemptDisposition fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -4986,6 +5188,7 @@ function createFileStore(options = {}) {
       reworkDeliveryPackages: state.reworkDeliveryPackages || {},
       reworkDeliveryPackageAcceptances:
         state.reworkDeliveryPackageAcceptances || {},
+      opsAttemptDispositions: state.opsAttemptDispositions || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -5278,6 +5481,7 @@ function createFileStore(options = {}) {
     validateBuilderReworkMutationApprovalRecords(normalizedState, artifactsDir);
     validateReworkDeliveryPackageRecords(normalizedState);
     validateReworkDeliveryPackageAcceptanceRecords(normalizedState);
+    validateOpsAttemptDispositionRecords(normalizedState);
     return normalizedState;
   }
 

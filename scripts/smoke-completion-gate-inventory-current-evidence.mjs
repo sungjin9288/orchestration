@@ -38,9 +38,9 @@ function assertReadmeHas(pattern) {
 const inventoryGateRows = [
   /Starting head checked before this inventory edit: `965a35b`/,
   /Planning baseline head checked before this document update: `965a35b`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current published head returns `ok=true`: required `1\/1` passes; informational `244\/306` pass and `62` non-blocking readiness\/status checks fail; total passed is `245\/307`\. \| Keep the required docs\/runtime aggregate gate authoritative; track informational readiness gaps separately and do not report them as passed\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-head required `91\/91` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current published-head inventory is pinned to aggregate required `1\/1`, informational `244\/306` pass with `62` non-blocking failures, total `245\/307` pass, UI QA `91\/91`, zero unchecked task lines,[^|]+DEC-218,[^|]+DEC-220\. \| Keep this smoke in aggregate so required versus informational results do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current worktree returns `ok=true`: required `1\/1` passes; informational `246\/307` pass and `61` non-blocking readiness\/status checks fail; total passed is `247\/308`\. \| Keep the required docs\/runtime aggregate gate authoritative; track informational readiness gaps separately and do not report them as passed\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-worktree required `92\/92` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current worktree inventory is pinned to aggregate required `1\/1`, informational `246\/307` pass with `61` non-blocking failures, total `247\/308` pass, UI QA `92\/92`, zero unchecked task lines, and AI Company implementation through DEC-221\. \| Keep this smoke in aggregate so required versus informational results do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| AI Company Reviewer re-execution planning \| pass \| `DEC-204`, `DEC-205`, `docs\/139_ai-company-reviewer-reexecution-plan\.md`, `docs\/140_ai-company-reviewer-reexecution-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-reviewer-reexecution-planning\.mjs` \|/,
   /\| AI Company Reviewer re-execution implementation \| pass \| `DEC-206`, `src\/runtime\/reviewer-reexecution\.js`, `node scripts\/smoke-ai-company-reviewer-reexecution\.mjs`, `node scripts\/smoke-ui-slice-709\.mjs` \|/,
   /\| AI Company rework QA execution planning \| pass \| `DEC-207`, `DEC-208`, `docs\/141_ai-company-rework-qa-execution-plan\.md`, `docs\/142_ai-company-rework-qa-execution-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-rework-qa-execution-planning\.mjs` \|/,
@@ -371,6 +371,7 @@ assert.match(uiQaStatus, /smoke-ui-slice-709\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-710\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-712\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-713\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-714\.mjs/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -381,9 +382,9 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '244/306',
-        informationalFailed: 62,
-        total: '245/307',
+        informational: '246/307',
+        informationalFailed: 61,
+        total: '247/308',
       },
     },
     null,

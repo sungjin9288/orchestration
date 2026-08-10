@@ -401,7 +401,7 @@ async function runPassAndReplaySmoke() {
     active.executionPlans[context.bundle.executionPlan.id].latestCheckpointId
   ];
   assert.equal(started.idempotent, false);
-  assert.equal(active.schemaVersion, 26);
+  assert.equal(active.schemaVersion, 27);
   assert.equal(Object.keys(active.workOrders).length, 3);
   assert.equal(activeAttempt.attemptNumber, 1);
   assert.equal(activeAttempt.status, 'active');

@@ -120,6 +120,7 @@ const {
   assertMemoryItem,
   assertMemoryRecall,
   assertMissionCloseOut,
+  assertOpsAttemptDisposition,
   assertReworkDeliveryPackage,
   assertReworkDeliveryPackageAcceptance,
   assertReworkPlan,
@@ -240,6 +241,12 @@ const {
   buildOpsSupervisionPreview,
   normalizeOpsSupervisionRequest,
 } = require('./ops-supervision-preview');
+const {
+  assertOpsAttemptDispositionRecord,
+  createOpsAttemptDisposition,
+  isExactOpsAttemptDispositionReplay,
+  normalizeOpsAttemptDispositionRequest,
+} = require('./ops-attempt-dispositions');
 const {
   MAX_REVIEW_ARTIFACT_BYTES,
   buildReviewerReworkPlanPreview,
@@ -497,6 +504,45 @@ function createRuntimeService(options = {}) {
     return `rework-delivery-package-acceptance-${String(
       state.sequences.reworkDeliveryPackageAcceptance,
     ).padStart(4, '0')}`;
+  }
+
+  function nextOpsAttemptDispositionId(state) {
+    state.sequences.opsAttemptDisposition += 1;
+    return `ops-attempt-disposition-${String(
+      state.sequences.opsAttemptDisposition,
+    ).padStart(4, '0')}`;
+  }
+
+  function assertOpsAttemptSettlementAllowed(state, targetType, attempt) {
+    const disposition = Object.values(state.opsAttemptDispositions || {}).find(
+      (candidate) =>
+        candidate.targetType === targetType &&
+        candidate.targetId === attempt.id &&
+        candidate.targetRecordDigest === attempt.recordDigest,
+    );
+    if (!disposition) return;
+    assertOpsAttemptDispositionRecord(disposition);
+    throw conflict(
+      `OpsAttemptDisposition ${disposition.id} blocks settlement for the quarantined target`,
+    );
+  }
+
+  function transitionWorkOrderAttemptWithOpsGuard(state, attempt, transition) {
+    assertOpsAttemptSettlementAllowed(
+      state,
+      OPS_SUPERVISION_TARGET_TYPE.WORK_ORDER_ATTEMPT,
+      attempt,
+    );
+    return transitionWorkOrderAttempt(attempt, transition);
+  }
+
+  function settleSpecialistCellAttemptWithOpsGuard(state, attempt, transition) {
+    const targetType =
+      attempt.attemptNumber === 1
+        ? OPS_SUPERVISION_TARGET_TYPE.SPECIALIST_FIRST_ATTEMPT
+        : OPS_SUPERVISION_TARGET_TYPE.SPECIALIST_RETRY_ATTEMPT;
+    assertOpsAttemptSettlementAllowed(state, targetType, attempt);
+    return settleSpecialistCellAttempt(attempt, transition);
   }
 
   function nextBuilderReworkDispatchId(state) {
@@ -3065,13 +3111,13 @@ function createRuntimeService(options = {}) {
           : settlement.transition;
       const nextCellAttempt =
         transition.status === SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED
-          ? settleSpecialistCellAttempt(currentCellAttempt, {
+          ? settleSpecialistCellAttemptWithOpsGuard(currentState, currentCellAttempt, {
               status: SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED,
               observedInputDigest: transition.observedInputDigest,
               resultSummary: transition.resultSummary,
               completedAt,
             })
-          : settleSpecialistCellAttempt(currentCellAttempt, {
+          : settleSpecialistCellAttemptWithOpsGuard(currentState, currentCellAttempt, {
               status: SPECIALIST_CELL_ATTEMPT_STATUS.FAILED,
               observedInputDigest: transition.observedInputDigest,
               failureReason: transition.failureReason,
@@ -3466,13 +3512,13 @@ function createRuntimeService(options = {}) {
           : settlement.transition;
       const nextRetryAttempt =
         transition.status === SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED
-          ? settleSpecialistCellAttempt(currentRetryAttempt, {
+          ? settleSpecialistCellAttemptWithOpsGuard(currentState, currentRetryAttempt, {
               status: SPECIALIST_CELL_ATTEMPT_STATUS.COMPLETED,
               observedInputDigest: transition.observedInputDigest,
               resultSummary: transition.resultSummary,
               completedAt,
             })
-          : settleSpecialistCellAttempt(currentRetryAttempt, {
+          : settleSpecialistCellAttemptWithOpsGuard(currentState, currentRetryAttempt, {
               status: SPECIALIST_CELL_ATTEMPT_STATUS.FAILED,
               observedInputDigest: transition.observedInputDigest,
               failureReason: transition.failureReason,
@@ -5603,7 +5649,7 @@ function createRuntimeService(options = {}) {
         requestDigest: input.requestDigest,
         targetFilePostMutationDigests,
       };
-      const attempt = transitionWorkOrderAttempt(source.workOrderAttempt, {
+      const attempt = transitionWorkOrderAttemptWithOpsGuard(state, source.workOrderAttempt, {
         status: WORK_ORDER_ATTEMPT_STATUS.COMPLETED,
         checkpointRef: null,
         approvalRefs: [source.approval.id],
@@ -5685,7 +5731,7 @@ function createRuntimeService(options = {}) {
       mutationAllowed: true,
       requestDigest: input.requestDigest,
     };
-    const attempt = transitionWorkOrderAttempt(source.workOrderAttempt, {
+    const attempt = transitionWorkOrderAttemptWithOpsGuard(state, source.workOrderAttempt, {
       status: WORK_ORDER_ATTEMPT_STATUS.FAILED,
       checkpointRef: null,
       approvalRefs: [source.approval.id],
@@ -6367,7 +6413,8 @@ function createRuntimeService(options = {}) {
         executionPlan.stopReason = 'reviewer-reexecution-changes-requested';
         executionPlan.stoppedAt = 'reviewer';
       }
-      state.workOrderAttempts[reviewerAttempt.id] = transitionWorkOrderAttempt(
+      state.workOrderAttempts[reviewerAttempt.id] = transitionWorkOrderAttemptWithOpsGuard(
+        state,
         reviewerAttempt,
         {
           status:
@@ -6442,7 +6489,8 @@ function createRuntimeService(options = {}) {
     source.executionPlan.stopReason = 'reviewer-reexecution-failed';
     source.executionPlan.stoppedAt = 'reviewer';
     source.executionPlan.updatedAt = finishedAt;
-    state.workOrderAttempts[source.reviewerAttempt.id] = transitionWorkOrderAttempt(
+    state.workOrderAttempts[source.reviewerAttempt.id] = transitionWorkOrderAttemptWithOpsGuard(
+      state,
       source.reviewerAttempt,
       {
         status: WORK_ORDER_ATTEMPT_STATUS.FAILED,
@@ -7044,7 +7092,8 @@ function createRuntimeService(options = {}) {
         source.executionPlan.stopReason = 'rework-qa-failed-no-retry-authority';
         source.executionPlan.stoppedAt = 'qa';
       }
-      state.workOrderAttempts[source.qaAttempt.id] = transitionWorkOrderAttempt(
+      state.workOrderAttempts[source.qaAttempt.id] = transitionWorkOrderAttemptWithOpsGuard(
+        state,
         source.qaAttempt,
         {
           status: passed ? WORK_ORDER_ATTEMPT_STATUS.COMPLETED : WORK_ORDER_ATTEMPT_STATUS.FAILED,
@@ -8019,7 +8068,7 @@ function createRuntimeService(options = {}) {
         Date.parse(attempt.startedAt),
       ),
     ).toISOString();
-    const next = transitionWorkOrderAttempt(attempt, {
+    const next = transitionWorkOrderAttemptWithOpsGuard(state, attempt, {
       status: input.failed ? WORK_ORDER_ATTEMPT_STATUS.FAILED : WORK_ORDER_ATTEMPT_STATUS.WAITING_GATE,
       checkpointRef: null,
       approvalRefs: [],
@@ -8293,6 +8342,128 @@ function createRuntimeService(options = {}) {
       });
     } catch (error) {
       error.statusCode = error.statusCode || 409;
+      throw error;
+    }
+  }
+
+  function getOpsDispositionPreviewRequest(request) {
+    return {
+      targetType: request.targetType,
+      targetId: request.targetId,
+      parentId: request.parentId,
+      expectedTargetRecordDigest: request.expectedTargetRecordDigest,
+      expectedParentDigest: request.expectedParentDigest,
+      evaluatedAt: request.evaluatedAt,
+    };
+  }
+
+  function getOpsDispositionProjectId(state, preview) {
+    if (
+      preview.targetType ===
+      OPS_SUPERVISION_TARGET_TYPE.WORK_ORDER_ATTEMPT
+    ) {
+      return assertWorkOrderAttempt(preview.targetId, state).projectId;
+    }
+    if (
+      preview.targetType ===
+      OPS_SUPERVISION_TARGET_TYPE.SPECIALIST_FIRST_ATTEMPT
+    ) {
+      return assertSpecialistBatch(preview.parentId, state).projectId;
+    }
+    const retry = assertSpecialistCellRetry(preview.parentId, state);
+    return assertSpecialistBatch(retry.specialistBatchId, state).projectId;
+  }
+
+  function quarantineOpsAttempt(input) {
+    let request;
+    try {
+      request = normalizeOpsAttemptDispositionRequest(input);
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `OpsAttemptDisposition requires supported state: ${error.message}`,
+      );
+    }
+
+    const existing =
+      Object.values(state.opsAttemptDispositions || {}).find(
+        (record) =>
+          record.targetType === request.targetType &&
+          record.targetId === request.targetId,
+      ) || null;
+    if (existing) {
+      assertOpsAttemptDispositionRecord(existing);
+      if (!isExactOpsAttemptDispositionReplay(existing, request)) {
+        throw conflict(
+          'Ops attempt target already has a different quarantine disposition',
+        );
+      }
+      return {
+        idempotent: true,
+        opsAttemptDisposition: existing,
+        status: 'quarantined',
+      };
+    }
+
+    const preview = getOpsSupervisionPreview(
+      getOpsDispositionPreviewRequest(request),
+    );
+    if (
+      preview.id !== request.previewId ||
+      preview.previewDigest !== request.previewDigest
+    ) {
+      throw conflict(
+        'OpsAttemptDisposition request is not bound to the exact source-current preview',
+      );
+    }
+
+    const prospectiveId = `ops-attempt-disposition-${String(
+      state.sequences.opsAttemptDisposition + 1,
+    ).padStart(4, '0')}`;
+    const disposition = createOpsAttemptDisposition({
+      id: prospectiveId,
+      projectId: getOpsDispositionProjectId(state, preview),
+      preview,
+      createdAt: opsSupervisionNowIso(),
+    });
+    const id = nextOpsAttemptDispositionId(state);
+    if (id !== disposition.id) {
+      throw new Error('OpsAttemptDisposition sequence is not deterministic');
+    }
+    state.opsAttemptDispositions[id] = disposition;
+    store.saveState(state);
+    return {
+      idempotent: false,
+      opsAttemptDisposition: disposition,
+      status: 'quarantined',
+    };
+  }
+
+  function getOpsAttemptDisposition(opsAttemptDispositionId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `OpsAttemptDisposition inspection requires supported state: ${error.message}`,
+      );
+    }
+    try {
+      const disposition = assertOpsAttemptDisposition(
+        opsAttemptDispositionId,
+        state,
+      );
+      assertOpsAttemptDispositionRecord(disposition);
+      return { opsAttemptDisposition: disposition };
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
       throw error;
     }
   }
@@ -11794,7 +11965,7 @@ function createRuntimeService(options = {}) {
     if (!attempt) {
       throw conflict(`ExecutionPlan ${executionPlan.id} has no active WorkOrderAttempt`);
     }
-    const next = transitionWorkOrderAttempt(attempt, {
+    const next = transitionWorkOrderAttemptWithOpsGuard(state, attempt, {
       status: input.status,
       checkpointRef: input.checkpointRef || null,
       approvalRefs: [...new Set([...attempt.approvalRefs, ...(input.approvalRefs || [])])],
@@ -13643,6 +13814,7 @@ function createRuntimeService(options = {}) {
     delete snapshotForPublicProjection.builderReworkDispatches;
     delete snapshotForPublicProjection.reworkDeliveryPackages;
     delete snapshotForPublicProjection.reworkDeliveryPackageAcceptances;
+    delete snapshotForPublicProjection.opsAttemptDispositions;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -13756,6 +13928,7 @@ function createRuntimeService(options = {}) {
     getMissionEvidenceGraph,
     getTaskExecutionProvenance,
     getOpsSupervisionPreview,
+    getOpsAttemptDisposition,
     getReviewerReworkPlanPreview,
     getReviewerReexecution,
     getReviewerReexecutionWorkerInput,
@@ -13782,6 +13955,7 @@ function createRuntimeService(options = {}) {
     getProject,
     getRun,
     getSnapshot,
+    quarantineOpsAttempt,
     getSpecialistBatch,
     getSpecialistBatchCellRetry,
     getSpecialistCellRetry,

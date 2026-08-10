@@ -148,7 +148,7 @@ async function main() {
     writeState(runtimeRoot, v22State);
     const v22Bytes = fs.readFileSync(statePath);
     const runtime = createRuntime();
-    assert.equal(runtime.getSnapshot().schemaVersion, 26);
+    assert.equal(runtime.getSnapshot().schemaVersion, 27);
     assert.deepEqual(fs.readFileSync(statePath), v22Bytes, 'readonly load must not migrate on disk');
 
     const reviewedAt = new Date(Math.max(Date.now(), Date.parse(recordResult.reworkPlan.createdAt))).toISOString();
@@ -318,7 +318,7 @@ async function main() {
 
     const persistedState = readState();
     const persistedBytes = fs.readFileSync(statePath);
-    assert.equal(persistedState.schemaVersion, 26);
+    assert.equal(persistedState.schemaVersion, 27);
     assert.equal(Object.keys(persistedState.reworkPlanAcceptances).length, 1);
     assert.deepEqual(persistedState.reworkPlans, v22State.reworkPlans);
     assert.deepEqual(
@@ -392,11 +392,11 @@ async function main() {
 
     const futureRoot = copyRuntime('future-schema');
     const futureState = readState(futureRoot);
-    futureState.schemaVersion = 27;
+    futureState.schemaVersion = 28;
     writeState(futureRoot, futureState);
     assert.throws(
       () => createRuntime(futureRoot).getSnapshot(),
-      /Unsupported runtime state schemaVersion: 27/,
+      /Unsupported runtime state schemaVersion: 28/,
     );
 
     server = spawn(process.execPath, [

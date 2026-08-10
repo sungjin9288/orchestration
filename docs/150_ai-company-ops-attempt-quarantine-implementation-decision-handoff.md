@@ -10,7 +10,8 @@ document records no runtime authority by itself.
 
 - Planning-only decision: accepted as `DEC-219`
 - Implementation handoff: recorded as `DEC-220`
-- Current runtime: schema v26 with read-only DEC-185 supervision preview
+- Consumed implementation: `DEC-221`
+- Current runtime: schema v27 with exact quarantine disposition and settlement denial
 - Implementation decision: missing and reserved for `DEC-221`
 - Runtime/schema/API/UI mutation: blocked
 

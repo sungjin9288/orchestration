@@ -431,6 +431,12 @@ const smokeChecks = [
       'Durable ReworkDeliveryPackage exposes one exact package-bound acceptance command, hydrates immutable accepted evidence through its exact locator, and keeps rejection close-out retry recovery provider source Git release and scheduling controls absent across desktop and mobile',
   },
   {
+    id: 'ai-company-ops-attempt-quarantine-ui-api',
+    script: 'scripts/smoke-ui-slice-714.mjs',
+    purpose:
+      'Advanced Ops exposes quarantine only from one exact source-current supervision preview with fixed acknowledgement, hydrates immutable evidence through one exact disposition locator, and keeps settlement cancel resume retry inferred-result provider source Git release and scheduling controls absent across desktop and mobile',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

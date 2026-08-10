@@ -117,14 +117,17 @@ for (const text of [
 
 assert.match(inventory, /AI Company Builder rework source mutation planning/);
 assert.match(inventory, /AI Company Builder rework source mutation implementation/);
-assert.match(inventory, /informational `305\/305`, total `306\/306`/);
+assert.match(
+  inventory,
+  /informational `246\/307` pass and `61` non-blocking readiness\/status checks fail; total passed is `247\/308`/,
+);
 assert.match(readme, /docs\/137_ai-company-builder-rework-source-mutation-plan\.md/);
 assert.match(
   readme,
   /docs\/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /1003 smoke files/);
-assert.match(readme, /713 UI smoke files/);
+assert.match(readme, /1005 smoke files/);
+assert.match(readme, /714 UI smoke files/);
 assert.match(todo, /ai-company-builder-rework-source-mutation-implementation-post-m7-2035/);
 assert.match(
   lessons,
@@ -132,7 +135,7 @@ assert.match(
 );
 assert.match(verification, /ai-company-builder-rework-source-mutation-planning/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 26/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 27/);
 assert.match(contracts, /REWORK_LIVE_MUTATION: 'builder-rework-live-mutation'/);
 assert.match(attempts, /START_BUILDER_REWORK_PREFLIGHT: 'start-builder-rework-preflight'/);
 assert.match(approvalRuntime, /const ACTION = 'builder-rework-live-mutation'/);
@@ -153,8 +156,8 @@ assert.equal(
 );
 assert.match(app, /run-builder-rework-source-mutation/);
 
-assert.equal(countFiles(/^smoke-.*\.mjs$/), 1003);
-assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 713);
+assert.equal(countFiles(/^smoke-.*\.mjs$/), 1005);
+assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 714);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
@@ -165,6 +168,6 @@ process.stdout.write(`${JSON.stringify({
   schemaVersion: 24,
   sourceMutationAllowed: true,
   reviewerQaExecutionAllowed: false,
-  smokeFileCount: 1003,
-  uiSmokeFileCount: 713,
+  smokeFileCount: 1005,
+  uiSmokeFileCount: 714,
 }, null, 2)}\n`);

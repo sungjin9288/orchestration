@@ -8853,6 +8853,38 @@ h3 {
   min-width: 0;
 }
 
+.ops-attempt-quarantine-acknowledgement {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.ops-attempt-quarantine-acknowledgement input {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.ops-attempt-quarantine-action {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.ops-attempt-disposition {
+  border-color: var(--danger);
+}
+
+.ops-attempt-disposition-boundary {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
 .reviewer-rework-preview-action {
   width: fit-content;
   max-width: 100%;
@@ -10931,6 +10963,10 @@ body[data-evidence-density='compact'] .control-overview-stack {
   }
 
   .ops-supervision-action {
+    width: 100%;
+  }
+
+  .ops-attempt-quarantine-action {
     width: 100%;
   }
 

@@ -44,6 +44,15 @@ Stage 6B는 이 순서를 바꾸지 않는다. Quarantine은 recovery가 아니�
 This planning authority is recorded as `DEC-219`. The complete fielded implementation handoff is
 recorded as `DEC-220`. Runtime implementation remains reserved for an exact `DEC-221`.
 
+## Implementation Outcome
+
+Exact `DEC-221` consumes the handoff. Schema v27 now appends one immutable disposition from the
+exact eleven-key request, excludes the map from generic snapshots, exposes bounded POST and exact-id
+GET routes, and denies late settlement for all three target types by exact target record digest.
+The focused runtime/API smoke and UI slice 714 prove replay, migration, exact hydration, unchanged
+bytes on denied settlement, and non-quarantined compatibility. Every recovery and inferred-result
+authority listed below remains blocked.
+
 ## Why Quarantine Comes First
 
 An active record after interruption proves only that work started. It does not prove that the worker
@@ -245,6 +254,7 @@ controls, and bounded desktop/mobile fit.
 
 ## Stop Condition
 
-Planning is complete when DEC-219 and DEC-220, this plan, the fielded handoff, planning smoke,
-completion roadmap, README, inventory, and task ledger agree. No implementation file, schema field,
-POST route, settlement guard, or UI command may exist before exact DEC-221 approval.
+Planning is consumed when DEC-219 through DEC-221, this plan, the fielded handoff, focused smokes,
+completion roadmap, README, inventory, and task ledger agree. No wider recovery, inferred-result,
+worker-termination, retry, provider, source, Git, release, memory, scheduling, policy, collection,
+bypass, or connector authority follows from DEC-221.

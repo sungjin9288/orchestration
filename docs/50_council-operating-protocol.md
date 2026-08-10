@@ -500,7 +500,7 @@ Planning-only `DEC-216`, handoff-only `DEC-217`, and implementation `DEC-218` si
 acceptance evidence only. DEC-218 appends only one accepted fact after fresh source recomputation but may not
 revise Council output, mutate the package, close Mission/task state, or authorize role execution.
 
-Planning-only `DEC-219` and handoff-only `DEC-220` place the first Ops command after exact
+Planning-only `DEC-219`, handoff-only `DEC-220`, and implementation `DEC-221` place the first Ops command after exact
 DEC-185 inspection. Quarantine may eventually append one immutable disposition and reject late
 settlement for that exact record digest, but it may not edit an agent attempt, infer an outcome,
 cancel or terminate work, resume, retry, create another attempt, or alter Council evidence.

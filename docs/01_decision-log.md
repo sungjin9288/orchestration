@@ -1460,6 +1460,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/150_ai-company-ops-attempt-quarantine-implementation-decision-handoff.md` provides valid approval, evidence-request, rejection, and deferral outcomes. No implementation authority is recorded.
 - Needed Before: Runtime implementation remains blocked until one complete value-matching approval is accepted as `DEC-221`.
 
+### DEC-221
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic local schema-v27 append-only `OpsAttemptDisposition(decision=quarantine)` from one exact source-current DEC-185 `OpsSupervisionPreview`.
+- Why: `DEC-219` and `DEC-220` fixed the eleven-key request, first-write source-current preview recomputation, immutable target binding, atomic v26-to-v27 migration, exact replay, exact-id inspection, target-wide settlement denial, rollback retention, compatibility, and downstream stop contract. The supplied decision matches every required field without opening recovery or inferred-result authority.
+- Impact: Implementation adds only the disposition sequence/map, immutable record contract, bounded quarantine POST, exact-id GET, Advanced Ops acknowledgement-gated command, and deterministic settlement guards for WorkOrder, specialist first-attempt, and specialist retry targets. Source attempts and parents remain unchanged, generic snapshots exclude dispositions, and non-quarantined settlement behavior remains compatible.
+- Needed Before: Cancel, worker termination, resume, retry, rework, new attempt creation, inferred settlement, provider/background execution, source mutation, runtime-agent Git/release, memory application, scheduling, policy mutation, collections, approval bypass, and connectors require separate complete fielded decisions.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

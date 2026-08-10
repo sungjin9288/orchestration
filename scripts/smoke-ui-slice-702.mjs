@@ -181,11 +181,11 @@ assert.match(
   /state\.councilSpecialistBatchPreview = null;\s*state\.opsSupervisionPreview = null;/,
 );
 assert.match(renderSource, /Active attempt evidence/);
-assert.match(renderSource, /inspect only/);
+assert.match(renderSource, /source-current preview/);
 assert.match(renderSource, /preview\.blockedActions/);
 assert.doesNotMatch(
   renderSource,
-  /data-action="(?:retry|resume|cancel|quarantine|settle|mark|execute|apply|commit|push|release)[^"]*"/,
+  /data-action="(?:retry|resume|cancel|settle|mark|execute|apply|commit|push|release)[^"]*"/,
 );
 assert.doesNotMatch(
   appSource,
@@ -213,7 +213,7 @@ assert.match(runtimeSource, /store\.loadStateSupportedReadonly\(\)/);
 assert.doesNotMatch(
   runtimeSource.slice(
     runtimeSource.indexOf('function getOpsSupervisionPreview'),
-    runtimeSource.indexOf('function getExactResearchReadiness'),
+    runtimeSource.indexOf('function getOpsDispositionPreviewRequest'),
   ),
   /store\.saveState\(/,
 );

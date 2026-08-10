@@ -300,9 +300,9 @@ that exact runtime/API/UI inspection path.
 Stage 6B planning-only `DEC-219` chooses one command from that closed action set: append one
 immutable `OpsAttemptDisposition(decision=quarantine)` for an exact source-current DEC-185 target
 and deny later settlement for the same target record digest. `DEC-220` records the complete fielded
-implementation handoff. No schema-v27, disposition record, settlement guard, POST route, or UI
-command exists until exact `DEC-221` approval. Cancel, worker termination, resume, replay, retry,
-rework, and new-attempt authority stay separate.
+implementation handoff. `DEC-221` implements the schema-v27 append, exact POST/GET and UI evidence,
+and target-digest-bound settlement denial only. Cancel, worker termination, resume, replay, retry,
+rework, inferred result, and new-attempt authority stay separate.
 
 ### Stage 7: Reviewed Mission Context Attachment
 
@@ -559,7 +559,7 @@ fit.
 - Fixed specialist first-attempt, retry, Reviewer rework, QA, durable package, and acceptance
   implementation evidence is recorded through `DEC-218`.
 - Ops attempt quarantine planning is recorded as `DEC-219`; its complete fielded implementation
-  handoff is `DEC-220`. Exact implementation remains reserved for `DEC-221`.
+  handoff is `DEC-220`, and exact implementation is recorded as `DEC-221`.
 - Solo entry/execution, bound revision/resume/auto-chain, broader parallelism, cancel/resume,
   reviewed Mission context attachment, provider WorkOrders, and dogfood closure remain blocked
   pending their own complete fielded decisions.

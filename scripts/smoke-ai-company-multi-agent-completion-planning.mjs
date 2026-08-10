@@ -188,12 +188,13 @@ for (const decisionId of [
   'DEC-218',
   'DEC-219',
   'DEC-220',
+  'DEC-221',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-220`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-221`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -289,7 +290,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 26/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 27/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -367,9 +368,10 @@ process.stdout.write(
         reworkDeliveryPackageAcceptanceImplementation: 'accepted-dec-218',
         opsAttemptQuarantinePlanning: 'accepted-dec-219',
         opsAttemptQuarantineHandoff: 'documented-dec-220',
+        opsAttemptQuarantineImplementation: 'accepted-dec-221',
       },
       currentRuntime: {
-        schemaVersion: 26,
+        schemaVersion: 27,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,
@@ -392,10 +394,10 @@ process.stdout.write(
         continuationMaxSteps: 1,
       },
       nextImplementationTarget: {
-        stage: '6B',
-        object: 'ops-attempt-quarantine',
+        stage: '6C',
+        object: 'ops-attempt-cancellation-or-safe-checkpoint-resume',
         implementationAllowed: false,
-        nextDecisionLogEntry: 'DEC-221',
+        fieldedDecisionRequired: true,
       },
       authority: {
         documentationAllowed: true,
@@ -436,7 +438,7 @@ process.stdout.write(
         reworkDeliveryPackageAcceptancePlanningAllowed: true,
         reworkDeliveryPackageAcceptanceImplementationAllowed: true,
         opsAttemptQuarantinePlanningAllowed: true,
-        opsAttemptQuarantineImplementationAllowed: false,
+        opsAttemptQuarantineImplementationAllowed: true,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

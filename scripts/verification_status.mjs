@@ -547,6 +547,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 6B planning fixes one future schema-v27 append-only OpsAttemptDisposition quarantine from one exact source-current DEC-185 preview, exact replay, target-wide late-settlement denial, immutable attempt and parent evidence, rollback retention, and blocked cancel resume retry inferred settlement worker provider source Git memory scheduling policy collection bypass and connector authority',
   },
   {
+    id: 'ai-company-ops-attempt-quarantine',
+    script: 'scripts/smoke-ai-company-ops-attempt-quarantine.mjs',
+    purpose: 'AI Company Stage 6B runtime and API prove atomic schema-v26 to v27 migration, one exact append-only quarantine disposition, canonical replay and exact inspection, all three target settlement denials with unchanged bytes, non-quarantined compatibility, snapshot exclusion, and zero inferred result recovery provider source Git release memory scheduling policy collection bypass or connector authority',
+  },
+  {
     id: 'ai-company-specialist-batch-preview',
     script: 'scripts/smoke-ai-company-specialist-batch-preview.mjs',
     purpose: 'AI Company Stage 4A runtime and API prove one exact source-current schema-v19 response-only SpecialistBatchPreview with two fixed read-only cells, raw-byte path digests, exact transport errors, unchanged state bytes, and no worker provider persistence scheduling mutation Git release or policy authority',

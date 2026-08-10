@@ -103,6 +103,14 @@ function assertReworkDeliveryPackageAcceptance(
   return acceptance;
 }
 
+function assertOpsAttemptDisposition(opsAttemptDispositionId, state) {
+  const disposition = state.opsAttemptDispositions[opsAttemptDispositionId];
+  if (!disposition) {
+    throw new Error(`OpsAttemptDisposition not found: ${opsAttemptDispositionId}`);
+  }
+  return disposition;
+}
+
 function assertBuilderReworkMutationApproval(approvalId, state) {
   const approval = state.approvals[approvalId];
   if (!approval) {
@@ -234,6 +242,7 @@ module.exports = {
   assertMemoryItem,
   assertMemoryRecall,
   assertMissionCloseOut,
+  assertOpsAttemptDisposition,
   assertRun,
   assertReworkDeliveryPackage,
   assertReworkDeliveryPackageAcceptance,

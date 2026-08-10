@@ -214,6 +214,53 @@ export function getOpsSupervisionTarget(targetType, target, parent) {
   return null;
 }
 
+export function getOpsAttemptDispositionRequest(preview, acknowledgement) {
+  if (
+    !preview ||
+    preview.persisted !== false ||
+    preview.status !== 'supervision-required' ||
+    !preview.id ||
+    !preview.previewDigest ||
+    !preview.targetRecordDigest ||
+    !preview.parentDigest ||
+    acknowledgement !== 'quarantine-without-settlement-or-recovery'
+  ) {
+    return null;
+  }
+  return {
+    targetType: preview.targetType,
+    targetId: preview.targetId,
+    parentId: preview.parentId,
+    expectedTargetRecordDigest: preview.targetRecordDigest,
+    expectedParentDigest: preview.parentDigest,
+    evaluatedAt: preview.evaluatedAt,
+    previewId: preview.id,
+    previewDigest: preview.previewDigest,
+    decision: 'quarantine',
+    reasonCode: 'operator-uncertain-outcome-after-interruption',
+    acknowledgement,
+  };
+}
+
+export function isExactOpsAttemptDisposition(disposition, source) {
+  return Boolean(
+    disposition &&
+      source &&
+      disposition.decision === 'quarantine' &&
+      disposition.reasonCode ===
+        'operator-uncertain-outcome-after-interruption' &&
+      disposition.targetType === source.targetType &&
+      disposition.targetId === source.targetId &&
+      disposition.parentId === source.parentId &&
+      disposition.targetRecordDigest ===
+        (source.targetRecordDigest || source.expectedTargetRecordDigest) &&
+      disposition.parentDigest ===
+        (source.parentDigest || source.expectedParentDigest) &&
+      disposition.authoritySummary?.quarantineEvidenceAllowed === true &&
+      disposition.authoritySummary?.lateSettlementAllowed === false,
+  );
+}
+
 export function getReviewerReworkPreviewTarget(bundle) {
   if (!bundle?.executionPlan || !Array.isArray(bundle.workOrders)) return null;
   const executionPlan = bundle.executionPlan;

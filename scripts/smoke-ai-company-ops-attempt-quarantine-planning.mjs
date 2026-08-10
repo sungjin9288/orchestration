@@ -59,7 +59,7 @@ assertIncludesAll(plan, [
   /No process kill is claimed/,
   /No list, history, search, ranking, polling, automatic target selection/,
   /scripts\/smoke-ui-slice-714\.mjs/,
-  /No implementation file, schema field,\s+POST route, settlement guard, or UI command may exist before exact DEC-221 approval/,
+  /Exact `DEC-221` consumes the handoff/,
 ]);
 
 const requiredFields = [
@@ -97,10 +97,9 @@ assertIncludesAll(handoff, [
   /does not approve attempt or parent mutation inferred result cancel worker termination resume replay retry rework new attempts/,
 ]);
 
-for (const decisionId of ['DEC-218', 'DEC-219', 'DEC-220']) {
+for (const decisionId of ['DEC-218', 'DEC-219', 'DEC-220', 'DEC-221']) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
-assert.doesNotMatch(decisionLog, /^### DEC-221$/m);
 
 for (const source of [
   completionPlan,
@@ -116,21 +115,21 @@ for (const source of [
   assert.match(source, /DEC-221/);
 }
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 26/);
-assert.doesNotMatch(contracts, /opsAttemptDisposition/);
-assert.doesNotMatch(runtimeService, /createOpsAttemptDisposition/);
-assert.doesNotMatch(server, /attempt-dispositions\/quarantine/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 27/);
+assert.match(contracts, /opsAttemptDisposition/);
+assert.match(runtimeService, /createOpsAttemptDisposition/);
+assert.match(server, /attempt-dispositions\/quarantine/);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'src/runtime/ops-attempt-dispositions.js')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-ops-attempt-quarantine.mjs')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-714.mjs')),
-  false,
+  true,
 );
 
 assert.match(
@@ -140,6 +139,10 @@ assert.match(
 assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-ops-attempt-quarantine-planning\.mjs'/,
+);
+assert.match(
+  verification,
+  /script: 'scripts\/smoke-ai-company-ops-attempt-quarantine\.mjs'/,
 );
 assert.match(
   taskLedger,
@@ -153,25 +156,25 @@ const uiSmokeFileCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
 
-assert.equal(smokeFileCount, 1003);
-assert.equal(uiSmokeFileCount, 713);
-assert.match(readme, /1003 smoke files/);
-assert.match(readme, /713 UI smoke files/);
+assert.equal(smokeFileCount, 1005);
+assert.equal(uiSmokeFileCount, 714);
+assert.match(readme, /1005 smoke files/);
+assert.match(readme, /714 UI smoke files/);
 
 process.stdout.write(
   `${JSON.stringify(
     {
       ok: true,
       mode,
-      currentSchemaVersion: 26,
+      currentSchemaVersion: 27,
       plannedSchemaVersion: 27,
       planningDecision: 'accepted-dec-219',
       handoffDecision: 'recorded-dec-220',
-      implementationDecision: 'required-dec-221',
+      implementationDecision: 'accepted-dec-221',
       command: 'quarantine',
       sourceMutationAllowed: false,
       inferredSettlementAllowed: false,
-      runtimeImplementationAllowed: false,
+      runtimeImplementationAllowed: true,
     },
     null,
     2,

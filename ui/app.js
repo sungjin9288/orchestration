@@ -138,6 +138,7 @@ import {
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
   getMissionStaffingPlanSummary,
+  getOpsAttemptDispositionRequest,
   getOpsSupervisionTarget,
   getReviewerReworkPlanRecordRequest,
   getReworkPlanAcceptanceRequest,
@@ -152,6 +153,7 @@ import {
   isExactReworkDeliveryPackagePreview,
   isExactReworkDeliveryPackageRecord,
   isExactReworkDeliveryPackageAcceptance,
+  isExactOpsAttemptDisposition,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -446,6 +448,8 @@ const state = {
   councilSpecialistBatchPreview: null,
   councilSpecialistBatch: null,
   opsSupervisionPreview: null,
+  opsAttemptDisposition: null,
+  opsAttemptDispositionLocator: null,
   reviewerReworkPlanPreview: null,
   reviewerReworkPlan: null,
   reviewerReworkPlanAcceptance: null,
@@ -5156,6 +5160,7 @@ function applySnapshotPayload(payload) {
   }
   if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.opsSupervisionPreview = null;
+    state.opsAttemptDisposition = null;
     state.reviewerReworkPlanPreview = null;
     state.reviewerReworkPlan = null;
     state.builderReworkDispatch = null;
@@ -5753,6 +5758,23 @@ async function hydrateSelectedDetails() {
         state.missionEvidenceGraphError = error.message;
       }
     }
+  }
+
+  if (state.opsAttemptDispositionLocator?.id) {
+    const dispositionPayload = await fetchOptionalJson(
+      `/api/ops/attempt-dispositions/${encodeURIComponent(
+        state.opsAttemptDispositionLocator.id,
+      )}`,
+    );
+    const disposition = dispositionPayload?.opsAttemptDisposition || null;
+    state.opsAttemptDisposition =
+      disposition &&
+      isExactOpsAttemptDisposition(
+        disposition,
+        state.opsAttemptDispositionLocator,
+      )
+        ? disposition
+        : null;
   }
 }
 
@@ -7300,6 +7322,8 @@ function getOpsSupervisionSource(actionButton) {
 
 async function inspectOpsSupervision(actionButton) {
   state.opsSupervisionPreview = null;
+  state.opsAttemptDisposition = null;
+  state.opsAttemptDispositionLocator = null;
   const source = getOpsSupervisionSource(actionButton);
   if (!source.request) {
     throw new Error('현재 화면의 exact active attempt evidence가 필요합니다.');
@@ -7337,6 +7361,53 @@ async function inspectOpsSupervision(actionButton) {
   elements.refreshStatus.textContent =
     `${payload.targetId} ${payload.timeClassification}`;
   render();
+}
+
+async function quarantineOpsAttempt(actionButton) {
+  const targetId = String(actionButton?.dataset.targetId || '').trim();
+  const preview = state.opsSupervisionPreview;
+  const acknowledgement = document.querySelector(
+    `input[name="opsAttemptQuarantineAcknowledgement"][data-target-id="${CSS.escape(targetId)}"]:checked`,
+  )?.value;
+  const request = getOpsAttemptDispositionRequest(preview, acknowledgement);
+  if (!request || request.targetId !== targetId) {
+    throw new Error(
+      '현재 exact preview와 quarantine acknowledgement가 필요합니다.',
+    );
+  }
+
+  state.mutating = true;
+  try {
+    const payload = await fetchJson(
+      '/api/ops/attempt-dispositions/quarantine',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(request),
+      },
+    );
+    const disposition = payload.opsAttemptDisposition;
+    if (!isExactOpsAttemptDisposition(disposition, preview)) {
+      throw new Error(
+        'OpsAttemptDisposition 응답이 exact preview와 다릅니다.',
+      );
+    }
+    state.opsAttemptDisposition = disposition;
+    state.opsAttemptDispositionLocator = {
+      id: disposition.id,
+      targetType: disposition.targetType,
+      targetId: disposition.targetId,
+      parentId: disposition.parentId,
+      targetRecordDigest: disposition.targetRecordDigest,
+      parentDigest: disposition.parentDigest,
+    };
+    state.opsSupervisionPreview = null;
+    elements.refreshStatus.textContent =
+      `${disposition.targetId} settlement quarantined`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
 }
 
 function getReviewerReworkSource(executionPlanId) {
@@ -13956,6 +14027,36 @@ function renderRealCouncilEvidence(councilSession) {
 
 function renderOpsSupervisionPreview(targetId) {
   const preview = state.opsSupervisionPreview;
+  const disposition = state.opsAttemptDisposition;
+  if (disposition?.targetId === targetId) {
+    return `
+      <section
+        class="ops-supervision-preview ops-attempt-disposition"
+        aria-label="Quarantined attempt evidence"
+        data-ops-attempt-disposition-id="${escapeHtml(disposition.id)}"
+      >
+        <div class="card-title-row card-title-row-tight">
+          <strong>Quarantined attempt</strong>
+          ${createToken('settlement denied', 'danger')}
+          ${createToken('immutable evidence', 'neutral')}
+        </div>
+        <div class="token-row token-row-compact">
+          ${createToken(disposition.targetType, 'accent')}
+          ${createToken(`attempt:${disposition.attemptNumber}`, 'neutral')}
+          ${createToken(disposition.role, 'neutral')}
+        </div>
+        <dl class="ops-supervision-evidence">
+          <div><dt>disposition</dt><dd>${escapeHtml(disposition.id)}</dd></div>
+          <div><dt>target digest</dt><dd>${escapeHtml(disposition.targetRecordDigest)}</dd></div>
+          <div><dt>preview</dt><dd>${escapeHtml(disposition.previewId)}</dd></div>
+          <div><dt>reason</dt><dd>${escapeHtml(disposition.reasonCode)}</dd></div>
+        </dl>
+        <p class="ops-attempt-disposition-boundary">
+          Late settlement is blocked. No result, cancellation, recovery, retry, or source mutation was inferred.
+        </p>
+      </section>
+    `;
+  }
   if (!preview || preview.targetId !== targetId) return '';
 
   const evidence = Object.entries(preview.evidenceRefs || {})
@@ -13978,7 +14079,7 @@ function renderOpsSupervisionPreview(targetId) {
       <div class="card-title-row card-title-row-tight">
         <strong>Active attempt evidence</strong>
         ${createToken(preview.timeClassification, preview.timeClassification === 'active-deadline-exceeded' ? 'danger' : 'warning')}
-        ${createToken('inspect only', 'neutral')}
+        ${createToken('source-current preview', 'neutral')}
       </div>
       <div class="token-row token-row-compact">
         ${createToken(preview.targetType, 'accent')}
@@ -13991,12 +14092,37 @@ function renderOpsSupervisionPreview(targetId) {
           .map((action) => createToken(action, 'neutral'))
           .join('')}
       </div>
+      <label class="ops-attempt-quarantine-acknowledgement">
+        <input
+          type="checkbox"
+          name="opsAttemptQuarantineAcknowledgement"
+          data-target-id="${escapeHtml(preview.targetId)}"
+          value="quarantine-without-settlement-or-recovery"
+          ${state.loading || state.mutating ? 'disabled' : ''}
+        />
+        <span>Quarantine without settlement or recovery</span>
+      </label>
+      <button
+        class="danger-button ops-attempt-quarantine-action"
+        type="button"
+        data-action="quarantine-ops-attempt"
+        data-target-id="${escapeHtml(preview.targetId)}"
+        ${state.loading || state.mutating ? 'disabled' : ''}
+      >
+        Quarantine uncertain attempt
+      </button>
     </section>
   `;
 }
 
 function renderOpsSupervisionButton(targetType, target, parent) {
   const source = getOpsSupervisionTarget(targetType, target, parent);
+  if (
+    source &&
+    isExactOpsAttemptDisposition(state.opsAttemptDisposition, source)
+  ) {
+    return '';
+  }
   if (!source) return '';
   return `
     <button
@@ -24010,6 +24136,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'inspect-ops-supervision') {
         await inspectOpsSupervision(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'quarantine-ops-attempt') {
+        await quarantineOpsAttempt(actionButton);
         return;
       }
 
