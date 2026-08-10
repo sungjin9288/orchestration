@@ -12,8 +12,8 @@ document records no runtime authority by itself.
 - Implementation handoff: recorded as `DEC-220`
 - Consumed implementation: `DEC-221`
 - Current runtime: schema v27 with exact quarantine disposition and settlement denial
-- Implementation decision: missing and reserved for `DEC-221`
-- Runtime/schema/API/UI mutation: blocked
+- Implementation decision: accepted and implemented as `DEC-221`
+- Wider recovery, inferred-result, cancellation, resume, retry, and worker authority: blocked
 
 ## Required Fields
 
@@ -82,5 +82,7 @@ schema authority closed.
 
 ## Stop Condition
 
-Until one complete value-matching approval is accepted as `DEC-221`, no implementation file,
-schema-v27 field, quarantine route, settlement guard, or UI command may be added.
+The exact `DEC-221` implementation is complete. This handoff grants no authority beyond its
+schema-v27 quarantine record, exact inspection, acknowledgement-gated UI command, and deterministic
+late-settlement denial. Every wider recovery or inferred-result transition still requires its own
+complete fielded decision.

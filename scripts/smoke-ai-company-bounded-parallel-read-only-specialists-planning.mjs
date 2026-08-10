@@ -196,7 +196,7 @@ assert.match(
 );
 assert.match(readme, /planning-only `DEC-175` fixes the exact request/);
 assert.match(readme, /`DEC-176` implements only/);
-assert.match(readme, /1005 smoke files/);
+assert.match(readme, /1006 smoke files/);
 assert.match(readme, /714 UI smoke files/);
 assert.match(taskLedger, /ai-company-bounded-parallel-read-only-specialists-planning-post-m7-2013/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-readiness-clarification-post-m7-2014/);

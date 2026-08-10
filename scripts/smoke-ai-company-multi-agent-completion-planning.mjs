@@ -189,12 +189,14 @@ for (const decisionId of [
   'DEC-219',
   'DEC-220',
   'DEC-221',
+  'DEC-222',
+  'DEC-223',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-221`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-223`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -369,6 +371,8 @@ process.stdout.write(
         opsAttemptQuarantinePlanning: 'accepted-dec-219',
         opsAttemptQuarantineHandoff: 'documented-dec-220',
         opsAttemptQuarantineImplementation: 'accepted-dec-221',
+        opsSafeCheckpointResumePlanning: 'accepted-dec-222',
+        opsSafeCheckpointResumeHandoff: 'documented-dec-223',
       },
       currentRuntime: {
         schemaVersion: 27,
@@ -395,7 +399,8 @@ process.stdout.write(
       },
       nextImplementationTarget: {
         stage: '6C',
-        object: 'ops-attempt-cancellation-or-safe-checkpoint-resume',
+        object: 'qa-safe-checkpoint-resume',
+        decision: 'reserved-dec-224',
         implementationAllowed: false,
         fieldedDecisionRequired: true,
       },
@@ -439,6 +444,8 @@ process.stdout.write(
         reworkDeliveryPackageAcceptanceImplementationAllowed: true,
         opsAttemptQuarantinePlanningAllowed: true,
         opsAttemptQuarantineImplementationAllowed: true,
+        opsSafeCheckpointResumePlanningAllowed: true,
+        opsSafeCheckpointResumeImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

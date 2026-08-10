@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-221`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-223`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -530,6 +530,8 @@ const report = {
         'DEC-219',
         'DEC-220',
         'DEC-221',
+        'DEC-222',
+        'DEC-223',
       ],
       currentRuntime: {
         schemaVersion: 27,
@@ -656,6 +658,8 @@ const report = {
         reworkDeliveryPackageAcceptanceImplementationAllowed: true,
         opsAttemptQuarantinePlanningAllowed: true,
         opsAttemptQuarantineImplementationAllowed: true,
+        opsSafeCheckpointResumePlanningAllowed: true,
+        opsSafeCheckpointResumeImplementationAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
@@ -668,7 +672,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'DEC-221 implements exact Stage 6B quarantine; cancellation or safe-checkpoint resume requires a separate fielded decision',
+      'DEC-222 and DEC-223 select QA safe-checkpoint resume planning; exact DEC-224 is required for schema-v28 implementation',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -699,12 +703,14 @@ assert.equal(report.authority.reworkDeliveryPackageAcceptancePlanningAllowed, tr
 assert.equal(report.authority.reworkDeliveryPackageAcceptanceImplementationAllowed, true);
 assert.equal(report.authority.opsAttemptQuarantinePlanningAllowed, true);
 assert.equal(report.authority.opsAttemptQuarantineImplementationAllowed, true);
+assert.equal(report.authority.opsSafeCheckpointResumePlanningAllowed, true);
+assert.equal(report.authority.opsSafeCheckpointResumeImplementationAllowed, false);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /DEC-221 implements exact Stage 6B quarantine/,
+  /exact DEC-224 is required for schema-v28 implementation/,
 );
 
 process.stdout.write(

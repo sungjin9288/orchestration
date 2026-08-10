@@ -1467,6 +1467,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation adds only the disposition sequence/map, immutable record contract, bounded quarantine POST, exact-id GET, Advanced Ops acknowledgement-gated command, and deterministic settlement guards for WorkOrder, specialist first-attempt, and specialist retry targets. Source attempts and parents remain unchanged, generic snapshots exclude dispositions, and non-quarantined settlement behavior remains compatible.
 - Needed Before: Cancel, worker termination, resume, retry, rework, new attempt creation, inferred settlement, provider/background execution, source mutation, runtime-agent Git/release, memory application, scheduling, policy mutation, collections, approval bypass, and connectors require separate complete fielded decisions.
 
+### DEC-222
+- Status: `Accepted`
+- Decision: Accept planning only for Stage 6C: one deterministic local schema-v28 safe-checkpoint resume from one exact DEC-221 quarantined local-stub QA WorkOrderAttempt into one replacement QA WorkOrderAttempt attempt #2.
+- Why: Quarantine preserves uncertain active evidence and denies late settlement but intentionally leaves the Mission blocked. QA is the narrowest recoverable role because its existing runner is shell-free, source-mutation detecting, checkpoint-bound, and creates no provider, Review Gate, or Decision Inbox side effect.
+- Impact: Planning fixes the exact source tuple, sixteen-key operator request, explicit source-worker-stop confirmation, immutable `OpsAttemptResume` sidecar, semantic active-attempt rule, attempt-id-bound settlement, one replacement QA run, rollback retention, focused verification, and a stop at delivery-ready or terminal QA failure. It changes no schema, runtime, API, UI, state, source, provider, Git, memory, scheduling, policy, collection, bypass, or connector behavior.
+- Needed Before: Runtime/schema/API/UI implementation requires one complete value-matching decision accepted separately as `DEC-224`. Builder, Reviewer, specialist, cancellation, worker termination, retry, inferred result, automatic recovery, and every wider authority remain blocked.
+
+### DEC-223
+- Status: `Accepted`
+- Decision: Record `docs/152_ai-company-ops-safe-checkpoint-resume-implementation-decision-handoff.md` as the complete fifteen-field implementation decision shape for the Stage 6C QA-only safe-checkpoint resume gate.
+- Why: A broad continuation or self-approval cannot prove the exact quarantine, checkpoint, worker-stop confirmation, atomic replacement, source immutability, attempt-specific settlement, rollback, and downstream stop contract required before execution authority changes.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one schema-v28 sidecar, replacement QA attempt #2, and one shell-free QA invocation only. It authorizes no implementation by itself.
+- Needed Before: The operator must supply every required field in one value-matching implementation decision. Missing, renamed, broadened, shortcut, or generic approval remains non-authorizing; a matching acceptance is reserved for `DEC-224`.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

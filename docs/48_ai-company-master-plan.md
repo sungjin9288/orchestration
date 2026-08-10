@@ -116,6 +116,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `DEC-219` plans one schema-v27 append-only `OpsAttemptDisposition(decision=quarantine)`,
   `DEC-220` records the complete handoff, and `DEC-221` implements exact disposition persistence,
   inspection, and late-settlement denial without source or parent mutation.
+  `DEC-222` plans the first Stage 6C recovery boundary as one future schema-v28 QA-only safe-
+  checkpoint resume from an exact DEC-221 quarantined attempt, and `DEC-223` records the complete
+  implementation handoff reserved for exact `DEC-224`. No resume runtime exists yet.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, QA execution, interrupted-attempt recovery,
   provider/background WorkOrders, Ops recovery beyond exact quarantine, and Mission context
@@ -159,7 +162,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-221`
+- Recorded decisions: `DEC-163` through `DEC-223`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -200,6 +203,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Stage 6B implementation: `DEC-221` adds the sequence/map-only schema-v27 migration, exact
   eleven-key quarantine command, immutable exact-id evidence, and target-digest-bound settlement
   denial for WorkOrder, specialist first-attempt, and specialist retry attempts
+- Stage 6C planning: `DEC-222` fixes one future schema-v28 immutable `OpsAttemptResume`, explicit
+  source-worker-stop confirmation, replacement local-stub QA attempt #2, attempt-id-bound
+  settlement, and delivery-ready/failure stop; `DEC-223` records the complete implementation
+  handoff while exact `DEC-224` remains required
 - Stage 5 planning: `DEC-186` fixes one exact schema-v21-preserving response-only
   ReviewerReworkPlanPreview, and `DEC-187` records its complete fielded implementation handoff
 - Stage 5 implementation: `DEC-188` adds the exact seven-key GET and browser-memory preview with a
@@ -626,8 +633,10 @@ Implementation `DEC-218` consumes only the append-only acceptance-and-inspect bo
 mutation, close-out, retry, recovery, execution, and every broader authority remain blocked.
 Stage 6B planning-only `DEC-219` and handoff-only `DEC-220` define quarantine as the first Ops
 command: preserve the active source record, append exact disposition evidence, and deny its late
-settlement. Implementation remains blocked until exact `DEC-221`; cancellation, resume, retry,
-worker termination, inferred settlement, and new attempts remain separate authorities.
+settlement. Exact `DEC-221` implements only that boundary. Stage 6C planning-only `DEC-222` and
+handoff-only `DEC-223` now define one QA-only safe-checkpoint resume, but schema-v28 implementation
+remains blocked until exact `DEC-224`. Cancellation, Builder/Reviewer/specialist resume, worker
+termination, retry, inferred settlement, and automatic recovery remain separate authorities.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

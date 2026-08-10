@@ -304,6 +304,16 @@ implementation handoff. `DEC-221` implements the schema-v27 append, exact POST/G
 and target-digest-bound settlement denial only. Cancel, worker termination, resume, replay, retry,
 rework, inferred result, and new-attempt authority stay separate.
 
+Stage 6C planning-only `DEC-222` selects the first safe resume boundary: one exact quarantined
+local-stub QA WorkOrderAttempt at its consumed `qa-ready` checkpoint, an explicit operator-owned
+source-worker-stop confirmation, one immutable future schema-v28 `OpsAttemptResume`, and one
+replacement QA WorkOrderAttempt attempt #2. `DEC-223` records the complete fielded implementation
+handoff. The future worker must remain shell-free, settle only its exact replacement attempt id,
+preserve the source attempt and quarantine bytes, and stop at delivery-ready or terminal QA failure.
+Schema/runtime/API/UI implementation remains blocked until exact `DEC-224`; Builder, Reviewer,
+specialist, cancellation, worker termination, retry, inferred result, and automatic recovery remain
+separate authorities.
+
 ### Stage 7: Reviewed Mission Context Attachment
 
 Promote one exact MissionMemoryContextPreview only after a separate operator review into a
@@ -560,6 +570,8 @@ fit.
   implementation evidence is recorded through `DEC-218`.
 - Ops attempt quarantine planning is recorded as `DEC-219`; its complete fielded implementation
   handoff is `DEC-220`, and exact implementation is recorded as `DEC-221`.
+- QA-only safe-checkpoint resume planning is recorded as `DEC-222`; its complete fielded
+  implementation handoff is `DEC-223`, while implementation remains reserved for exact `DEC-224`.
 - Solo entry/execution, bound revision/resume/auto-chain, broader parallelism, cancel/resume,
   reviewed Mission context attachment, provider WorkOrders, and dogfood closure remain blocked
   pending their own complete fielded decisions.

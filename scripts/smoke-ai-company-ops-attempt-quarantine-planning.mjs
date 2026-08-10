@@ -89,7 +89,7 @@ assertIncludesAll(handoff, [
   /^# AI Company Ops Attempt Quarantine Implementation Decision Handoff$/m,
   /Planning-only decision: accepted as `DEC-219`/,
   /Implementation handoff: recorded as `DEC-220`/,
-  /reserved for `DEC-221`/,
+  /Implementation decision: accepted and implemented as `DEC-221`/,
   /decisionId=operator-decision-ai-company-ops-attempt-quarantine-implementation-001/,
   /decisionStatus=approve-ai-company-ops-attempt-quarantine-implementation-slice/,
   /schema-v27 append-only OpsAttemptDisposition/,
@@ -156,9 +156,9 @@ const uiSmokeFileCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
 
-assert.equal(smokeFileCount, 1005);
+assert.equal(smokeFileCount, 1006);
 assert.equal(uiSmokeFileCount, 714);
-assert.match(readme, /1005 smoke files/);
+assert.match(readme, /1006 smoke files/);
 assert.match(readme, /714 UI smoke files/);
 
 process.stdout.write(
