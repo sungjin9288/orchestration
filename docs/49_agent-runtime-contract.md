@@ -579,6 +579,14 @@ exact-id inspection save nothing. Builder, Reviewer, specialist, cancellation, w
 retry, inferred result, provider, source/Git/release, memory, scheduling, policy, collection, bypass,
 and connector authority remain closed.
 
+Stage 7A planning-only `DEC-225` and handoff-only `DEC-226` define one future schema-v29 immutable
+MissionContextAttachment. A first write must recompute the exact current DEC-130 preview, bind its
+Mission, MemoryRecall, MemoryItem, contextSpec, preview id and digest, and require a separate operator
+attachment review. The Mission and every source record remain byte-equivalent, generic snapshots
+exclude the sidecar, and exact Mission-bound inspection exposes zero or one record. Runtime, schema,
+API, and UI implementation remain blocked until exact `DEC-227`; role, prompt, policy, Council,
+ExecutionPlan, and WorkOrder consumption or injection remain separately blocked.
+
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider-backed

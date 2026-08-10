@@ -323,6 +323,13 @@ Mission policy.
 Strategist or planner input can include it only through an explicit request. Automatic retrieval,
 search, ranking, recommendation, and cross-workspace memory remain outside this sequence.
 
+Stage 7A planning-only `DEC-225` separates durable evidence from runtime consumption. One exact
+source-current DEC-130 preview plus one separate operator attachment review may become one future
+schema-v29 immutable MissionContextAttachment, while Mission, MemoryItem, MemoryRecall, Council,
+plan, WorkOrder, prompt, and policy bytes remain unchanged. `DEC-226` records the complete fielded
+implementation handoff reserved for exact `DEC-227`. Stage 7B Strategist or planner consumption,
+automatic selection, application, and injection remain separate authorities.
+
 ### Stage 8: Provider Expansion And Dogfood
 
 Open provider execution one read-only role at a time, beginning with Researcher or Reviewer.
@@ -572,6 +579,9 @@ fit.
   handoff is `DEC-220`, and exact implementation is recorded as `DEC-221`.
 - QA-only safe-checkpoint resume planning is recorded as `DEC-222`; its complete fielded
   implementation handoff is `DEC-223`, and exact bounded implementation is accepted as `DEC-224`.
+- Reviewed Mission context attachment planning is recorded as `DEC-225`; its complete fielded
+  implementation handoff is `DEC-226`, while schema-v29 record-and-inspect implementation remains
+  reserved for exact `DEC-227`.
 - Solo entry/execution, bound revision/resume/auto-chain, broader parallelism, cancel/resume,
-  reviewed Mission context attachment, provider WorkOrders, and dogfood closure remain blocked
-  pending their own complete fielded decisions.
+  context consumption or injection, provider WorkOrders, and dogfood closure remain blocked pending
+  their own complete fielded decisions.

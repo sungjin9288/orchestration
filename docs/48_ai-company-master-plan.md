@@ -120,6 +120,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   resume from an exact DEC-221 quarantined attempt, `DEC-223` records the complete implementation
   handoff, and `DEC-224` implements the exact resume sidecar, replacement attempt #2, one shell-free
   QA run, attempt-id-bound settlement, and exact inspection boundary.
+  `DEC-225` plans Stage 7A as one future schema-v29 immutable MissionContextAttachment from an exact
+  recomputed DEC-130 preview and separate operator review, and `DEC-226` records the complete
+  record-and-inspect implementation handoff reserved for exact `DEC-227`.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, QA execution, interrupted-attempt recovery,
   provider/background WorkOrders, Ops recovery beyond exact quarantine, and Mission context
@@ -163,7 +166,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-224`
+- Recorded decisions: `DEC-163` through `DEC-226`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -211,6 +214,10 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Stage 6C implementation: `DEC-224` adds the sequence/map-only schema-v28 migration, exact
   sixteen-key resume command, immutable exact-id evidence, atomic replacement QA attempt #2,
   source-attempt settlement denial, one shell-free QA execution, and terminal pass/failure stops
+- Stage 7A planning: `DEC-225` fixes one future schema-v29 immutable MissionContextAttachment from
+  current DEC-130 recomputation and separate operator review, with exact Mission-bound inspection
+  and no Mission mutation or context consumption; `DEC-226` records the complete implementation
+  handoff while exact `DEC-227` remains required
 - Stage 5 planning: `DEC-186` fixes one exact schema-v21-preserving response-only
   ReviewerReworkPlanPreview, and `DEC-187` records its complete fielded implementation handoff
 - Stage 5 implementation: `DEC-188` adds the exact seven-key GET and browser-memory preview with a
@@ -641,6 +648,10 @@ settlement. Exact `DEC-221` implements only that boundary. Stage 6C planning-onl
 handoff-only `DEC-223`, and implementation `DEC-224` define and implement one QA-only safe-checkpoint
 resume with exact replacement attempt settlement. Cancellation, Builder/Reviewer/specialist resume, worker
 termination, retry, inferred settlement, and automatic recovery remain separate authorities.
+Planning-only `DEC-225` and handoff-only `DEC-226` define Stage 7A as one future schema-v29 immutable
+MissionContextAttachment from an exact current DEC-130 preview and separate operator review. No
+attachment runtime exists before exact `DEC-227`, and Strategist/planner consumption, Mission or
+prompt injection, automatic retrieval, recommendation, and memory application remain separate.
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.

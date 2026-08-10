@@ -857,6 +857,11 @@ const informationalChecks = [
     purpose: 'AI Company Mission memory context UI and API prove one explicit exact-id operator selection form, browser canonical Mission digest parity, bounded JSON-only POST, response and browser-memory-only context-review-ready evidence, refresh source input and failure invalidation, safe malformed stale content-type cross-project provider oversized and non-draft failures, responsive fit, source-state byte stability, and absent apply inject recommend search persist or downstream controls',
   },
   {
+    id: 'ai-company-reviewed-mission-context-attachment-planning',
+    script: 'scripts/smoke-ai-company-reviewed-mission-context-attachment-planning.mjs',
+    purpose: 'AI Company Stage 7A planning fixes one future schema-v29 immutable MissionContextAttachment from exact current DEC-130 recomputation and separate operator review, one-per-Mission exact inspection, source immutability, rollback retention, and blocked role prompt policy Council plan WorkOrder context consumption or injection automatic retrieval recommendation provider source Git scheduling policy collection bypass and connector authority',
+  },
+  {
     id: 'ai-company-workorder-verification-plan-preview',
     script: 'scripts/smoke-ai-company-workorder-verification-plan-preview.mjs',
     purpose: 'AI Company WorkOrder verification plan runtime proves exact current ExecutionPlan and WorkOrder record digest binding, complete acceptance stop command and artifact source coverage, deterministic deep-frozen response-only replay, zero state mutation, safe stale malformed crossed and future input refusal, and blocked approval completion command execution persistence provider source Git scheduling and connector authority',

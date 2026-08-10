@@ -1488,6 +1488,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Implementation may add only the `opsAttemptResume` sequence and map, one immutable `OpsAttemptResume`, one replacement QA attempt, bounded POST and exact-id GET routes, exact-attempt settlement hardening, and an acknowledgement-gated Advanced Ops command. The quarantined source remains immutable and settlement-denied; pass stops at `delivery-ready`, failure stops terminally, and generic snapshots exclude resume records.
 - Needed Before: Builder, Reviewer, or specialist resume, cancellation, worker termination, retry, inferred result, second or automatic resume, provider-backed execution, source mutation, package or Mission close-out, runtime-agent Git/release, memory application, scheduling, policy mutation, collections, approval bypass, and connectors require separate complete fielded decisions.
 
+### DEC-225
+- Status: `Accepted`
+- Decision: Accept planning only for Stage 7A: one deterministic local schema-v29 immutable `MissionContextAttachment(status=attached)` from one exact source-current DEC-130 `MissionMemoryContextPreview` and separate operator attachment review.
+- Why: DEC-130 proves an exact reviewed source tuple but intentionally keeps it response/browser-memory-only. Durable attachment evidence is the smallest next step that can preserve an operator-reviewed context choice without changing Mission bytes or allowing a role, prompt, policy, Council, plan, or WorkOrder to consume it.
+- Impact: Planning fixes the exact ten-key attach request, current DEC-130 recomputation, separate attachment review, one-per-Mission sidecar, canonical immutable digest, exact Mission-bound inspection, rollback retention, focused verification, and a stop before all context consumption or injection. It changes no schema, runtime, API, UI, Mission, source, provider, Git, scheduling, policy, collection, bypass, or connector behavior.
+- Needed Before: Runtime/schema/API/UI implementation requires one complete value-matching decision accepted separately as `DEC-227`. Stage 7B role consumption and every broader memory authority remain blocked.
+
+### DEC-226
+- Status: `Accepted`
+- Decision: Record `docs/154_ai-company-reviewed-mission-context-attachment-implementation-decision-handoff.md` as the complete fifteen-field implementation decision shape for the Stage 7A record-and-inspect gate.
+- Why: A broad continuation or self-approval cannot prove exact preview recomputation, source and Mission digest binding, separate human review, atomic migration, source immutability, replay, rollback, and the boundary between attachment evidence and role consumption.
+- Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one schema-v29 sidecar and exact Mission-bound inspection only. It authorizes no implementation, application, or injection by itself.
+- Needed Before: The operator must supply every required field in one value-matching implementation decision. Missing, renamed, broadened, shortcut, or consumption-enabling approval remains non-authorizing; a matching acceptance is reserved for `DEC-227`.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

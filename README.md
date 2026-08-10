@@ -154,6 +154,8 @@ Planning source files:
 - `docs/150_ai-company-ops-attempt-quarantine-implementation-decision-handoff.md`
 - `docs/151_ai-company-ops-safe-checkpoint-resume-plan.md`
 - `docs/152_ai-company-ops-safe-checkpoint-resume-implementation-decision-handoff.md`
+- `docs/153_ai-company-reviewed-mission-context-attachment-plan.md`
+- `docs/154_ai-company-reviewed-mission-context-attachment-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -379,6 +381,16 @@ settlement to that exact attempt id, and permits one shell-free QA execution onl
 implements that bounded schema/runtime/API/UI and Advanced Ops command path. Builder, Reviewer, specialist,
 cancellation, worker termination, retry, inferred result, provider, source/Git/release, memory,
 scheduling, policy, collection, bypass, and connector authority remain closed.
+
+Planning-only `DEC-225` defines Stage 7A as one future schema-v29 immutable
+`MissionContextAttachment` from an exact source-current DEC-130 preview and separate operator
+attachment review. `DEC-226` records the complete fielded implementation handoff in
+`docs/154_ai-company-reviewed-mission-context-attachment-implementation-decision-handoff.md`.
+The plan leaves Mission and every source record unchanged, permits at most one attachment per
+Mission, and exposes exact Mission-bound inspection only. Schema/runtime/API/UI implementation
+remains blocked until exact `DEC-227`; Stage 7B Strategist/planner consumption, automatic retrieval,
+search, ranking, recommendation, injection/application, providers, source/Git/release, scheduling,
+policy, collections, bypass, and connectors remain closed.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -890,6 +902,8 @@ DeliveryPackage planning, fielded handoff, and record-and-inspect implementation
 DEC-216 through DEC-218 Stage 5K acceptance planning, fielded handoff, and implementation evidence,
 plus DEC-219 through DEC-221 Stage 6B quarantine planning, fielded handoff, and implementation, and
 DEC-222 through DEC-224 Stage 6C QA-only safe-resume planning, fielded handoff, and implementation,
+plus DEC-225 through DEC-226 Stage 7A reviewed Mission context attachment planning and fielded
+handoff,
 pass the focused,
 aggregate, and UI QA
 gates. Focused browser checks at 1280x720 and
@@ -1056,6 +1070,14 @@ Current source-backed evidence:
   evidence closure, deterministic deep-frozen replay, bounded POST and browser-memory lifecycle,
   zero state-byte mutation, safe failure handling, responsive fit, and absent apply/inject/search/
   recommend/persist controls.
+- Reviewed Mission context attachment planning: `DEC-225`, `DEC-226`,
+  `docs/153_ai-company-reviewed-mission-context-attachment-plan.md`,
+  `docs/154_ai-company-reviewed-mission-context-attachment-implementation-decision-handoff.md`, and
+  `scripts/smoke-ai-company-reviewed-mission-context-attachment-planning.mjs` define one future
+  schema-v29 immutable record from exact DEC-130 recomputation and a separate operator review. The
+  Mission and source records stay unchanged, exact Mission-bound inspection is the only planned read,
+  and implementation plus every context consumption/injection authority remain blocked until exact
+  `DEC-227` and later separately scoped decisions.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
   draft planning target, the full operator decision fields, rollback and focused smoke requirements,
@@ -2563,7 +2585,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1008 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1009 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 715 UI smoke files
 ```
@@ -3070,8 +3092,8 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required `93/93` pass. Snapshot reachability remains informational
   and was skipped because the optional port-4315 UI server was not running.
-- `node scripts/verification_status.mjs`: required `1/1` pass; informational `250/309` pass with
-  `59` non-blocking readiness/status failures; total `251/310` pass. The aggregate includes the
+- `node scripts/verification_status.mjs`: required `1/1` pass; informational `251/310` pass with
+  `59` non-blocking readiness/status failures; total `252/311` pass. The aggregate includes the
   README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -3139,12 +3161,16 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
-  multi-agent completion implementation slices are current through DEC-224, including Stage 5K
+  multi-agent completion implementation slices are current through DEC-224, with Stage 7A planning
+  and fielded handoff current through DEC-226, including Stage 5K
   acceptance evidence and Stage 6B exact quarantine evidence. DEC-219 and DEC-220 define the plan
   and fielded handoff; DEC-221 implements schema v27, durable disposition evidence, settlement
   guards, and the quarantine command only. DEC-222 and DEC-223 define the QA-only safe-checkpoint
   resume plan and fielded handoff; DEC-224 implements schema v28, one immutable resume sidecar,
-  replacement QA attempt #2, exact settlement, one shell-free QA run, and exact inspection. DEC-173
+  replacement QA attempt #2, exact settlement, one shell-free QA run, and exact inspection. DEC-225
+  and DEC-226 define one future schema-v29 reviewed MissionContextAttachment record and fielded
+  implementation gate; implementation remains blocked until exact DEC-227 and role consumption
+  remains a later separate decision. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell

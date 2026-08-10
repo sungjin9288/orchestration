@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-224`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-226`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -533,6 +533,8 @@ const report = {
         'DEC-222',
         'DEC-223',
         'DEC-224',
+        'DEC-225',
+        'DEC-226',
       ],
       currentRuntime: {
         schemaVersion: 28,
@@ -661,6 +663,9 @@ const report = {
         opsAttemptQuarantineImplementationAllowed: true,
         opsSafeCheckpointResumePlanningAllowed: true,
         opsSafeCheckpointResumeImplementationAllowed: true,
+        reviewedMissionContextAttachmentPlanningAllowed: true,
+        reviewedMissionContextAttachmentImplementationAllowed: false,
+        missionContextRoleConsumptionAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
@@ -673,7 +678,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'DEC-224 implements one QA safe-checkpoint resume; broader recovery requires a separate complete fielded decision',
+      'DEC-225 and DEC-226 select reviewed Mission context attachment planning; exact DEC-227 is required for schema-v29 implementation',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -706,12 +711,15 @@ assert.equal(report.authority.opsAttemptQuarantinePlanningAllowed, true);
 assert.equal(report.authority.opsAttemptQuarantineImplementationAllowed, true);
 assert.equal(report.authority.opsSafeCheckpointResumePlanningAllowed, true);
 assert.equal(report.authority.opsSafeCheckpointResumeImplementationAllowed, true);
+assert.equal(report.authority.reviewedMissionContextAttachmentPlanningAllowed, true);
+assert.equal(report.authority.reviewedMissionContextAttachmentImplementationAllowed, false);
+assert.equal(report.authority.missionContextRoleConsumptionAllowed, false);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /broader recovery requires a separate complete fielded decision/,
+  /exact DEC-227 is required for schema-v29 implementation/,
 );
 
 process.stdout.write(

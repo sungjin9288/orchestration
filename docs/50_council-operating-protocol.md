@@ -510,6 +510,12 @@ QA-only safe-checkpoint resume into exact attempt #2. Council roles cannot infer
 choose a resume target, or authorize Builder, Reviewer, specialist, cancellation, retry, repeated
 resume, or broader recovery.
 
+Planning-only `DEC-225` and handoff-only `DEC-226` define Stage 7A attachment evidence only. One
+exact reviewed DEC-130 preview may become one future immutable MissionContextAttachment after a
+separate operator review, but Council roles cannot select it, recommend it, consume it, inject it
+into positions or synthesis, or mutate Mission policy. Schema-v29 implementation requires exact
+`DEC-227`; any Strategist or planner use requires another decision after that implementation.
+
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness
 clarification은 `DEC-165`, exact implementation acceptance는 `DEC-166`으로 기록됐다. First durable council-mode StaffingPlan은 Conductor를 포함한

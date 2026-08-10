@@ -192,12 +192,14 @@ for (const decisionId of [
   'DEC-222',
   'DEC-223',
   'DEC-224',
+  'DEC-225',
+  'DEC-226',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-224`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-226`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -375,6 +377,8 @@ process.stdout.write(
         opsSafeCheckpointResumePlanning: 'accepted-dec-222',
         opsSafeCheckpointResumeHandoff: 'documented-dec-223',
         opsSafeCheckpointResumeImplementation: 'accepted-dec-224',
+        reviewedMissionContextAttachmentPlanning: 'accepted-dec-225',
+        reviewedMissionContextAttachmentHandoff: 'documented-dec-226',
       },
       currentRuntime: {
         schemaVersion: 28,
@@ -405,6 +409,13 @@ process.stdout.write(
         decision: 'accepted-dec-224',
         implementationAllowed: true,
         broaderAuthorityAllowed: false,
+      },
+      nextImplementationTarget: {
+        stage: '7A',
+        object: 'reviewed-mission-context-attachment',
+        decision: 'reserved-dec-227',
+        implementationAllowed: false,
+        roleConsumptionAllowed: false,
       },
       authority: {
         documentationAllowed: true,
@@ -448,6 +459,9 @@ process.stdout.write(
         opsAttemptQuarantineImplementationAllowed: true,
         opsSafeCheckpointResumePlanningAllowed: true,
         opsSafeCheckpointResumeImplementationAllowed: true,
+        reviewedMissionContextAttachmentPlanningAllowed: true,
+        reviewedMissionContextAttachmentImplementationAllowed: false,
+        missionContextRoleConsumptionAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

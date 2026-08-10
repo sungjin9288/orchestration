@@ -524,6 +524,14 @@ shell-free QA를 한 번 실행해 delivery-ready 또는 terminal failure에서 
 Builder, Reviewer, specialist, cancel, termination, retry, inferred result, repeated or automatic
 recovery는 포함하지 않는다.
 
+`DEC-225`는 Stage 7A를 exact current DEC-130 MissionMemoryContextPreview와 separate operator
+attachment review에서 one future schema-v29 immutable MissionContextAttachment를 기록하는
+경로로 제한한다. `DEC-226`은 complete fielded handoff를 기록하며 implementation은 exact
+`DEC-227` 전까지 blocked다. Mission bytes와 모든 source record는 unchanged이고 exact Mission-
+bound inspection만 계획한다. Strategist/planner consumption, Mission/WorkOrder/prompt/policy
+injection, automatic retrieval/search/ranking/recommendation, and memory application은 Stage 7B의
+별도 authority다.
+
 `DEC-186`은 Stage 5 Reviewer rework의 첫 단계를 schema-v21-preserving response-only
 ReviewerReworkPlanPreview로 고정하고, `DEC-187`은 complete fielded implementation handoff를
 기록한다. 이 preview는 one exact bound `changes-requested` stop, bounded review Artifact,

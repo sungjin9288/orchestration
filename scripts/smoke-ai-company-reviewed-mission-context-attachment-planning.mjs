@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const mode = 'ai-company-ops-safe-checkpoint-resume-planning-smoke';
+const mode = 'ai-company-reviewed-mission-context-attachment-planning-smoke';
 
 requireNoCliArgs(process.argv.slice(2), { mode });
 
@@ -17,9 +17,9 @@ function countScripts(pattern) {
   return fs.readdirSync(path.join(repoRoot, 'scripts')).filter((name) => pattern.test(name)).length;
 }
 
-const plan = read('docs/151_ai-company-ops-safe-checkpoint-resume-plan.md');
+const plan = read('docs/153_ai-company-reviewed-mission-context-attachment-plan.md');
 const handoff = read(
-  'docs/152_ai-company-ops-safe-checkpoint-resume-implementation-decision-handoff.md',
+  'docs/154_ai-company-reviewed-mission-context-attachment-implementation-decision-handoff.md',
 );
 const decisionLog = read('docs/01_decision-log.md');
 const masterPlan = read('docs/48_ai-company-master-plan.md');
@@ -49,29 +49,31 @@ for (const field of fields) {
 }
 
 for (const pattern of [
-  /planning authority is recorded as `DEC-222`/,
-  /complete implementation handoff is recorded as\s+`DEC-223`/,
-  /accepted as `DEC-224`/,
-  /local-stub QA WorkOrderAttempt/,
-  /schemaVersion = 28/,
-  /sequences\.opsAttemptResume/,
-  /opsAttemptResumes\{\}/,
-  /exact sixteen-key body/,
-  /source-worker-stopped-and-read-only-qa-confirmed/,
-  /expectedReplacementAttemptNumber=2/,
-  /explicit operator-owned fact/,
-  /attempt-specific settlement/i,
-  /one existing shell-free QA boundary/,
-  /Builder, Reviewer, specialist, cancellation, retry, process termination/,
+  /planning authority is recorded as `DEC-225`/,
+  /complete implementation handoff is recorded as\s+`DEC-226`/,
+  /reserved for an exact `DEC-227`/,
+  /Stage 7A: reviewed Mission context attachment record/,
+  /Stage 7B: one explicit role-owned context consumption request/,
+  /schemaVersion = 29/,
+  /sequences\.missionContextAttachment/,
+  /missionContextAttachments\{\}/,
+  /exact ten-key JSON body/,
+  /reviewed-exact-memory-context-for-immutable-mission-attachment/,
+  /at most one attachment per target Mission/,
+  /GET \/api\/missions\/:missionId\/context-attachment/,
+  /context consumption or injection/,
 ]) {
   assert.match(plan, pattern);
 }
 
-assert.match(handoff, /operator-decision-ai-company-ops-safe-checkpoint-resume-implementation-001/);
-assert.match(handoff, /schema-v28 safe-checkpoint resume/);
-assert.match(handoff, /scripts\/smoke-ui-slice-715\.mjs/);
-assert.match(handoff, /source-worker-stop confirmation/);
-assert.match(handoff, /accepted as `DEC-224`/);
+assert.match(
+  handoff,
+  /operator-decision-ai-company-reviewed-mission-context-attachment-implementation-001/,
+);
+assert.match(handoff, /schema-v29 immutable MissionContextAttachment/);
+assert.match(handoff, /scripts\/smoke-ui-slice-716\.mjs/);
+assert.match(handoff, /reserved for `DEC-227`/);
+assert.match(handoff, /record and exact inspection only/);
 
 for (const [source, label] of [
   [decisionLog, 'decision log'],
@@ -84,27 +86,29 @@ for (const [source, label] of [
   [readme, 'README'],
   [todo, 'task ledger'],
 ]) {
-  assert.match(source, /DEC-222/, `${label} must record DEC-222`);
-  assert.match(source, /DEC-223/, `${label} must record DEC-223`);
-  assert.match(source, /DEC-224/, `${label} must record DEC-224 implementation`);
+  assert.match(source, /DEC-225/, `${label} must record DEC-225`);
+  assert.match(source, /DEC-226/, `${label} must record DEC-226`);
+  assert.match(source, /DEC-227/, `${label} must reserve DEC-227 implementation`);
 }
 
-assert.match(decisionLog, /^### DEC-222$/m);
-assert.match(decisionLog, /^### DEC-223$/m);
-assert.match(decisionLog, /^### DEC-224$/m);
+assert.match(decisionLog, /^### DEC-225$/m);
+assert.match(decisionLog, /^### DEC-226$/m);
 assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
-assert.match(contracts, /opsAttemptResume/);
-assert.match(runtime, /resumeOpsAttemptFromSafeCheckpoint/);
-assert.match(server, /attempt-resumes/);
-assert.match(server, /resume-safe-checkpoint/);
-assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/ops-attempt-resumes.js')), true);
+assert.doesNotMatch(contracts, /missionContextAttachment/);
+assert.doesNotMatch(runtime, /attachReviewedMissionContext/);
+assert.doesNotMatch(server, /context-attachments/);
 assert.equal(
-  fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-ops-safe-checkpoint-resume.mjs')),
-  true,
+  fs.existsSync(path.join(repoRoot, 'src/runtime/mission-context-attachments.js')),
+  false,
 );
-assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-715.mjs')), true);
-assert.match(verification, /ai-company-ops-safe-checkpoint-resume-planning/);
-assert.match(verification, /ai-company-ops-safe-checkpoint-resume/);
+assert.equal(
+  fs.existsSync(
+    path.join(repoRoot, 'scripts/smoke-ai-company-reviewed-mission-context-attachment.mjs'),
+  ),
+  false,
+);
+assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-716.mjs')), false);
+assert.match(verification, /ai-company-reviewed-mission-context-attachment-planning/);
 assert.match(readme, /1009 smoke files/);
 assert.match(readme, /715 UI smoke files/);
 
@@ -116,12 +120,13 @@ assert.equal(uiSmokeFileCount, 715);
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode,
-  planningDecision: 'accepted-dec-222',
-  handoffDecision: 'recorded-dec-223',
-  implementationDecision: 'accepted-dec-224',
-  schemaVersion: 28,
-  targetRole: 'qa',
-  implementationAllowed: true,
+  planningDecision: 'accepted-dec-225',
+  handoffDecision: 'recorded-dec-226',
+  implementationDecision: 'reserved-dec-227',
+  currentSchemaVersion: 28,
+  plannedSchemaVersion: 29,
+  implementationAllowed: false,
+  roleConsumptionAllowed: false,
   smokeFileCount,
   uiSmokeFileCount,
 }, null, 2)}\n`);
