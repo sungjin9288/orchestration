@@ -218,8 +218,8 @@ assert.match(
   readme,
   /docs\/142_ai-company-rework-qa-execution-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /1009 smoke files/);
-assert.match(readme, /715 UI smoke files/);
+assert.match(readme, /1011 smoke files/);
+assert.match(readme, /716 UI smoke files/);
 assert.match(todo, /ai-company-rework-qa-execution-planning-post-m7-2038/);
 assert.match(todo, /ai-company-rework-qa-execution-implementation-post-m7-2039/);
 assert.match(
@@ -231,7 +231,7 @@ assert.match(
   /id: 'ai-company-rework-qa-execution-planning'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
 assert.match(attempts, /RUN_QA: 'run-qa'/);
 assert.match(
   runtime,
@@ -262,8 +262,8 @@ assert.match(server, /runtime\.getReworkQaExecution\(reworkPlanId\)/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1009);
-assert.equal(uiSmokeFileCount, 715);
+assert.equal(smokeFileCount, 1011);
+assert.equal(uiSmokeFileCount, 716);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,

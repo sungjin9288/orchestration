@@ -318,7 +318,7 @@ async function prepareMutation(adapterMode = 'changes') {
   const sourceBytes = fs.readFileSync(path.join(projectPath, targetPath));
   const state = readState();
 
-  assert.equal(state.schemaVersion, 28);
+  assert.equal(state.schemaVersion, 29);
   assert.equal(Object.keys(state.workOrders).length, 3);
   assert.equal(ready.status, 'ready');
   assert.equal(ready.persisted, false);

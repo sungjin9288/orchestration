@@ -45,6 +45,7 @@ const {
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
+  MISSION_CONTEXT_ATTACHMENT_STATE_SCHEMA_VERSION,
   OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION,
   OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION,
   REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
@@ -129,6 +130,15 @@ const {
   RECORD_APPROVAL_DECISION,
   computeMemoryRecallRecordDigest,
 } = require('./memory-recalls');
+const {
+  assertMissionContextAttachmentRecord,
+} = require('./mission-context-attachments');
+const {
+  CONTEXT_ACKNOWLEDGEMENT,
+  NON_INJECTION_STATEMENT,
+  computeMissionMemoryContextTargetDigest,
+  previewMissionMemoryContext,
+} = require('./mission-memory-context-preview');
 const {
   STAFFING_PLAN_ACCEPTANCE_ACKNOWLEDGEMENT,
   STAFFING_PLAN_ACCEPTANCE_DECISION,
@@ -1641,6 +1651,98 @@ function validateMemoryRecallRecords(state) {
     if (computeMemoryRecallRecordDigest(recall) !== recall.recordDigest) {
       throw new Error(`${label} recordDigest does not match its immutable payload`);
     }
+  }
+}
+
+function validateMissionContextAttachmentRecords(state) {
+  const missionIds = new Set();
+  let highestSequence = 0;
+
+  for (const [key, attachment] of Object.entries(state.missionContextAttachments)) {
+    const label = `MissionContextAttachment ${key}`;
+    if (
+      !attachment ||
+      typeof attachment !== 'object' ||
+      Array.isArray(attachment) ||
+      attachment.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    const idMatch = /^mission-context-attachment-(\d+)$/.exec(key);
+    const sequence = idMatch ? Number(idMatch[1]) : Number.NaN;
+    if (
+      !Number.isSafeInteger(sequence) ||
+      sequence < 1 ||
+      key !==
+        `mission-context-attachment-${String(sequence).padStart(4, '0')}`
+    ) {
+      throw new Error(`${label} has an invalid sequence identity`);
+    }
+    highestSequence = Math.max(highestSequence, sequence);
+    assertMissionContextAttachmentRecord(attachment);
+
+    if (missionIds.has(attachment.targetMissionId)) {
+      throw new Error(`${label} duplicates target Mission attachment evidence`);
+    }
+    missionIds.add(attachment.targetMissionId);
+
+    const mission = state.missions[attachment.targetMissionId];
+    const recall = state.memoryRecalls[attachment.sourceMemoryRecallId];
+    const item = state.memoryItems[attachment.sourceMemoryItemId];
+    if (!mission || !recall || !item) {
+      throw new Error(`${label} has missing Mission or memory source lineage`);
+    }
+    if (
+      attachment.targetMissionDigest !==
+        computeMissionMemoryContextTargetDigest(mission) ||
+      attachment.sourceMemoryRecallRecordDigest !== recall.recordDigest ||
+      attachment.sourceMemoryItemRecordDigest !== item.recordDigest ||
+      recall.sourceMemoryItemId !== item.id ||
+      attachment.projectId !== mission.projectId ||
+      attachment.projectId !== recall.projectId ||
+      attachment.projectId !== item.projectId
+    ) {
+      throw new Error(`${label} has stale or cross-project source bindings`);
+    }
+
+    const preview = previewMissionMemoryContext(
+      {
+        recall,
+        item,
+        mission,
+        evaluatedAt: attachment.evaluatedAt,
+        contextSpec: {
+          purpose: attachment.purpose,
+          workspaceScope: structuredClone(attachment.workspaceScope),
+          applicability: structuredClone(attachment.applicability),
+          evidenceRefs: [...attachment.evidenceRefs],
+          negativeEvidenceRefs: [...attachment.negativeEvidenceRefs],
+          redactionRefs: [...attachment.redactionRefs],
+          reviewRefs: [...attachment.reviewRefs],
+          acknowledgement: CONTEXT_ACKNOWLEDGEMENT,
+          nonInjectionStatement: NON_INJECTION_STATEMENT,
+        },
+      },
+      { now: attachment.attachedAt },
+    );
+    if (
+      attachment.sourcePreviewId !== preview.id ||
+      attachment.sourcePreviewDigest !== preview.previewDigest ||
+      attachment.sourceMemoryRecallPreviewId !==
+        preview.sourceMemoryRecallPreviewId ||
+      attachment.expiresAt !== preview.expiresAt
+    ) {
+      throw new Error(`${label} does not reproduce its exact source preview`);
+    }
+  }
+
+  if (state.sequences.missionContextAttachment !== highestSequence) {
+    throw new Error(
+      'MissionContextAttachment sequence does not match retained records',
+    );
+  }
+  if (Object.keys(state.missionContextAttachments).length !== highestSequence) {
+    throw new Error('MissionContextAttachment sequence has a retained-record gap');
   }
 }
 
@@ -5025,6 +5127,7 @@ function createFileStore(options = {}) {
         REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== MISSION_CONTEXT_ATTACHMENT_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -5348,6 +5451,21 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (
+      sourceSchemaVersion >= MISSION_CONTEXT_ATTACHMENT_STATE_SCHEMA_VERSION
+    ) {
+      if (
+        !Number.isInteger(state.sequences?.missionContextAttachment) ||
+        !state.missionContextAttachments ||
+        typeof state.missionContextAttachments !== 'object' ||
+        Array.isArray(state.missionContextAttachments)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing MissionContextAttachment fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -5394,6 +5512,7 @@ function createFileStore(options = {}) {
         state.reworkDeliveryPackageAcceptances || {},
       opsAttemptDispositions: state.opsAttemptDispositions || {},
       opsAttemptResumes: state.opsAttemptResumes || {},
+      missionContextAttachments: state.missionContextAttachments || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -5688,6 +5807,7 @@ function createFileStore(options = {}) {
     validateReworkDeliveryPackageAcceptanceRecords(normalizedState);
     validateOpsAttemptDispositionRecords(normalizedState);
     validateOpsAttemptResumeRecords(normalizedState);
+    validateMissionContextAttachmentRecords(normalizedState);
     return normalizedState;
   }
 

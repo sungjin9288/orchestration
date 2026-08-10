@@ -651,7 +651,7 @@ async function runDurableRuntimeSmoke(context, request, preview) {
   );
 
   const persistedState = readState();
-  assert.equal(persistedState.schemaVersion, 28);
+  assert.equal(persistedState.schemaVersion, 29);
   assert.equal(persistedState.sequences.reworkDeliveryPackage, 1);
   assert.deepEqual(
     Object.keys(persistedState.reworkDeliveryPackages),

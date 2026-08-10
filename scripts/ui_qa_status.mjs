@@ -443,6 +443,12 @@ const smokeChecks = [
       'Advanced Ops exposes one exact quarantined QA safe-checkpoint resume with mandatory worker-stop timestamp and acknowledgement, hydrates immutable source and replacement evidence through one exact locator, and keeps second resume cancel retry provider source package Git release memory and scheduling controls absent across desktop and mobile',
   },
   {
+    id: 'ai-company-reviewed-mission-context-attachment-ui-api',
+    script: 'scripts/smoke-ui-slice-716.mjs',
+    purpose:
+      'Deliverables exposes one exact reviewed MissionContextAttachment record action from browser-only DEC-130 evidence, hydrates immutable evidence through one exact Mission locator, and keeps context consumption injection apply provider source Git release scheduling and next-Mission controls absent across desktop and mobile',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

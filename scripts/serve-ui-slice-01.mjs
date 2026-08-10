@@ -4441,6 +4441,79 @@ const server = createServer(async (request, response) => {
   const missionMemoryContextPreviewMatch = url.pathname.match(
     /^\/api\/missions\/([^/]+)\/memory-context-preview$/,
   );
+  const missionContextAttachmentMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/context-attachment$/,
+  );
+  if (method === 'GET' && missionContextAttachmentMatch) {
+    try {
+      const missionId = decodeURIComponent(missionContextAttachmentMatch[1]);
+      json(response, 200, runtime.getMissionContextAttachment(missionId));
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error:
+          error.message || 'MissionContextAttachment 조회에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const missionContextAttachmentsMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/context-attachments$/,
+  );
+  if (method === 'POST' && missionContextAttachmentsMatch) {
+    try {
+      const missionId = decodeURIComponent(missionContextAttachmentsMatch[1]);
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'memoryRecallId',
+        'memoryRecallRecordDigest',
+        'memoryItemId',
+        'memoryItemRecordDigest',
+        'targetMissionDigest',
+        'sourcePreviewId',
+        'sourcePreviewDigest',
+        'contextSpec',
+        'evaluatedAt',
+        'attachmentReview',
+      ].sort();
+      const actualFields = Object.keys(input).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== expectedFields[index])
+      ) {
+        const error = new Error(
+          'MissionContextAttachment body has unexpected or missing fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+      const result = runtime.attachReviewedMissionContext({ missionId, ...input });
+      json(response, result.idempotent ? 200 : 201, {
+        mission: result.mission,
+        missionContextAttachment: result.missionContextAttachment,
+        mutation: {
+          idempotent: result.idempotent,
+          kind: 'attach-reviewed-mission-context',
+          missionId,
+          missionContextAttachmentId: result.missionContextAttachment.id,
+          stoppedAt: 'mission-context-attached-role-consumption-blocked',
+        },
+      });
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error:
+          error.message || 'MissionContextAttachment 기록에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   if (method === 'POST' && missionMemoryContextPreviewMatch) {
     try {
       const missionId = decodeURIComponent(missionMemoryContextPreviewMatch[1]);

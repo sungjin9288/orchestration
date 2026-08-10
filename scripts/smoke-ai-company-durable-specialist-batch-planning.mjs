@@ -238,7 +238,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-durable-specialist-batch-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
 assert.match(contracts, /specialistBatch/);
 assert.match(contracts, /specialistCellAttempt/);
 assert.match(decisionLog, /^### DEC-179$/m);

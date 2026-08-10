@@ -1954,6 +1954,35 @@ export function getMissionMemoryContextPreviewSummary(
   };
 }
 
+export function getMissionContextAttachmentSummary(preview, attachment, mission) {
+  const exactPreview = Boolean(
+    preview?.persisted === false &&
+      preview.status === 'context-review-ready' &&
+      preview.targetMissionId === mission?.id &&
+      preview.targetMissionStatus === 'draft' &&
+      preview.missionInjectionStatus === 'blocked' &&
+      preview.workOrderInjectionStatus === 'blocked',
+  );
+  const exactAttachment = Boolean(
+    attachment?.persisted === true &&
+      attachment.status === 'attached' &&
+      attachment.targetMissionId === mission?.id &&
+      attachment.targetMissionDigest === preview?.targetMissionDigest &&
+      attachment.sourcePreviewId === preview?.id &&
+      attachment.sourcePreviewDigest === preview?.previewDigest &&
+      attachment.roleConsumptionStatus === 'blocked' &&
+      attachment.policyInjectionStatus === 'blocked',
+  );
+  return {
+    attachment: exactAttachment ? attachment : null,
+    canAttach: Boolean(
+      exactPreview && (!attachment || attachment.targetMissionId !== mission?.id),
+    ),
+    exactAttachment,
+    exactPreview,
+  };
+}
+
 export function getMissionDeliveryPackageAcceptanceSummary(
   preview,
   bundle,

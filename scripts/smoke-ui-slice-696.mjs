@@ -121,7 +121,7 @@ async function main() {
 
     const snapshot = await fetchJson('/api/snapshot');
     assert.equal(snapshot.response.status, 200);
-    assert.equal(snapshot.payload.snapshot.schemaVersion, 28);
+    assert.equal(snapshot.payload.snapshot.schemaVersion, 29);
     assert.deepEqual(snapshot.payload.snapshot.staffingPlans, {});
     const blueprint = snapshot.payload.snapshot.companyRuntime.blueprint;
     const staffingSpec = {
@@ -244,7 +244,7 @@ async function main() {
     assert.equal(replay.response.status, 200);
     assert.equal(replay.payload.mutation.idempotent, true);
     const finalState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(finalState.schemaVersion, 28);
+    assert.equal(finalState.schemaVersion, 29);
     assert.equal(Object.keys(finalState.staffingPlans).length, 1);
     assert.equal(Object.keys(finalState.councilSessions).length, 0);
     assert.equal(Object.keys(finalState.executionPlans).length, 0);

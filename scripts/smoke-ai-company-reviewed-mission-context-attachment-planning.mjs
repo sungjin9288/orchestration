@@ -51,7 +51,7 @@ for (const field of fields) {
 for (const pattern of [
   /planning authority is recorded as `DEC-225`/,
   /complete implementation handoff is recorded as\s+`DEC-226`/,
-  /reserved for an exact `DEC-227`/,
+  /Exact `DEC-227` consumes this plan/,
   /Stage 7A: reviewed Mission context attachment record/,
   /Stage 7B: one explicit role-owned context consumption request/,
   /schemaVersion = 29/,
@@ -72,7 +72,7 @@ assert.match(
 );
 assert.match(handoff, /schema-v29 immutable MissionContextAttachment/);
 assert.match(handoff, /scripts\/smoke-ui-slice-716\.mjs/);
-assert.match(handoff, /reserved for `DEC-227`/);
+assert.match(handoff, /accepted as `DEC-227`/);
 assert.match(handoff, /record and exact inspection only/);
 
 for (const [source, label] of [
@@ -88,44 +88,46 @@ for (const [source, label] of [
 ]) {
   assert.match(source, /DEC-225/, `${label} must record DEC-225`);
   assert.match(source, /DEC-226/, `${label} must record DEC-226`);
-  assert.match(source, /DEC-227/, `${label} must reserve DEC-227 implementation`);
+  assert.match(source, /DEC-227/, `${label} must record DEC-227 implementation`);
 }
 
 assert.match(decisionLog, /^### DEC-225$/m);
 assert.match(decisionLog, /^### DEC-226$/m);
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
-assert.doesNotMatch(contracts, /missionContextAttachment/);
-assert.doesNotMatch(runtime, /attachReviewedMissionContext/);
-assert.doesNotMatch(server, /context-attachments/);
+assert.match(decisionLog, /^### DEC-227$/m);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
+assert.match(contracts, /missionContextAttachment/);
+assert.match(runtime, /attachReviewedMissionContext/);
+assert.match(server, /context-attachments/);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'src/runtime/mission-context-attachments.js')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(
     path.join(repoRoot, 'scripts/smoke-ai-company-reviewed-mission-context-attachment.mjs'),
   ),
-  false,
+  true,
 );
-assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-716.mjs')), false);
+assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-716.mjs')), true);
 assert.match(verification, /ai-company-reviewed-mission-context-attachment-planning/);
-assert.match(readme, /1009 smoke files/);
-assert.match(readme, /715 UI smoke files/);
+assert.match(verification, /ai-company-reviewed-mission-context-attachment-implementation/);
+assert.match(readme, /1011 smoke files/);
+assert.match(readme, /716 UI smoke files/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1009);
-assert.equal(uiSmokeFileCount, 715);
+assert.equal(smokeFileCount, 1011);
+assert.equal(uiSmokeFileCount, 716);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode,
   planningDecision: 'accepted-dec-225',
   handoffDecision: 'recorded-dec-226',
-  implementationDecision: 'reserved-dec-227',
-  currentSchemaVersion: 28,
+  implementationDecision: 'accepted-dec-227',
+  currentSchemaVersion: 29,
   plannedSchemaVersion: 29,
-  implementationAllowed: false,
+  implementationAllowed: true,
   roleConsumptionAllowed: false,
   smokeFileCount,
   uiSmokeFileCount,

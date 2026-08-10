@@ -525,10 +525,10 @@ Builder, Reviewer, specialist, cancel, termination, retry, inferred result, repe
 recovery는 포함하지 않는다.
 
 `DEC-225`는 Stage 7A를 exact current DEC-130 MissionMemoryContextPreview와 separate operator
-attachment review에서 one future schema-v29 immutable MissionContextAttachment를 기록하는
-경로로 제한한다. `DEC-226`은 complete fielded handoff를 기록하며 implementation은 exact
-`DEC-227` 전까지 blocked다. Mission bytes와 모든 source record는 unchanged이고 exact Mission-
-bound inspection만 계획한다. Strategist/planner consumption, Mission/WorkOrder/prompt/policy
+attachment review에서 one schema-v29 immutable MissionContextAttachment를 기록하는 경로로
+제한하고 `DEC-226`은 complete fielded handoff를 기록한다. `DEC-227`은 Mission과 source bytes를
+변경하지 않는 atomic record append, exact replay, snapshot exclusion, and Mission-bound inspection을
+구현한다. Strategist/planner consumption, Mission/WorkOrder/prompt/policy
 injection, automatic retrieval/search/ranking/recommendation, and memory application은 Stage 7B의
 별도 authority다.
 

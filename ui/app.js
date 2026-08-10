@@ -175,6 +175,7 @@ import {
   computeMissionMemoryContextTargetDigest,
   computeWorkOrderRecordDigest,
   getMissionMemoryContextPreviewSummary,
+  getMissionContextAttachmentSummary,
   getMissionOperatorSteppedSchedulerSummary,
   getMissionReviewedDeliverySummary,
   getMissionWorkflowCheckpointSummary,
@@ -562,6 +563,13 @@ const state = {
       'memory-context-preview-not-mission-or-prompt-injection',
   },
   missionMemoryContextPreview: null,
+  missionContextAttachmentReviewDraft: {
+    rationale: '',
+    reviewedAt: '',
+    acknowledgement:
+      'reviewed-exact-memory-context-for-immutable-mission-attachment',
+  },
+  missionContextAttachment: null,
   workOrderVerificationPlanPreview: null,
   workOrderVerificationStatus: null,
   workOrderAcceptanceCriteriaRationale: '',
@@ -5303,6 +5311,11 @@ function applySnapshotPayload(payload) {
   } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.missionMemoryContextPreview = null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'missionContextAttachment')) {
+    state.missionContextAttachment = payload.missionContextAttachment || null;
+  } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
+    state.missionContextAttachment = null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
   }
@@ -5443,6 +5456,7 @@ async function hydrateSelectedDetails() {
   state.missionMemoryRecallPreview = null;
   state.missionMemoryRecall = null;
   state.missionMemoryContextPreview = null;
+  state.missionContextAttachment = null;
   state.workOrderVerificationPlanPreview = null;
   state.workOrderVerificationStatus = null;
   state.reviewerReworkPlan = null;
@@ -5521,6 +5535,12 @@ async function hydrateSelectedDetails() {
     nonInjectionStatement:
       'memory-context-preview-not-mission-or-prompt-injection',
   };
+  state.missionContextAttachmentReviewDraft = {
+    rationale: '',
+    reviewedAt: '',
+    acknowledgement:
+      'reviewed-exact-memory-context-for-immutable-mission-attachment',
+  };
   state.missionExecutionPlanRecovery = null;
   let selectedArtifactDetail = null;
 
@@ -5537,6 +5557,14 @@ async function hydrateSelectedDetails() {
         })
       : Promise.resolve(),
   ]);
+
+  if (selectedMission) {
+    const attachmentPayload = await fetchJson(
+      `/api/missions/${encodeURIComponent(selectedMission.id)}/context-attachment`,
+    );
+    state.missionContextAttachment =
+      attachmentPayload.missionContextAttachment || null;
+  }
 
   if (latestBreakdownArtifact) {
     if (selectedArtifactDetail?.id === latestBreakdownArtifact.id) {
@@ -9356,6 +9384,73 @@ async function previewMissionMemoryContext(actionButton) {
   } catch (error) {
     state.missionMemoryContextPreview = null;
     throw error;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function attachReviewedMissionContext(actionButton) {
+  const panel = actionButton?.closest?.('.mission-memory-context-panel');
+  const previewForm = panel?.querySelector?.(
+    '[data-form="preview-mission-memory-context"]',
+  );
+  const reviewForm = actionButton?.closest?.(
+    '[data-form="attach-reviewed-mission-context"]',
+  );
+  const preview = state.missionMemoryContextPreview;
+  const targetMission = preview
+    ? state.payload?.snapshot?.missions?.[preview.targetMissionId] || null
+    : null;
+  const summary = getMissionContextAttachmentSummary(
+    preview,
+    state.missionContextAttachment,
+    targetMission,
+  );
+  if (!previewForm || !reviewForm || !preview || !targetMission || !summary.canAttach) {
+    throw new Error('attach 가능한 exact current Mission context preview가 없습니다.');
+  }
+
+  const formData = new FormData(reviewForm);
+  const attachmentReview = {
+    decision: 'attach',
+    acknowledgement: String(formData.get('acknowledgement') || ''),
+    rationale: String(formData.get('rationale') || ''),
+    reviewedAt: String(formData.get('reviewedAt') || ''),
+  };
+  state.missionContextAttachmentReviewDraft = {
+    acknowledgement: attachmentReview.acknowledgement,
+    rationale: attachmentReview.rationale,
+    reviewedAt: attachmentReview.reviewedAt,
+  };
+  const contextSpec = readMissionMemoryContextDraft(previewForm);
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${preview.id} attachment review를 검증하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/missions/${encodeURIComponent(targetMission.id)}/context-attachments`,
+      {
+        memoryRecallId: preview.sourceMemoryRecallId,
+        memoryRecallRecordDigest: preview.sourceMemoryRecallRecordDigest,
+        memoryItemId: preview.sourceMemoryItemId,
+        memoryItemRecordDigest: preview.sourceMemoryItemRecordDigest,
+        targetMissionDigest: preview.targetMissionDigest,
+        sourcePreviewId: preview.id,
+        sourcePreviewDigest: preview.previewDigest,
+        contextSpec,
+        evaluatedAt: preview.evaluatedAt,
+        attachmentReview,
+      },
+    );
+    state.missionContextAttachment = payload.missionContextAttachment || null;
+    state.surface = 'deliverables';
+    render();
+    elements.refreshStatus.textContent =
+      `${payload.missionContextAttachment.id}를 immutable reviewed context로 기록했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -16936,6 +17031,12 @@ function renderMissionMemoryContextPreview(durableItem, durableRecall) {
     draft.negativeEvidenceRefs || summary.negativeEvidenceRefs.join('\n');
   const redactionRefs = draft.redactionRefs || summary.redactionRefs.join('\n');
   const reviewRefs = draft.reviewRefs || summary.reviewRefs.join('\n');
+  const attachmentReviewDraft = state.missionContextAttachmentReviewDraft;
+  const attachmentSummary = getMissionContextAttachmentSummary(
+    currentPreview,
+    state.missionContextAttachment,
+    targetMission,
+  );
 
   return `
     <section class="mission-memory-context-panel" aria-label="MissionMemoryContext response evidence">
@@ -17071,10 +17172,70 @@ function renderMissionMemoryContextPreview(durableItem, durableRecall) {
                   .map((action) => createToken(`${action}:blocked`, 'neutral'))
                   .join('')}
               </div>
+              <form class="mission-context-attachment-form" data-form="attach-reviewed-mission-context">
+                <div class="memory-candidate-grid">
+                  <label class="field memory-candidate-grid-wide">
+                    <span class="field-label">Attachment review rationale</span>
+                    <textarea class="text-input" name="rationale" rows="3" ${state.loading || state.mutating ? 'disabled' : ''}>${escapeHtml(attachmentReviewDraft.rationale)}</textarea>
+                  </label>
+                  <label class="field">
+                    <span class="field-label">Reviewed at (ISO)</span>
+                    <input class="text-input" name="reviewedAt" type="text" value="${escapeHtml(attachmentReviewDraft.reviewedAt)}" placeholder="2026-08-10T12:00:00.000Z" ${state.loading || state.mutating ? 'disabled' : ''} />
+                  </label>
+                  <label class="field">
+                    <span class="field-label">Attachment acknowledgement</span>
+                    <select class="text-input" name="acknowledgement" ${state.loading || state.mutating ? 'disabled' : ''}>
+                      <option value="reviewed-exact-memory-context-for-immutable-mission-attachment">reviewed-exact-memory-context-for-immutable-mission-attachment</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="relation-button-row memory-candidate-actions">
+                  <button
+                    class="primary-button"
+                    type="button"
+                    data-action="attach-reviewed-mission-context"
+                    data-id="${escapeHtml(currentPreview.targetMissionId)}"
+                    ${state.loading || state.mutating || !attachmentSummary.canAttach ? 'disabled' : ''}
+                  >
+                    Reviewed context 기록
+                  </button>
+                </div>
+              </form>
             </div>
           `
           : ''
       }
+    </section>
+  `;
+}
+
+function renderMissionContextAttachmentRecord(attachment, mission) {
+  if (!attachment || attachment.targetMissionId !== mission?.id) return '';
+  return `
+    <section class="mission-context-attachment-record" aria-label="Durable MissionContextAttachment evidence">
+      <div class="card-title-row card-title-row-tight">
+        <strong>${escapeHtml(attachment.id)}</strong>
+        ${createToken(attachment.status, 'success')}
+        ${createToken('immutable', 'neutral')}
+        ${createToken(`role-consumption:${attachment.roleConsumptionStatus}`, 'neutral')}
+        ${createToken(`policy-injection:${attachment.policyInjectionStatus}`, 'neutral')}
+      </div>
+      <div class="token-row token-row-compact">
+        ${createToken(`digest:${attachment.recordDigest}`, 'neutral')}
+        ${createToken(`preview:${attachment.sourcePreviewId}`, 'success')}
+        ${createToken(`recall:${attachment.sourceMemoryRecallId}`, 'neutral')}
+        ${createToken(`item:${attachment.sourceMemoryItemId}`, 'neutral')}
+      </div>
+      <p><strong>Purpose</strong> ${escapeHtml(attachment.purpose)}</p>
+      <p><strong>Summary</strong> ${escapeHtml(attachment.summary)}</p>
+      <p><strong>Review</strong> ${escapeHtml(attachment.attachmentReview.rationale)}</p>
+      <p><strong>Reviewed at</strong> ${escapeHtml(attachment.attachmentReview.reviewedAt)}</p>
+      <p><strong>Negative evidence</strong> ${escapeHtml(attachment.negativeEvidenceRefs.join(' · '))}</p>
+      <div class="delivery-package-authority" aria-label="Blocked MissionContextAttachment authority">
+        ${(attachment.blockedActions || [])
+          .map((action) => createToken(`${action}:blocked`, 'neutral'))
+          .join('')}
+      </div>
     </section>
   `;
 }
@@ -20351,10 +20512,15 @@ function renderDeliverables(data) {
 
   if (!linkedTask) {
     if (document.querySelector('.llm-app-shell')) {
-      elements.surfaces.deliverables.innerHTML = renderDeliverablesWaitingSurface({
-        mission: selectedMission,
-        busy: state.loading || state.mutating,
-      });
+      elements.surfaces.deliverables.innerHTML =
+        renderDeliverablesWaitingSurface({
+          mission: selectedMission,
+          busy: state.loading || state.mutating,
+        }) +
+        renderMissionContextAttachmentRecord(
+          state.missionContextAttachment,
+          selectedMission,
+        );
       return;
     }
 
@@ -20392,6 +20558,11 @@ function renderDeliverables(data) {
         </aside>
       </div>
     `;
+    elements.surfaces.deliverables.innerHTML +=
+      renderMissionContextAttachmentRecord(
+        state.missionContextAttachment,
+        selectedMission,
+      );
     return;
   }
 
@@ -20654,22 +20825,27 @@ function renderDeliverables(data) {
       completionReady: missionCompletionReady,
     });
 
-    elements.surfaces.deliverables.innerHTML = renderDeliverablesConversationSurface({
-      mission: selectedMission,
-      task: linkedTask,
-      artifacts: taskArtifacts,
-      latestReviewStatus,
-      approvalBridge,
-      bundle: missionExecutionPlanBundle,
-      durablePackage: state.missionDurableDeliveryPackage,
-      acceptance: state.missionDeliveryPackageAcceptance,
-      closeOut: state.missionCloseOut,
-      flow: deliverablesFlow,
-      primaryAction: deliverablesPrimaryAction,
-      deliveryControls,
-      learningControls,
-      busy: state.loading || state.mutating,
-    });
+    elements.surfaces.deliverables.innerHTML =
+      renderDeliverablesConversationSurface({
+        mission: selectedMission,
+        task: linkedTask,
+        artifacts: taskArtifacts,
+        latestReviewStatus,
+        approvalBridge,
+        bundle: missionExecutionPlanBundle,
+        durablePackage: state.missionDurableDeliveryPackage,
+        acceptance: state.missionDeliveryPackageAcceptance,
+        closeOut: state.missionCloseOut,
+        flow: deliverablesFlow,
+        primaryAction: deliverablesPrimaryAction,
+        deliveryControls,
+        learningControls,
+        busy: state.loading || state.mutating,
+      }) +
+      renderMissionContextAttachmentRecord(
+        state.missionContextAttachment,
+        selectedMission,
+      );
     return;
   }
 
@@ -20677,6 +20853,10 @@ function renderDeliverables(data) {
     <div class="stack">
       ${deliverablesDeck}
       ${renderDeliverablesCompletionSummary(deliverablesCompletionSummary)}
+      ${renderMissionContextAttachmentRecord(
+        state.missionContextAttachment,
+        selectedMission,
+      )}
       ${renderDeliveryPackagePreview(state.missionDeliveryPackagePreview, missionExecutionPlanBundle)}
       ${renderDurableDeliveryPackage(state.missionDurableDeliveryPackage, missionExecutionPlanBundle)}
       ${renderMissionLearningCandidatePreview(
@@ -24459,6 +24639,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'attach-reviewed-mission-context') {
+        await attachReviewedMissionContext(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'preview-workorder-verification-plan') {
         await previewWorkOrderVerificationPlan(
           actionButton.dataset.planId,
@@ -24694,6 +24879,9 @@ function handleFormInput(event) {
   const missionMemoryContextForm = event.target.closest(
     '[data-form="preview-mission-memory-context"]',
   );
+  const missionContextAttachmentForm = event.target.closest(
+    '[data-form="attach-reviewed-mission-context"]',
+  );
   const acceptanceCriteriaForm = event.target.closest(
     '[data-form="persist-workorder-acceptance-criteria"]',
   );
@@ -24892,6 +25080,19 @@ function handleFormInput(event) {
         .closest('.mission-memory-context-panel')
         ?.querySelector('.mission-memory-context-result')
         ?.remove();
+    }
+    return;
+  }
+
+  if (missionContextAttachmentForm) {
+    if (
+      Object.prototype.hasOwnProperty.call(
+        state.missionContextAttachmentReviewDraft,
+        event.target.name,
+      )
+    ) {
+      state.missionContextAttachmentReviewDraft[event.target.name] =
+        event.target.value;
     }
     return;
   }

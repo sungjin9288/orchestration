@@ -205,6 +205,16 @@ function assertMemoryRecall(memoryRecallId, state) {
   return memoryRecall;
 }
 
+function assertMissionContextAttachment(missionContextAttachmentId, state) {
+  const attachment = state.missionContextAttachments[missionContextAttachmentId];
+  if (!attachment) {
+    throw new Error(
+      `MissionContextAttachment not found: ${missionContextAttachmentId}`,
+    );
+  }
+  return attachment;
+}
+
 function assertAcceptanceCriterion(acceptanceCriterionId, state) {
   const criterion = state.acceptanceCriteria[acceptanceCriterionId];
   if (!criterion) {
@@ -249,6 +259,7 @@ module.exports = {
   assertLearningCandidateReview,
   assertMemoryItem,
   assertMemoryRecall,
+  assertMissionContextAttachment,
   assertMissionCloseOut,
   assertOpsAttemptDisposition,
   assertOpsAttemptResume,

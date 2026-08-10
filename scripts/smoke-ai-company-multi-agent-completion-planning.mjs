@@ -194,12 +194,13 @@ for (const decisionId of [
   'DEC-224',
   'DEC-225',
   'DEC-226',
+  'DEC-227',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-226`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-227`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -295,7 +296,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -381,7 +382,7 @@ process.stdout.write(
         reviewedMissionContextAttachmentHandoff: 'documented-dec-226',
       },
       currentRuntime: {
-        schemaVersion: 28,
+        schemaVersion: 29,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,

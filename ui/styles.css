@@ -9792,7 +9792,9 @@ h3 {
 .memory-recall-record-form,
 .memory-recall-record,
 .mission-memory-context-panel,
-.mission-memory-context-result {
+.mission-memory-context-result,
+.mission-context-attachment-form,
+.mission-context-attachment-record {
   margin-top: 12px;
 }
 
@@ -9802,7 +9804,9 @@ h3 {
 .memory-recall-panel,
 .memory-recall-result,
 .mission-memory-context-panel,
-.mission-memory-context-result {
+.mission-memory-context-result,
+.mission-context-attachment-form,
+.mission-context-attachment-record {
   min-width: 0;
   padding-top: 12px;
   border-top: 1px solid var(--surface-control-border);
@@ -9814,7 +9818,9 @@ h3 {
 .memory-recall-record-form,
 .memory-recall-record,
 .mission-memory-context-form,
-.mission-memory-context-result {
+.mission-memory-context-result,
+.mission-context-attachment-form,
+.mission-context-attachment-record {
   display: grid;
   gap: 10px;
 }
@@ -9840,7 +9846,10 @@ h3 {
 .mission-memory-context-panel > *,
 .mission-memory-context-form > *,
 .mission-memory-context-result > *,
-.mission-memory-context-result p {
+.mission-memory-context-result p,
+.mission-context-attachment-form > *,
+.mission-context-attachment-record > *,
+.mission-context-attachment-record p {
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;

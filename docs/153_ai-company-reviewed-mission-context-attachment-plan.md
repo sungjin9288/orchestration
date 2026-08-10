@@ -219,7 +219,7 @@ control.
 - Rollback disables creation and UI action, preserves valid v29 records and exact inspection, and
   performs no downgrade, deletion, Mission rewrite, source cleanup, or implicit consumption.
 
-## Planned Implementation Surface
+## Implemented Surface
 
 ```text
 src/runtime/contracts.js
@@ -239,7 +239,7 @@ scripts/ui_qa_status.mjs
 
 README, decision docs, inventory, and task ledger may change only to keep evidence current.
 
-## Focused Verification Plan
+## Focused Verification
 
 The runtime/API smoke must prove atomic v28-to-v29 migration, no passive creation, exact ten-key
 binding, current DEC-130 recomputation, separate review, timestamp and expiry rules, one-per-Mission
@@ -257,7 +257,8 @@ next-Mission, policy mutation, approval bypass, collection, or connector effect.
 
 ## Stop Condition
 
-Planning is complete when `DEC-225`, `DEC-226`, this plan, the fielded handoff, focused planning smoke,
-README, master docs, inventory, and task ledger agree. Schema/runtime/API/UI implementation remains
-blocked until one exact value-matching `DEC-227` decision is supplied. Stage 7B role consumption
-requires another decision after the attachment implementation is independently verified.
+Exact `DEC-227` consumes this plan and implements only schema-v29 record-and-inspect authority. The
+runtime recomputes DEC-130 before first write, appends one immutable sidecar in the same atomic save
+as migration, preserves every source record, resolves exact replay without save, excludes the map
+from generic snapshots, and hydrates UI evidence through the exact Mission locator. Stage 7B role
+consumption or injection remains blocked and requires another complete fielded decision.

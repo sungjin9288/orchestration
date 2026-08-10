@@ -119,6 +119,7 @@ const {
   assertLearningCandidateReview,
   assertMemoryItem,
   assertMemoryRecall,
+  assertMissionContextAttachment,
   assertMissionCloseOut,
   assertOpsAttemptDisposition,
   assertOpsAttemptResume,
@@ -232,6 +233,10 @@ const {
   computeMissionMemoryContextTargetDigest,
   previewMissionMemoryContext: compileMissionMemoryContextPreview,
 } = require('./mission-memory-context-preview');
+const {
+  createMissionContextAttachment,
+  isExactMissionContextAttachmentReplay,
+} = require('./mission-context-attachments');
 const {
   computeExecutionPlanRecordDigest,
   computeWorkOrderRecordDigest,
@@ -452,6 +457,13 @@ function createRuntimeService(options = {}) {
   function nextMemoryRecallId(state) {
     state.sequences.memoryRecall += 1;
     return `memory-recall-${String(state.sequences.memoryRecall).padStart(4, '0')}`;
+  }
+
+  function nextMissionContextAttachmentId(state) {
+    state.sequences.missionContextAttachment += 1;
+    return `mission-context-attachment-${String(
+      state.sequences.missionContextAttachment,
+    ).padStart(4, '0')}`;
   }
 
   function nextStaffingPlanId(state) {
@@ -11615,17 +11627,7 @@ function createRuntimeService(options = {}) {
     }
   }
 
-  function previewMissionMemoryContext(input) {
-    assertExactMissionMemoryContextPreviewInput(input);
-    let state;
-    try {
-      state = store.loadStateReadonly();
-    } catch (error) {
-      throw conflict(
-        `MissionMemoryContext preview requires current state: ${error.message}`,
-      );
-    }
-
+  function buildMissionMemoryContextPreviewFromState(state, input) {
     const mission = assertMission(input.missionId, state);
     const memoryRecall = assertMemoryRecall(input.memoryRecallId, state);
     const memoryItem = assertMemoryItem(input.memoryItemId, state);
@@ -11664,6 +11666,145 @@ function createRuntimeService(options = {}) {
       }
       throw error;
     }
+  }
+
+  function previewMissionMemoryContext(input) {
+    assertExactMissionMemoryContextPreviewInput(input);
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `MissionMemoryContext preview requires supported state: ${error.message}`,
+      );
+    }
+    return buildMissionMemoryContextPreviewFromState(state, input);
+  }
+
+  function findMissionContextAttachment(state, missionId) {
+    return (
+      Object.values(state.missionContextAttachments || {}).find(
+        (attachment) => attachment.targetMissionId === missionId,
+      ) || null
+    );
+  }
+
+  function assertExactMissionContextAttachmentInput(input) {
+    const expectedFields = [
+      'missionId',
+      'memoryRecallId',
+      'memoryRecallRecordDigest',
+      'memoryItemId',
+      'memoryItemRecordDigest',
+      'targetMissionDigest',
+      'sourcePreviewId',
+      'sourcePreviewDigest',
+      'contextSpec',
+      'evaluatedAt',
+      'attachmentReview',
+    ].sort();
+    const actualFields = Object.keys(input || {}).sort();
+    if (
+      actualFields.length !== expectedFields.length ||
+      actualFields.some((field, index) => field !== expectedFields[index])
+    ) {
+      throw conflict(
+        'MissionContextAttachment request has unexpected or missing fields',
+      );
+    }
+  }
+
+  function getMissionContextAttachment(missionId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `MissionContextAttachment inspection requires supported state: ${error.message}`,
+      );
+    }
+    const mission = assertMission(missionId, state);
+    const attachment = findMissionContextAttachment(state, mission.id);
+    return {
+      mission,
+      missionContextAttachment: attachment
+        ? assertMissionContextAttachment(attachment.id, state)
+        : null,
+      attached: Boolean(attachment),
+    };
+  }
+
+  function attachReviewedMissionContext(input) {
+    assertExactMissionContextAttachmentInput(input);
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `MissionContextAttachment persistence requires supported state: ${error.message}`,
+      );
+    }
+
+    const existing = findMissionContextAttachment(state, input.missionId);
+    if (existing) {
+      if (!isExactMissionContextAttachmentReplay(existing, input)) {
+        throw conflict(
+          `Mission ${input.missionId} already has a different MissionContextAttachment`,
+        );
+      }
+      return {
+        mission: assertMission(input.missionId, state),
+        missionContextAttachment: assertMissionContextAttachment(existing.id, state),
+        idempotent: true,
+      };
+    }
+
+    const previewInput = {
+      missionId: input.missionId,
+      memoryRecallId: input.memoryRecallId,
+      memoryRecallRecordDigest: input.memoryRecallRecordDigest,
+      memoryItemId: input.memoryItemId,
+      memoryItemRecordDigest: input.memoryItemRecordDigest,
+      targetMissionDigest: input.targetMissionDigest,
+      evaluatedAt: input.evaluatedAt,
+      contextSpec: input.contextSpec,
+    };
+    const preview = buildMissionMemoryContextPreviewFromState(state, previewInput);
+    if (
+      input.sourcePreviewId !== preview.id ||
+      input.sourcePreviewDigest !== preview.previewDigest
+    ) {
+      throw conflict(
+        'MissionContextAttachment source preview does not match current recomputation',
+      );
+    }
+
+    let attachment;
+    const now = new Date().toISOString();
+    try {
+      attachment = createMissionContextAttachment({
+        id: `mission-context-attachment-${String(
+          state.sequences.missionContextAttachment + 1,
+        ).padStart(4, '0')}`,
+        preview,
+        attachmentReview: input.attachmentReview,
+        now,
+      });
+    } catch (error) {
+      throw conflict(error.message);
+    }
+
+    const id = nextMissionContextAttachmentId(state);
+    if (id !== attachment.id) {
+      throw new Error('MissionContextAttachment sequence is not deterministic');
+    }
+    state.missionContextAttachments[attachment.id] = attachment;
+    store.saveState(state);
+    return {
+      mission: assertMission(input.missionId, state),
+      missionContextAttachment: attachment,
+      idempotent: false,
+    };
   }
 
   function findMemoryRecall(state, memoryItemId) {
@@ -14129,6 +14270,7 @@ function createRuntimeService(options = {}) {
     delete snapshotForPublicProjection.reworkDeliveryPackageAcceptances;
     delete snapshotForPublicProjection.opsAttemptDispositions;
     delete snapshotForPublicProjection.opsAttemptResumes;
+    delete snapshotForPublicProjection.missionContextAttachments;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -14239,6 +14381,7 @@ function createRuntimeService(options = {}) {
     getExecutionPlanRecovery,
     getLogs,
     getMission,
+    getMissionContextAttachment,
     getMissionEvidenceGraph,
     getTaskExecutionProvenance,
     getOpsSupervisionPreview,
@@ -14288,6 +14431,7 @@ function createRuntimeService(options = {}) {
     previewLearningCandidateMemory,
     previewMemoryItemRecall,
     previewMissionMemoryContext,
+    attachReviewedMissionContext,
     previewCouncilSpecialistBatch,
     previewWorkOrderVerificationPlan,
     persistReviewerReworkPlan,

@@ -862,6 +862,16 @@ const informationalChecks = [
     purpose: 'AI Company Stage 7A planning fixes one future schema-v29 immutable MissionContextAttachment from exact current DEC-130 recomputation and separate operator review, one-per-Mission exact inspection, source immutability, rollback retention, and blocked role prompt policy Council plan WorkOrder context consumption or injection automatic retrieval recommendation provider source Git scheduling policy collection bypass and connector authority',
   },
   {
+    id: 'ai-company-reviewed-mission-context-attachment-implementation',
+    script: 'scripts/smoke-ai-company-reviewed-mission-context-attachment.mjs',
+    purpose: 'AI Company Stage 7A runtime and API prove one atomic schema v28 to v29 immutable MissionContextAttachment append from exact DEC-130 recomputation and separate review, exact replay without save, Mission-bound inspection, source byte equivalence, snapshot exclusion, rollback retention, and blocked context consumption or injection authority',
+  },
+  {
+    id: 'ai-company-reviewed-mission-context-attachment-ui-api',
+    script: 'scripts/smoke-ui-slice-716.mjs',
+    purpose: 'AI Company Stage 7A UI proves browser-preview-gated reviewed attachment creation, mandatory acknowledgement rationale and exact reviewedAt, exact Mission hydration, immutable blocked-authority rendering, safe source invalidation, responsive fit, and absent consume inject apply provider source Git release scheduling or next-Mission controls',
+  },
+  {
     id: 'ai-company-workorder-verification-plan-preview',
     script: 'scripts/smoke-ai-company-workorder-verification-plan-preview.mjs',
     purpose: 'AI Company WorkOrder verification plan runtime proves exact current ExecutionPlan and WorkOrder record digest binding, complete acceptance stop command and artifact source coverage, deterministic deep-frozen response-only replay, zero state mutation, safe stale malformed crossed and future input refusal, and blocked approval completion command execution persistence provider source Git scheduling and connector authority',

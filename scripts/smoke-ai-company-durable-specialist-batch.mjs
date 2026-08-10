@@ -388,7 +388,7 @@ async function main() {
   });
   const assertActiveSave = () => {
     const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(state.schemaVersion, 28);
+    assert.equal(state.schemaVersion, 29);
     assert.equal(Object.keys(state.specialistBatches).length, 1);
     assert.deepEqual(
       Object.values(state.specialistCellAttempts).map((attempt) => attempt.status),
@@ -1169,7 +1169,7 @@ async function main() {
   );
 
   const finalState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-  assert.equal(finalState.schemaVersion, 28);
+  assert.equal(finalState.schemaVersion, 29);
   assert.equal(Object.keys(finalState.specialistBatches).length, 1);
   assert.equal(Object.keys(finalState.specialistCellAttempts).length, 2);
   assert.equal(Object.keys(finalState.specialistCellRetries).length, 0);

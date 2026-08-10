@@ -365,7 +365,11 @@ function downgradeToV27(statePath) {
   const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
   state.schemaVersion = 27;
   delete state.sequences.opsAttemptResume;
+
+  delete state.sequences.missionContextAttachment;
   delete state.opsAttemptResumes;
+
+  delete state.missionContextAttachments;
   fs.writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`);
 }
 
@@ -486,7 +490,7 @@ async function main() {
     downgradeToV27(passContext.statePath);
     const v27Bytes = fs.readFileSync(passContext.statePath, 'utf8');
     const passiveSnapshot = passContext.runtime.getSnapshot();
-    assert.equal(passiveSnapshot.schemaVersion, 28);
+    assert.equal(passiveSnapshot.schemaVersion, 29);
     assert.equal('opsAttemptResumes' in passiveSnapshot, false);
     assert.equal(fs.readFileSync(passContext.statePath, 'utf8'), v27Bytes);
 
@@ -514,7 +518,7 @@ async function main() {
       passQuarantine.disposition,
     );
     const startedState = JSON.parse(fs.readFileSync(passContext.statePath, 'utf8'));
-    assert.equal(startedState.schemaVersion, 28);
+    assert.equal(startedState.schemaVersion, 29);
     assert.equal(startedState.sequences.opsAttemptResume, 1);
     assert.equal(Object.keys(startedState.opsAttemptResumes).length, 1);
     assert.equal(
@@ -666,9 +670,9 @@ async function main() {
     process.stdout.write(`${JSON.stringify({
       ok: true,
       mode: MODE,
-      schemaVersion: 28,
+      schemaVersion: 29,
       migrationFrom: 27,
-      futureRejected: 29,
+      futureRejected: 30,
       contract: {
         requestKeys: OPS_ATTEMPT_RESUME_REQUEST_KEYS.length,
         recordKeys: OPS_ATTEMPT_RESUME_RECORD_KEYS.length,

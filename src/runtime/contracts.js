@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 28;
+const STATE_SCHEMA_VERSION = 29;
+const MISSION_CONTEXT_ATTACHMENT_STATE_SCHEMA_VERSION = 29;
 const OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION = 28;
 const OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION = 27;
 const REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION = 26;
@@ -419,6 +420,7 @@ function createEmptyState() {
       reworkDeliveryPackageAcceptance: 0,
       opsAttemptDisposition: 0,
       opsAttemptResume: 0,
+      missionContextAttachment: 0,
     },
     missions: {},
     councilSessions: {},
@@ -457,6 +459,7 @@ function createEmptyState() {
     reworkDeliveryPackageAcceptances: {},
     opsAttemptDispositions: {},
     opsAttemptResumes: {},
+    missionContextAttachments: {},
   };
 }
 
@@ -510,6 +513,7 @@ module.exports = {
   MIGRATABLE_STATE_SCHEMA_VERSION,
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
+  MISSION_CONTEXT_ATTACHMENT_STATE_SCHEMA_VERSION,
   OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION,
   OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION,
   SPECIALIST_BATCH_STATE_SCHEMA_VERSION,

@@ -115,7 +115,7 @@ for (const source of [
   assert.match(source, /DEC-221/);
 }
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
 assert.match(contracts, /opsAttemptDisposition/);
 assert.match(runtimeService, /createOpsAttemptDisposition/);
 assert.match(server, /attempt-dispositions\/quarantine/);
@@ -156,10 +156,10 @@ const uiSmokeFileCount = fs
   .readdirSync(path.join(repoRoot, 'scripts'))
   .filter((name) => /^smoke-ui-slice-.*\.mjs$/.test(name)).length;
 
-assert.equal(smokeFileCount, 1009);
-assert.equal(uiSmokeFileCount, 715);
-assert.match(readme, /1009 smoke files/);
-assert.match(readme, /715 UI smoke files/);
+assert.equal(smokeFileCount, 1011);
+assert.equal(uiSmokeFileCount, 716);
+assert.match(readme, /1011 smoke files/);
+assert.match(readme, /716 UI smoke files/);
 
 process.stdout.write(
   `${JSON.stringify(

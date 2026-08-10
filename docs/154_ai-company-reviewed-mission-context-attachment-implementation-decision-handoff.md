@@ -80,8 +80,9 @@ These do not authorize implementation:
 - an approval that changes provider, source, Git, release, scheduling, policy, collection, or connector
   authority.
 
-## Operator Action
+## Accepted Outcome
 
-To open implementation, provide the complete value-matching block under **Valid Approval Outcome**.
-The resulting acceptance is reserved for `DEC-227`. Until then schema v28, DEC-130 preview, and all
-existing runtime behavior remain authoritative.
+The operator supplied the complete value-matching block under **Valid Approval Outcome** and it is
+accepted as `DEC-227`. Schema-v29 record-and-inspect implementation is complete; this handoff grants
+no Strategist/planner consumption, Mission or prompt injection, automatic retrieval, provider,
+source/Git/release, scheduling, next-Mission, policy, collection, bypass, or connector authority.

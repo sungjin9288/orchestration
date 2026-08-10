@@ -1502,6 +1502,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one schema-v29 sidecar and exact Mission-bound inspection only. It authorizes no implementation, application, or injection by itself.
 - Needed Before: The operator must supply every required field in one value-matching implementation decision. Missing, renamed, broadened, shortcut, or consumption-enabling approval remains non-authorizing; a matching acceptance is reserved for `DEC-227`.
 
+### DEC-227
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic local schema-v29 immutable `MissionContextAttachment(status=attached)` from one exact source-current DEC-130 `MissionMemoryContextPreview` and separate operator attachment review.
+- Why: DEC-225 and DEC-226 fixed the exact ten-key request, fresh DEC-130 recomputation, Mission/MemoryRecall/MemoryItem digest binding, separate bounded review, one-per-Mission rule, atomic v28-to-v29 migration, immutable record digest, replay-before-recompute behavior, exact Mission-bound inspection, rollback retention, and the hard boundary before role consumption. The supplied decision matches all fifteen fields without opening context use or injection.
+- Impact: Implementation adds only the `missionContextAttachment` sequence and `missionContextAttachments` map, one immutable sidecar contract, exact attach POST and Mission-bound GET, browser-preview-gated review UI, refresh hydration, public snapshot exclusion, and focused runtime/API/UI evidence. Mission, MemoryItem, MemoryRecall, Council, plan, WorkOrder, prompt, policy, provider, and source bytes remain unchanged; exact replay saves nothing.
+- Needed Before: Strategist, planner, Council, ExecutionPlan, WorkOrder, prompt, or policy context consumption or injection, automatic retrieval/search/ranking/recommendation, attachment lifecycle mutation, provider/source/Git/release actions, scheduling, next-Mission creation, policy mutation, collections, bypass, and connectors require separate complete fielded decisions.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
