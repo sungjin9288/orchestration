@@ -1481,6 +1481,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: The handoff defines valid approval, evidence-request, rejection, and deferral outcomes for one schema-v28 sidecar, replacement QA attempt #2, and one shell-free QA invocation only. It authorizes no implementation by itself.
 - Needed Before: The operator must supply every required field in one value-matching implementation decision. Missing, renamed, broadened, shortcut, or generic approval remains non-authorizing; a matching acceptance is reserved for `DEC-224`.
 
+### DEC-224
+- Status: `Accepted`
+- Decision: Accept the exact complete fielded operator decision for one deterministic local schema-v28 safe-checkpoint resume from one DEC-221 quarantined local-stub QA WorkOrderAttempt into one replacement QA WorkOrderAttempt attempt #2.
+- Why: DEC-222 and DEC-223 fixed the source-current disposition, unchanged active QA attempt, consumed `qa-ready` checkpoint, explicit source-worker-stop confirmation, atomic sidecar and replacement start, exact-attempt settlement, one shell-free QA execution, rollback retention, and downstream stop contract. The supplied decision matches every required field without opening cancellation, worker termination, retry, or wider recovery authority.
+- Impact: Implementation may add only the `opsAttemptResume` sequence and map, one immutable `OpsAttemptResume`, one replacement QA attempt, bounded POST and exact-id GET routes, exact-attempt settlement hardening, and an acknowledgement-gated Advanced Ops command. The quarantined source remains immutable and settlement-denied; pass stops at `delivery-ready`, failure stops terminally, and generic snapshots exclude resume records.
+- Needed Before: Builder, Reviewer, or specialist resume, cancellation, worker termination, retry, inferred result, second or automatic resume, provider-backed execution, source mutation, package or Mission close-out, runtime-agent Git/release, memory application, scheduling, policy mutation, collections, approval bypass, and connectors require separate complete fielded decisions.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

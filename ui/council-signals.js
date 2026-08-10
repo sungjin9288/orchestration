@@ -261,6 +261,113 @@ export function isExactOpsAttemptDisposition(disposition, source) {
   );
 }
 
+export function getOpsAttemptResumeSource(disposition, snapshot) {
+  if (
+    !disposition ||
+    !snapshot ||
+    disposition.targetType !== 'work-order-attempt' ||
+    disposition.decision !== 'quarantine' ||
+    disposition.authoritySummary?.lateSettlementAllowed !== false
+  ) {
+    return null;
+  }
+  const sourceAttempt = snapshot.workOrderAttempts?.[disposition.targetId] || null;
+  const executionPlan = snapshot.executionPlans?.[disposition.parentId] || null;
+  const workOrder = sourceAttempt
+    ? snapshot.workOrders?.[sourceAttempt.workOrderId] || null
+    : null;
+  const checkpoint = sourceAttempt?.checkpointRef
+    ? snapshot.workflowCheckpoints?.[sourceAttempt.checkpointRef] || null
+    : null;
+  if (
+    !sourceAttempt ||
+    !executionPlan ||
+    !workOrder ||
+    !checkpoint ||
+    sourceAttempt.status !== 'active' ||
+    sourceAttempt.role !== 'qa' ||
+    sourceAttempt.action !== 'run-qa' ||
+    sourceAttempt.command !== 'step' ||
+    sourceAttempt.attemptNumber !== 1 ||
+    sourceAttempt.recordDigest !== disposition.targetRecordDigest ||
+    sourceAttempt.executionPlanId !== executionPlan.id ||
+    sourceAttempt.workOrderId !== workOrder.id ||
+    executionPlan.status !== 'reviewing' ||
+    executionPlan.activeWorkOrderId !== workOrder.id ||
+    executionPlan.latestCheckpointId !== checkpoint.id ||
+    workOrder.status !== 'active' ||
+    workOrder.role !== 'qa' ||
+    checkpoint.executionPlanId !== executionPlan.id ||
+    checkpoint.stage !== 'qa-ready' ||
+    checkpoint.status !== 'consumed' ||
+    checkpoint.sourceDigest !== executionPlan.sourceDigest
+  ) {
+    return null;
+  }
+  return { checkpoint, disposition, executionPlan, sourceAttempt, workOrder };
+}
+
+export function getOpsAttemptResumeRequest(
+  source,
+  expectedExecutionPlanDigest,
+  sourceWorkerStopConfirmedAt,
+  evaluatedAt,
+  acknowledgement,
+) {
+  if (
+    !source ||
+    expectedExecutionPlanDigest !== source.disposition.parentDigest ||
+    acknowledgement !== 'source-worker-stopped-and-read-only-qa-confirmed' ||
+    typeof sourceWorkerStopConfirmedAt !== 'string' ||
+    typeof evaluatedAt !== 'string'
+  ) {
+    return null;
+  }
+  return {
+    dispositionRecordDigest: source.disposition.recordDigest,
+    sourceAttemptId: source.sourceAttempt.id,
+    sourceAttemptRecordDigest: source.sourceAttempt.recordDigest,
+    executionPlanId: source.executionPlan.id,
+    expectedExecutionPlanDigest,
+    checkpointId: source.checkpoint.id,
+    checkpointDigest: source.checkpoint.checkpointDigest,
+    inputDigest: source.checkpoint.inputDigest,
+    authorityDigest: source.checkpoint.authorityDigest,
+    expectedWorkOrderId: source.workOrder.id,
+    action: 'resume-qa',
+    evaluatedAt,
+    sourceWorkerStopConfirmedAt,
+    decision: 'resume-safe-checkpoint',
+    acknowledgement,
+    expectedReplacementAttemptNumber: 2,
+  };
+}
+
+export function isExactOpsAttemptResume(resume, source) {
+  return Boolean(
+    resume &&
+      source &&
+      resume.sourceDispositionId === source.disposition.id &&
+      resume.sourceDispositionRecordDigest === source.disposition.recordDigest &&
+      resume.sourceAttemptId === source.sourceAttempt.id &&
+      resume.sourceAttemptRecordDigest === source.sourceAttempt.recordDigest &&
+      resume.executionPlanId === source.executionPlan.id &&
+      resume.workOrderId === source.workOrder.id &&
+      resume.sourceCheckpointId === source.checkpoint.id &&
+      resume.sourceCheckpointDigest === source.checkpoint.checkpointDigest &&
+      resume.sourceInputDigest === source.checkpoint.inputDigest &&
+      resume.sourceAuthorityDigest === source.checkpoint.authorityDigest &&
+      resume.replacementAttemptId !== source.sourceAttempt.id &&
+      resume.action === 'resume-qa' &&
+      resume.role === 'qa' &&
+      resume.decision === 'resume-safe-checkpoint' &&
+      resume.authoritySummary?.replacementQaAttemptAllowed === true &&
+      resume.authoritySummary?.sourceAttemptSettlementAllowed === false &&
+      resume.authoritySummary?.sourceMutationAllowed === false &&
+      resume.authoritySummary?.retryAllowed === false,
+  );
+}
+
 export function getReviewerReworkPreviewTarget(bundle) {
   if (!bundle?.executionPlan || !Array.isArray(bundle.workOrders)) return null;
   const executionPlan = bundle.executionPlan;

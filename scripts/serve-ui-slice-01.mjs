@@ -52,6 +52,26 @@ const OPS_ATTEMPT_DISPOSITION_BODY_KEYS = Object.freeze([
 const OPS_ATTEMPT_DISPOSITION_MAX_BODY_BYTES = 8192;
 const OPS_ATTEMPT_DISPOSITION_ID_PATTERN =
   /^ops-attempt-disposition-[0-9]{4,}$/;
+const OPS_ATTEMPT_RESUME_BODY_KEYS = Object.freeze([
+  'acknowledgement',
+  'action',
+  'authorityDigest',
+  'checkpointDigest',
+  'checkpointId',
+  'decision',
+  'dispositionRecordDigest',
+  'evaluatedAt',
+  'executionPlanId',
+  'expectedExecutionPlanDigest',
+  'expectedReplacementAttemptNumber',
+  'expectedWorkOrderId',
+  'inputDigest',
+  'sourceAttemptId',
+  'sourceAttemptRecordDigest',
+  'sourceWorkerStopConfirmedAt',
+]);
+const OPS_ATTEMPT_RESUME_MAX_BODY_BYTES = 8192;
+const OPS_ATTEMPT_RESUME_ID_PATTERN = /^ops-attempt-resume-[0-9]{4,}$/;
 const REVIEWER_REWORK_QUERY_KEYS = Object.freeze([
   'evaluatedAt',
   'expectedAttemptRecordDigest',
@@ -1199,6 +1219,105 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const opsAttemptResumeStartMatch = url.pathname.match(
+    /^\/api\/ops\/attempt-dispositions\/([^/]+)\/resume-safe-checkpoint$/,
+  );
+  if (method === 'POST' && opsAttemptResumeStartMatch) {
+    let started = null;
+    try {
+      const dispositionId = decodeURIComponent(opsAttemptResumeStartMatch[1]);
+      if (!OPS_ATTEMPT_DISPOSITION_ID_PATTERN.test(dispositionId)) {
+        const error = new Error('OpsAttemptDisposition id is invalid');
+        error.statusCode = 400;
+        throw error;
+      }
+      const input = await readBoundedJsonBody(
+        request,
+        OPS_ATTEMPT_RESUME_MAX_BODY_BYTES,
+      );
+      const actualKeys = Object.keys(input).sort();
+      if (
+        actualKeys.length !== OPS_ATTEMPT_RESUME_BODY_KEYS.length ||
+        actualKeys.some(
+          (key, index) => key !== OPS_ATTEMPT_RESUME_BODY_KEYS[index],
+        )
+      ) {
+        const error = new Error(
+          'OpsAttemptResume body requires exactly sixteen fields',
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+
+      started = runtime.resumeOpsAttemptFromSafeCheckpoint(
+        dispositionId,
+        input,
+      );
+      if (started.idempotent) {
+        json(response, 200, buildSnapshotResponse(started));
+        return;
+      }
+
+      const bundle = started.executionPlanBundle;
+      const byRole = Object.fromEntries(
+        bundle.workOrders.map((workOrder) => [workOrder.role, workOrder]),
+      );
+      const qaResult = await executionCoordinator.runQaWorkOrder({
+        taskId: bundle.controlTask.id,
+        executionPlanId: bundle.executionPlan.id,
+        workOrderId: byRole.qa.id,
+        workOrderAttemptId: started.replacementAttempt.id,
+        opsAttemptResumeId: started.opsAttemptResume.id,
+        builderRunId: byRole.builder.completionRunId,
+        reviewerRunId: byRole.reviewer.completionRunId,
+        sourceDigest: bundle.executionPlan.sourceDigest,
+        changedFiles: byRole.builder.changedFiles,
+        targetPathAllowlist: byRole.qa.targetPathAllowlist,
+        commands: byRole.qa.verificationCommands,
+      });
+      const executionPlanBundle = runtime.completeReviewedDeliveryQa({
+        executionPlanId: bundle.executionPlan.id,
+        runId: qaResult.run.id,
+        qaEvidenceArtifactId: qaResult.artifact.id,
+        workOrderAttemptId: started.replacementAttempt.id,
+        opsAttemptResumeId: started.opsAttemptResume.id,
+      });
+      json(response, 201, buildSnapshotResponse({
+        idempotent: false,
+        opsAttemptResume: started.opsAttemptResume,
+        sourceAttempt: started.sourceAttempt,
+        replacementAttempt: executionPlanBundle.workOrderAttempts.find(
+          (attempt) => attempt.id === started.replacementAttempt.id,
+        ),
+        executionPlanBundle,
+        status:
+          executionPlanBundle.executionPlan.status === 'delivery-ready'
+            ? 'delivery-ready'
+            : 'qa-failed',
+      }));
+      return;
+    } catch (error) {
+      if (started && !started.idempotent) {
+        try {
+          runtime.failReviewedDeliveryContinuation({
+            executionPlanId: started.opsAttemptResume.executionPlanId,
+            workOrderAttemptId: started.replacementAttempt.id,
+            reason: error.message || 'safe-checkpoint-qa-failed',
+            stoppedAt: 'qa',
+          });
+        } catch (_settlementError) {
+          // Preserve the original shell-free QA failure for the operator.
+        }
+      }
+      json(response, error.statusCode || 400, {
+        error: String(
+          error.message || 'OpsAttemptResume 실행에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
+
   const opsAttemptDispositionMatch = url.pathname.match(
     /^\/api\/ops\/attempt-dispositions\/([^/]+)$/,
   );
@@ -1224,6 +1343,37 @@ const server = createServer(async (request, response) => {
       json(response, error.statusCode || 400, {
         error: String(
           error.message || 'OpsAttemptDisposition 조회에 실패했습니다.',
+        ).slice(0, 240),
+      });
+      return;
+    }
+  }
+
+  const opsAttemptResumeMatch = url.pathname.match(
+    /^\/api\/ops\/attempt-resumes\/([^/]+)$/,
+  );
+  if (opsAttemptResumeMatch) {
+    if (method !== 'GET') {
+      json(response, 405, {
+        error: 'OpsAttemptResume inspection은 GET만 지원합니다.',
+      });
+      return;
+    }
+    const resumeId = decodeURIComponent(opsAttemptResumeMatch[1]);
+    if (!OPS_ATTEMPT_RESUME_ID_PATTERN.test(resumeId)) {
+      json(response, 400, { error: 'OpsAttemptResume id is invalid' });
+      return;
+    }
+    try {
+      json(response, 200, {
+        generatedAt: new Date().toISOString(),
+        ...runtime.getOpsAttemptResume(resumeId),
+      });
+      return;
+    } catch (error) {
+      json(response, error.statusCode || 400, {
+        error: String(
+          error.message || 'OpsAttemptResume 조회에 실패했습니다.',
         ).slice(0, 240),
       });
       return;
@@ -4660,6 +4810,7 @@ const server = createServer(async (request, response) => {
         });
         executionPlanBundle = runtime.completeReviewedDeliveryBuilder({
           executionPlanId,
+          workOrderAttemptId: startedBundle.workOrderAttempt.id,
           runId: builderResult.run.id,
           changeSummaryArtifactId: builderResult.artifacts.changeSummary?.id,
           patchArtifactId: builderResult.artifacts.patch?.id,
@@ -4672,6 +4823,7 @@ const server = createServer(async (request, response) => {
         });
         executionPlanBundle = runtime.completeReviewedDeliveryReviewer({
           executionPlanId,
+          workOrderAttemptId: startedBundle.workOrderAttempt.id,
           runId: reviewerResult.run.id,
           reviewArtifactId: reviewerResult.artifact.id,
           reviewStatus: reviewerResult.run.summary?.mappedReviewStatus,
@@ -4685,6 +4837,7 @@ const server = createServer(async (request, response) => {
           taskId: startedBundle.controlTask.id,
           executionPlanId,
           workOrderId: workOrdersByRole.qa.id,
+          workOrderAttemptId: startedBundle.workOrderAttempt.id,
           builderRunId: workOrdersByRole.builder.completionRunId,
           reviewerRunId: workOrdersByRole.reviewer.completionRunId,
           sourceDigest: startedBundle.executionPlan.sourceDigest,
@@ -4694,6 +4847,7 @@ const server = createServer(async (request, response) => {
         });
         executionPlanBundle = runtime.completeReviewedDeliveryQa({
           executionPlanId,
+          workOrderAttemptId: startedBundle.workOrderAttempt.id,
           runId: qaResult.run.id,
           qaEvidenceArtifactId: qaResult.artifact.id,
         });
@@ -4732,6 +4886,7 @@ const server = createServer(async (request, response) => {
         try {
           runtime.failReviewedDeliveryContinuation({
             executionPlanId: startedBundle.executionPlan.id,
+            workOrderAttemptId: startedBundle.workOrderAttempt.id,
             reason: error.message || 'operator-workorder-step-failed',
             stoppedAt: startedBundle.workOrderAttempt?.role || 'operator-step',
           });

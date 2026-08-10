@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-223`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-224`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -388,7 +388,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 27/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 28/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -532,9 +532,10 @@ const report = {
         'DEC-221',
         'DEC-222',
         'DEC-223',
+        'DEC-224',
       ],
       currentRuntime: {
-        schemaVersion: 27,
+        schemaVersion: 28,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -659,7 +660,7 @@ const report = {
         opsAttemptQuarantinePlanningAllowed: true,
         opsAttemptQuarantineImplementationAllowed: true,
         opsSafeCheckpointResumePlanningAllowed: true,
-        opsSafeCheckpointResumeImplementationAllowed: false,
+        opsSafeCheckpointResumeImplementationAllowed: true,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
@@ -672,7 +673,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'DEC-222 and DEC-223 select QA safe-checkpoint resume planning; exact DEC-224 is required for schema-v28 implementation',
+      'DEC-224 implements one QA safe-checkpoint resume; broader recovery requires a separate complete fielded decision',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -704,13 +705,13 @@ assert.equal(report.authority.reworkDeliveryPackageAcceptanceImplementationAllow
 assert.equal(report.authority.opsAttemptQuarantinePlanningAllowed, true);
 assert.equal(report.authority.opsAttemptQuarantineImplementationAllowed, true);
 assert.equal(report.authority.opsSafeCheckpointResumePlanningAllowed, true);
-assert.equal(report.authority.opsSafeCheckpointResumeImplementationAllowed, false);
+assert.equal(report.authority.opsSafeCheckpointResumeImplementationAllowed, true);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /exact DEC-224 is required for schema-v28 implementation/,
+  /broader recovery requires a separate complete fielded decision/,
 );
 
 process.stdout.write(

@@ -557,6 +557,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 6C planning fixes one future schema-v28 QA-only safe-checkpoint resume with explicit source-worker-stop confirmation, immutable source-to-replacement evidence, attempt-id-bound settlement, one shell-free QA execution, rollback retention, and blocked Builder Reviewer specialist cancel retry provider source Git memory scheduling policy collection bypass and connector authority',
   },
   {
+    id: 'ai-company-ops-safe-checkpoint-resume',
+    script: 'scripts/smoke-ai-company-ops-safe-checkpoint-resume.mjs',
+    purpose: 'AI Company Stage 6C runtime and API prove atomic schema-v27 to v28 migration, one immutable exact source-to-replacement QA resume, explicit worker-stop confirmation, semantic active-attempt uniqueness, exact-attempt settlement, shell-free pass and terminal failure, replay and inspection, source evidence retention, and zero wider recovery provider source package Git memory scheduling policy collection bypass or connector authority',
+  },
+  {
     id: 'ai-company-specialist-batch-preview',
     script: 'scripts/smoke-ai-company-specialist-batch-preview.mjs',
     purpose: 'AI Company Stage 4A runtime and API prove one exact source-current schema-v19 response-only SpecialistBatchPreview with two fixed read-only cells, raw-byte path digests, exact transport errors, unchanged state bytes, and no worker provider persistence scheduling mutation Git release or policy authority',

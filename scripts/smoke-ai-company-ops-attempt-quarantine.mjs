@@ -428,7 +428,7 @@ async function main() {
     downgradeToV26(work.statePath);
     const v26Bytes = fs.readFileSync(work.statePath, 'utf8');
     const passiveSnapshot = work.runtime.getSnapshot();
-    assert.equal(passiveSnapshot.schemaVersion, 27);
+    assert.equal(passiveSnapshot.schemaVersion, 28);
     assert.equal('opsAttemptDispositions' in passiveSnapshot, false);
     assert.equal(fs.readFileSync(work.statePath, 'utf8'), v26Bytes);
     assert.throws(
@@ -445,7 +445,7 @@ async function main() {
     assert.equal(created.idempotent, false);
     assertDisposition(created.opsAttemptDisposition, workPreview);
     const v27State = JSON.parse(fs.readFileSync(work.statePath, 'utf8'));
-    assert.equal(v27State.schemaVersion, 27);
+    assert.equal(v27State.schemaVersion, 28);
     assert.equal(v27State.sequences.opsAttemptDisposition, 1);
     assert.equal(Object.keys(v27State.opsAttemptDispositions).length, 1);
     const replayBytes = fs.readFileSync(work.statePath, 'utf8');
@@ -542,7 +542,8 @@ async function main() {
 
     for (const [schemaVersion, mutate, expected] of [
       [27, (state) => delete state.opsAttemptDispositions, /missing OpsAttemptDisposition/],
-      [28, () => {}, /Unsupported runtime state schemaVersion/],
+      [28, (state) => delete state.opsAttemptResumes, /missing OpsAttemptResume/],
+      [29, () => {}, /Unsupported runtime state schemaVersion/],
     ]) {
       const invalidRoot = path.join(tempRoot, `invalid-v${schemaVersion}`);
       fs.mkdirSync(invalidRoot, { recursive: true });
@@ -607,7 +608,7 @@ async function main() {
         {
           ok: true,
           mode: MODE,
-          schemaVersion: 27,
+          schemaVersion: 28,
           targetTypes: [
             workPreview.targetType,
             firstPreview.targetType,

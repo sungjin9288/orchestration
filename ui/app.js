@@ -139,6 +139,8 @@ import {
   getLatestRealCouncilPositions,
   getMissionStaffingPlanSummary,
   getOpsAttemptDispositionRequest,
+  getOpsAttemptResumeRequest,
+  getOpsAttemptResumeSource,
   getOpsSupervisionTarget,
   getReviewerReworkPlanRecordRequest,
   getReworkPlanAcceptanceRequest,
@@ -154,6 +156,7 @@ import {
   isExactReworkDeliveryPackageRecord,
   isExactReworkDeliveryPackageAcceptance,
   isExactOpsAttemptDisposition,
+  isExactOpsAttemptResume,
   getReviewerReworkPreviewTarget,
   getSpecialistBatchPreviewSummary,
   getSpecialistCellRetryEligibility,
@@ -450,6 +453,9 @@ const state = {
   opsSupervisionPreview: null,
   opsAttemptDisposition: null,
   opsAttemptDispositionLocator: null,
+  opsAttemptResume: null,
+  opsAttemptResumeLocator: null,
+  opsAttemptResumeReplacementAttempt: null,
   reviewerReworkPlanPreview: null,
   reviewerReworkPlan: null,
   reviewerReworkPlanAcceptance: null,
@@ -5161,6 +5167,8 @@ function applySnapshotPayload(payload) {
   if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.opsSupervisionPreview = null;
     state.opsAttemptDisposition = null;
+    state.opsAttemptResume = null;
+    state.opsAttemptResumeReplacementAttempt = null;
     state.reviewerReworkPlanPreview = null;
     state.reviewerReworkPlan = null;
     state.builderReworkDispatch = null;
@@ -5775,6 +5783,21 @@ async function hydrateSelectedDetails() {
       )
         ? disposition
         : null;
+  }
+
+  if (state.opsAttemptResumeLocator?.id) {
+    const resumePayload = await fetchOptionalJson(
+      `/api/ops/attempt-resumes/${encodeURIComponent(
+        state.opsAttemptResumeLocator.id,
+      )}`,
+    );
+    const resume = resumePayload?.opsAttemptResume || null;
+    const source = state.opsAttemptResumeLocator.source || null;
+    state.opsAttemptResume =
+      resume && isExactOpsAttemptResume(resume, source) ? resume : null;
+    state.opsAttemptResumeReplacementAttempt = state.opsAttemptResume
+      ? resumePayload?.replacementAttempt || null
+      : null;
   }
 }
 
@@ -7324,6 +7347,9 @@ async function inspectOpsSupervision(actionButton) {
   state.opsSupervisionPreview = null;
   state.opsAttemptDisposition = null;
   state.opsAttemptDispositionLocator = null;
+  state.opsAttemptResume = null;
+  state.opsAttemptResumeLocator = null;
+  state.opsAttemptResumeReplacementAttempt = null;
   const source = getOpsSupervisionSource(actionButton);
   if (!source.request) {
     throw new Error('현재 화면의 exact active attempt evidence가 필요합니다.');
@@ -7404,6 +7430,78 @@ async function quarantineOpsAttempt(actionButton) {
     state.opsSupervisionPreview = null;
     elements.refreshStatus.textContent =
       `${disposition.targetId} settlement quarantined`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function resumeOpsAttemptFromSafeCheckpoint(actionButton) {
+  const dispositionId = String(actionButton?.dataset.dispositionId || '').trim();
+  const disposition = state.opsAttemptDisposition;
+  const source = getOpsAttemptResumeSource(disposition, getDerived().snapshot);
+  if (!source || disposition?.id !== dispositionId) {
+    throw new Error('현재 exact quarantined QA evidence가 필요합니다.');
+  }
+  const targetId = source.sourceAttempt.id;
+  const acknowledgement = document.querySelector(
+    `input[name="opsAttemptResumeAcknowledgement"][data-target-id="${CSS.escape(targetId)}"]:checked`,
+  )?.value;
+  const stoppedInput = document.querySelector(
+    `input[name="opsAttemptSourceWorkerStoppedAt"][data-target-id="${CSS.escape(targetId)}"]`,
+  );
+  const stoppedValue = String(stoppedInput?.value || '').trim();
+  const stoppedDate = new Date(stoppedValue);
+  if (!stoppedValue || Number.isNaN(stoppedDate.getTime())) {
+    throw new Error('Source worker stop confirmation timestamp가 필요합니다.');
+  }
+  const sourceWorkerStopConfirmedAt = stoppedDate.toISOString();
+  const evaluatedAt = new Date().toISOString();
+  const expectedExecutionPlanDigest = await computeExecutionPlanRecordDigest(
+    source.executionPlan,
+  );
+  const request = getOpsAttemptResumeRequest(
+    source,
+    expectedExecutionPlanDigest,
+    sourceWorkerStopConfirmedAt,
+    evaluatedAt,
+    acknowledgement,
+  );
+  if (!request) {
+    throw new Error(
+      'Exact plan digest, worker-stop confirmation, acknowledgement가 필요합니다.',
+    );
+  }
+
+  state.mutating = true;
+  try {
+    const payload = await fetchJson(
+      `/api/ops/attempt-dispositions/${encodeURIComponent(
+        disposition.id,
+      )}/resume-safe-checkpoint`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(request),
+      },
+    );
+    const resume = payload.opsAttemptResume;
+    if (
+      !isExactOpsAttemptResume(resume, source) ||
+      payload.replacementAttempt?.id !== resume.replacementAttemptId ||
+      payload.replacementAttempt?.attemptNumber !== 2
+    ) {
+      throw new Error('OpsAttemptResume 응답이 exact source와 다릅니다.');
+    }
+    applySnapshotPayload(payload);
+    state.opsAttemptDisposition = disposition;
+    state.opsAttemptResume = resume;
+    state.opsAttemptResumeReplacementAttempt = payload.replacementAttempt;
+    state.opsAttemptResumeLocator = { id: resume.id, source };
+    elements.refreshStatus.textContent =
+      payload.status === 'delivery-ready'
+        ? `${resume.id} QA delivery-ready`
+        : `${resume.id} QA stopped: ${payload.status}`;
   } finally {
     state.mutating = false;
     render();
@@ -14029,6 +14127,43 @@ function renderOpsSupervisionPreview(targetId) {
   const preview = state.opsSupervisionPreview;
   const disposition = state.opsAttemptDisposition;
   if (disposition?.targetId === targetId) {
+    const storedSource = state.opsAttemptResumeLocator?.source || null;
+    const currentSource = getOpsAttemptResumeSource(
+      disposition,
+      getDerived().snapshot,
+    );
+    const resumeSource = storedSource || currentSource;
+    const resume = isExactOpsAttemptResume(
+      state.opsAttemptResume,
+      resumeSource,
+    )
+      ? state.opsAttemptResume
+      : null;
+    const replacement = state.opsAttemptResumeReplacementAttempt;
+    if (resume) {
+      return `
+        <section
+          class="ops-supervision-preview ops-attempt-resume"
+          aria-label="Safe checkpoint resume evidence"
+          data-ops-attempt-resume-id="${escapeHtml(resume.id)}"
+        >
+          <div class="card-title-row card-title-row-tight">
+            <strong>QA safe-checkpoint resume</strong>
+            ${createToken(replacement?.status || 'recorded', replacement?.status === 'completed' ? 'success' : replacement?.status === 'failed' ? 'danger' : 'warning')}
+            ${createToken('attempt:2', 'accent')}
+          </div>
+          <dl class="ops-supervision-evidence">
+            <div><dt>resume</dt><dd>${escapeHtml(resume.id)}</dd></div>
+            <div><dt>source attempt</dt><dd>${escapeHtml(resume.sourceAttemptId)}</dd></div>
+            <div><dt>replacement</dt><dd>${escapeHtml(resume.replacementAttemptId)}</dd></div>
+            <div><dt>checkpoint</dt><dd>${escapeHtml(resume.sourceCheckpointId)}</dd></div>
+          </dl>
+          <p class="ops-attempt-disposition-boundary">
+            Source settlement remains denied. No second resume, cancellation, retry, provider, or source mutation is available.
+          </p>
+        </section>
+      `;
+    }
     return `
       <section
         class="ops-supervision-preview ops-attempt-disposition"
@@ -14054,6 +14189,43 @@ function renderOpsSupervisionPreview(targetId) {
         <p class="ops-attempt-disposition-boundary">
           Late settlement is blocked. No result, cancellation, recovery, retry, or source mutation was inferred.
         </p>
+        ${
+          currentSource
+            ? `
+              <div class="ops-attempt-resume-command">
+                <label>
+                  <span>Source worker stopped at</span>
+                  <input
+                    type="datetime-local"
+                    step="1"
+                    name="opsAttemptSourceWorkerStoppedAt"
+                    data-target-id="${escapeHtml(targetId)}"
+                    ${state.loading || state.mutating ? 'disabled' : ''}
+                  />
+                </label>
+                <label class="ops-attempt-resume-acknowledgement">
+                  <input
+                    type="checkbox"
+                    name="opsAttemptResumeAcknowledgement"
+                    data-target-id="${escapeHtml(targetId)}"
+                    value="source-worker-stopped-and-read-only-qa-confirmed"
+                    ${state.loading || state.mutating ? 'disabled' : ''}
+                  />
+                  <span>Source worker stopped; confirm read-only QA</span>
+                </label>
+                <button
+                  class="primary-button ops-attempt-resume-action"
+                  type="button"
+                  data-action="resume-ops-attempt-safe-checkpoint"
+                  data-disposition-id="${escapeHtml(disposition.id)}"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                >
+                  Resume QA from safe checkpoint
+                </button>
+              </div>
+            `
+            : ''
+        }
       </section>
     `;
   }
@@ -24141,6 +24313,14 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'quarantine-ops-attempt') {
         await quarantineOpsAttempt(actionButton);
+        return;
+      }
+
+      if (
+        actionButton.dataset.action ===
+        'resume-ops-attempt-safe-checkpoint'
+      ) {
+        await resumeOpsAttemptFromSafeCheckpoint(actionButton);
         return;
       }
 

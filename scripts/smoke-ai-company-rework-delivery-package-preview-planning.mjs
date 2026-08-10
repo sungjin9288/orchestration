@@ -206,8 +206,8 @@ assert.match(
   readme,
   /docs\/144_ai-company-rework-delivery-package-preview-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /1006 smoke files/);
-assert.match(readme, /714 UI smoke files/);
+assert.match(readme, /1008 smoke files/);
+assert.match(readme, /715 UI smoke files/);
 assert.match(todo, /ai-company-rework-delivery-package-preview-planning-post-m7-2040/);
 assert.match(
   lessons,
@@ -218,7 +218,7 @@ assert.match(
   /id: 'ai-company-rework-delivery-package-preview-planning'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 27/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
 assert.match(deliveryPackages, /function computeDeliveryPackageDigest\(input\)/);
 assert.match(runtime, /function buildExecutionPlanDeliveryPreviewFromState\(state, input\)/);
 assert.match(runtime, /terminalGateApproval\.metadata\?\.consumedByRunId !== byRole\.builder\.completionRunId/);
@@ -244,8 +244,8 @@ assert.equal(
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1006);
-assert.equal(uiSmokeFileCount, 714);
+assert.equal(smokeFileCount, 1008);
+assert.equal(uiSmokeFileCount, 715);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,

@@ -51,7 +51,7 @@ for (const field of fields) {
 for (const pattern of [
   /planning authority is recorded as `DEC-222`/,
   /complete implementation handoff is recorded as\s+`DEC-223`/,
-  /Implementation remains reserved for an exact `DEC-224`/,
+  /accepted as `DEC-224`/,
   /local-stub QA WorkOrderAttempt/,
   /schemaVersion = 28/,
   /sequences\.opsAttemptResume/,
@@ -71,7 +71,7 @@ assert.match(handoff, /operator-decision-ai-company-ops-safe-checkpoint-resume-i
 assert.match(handoff, /schema-v28 safe-checkpoint resume/);
 assert.match(handoff, /scripts\/smoke-ui-slice-715\.mjs/);
 assert.match(handoff, /source-worker-stop confirmation/);
-assert.match(handoff, /reserved for `DEC-224`/);
+assert.match(handoff, /accepted as `DEC-224`/);
 
 for (const [source, label] of [
   [decisionLog, 'decision log'],
@@ -86,39 +86,42 @@ for (const [source, label] of [
 ]) {
   assert.match(source, /DEC-222/, `${label} must record DEC-222`);
   assert.match(source, /DEC-223/, `${label} must record DEC-223`);
-  assert.match(source, /DEC-224/, `${label} must keep DEC-224 blocked`);
+  assert.match(source, /DEC-224/, `${label} must record DEC-224 implementation`);
 }
 
 assert.match(decisionLog, /^### DEC-222$/m);
 assert.match(decisionLog, /^### DEC-223$/m);
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 27/);
-assert.doesNotMatch(contracts, /opsAttemptResume/);
-assert.doesNotMatch(runtime, /resumeSafeCheckpoint|opsAttemptResumes/);
-assert.doesNotMatch(server, /attempt-resumes|resume-safe-checkpoint/);
-assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/ops-attempt-resumes.js')), false);
+assert.match(decisionLog, /^### DEC-224$/m);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
+assert.match(contracts, /opsAttemptResume/);
+assert.match(runtime, /resumeOpsAttemptFromSafeCheckpoint/);
+assert.match(server, /attempt-resumes/);
+assert.match(server, /resume-safe-checkpoint/);
+assert.equal(fs.existsSync(path.join(repoRoot, 'src/runtime/ops-attempt-resumes.js')), true);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-ops-safe-checkpoint-resume.mjs')),
-  false,
+  true,
 );
-assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-715.mjs')), false);
+assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-715.mjs')), true);
 assert.match(verification, /ai-company-ops-safe-checkpoint-resume-planning/);
-assert.match(readme, /1006 smoke files/);
-assert.match(readme, /714 UI smoke files/);
+assert.match(verification, /ai-company-ops-safe-checkpoint-resume/);
+assert.match(readme, /1008 smoke files/);
+assert.match(readme, /715 UI smoke files/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1006);
-assert.equal(uiSmokeFileCount, 714);
+assert.equal(smokeFileCount, 1008);
+assert.equal(uiSmokeFileCount, 715);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode,
   planningDecision: 'accepted-dec-222',
   handoffDecision: 'recorded-dec-223',
-  implementationDecision: 'blocked-reserved-dec-224',
-  schemaVersion: 27,
+  implementationDecision: 'accepted-dec-224',
+  schemaVersion: 28,
   targetRole: 'qa',
-  implementationAllowed: false,
+  implementationAllowed: true,
   smokeFileCount,
   uiSmokeFileCount,
 }, null, 2)}\n`);

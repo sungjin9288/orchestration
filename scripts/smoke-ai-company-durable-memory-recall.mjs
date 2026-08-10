@@ -80,6 +80,7 @@ function toSchemaV14(state) {
   delete previous.sequences.reworkDeliveryPackage;
   delete previous.sequences.reworkDeliveryPackageAcceptance;
   delete previous.sequences.opsAttemptDisposition;
+  delete previous.sequences.opsAttemptResume;
   delete previous.memoryRecalls;
   delete previous.staffingPlans;
   delete previous.specialistBatches;
@@ -91,6 +92,7 @@ function toSchemaV14(state) {
   delete previous.reworkDeliveryPackages;
   delete previous.reworkDeliveryPackageAcceptances;
   delete previous.opsAttemptDispositions;
+  delete previous.opsAttemptResumes;
   return previous;
 }
 
@@ -106,6 +108,7 @@ function withoutMemoryRecallState(state) {
   delete previous.sequences.reworkDeliveryPackage;
   delete previous.sequences.reworkDeliveryPackageAcceptance;
   delete previous.sequences.opsAttemptDisposition;
+  delete previous.sequences.opsAttemptResume;
   delete previous.memoryRecalls;
   delete previous.staffingPlans;
   delete previous.specialistBatches;
@@ -117,6 +120,7 @@ function withoutMemoryRecallState(state) {
   delete previous.reworkDeliveryPackages;
   delete previous.reworkDeliveryPackageAcceptances;
   delete previous.opsAttemptDispositions;
+  delete previous.opsAttemptResumes;
   return previous;
 }
 
@@ -270,7 +274,7 @@ async function main() {
     );
 
     const persisted = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 27);
+    assert.equal(persisted.schemaVersion, 28);
     assert.equal(persisted.sequences.memoryRecall, 1);
     assert.equal(Object.keys(persisted.memoryRecalls).length, 1);
     assert.deepEqual(withoutMemoryRecallState(persisted), schemaV14);
@@ -302,7 +306,7 @@ async function main() {
     const migrationOnlyRoot = path.join(tempRoot, 'migration-only');
     writeState(migrationOnlyRoot, schemaV14);
     const migratedOnly = createFileStore({ runtimeRoot: migrationOnlyRoot }).loadState();
-    assert.equal(migratedOnly.schemaVersion, 27);
+    assert.equal(migratedOnly.schemaVersion, 28);
     assert.equal(migratedOnly.sequences.memoryRecall, 0);
     assert.deepEqual(migratedOnly.memoryRecalls, {});
 
@@ -327,7 +331,7 @@ async function main() {
     );
 
     const futureRoot = path.join(tempRoot, 'future-schema');
-    writeState(futureRoot, { ...persisted, schemaVersion: 28 });
+    writeState(futureRoot, { ...persisted, schemaVersion: 29 });
     assertNoWrite(
       futureRoot,
       () => createFileStore({ runtimeRoot: futureRoot }).loadStateSupportedReadonly(),

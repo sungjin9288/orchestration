@@ -46,6 +46,7 @@ const {
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION,
+  OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION,
   REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION,
   REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION,
   REWORK_PLAN_STATE_SCHEMA_VERSION,
@@ -87,6 +88,10 @@ const {
   OPS_ATTEMPT_DISPOSITION_AUTHORITY_SUMMARY,
   assertOpsAttemptDispositionRecord,
 } = require('./ops-attempt-dispositions');
+const {
+  OPS_ATTEMPT_RESUME_AUTHORITY_SUMMARY,
+  assertOpsAttemptResumeRecord,
+} = require('./ops-attempt-resumes');
 const {
   OPS_SUPERVISION_TARGET_TYPE,
   buildOpsSupervisionPreview,
@@ -140,11 +145,13 @@ const {
 } = require('./staffing-entries');
 const {
   WORK_ORDER_ATTEMPT_ACTION,
+  WORK_ORDER_ATTEMPT_COMMAND,
   WORK_ORDER_ATTEMPT_STATUS,
   assertWorkOrderAttemptRecord,
   computeWorkOrderAttemptAuthorityDigest,
   computeWorkOrderAttemptDependencyDigest,
   computeWorkOrderAttemptRecordDigest,
+  createWorkOrderAttempt,
 } = require('./work-order-attempts');
 const {
   SPECIALIST_BATCH_STATUS,
@@ -2114,6 +2121,15 @@ function validateDurableWorkOrderRecords(state) {
   }
 }
 
+function hasExactWorkOrderAttemptQuarantine(state, attempt) {
+  return Object.values(state.opsAttemptDispositions || {}).some(
+    (disposition) =>
+      disposition.targetType === OPS_SUPERVISION_TARGET_TYPE.WORK_ORDER_ATTEMPT &&
+      disposition.targetId === attempt.id &&
+      disposition.targetRecordDigest === attempt.recordDigest,
+  );
+}
+
 function validateWorkOrderAttemptRecords(state) {
   const attemptsByWorkOrder = new Map();
   const activePlanIds = new Set();
@@ -2194,7 +2210,11 @@ function validateWorkOrderAttemptRecords(state) {
     }
     const isBuilderReworkAttempt =
       attempt.action === 'start-builder-rework-preflight';
-    if (attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE && !isBuilderReworkAttempt) {
+    if (
+      attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
+      !isBuilderReworkAttempt &&
+      !hasExactWorkOrderAttemptQuarantine(state, attempt)
+    ) {
       if (activePlanIds.has(plan.id)) {
         throw new Error(`${label} duplicates an active attempt for ${plan.id}`);
       }
@@ -4022,9 +4042,14 @@ function validateOpsAttemptDispositionRecords(state) {
       }
       assertWorkOrderAttemptRecord(target);
       projectId = target.projectId;
+      const linkedResume = Object.values(state.opsAttemptResumes || {}).find(
+        (resume) => resume.sourceDispositionId === disposition.id,
+      );
       source = {
         targetRecordDigest: target.recordDigest,
-        parentDigest: computeExecutionPlanRecordDigest(parent),
+        parentDigest: linkedResume
+          ? disposition.parentDigest
+          : computeExecutionPlanRecordDigest(parent),
         sourceDigest: target.sourceDigest,
         attemptNumber: target.attemptNumber,
         role: target.role,
@@ -4151,6 +4176,171 @@ function validateOpsAttemptDispositionRecords(state) {
     throw new Error(
       'OpsAttemptDisposition sequence has a retained-record gap',
     );
+  }
+}
+
+function getWorkOrderAttemptStartDigest(attempt, checkpointRef) {
+  return createWorkOrderAttempt({
+    id: attempt.id,
+    executionPlanId: attempt.executionPlanId,
+    workOrderId: attempt.workOrderId,
+    missionId: attempt.missionId,
+    projectId: attempt.projectId,
+    staffingPlanId: attempt.staffingPlanId,
+    staffingEntryId: attempt.staffingEntryId,
+    councilSessionId: attempt.councilSessionId,
+    role: attempt.role,
+    position: attempt.position,
+    attemptNumber: attempt.attemptNumber,
+    command: attempt.command,
+    action: attempt.action,
+    sourceDigest: attempt.sourceDigest,
+    workOrderDigest: attempt.workOrderDigest,
+    dependencyDigest: attempt.dependencyDigest,
+    authorityDigest: attempt.authorityDigest,
+    checkpointRef,
+    approvalRefs: attempt.approvalRefs,
+    startedAt: attempt.startedAt,
+  }).recordDigest;
+}
+
+function validateOpsAttemptResumeRecords(state) {
+  const sourceDispositionIds = new Set();
+  const sourceAttemptIds = new Set();
+  const replacementAttemptIds = new Set();
+  let highestSequence = 0;
+
+  for (const [key, resume] of Object.entries(state.opsAttemptResumes)) {
+    const label = `OpsAttemptResume ${key}`;
+    if (
+      !resume ||
+      typeof resume !== 'object' ||
+      Array.isArray(resume) ||
+      resume.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    const idMatch = /^ops-attempt-resume-(\d+)$/.exec(key);
+    const sequence = idMatch ? Number(idMatch[1]) : Number.NaN;
+    if (
+      !Number.isSafeInteger(sequence) ||
+      sequence < 1 ||
+      key !== `ops-attempt-resume-${String(sequence).padStart(4, '0')}`
+    ) {
+      throw new Error(`${label} has an invalid sequence identity`);
+    }
+    highestSequence = Math.max(highestSequence, sequence);
+    assertOpsAttemptResumeRecord(resume);
+
+    const disposition = state.opsAttemptDispositions[resume.sourceDispositionId];
+    const sourceAttempt = state.workOrderAttempts[resume.sourceAttemptId];
+    const replacementAttempt = state.workOrderAttempts[resume.replacementAttemptId];
+    const checkpoint = state.workflowCheckpoints[resume.sourceCheckpointId];
+    const executionPlan = state.executionPlans[resume.executionPlanId];
+    const workOrder = state.workOrders[resume.workOrderId];
+    if (
+      !disposition ||
+      !sourceAttempt ||
+      !replacementAttempt ||
+      !checkpoint ||
+      !executionPlan ||
+      !workOrder
+    ) {
+      throw new Error(`${label} has missing source or replacement lineage`);
+    }
+    assertOpsAttemptDispositionRecord(disposition);
+    assertWorkOrderAttemptRecord(sourceAttempt);
+    assertWorkOrderAttemptRecord(replacementAttempt);
+
+    const replacementStartDigest = getWorkOrderAttemptStartDigest(
+      replacementAttempt,
+      resume.sourceCheckpointId,
+    );
+    const terminalCheckpoint = replacementAttempt.checkpointRef
+      ? state.workflowCheckpoints[replacementAttempt.checkpointRef]
+      : null;
+    const replacementStatusAllowed = [
+      WORK_ORDER_ATTEMPT_STATUS.ACTIVE,
+      WORK_ORDER_ATTEMPT_STATUS.COMPLETED,
+      WORK_ORDER_ATTEMPT_STATUS.FAILED,
+    ].includes(replacementAttempt.status);
+    const replacementCheckpointAllowed =
+      replacementAttempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE
+        ? replacementAttempt.checkpointRef === checkpoint.id
+        : replacementAttempt.checkpointRef === null ||
+          (terminalCheckpoint &&
+            terminalCheckpoint.executionPlanId === executionPlan.id &&
+            terminalCheckpoint.stage === WORKFLOW_CHECKPOINT_STAGE.DELIVERY_READY);
+
+    if (
+      disposition.targetType !== OPS_SUPERVISION_TARGET_TYPE.WORK_ORDER_ATTEMPT ||
+      disposition.decision !== 'quarantine' ||
+      disposition.id !== resume.sourceDispositionId ||
+      disposition.recordDigest !== resume.sourceDispositionRecordDigest ||
+      disposition.targetId !== sourceAttempt.id ||
+      disposition.targetRecordDigest !== sourceAttempt.recordDigest ||
+      disposition.parentId !== executionPlan.id ||
+      disposition.projectId !== resume.projectId ||
+      sourceAttempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE ||
+      sourceAttempt.role !== 'qa' ||
+      sourceAttempt.action !== WORK_ORDER_ATTEMPT_ACTION.RUN_QA ||
+      sourceAttempt.command !== WORK_ORDER_ATTEMPT_COMMAND.STEP ||
+      sourceAttempt.attemptNumber !== 1 ||
+      sourceAttempt.executionPlanId !== executionPlan.id ||
+      sourceAttempt.workOrderId !== workOrder.id ||
+      sourceAttempt.checkpointRef !== checkpoint.id ||
+      sourceAttempt.recordDigest !== resume.sourceAttemptRecordDigest ||
+      checkpoint.executionPlanId !== executionPlan.id ||
+      checkpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.QA_READY ||
+      checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.CONSUMED ||
+      checkpoint.checkpointDigest !== resume.sourceCheckpointDigest ||
+      checkpoint.inputDigest !== resume.sourceInputDigest ||
+      checkpoint.authorityDigest !== resume.sourceAuthorityDigest ||
+      workOrder.executionPlanId !== executionPlan.id ||
+      workOrder.role !== 'qa' ||
+      replacementAttempt.id !== resume.replacementAttemptId ||
+      replacementAttempt.executionPlanId !== executionPlan.id ||
+      replacementAttempt.workOrderId !== workOrder.id ||
+      replacementAttempt.role !== 'qa' ||
+      replacementAttempt.action !== WORK_ORDER_ATTEMPT_ACTION.RUN_QA ||
+      replacementAttempt.command !== WORK_ORDER_ATTEMPT_COMMAND.STEP ||
+      replacementAttempt.attemptNumber !== 2 ||
+      replacementAttempt.sourceDigest !== sourceAttempt.sourceDigest ||
+      replacementAttempt.workOrderDigest !== sourceAttempt.workOrderDigest ||
+      replacementAttempt.dependencyDigest !== sourceAttempt.dependencyDigest ||
+      replacementAttempt.authorityDigest !== sourceAttempt.authorityDigest ||
+      replacementStartDigest !== resume.replacementAttemptStartDigest ||
+      !replacementStatusAllowed ||
+      !replacementCheckpointAllowed ||
+      Date.parse(resume.sourceWorkerStopConfirmedAt) <
+        Date.parse(disposition.createdAt) ||
+      Date.parse(resume.evaluatedAt) <
+        Date.parse(resume.sourceWorkerStopConfirmedAt) ||
+      Date.parse(replacementAttempt.startedAt) < Date.parse(resume.evaluatedAt) ||
+      Date.parse(resume.createdAt) < Date.parse(replacementAttempt.startedAt) ||
+      JSON.stringify(resume.authoritySummary) !==
+        JSON.stringify(OPS_ATTEMPT_RESUME_AUTHORITY_SUMMARY)
+    ) {
+      throw new Error(`${label} has invalid safe-checkpoint lineage`);
+    }
+
+    for (const [value, seen, field] of [
+      [resume.sourceDispositionId, sourceDispositionIds, 'source disposition'],
+      [resume.sourceAttemptId, sourceAttemptIds, 'source attempt'],
+      [resume.replacementAttemptId, replacementAttemptIds, 'replacement attempt'],
+    ]) {
+      if (seen.has(value)) {
+        throw new Error(`${label} duplicates ${field}`);
+      }
+      seen.add(value);
+    }
+  }
+
+  if (state.sequences.opsAttemptResume !== highestSequence) {
+    throw new Error('OpsAttemptResume sequence does not match retained records');
+  }
+  if (Object.keys(state.opsAttemptResumes).length !== highestSequence) {
+    throw new Error('OpsAttemptResume sequence has a retained-record gap');
   }
 }
 
@@ -4834,6 +5024,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !==
         REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -5144,6 +5335,19 @@ function createFileStore(options = {}) {
       }
     }
 
+    if (sourceSchemaVersion >= OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION) {
+      if (
+        !Number.isInteger(state.sequences?.opsAttemptResume) ||
+        !state.opsAttemptResumes ||
+        typeof state.opsAttemptResumes !== 'object' ||
+        Array.isArray(state.opsAttemptResumes)
+      ) {
+        throw new Error(
+          `Runtime state schemaVersion ${sourceSchemaVersion} is missing OpsAttemptResume fields`,
+        );
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -5189,6 +5393,7 @@ function createFileStore(options = {}) {
       reworkDeliveryPackageAcceptances:
         state.reworkDeliveryPackageAcceptances || {},
       opsAttemptDispositions: state.opsAttemptDispositions || {},
+      opsAttemptResumes: state.opsAttemptResumes || {},
     };
 
     if (sourceSchemaVersion < ACCEPTANCE_CRITERION_STATE_SCHEMA_VERSION) {
@@ -5482,6 +5687,7 @@ function createFileStore(options = {}) {
     validateReworkDeliveryPackageRecords(normalizedState);
     validateReworkDeliveryPackageAcceptanceRecords(normalizedState);
     validateOpsAttemptDispositionRecords(normalizedState);
+    validateOpsAttemptResumeRecords(normalizedState);
     return normalizedState;
   }
 

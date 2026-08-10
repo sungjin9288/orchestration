@@ -167,7 +167,7 @@ handoff, checkpoint, delivery, learning, rollback, and phased authority contract
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
-execution state is schema v27 after the additive OpsAttemptDisposition migration, while
+execution state is schema v28 after the additive OpsAttemptResume migration, while
 `companyRuntime` remains an additive read-only snapshot on the configured local server path. The
 editable company roster remains browser presentation only.
 
@@ -369,14 +369,14 @@ specialist first-attempt, and specialist retry targets. Cancel, resume, retry, i
 worker termination, source or parent mutation, provider work, Git/release authority, memory,
 scheduling, policy changes, bypass, and connectors remain blocked.
 
-Planning-only `DEC-222` defines Stage 6C as one future schema-v28 QA-only safe-checkpoint resume
+Planning-only `DEC-222` defines Stage 6C as one schema-v28 QA-only safe-checkpoint resume
 from an exact DEC-221 quarantined local-stub QA attempt and its consumed `qa-ready` checkpoint.
 `DEC-223` records the complete fielded handoff in
 `docs/152_ai-company-ops-safe-checkpoint-resume-implementation-decision-handoff.md`. The plan
 requires explicit operator confirmation that the source worker stopped, preserves every source
 record, creates one immutable resume sidecar plus replacement QA attempt #2 atomically, binds
-settlement to that exact attempt id, and permits one shell-free QA execution only. Schema/runtime/
-API/UI implementation remains blocked until exact `DEC-224`; Builder, Reviewer, specialist,
+settlement to that exact attempt id, and permits one shell-free QA execution only. Exact `DEC-224`
+implements that bounded schema/runtime/API/UI and Advanced Ops command path. Builder, Reviewer, specialist,
 cancellation, worker termination, retry, inferred result, provider, source/Git/release, memory,
 scheduling, policy, collection, bypass, and connector authority remain closed.
 
@@ -889,7 +889,8 @@ bounded implementation evidence plus DEC-213 through DEC-215 Stage 5J durable re
 DeliveryPackage planning, fielded handoff, and record-and-inspect implementation evidence plus
 DEC-216 through DEC-218 Stage 5K acceptance planning, fielded handoff, and implementation evidence,
 plus DEC-219 through DEC-221 Stage 6B quarantine planning, fielded handoff, and implementation, and
-DEC-222 through DEC-223 Stage 6C QA-only safe-resume planning and fielded handoff, pass the focused,
+DEC-222 through DEC-224 Stage 6C QA-only safe-resume planning, fielded handoff, and implementation,
+pass the focused,
 aggregate, and UI QA
 gates. Focused browser checks at 1280x720 and
 390x844 cover the loaded Mission shell and mobile Council navigation, retain the existing action
@@ -2562,9 +2563,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1006 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1008 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 714 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 715 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -3067,10 +3068,10 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required `92/92` pass. Snapshot reachability remains informational
+- `node scripts/ui_qa_status.mjs`: required `93/93` pass. Snapshot reachability remains informational
   and was skipped because the optional port-4315 UI server was not running.
-- `node scripts/verification_status.mjs`: required `1/1` pass; informational `247/308` pass with
-  `61` non-blocking readiness/status failures; total `248/309` pass. The aggregate includes the
+- `node scripts/verification_status.mjs`: required `1/1` pass; informational `250/309` pass with
+  `59` non-blocking readiness/status failures; total `251/310` pass. The aggregate includes the
   README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -3138,12 +3139,12 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current implemented browser/runtime completion gate is evidence-closed through DEC-161. The
-  multi-agent completion implementation slices are current through DEC-221, including Stage 5K
+  multi-agent completion implementation slices are current through DEC-224, including Stage 5K
   acceptance evidence and Stage 6B exact quarantine evidence. DEC-219 and DEC-220 define the plan
   and fielded handoff; DEC-221 implements schema v27, durable disposition evidence, settlement
-  guards, and the Advanced Ops command only. DEC-222 and DEC-223 define the next QA-only safe-
-  checkpoint resume plan and fielded handoff, while schema v28 and implementation remain blocked
-  until exact DEC-224. DEC-173
+  guards, and the quarantine command only. DEC-222 and DEC-223 define the QA-only safe-checkpoint
+  resume plan and fielded handoff; DEC-224 implements schema v28, one immutable resume sidecar,
+  replacement QA attempt #2, exact settlement, one shell-free QA run, and exact inspection. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell

@@ -8885,6 +8885,54 @@ h3 {
   line-height: 1.5;
 }
 
+.ops-attempt-resume-command {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(240px, 1.2fr) auto;
+  align-items: end;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 4px;
+}
+
+.ops-attempt-resume-command > label:not(.ops-attempt-resume-acknowledgement) {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.ops-attempt-resume-command input[type='datetime-local'] {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+}
+
+.ops-attempt-resume-acknowledgement {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.ops-attempt-resume-acknowledgement input {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.ops-attempt-resume-action {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.ops-attempt-resume {
+  border-color: var(--success);
+}
+
 .reviewer-rework-preview-action {
   width: fit-content;
   max-width: 100%;
@@ -10967,6 +11015,14 @@ body[data-evidence-density='compact'] .control-overview-stack {
   }
 
   .ops-attempt-quarantine-action {
+    width: 100%;
+  }
+
+  .ops-attempt-resume-command {
+    grid-template-columns: 1fr;
+  }
+
+  .ops-attempt-resume-action {
     width: 100%;
   }
 

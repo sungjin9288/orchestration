@@ -569,13 +569,15 @@ denial for the same target record digest. `DEC-221` implements only schema persi
 Advanced Ops evidence, and the three settlement guards; cancel, process termination, resume, retry,
 rework, inferred result, and new-attempt authority remain closed.
 
-Stage 6C planning-only `DEC-222` and handoff-only `DEC-223` define one future schema-v28 QA-only
-safe-checkpoint resume. The source must be one exact DEC-221 quarantined local-stub QA attempt and
-its consumed `qa-ready` checkpoint; the operator must explicitly confirm the old worker stopped.
-The future atomic write may append one immutable `OpsAttemptResume` and replacement QA attempt #2,
-then one shell-free QA worker may settle only that exact replacement id. The source attempt,
-disposition, checkpoint, plan, and WorkOrder remain immutable. No schema-v28 field, runtime method,
-route, or UI command is authorized before exact `DEC-224`.
+Stage 6C planning-only `DEC-222`, handoff-only `DEC-223`, and implementation `DEC-224` define one
+schema-v28 QA-only safe-checkpoint resume. The source must be one exact DEC-221 quarantined
+local-stub QA attempt and its consumed `qa-ready` checkpoint; the operator must explicitly confirm
+the old worker stopped. One atomic first write appends one immutable `OpsAttemptResume` and
+replacement QA attempt #2 before one shell-free QA worker may settle only that exact replacement id.
+The source attempt, disposition, checkpoint, plan, and WorkOrder remain immutable. Exact replay and
+exact-id inspection save nothing. Builder, Reviewer, specialist, cancellation, worker termination,
+retry, inferred result, provider, source/Git/release, memory, scheduling, policy, collection, bypass,
+and connector authority remain closed.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

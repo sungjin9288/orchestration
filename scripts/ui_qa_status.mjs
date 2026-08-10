@@ -437,6 +437,12 @@ const smokeChecks = [
       'Advanced Ops exposes quarantine only from one exact source-current supervision preview with fixed acknowledgement, hydrates immutable evidence through one exact disposition locator, and keeps settlement cancel resume retry inferred-result provider source Git release and scheduling controls absent across desktop and mobile',
   },
   {
+    id: 'ai-company-ops-safe-checkpoint-resume-ui-api',
+    script: 'scripts/smoke-ui-slice-715.mjs',
+    purpose:
+      'Advanced Ops exposes one exact quarantined QA safe-checkpoint resume with mandatory worker-stop timestamp and acknowledgement, hydrates immutable source and replacement evidence through one exact locator, and keeps second resume cancel retry provider source package Git release memory and scheduling controls absent across desktop and mobile',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

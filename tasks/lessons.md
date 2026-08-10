@@ -1,5 +1,10 @@
 # lessons
 
+- A quarantined active record and its runnable replacement cannot share plan-selected settlement.
+  Preserve the source record and its late-settlement denial, treat it as semantically non-runnable,
+  persist the replacement before worker execution, and require every pass/fail transition to name
+  the exact replacement attempt id. This allows one audited resume without inferred worker state,
+  hidden retry, source mutation, or broader recovery authority.
 - Rework package acceptance must be an append-only fact and not a package status rewrite. Require a
   fresh source-current recomputation for first acceptance, but validate exact durable replay before
   mutable source recomputation so later source drift cannot erase valid acceptance evidence.

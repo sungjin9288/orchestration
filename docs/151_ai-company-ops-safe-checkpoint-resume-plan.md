@@ -304,6 +304,7 @@ and bounded desktop/mobile fit.
 
 ## Stop Condition
 
-Planning is complete when DEC-222 and DEC-223, this plan, the handoff, planning smoke, completion
-roadmap, README, inventory, and task ledger agree. Schema v28 and every runtime/UI action remain
-blocked until one complete value-matching `DEC-224` is accepted.
+Planning was completed by DEC-222 and DEC-223. The complete value-matching implementation approval
+was accepted as `DEC-224`; implementation is complete only when the schema-v28 runtime/API/UI,
+focused runtime and UI smoke, compatibility checks, aggregate verification, README, inventory, and
+task ledger agree. Every authority outside the exact QA-only attempt #2 boundary remains blocked.

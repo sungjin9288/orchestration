@@ -191,12 +191,13 @@ for (const decisionId of [
   'DEC-221',
   'DEC-222',
   'DEC-223',
+  'DEC-224',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-223`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-224`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -292,7 +293,7 @@ assert.match(
 );
 assert.match(verification, /script: 'scripts\/smoke-ai-company-durable-staffing-plan\.mjs'/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 27/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
 assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
 assert.equal(
   blueprint.agentProfiles.every((profile) => profile.concurrencyLimit === 1),
@@ -373,9 +374,10 @@ process.stdout.write(
         opsAttemptQuarantineImplementation: 'accepted-dec-221',
         opsSafeCheckpointResumePlanning: 'accepted-dec-222',
         opsSafeCheckpointResumeHandoff: 'documented-dec-223',
+        opsSafeCheckpointResumeImplementation: 'accepted-dec-224',
       },
       currentRuntime: {
-        schemaVersion: 27,
+        schemaVersion: 28,
         councilStaffingSnapshot: true,
         durableStaffingPlan: true,
         staffingEntryBoundCouncil: true,
@@ -397,12 +399,12 @@ process.stdout.write(
         parallelSpecialistsEnabled: false,
         continuationMaxSteps: 1,
       },
-      nextImplementationTarget: {
+      latestImplementation: {
         stage: '6C',
         object: 'qa-safe-checkpoint-resume',
-        decision: 'reserved-dec-224',
-        implementationAllowed: false,
-        fieldedDecisionRequired: true,
+        decision: 'accepted-dec-224',
+        implementationAllowed: true,
+        broaderAuthorityAllowed: false,
       },
       authority: {
         documentationAllowed: true,
@@ -445,7 +447,7 @@ process.stdout.write(
         opsAttemptQuarantinePlanningAllowed: true,
         opsAttemptQuarantineImplementationAllowed: true,
         opsSafeCheckpointResumePlanningAllowed: true,
-        opsSafeCheckpointResumeImplementationAllowed: false,
+        opsSafeCheckpointResumeImplementationAllowed: true,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         generalSchedulingAllowed: false,

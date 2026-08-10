@@ -111,6 +111,14 @@ function assertOpsAttemptDisposition(opsAttemptDispositionId, state) {
   return disposition;
 }
 
+function assertOpsAttemptResume(opsAttemptResumeId, state) {
+  const resume = state.opsAttemptResumes[opsAttemptResumeId];
+  if (!resume) {
+    throw new Error(`OpsAttemptResume not found: ${opsAttemptResumeId}`);
+  }
+  return resume;
+}
+
 function assertBuilderReworkMutationApproval(approvalId, state) {
   const approval = state.approvals[approvalId];
   if (!approval) {
@@ -243,6 +251,7 @@ module.exports = {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertOpsAttemptDisposition,
+  assertOpsAttemptResume,
   assertRun,
   assertReworkDeliveryPackage,
   assertReworkDeliveryPackageAcceptance,

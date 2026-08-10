@@ -517,11 +517,12 @@ termination, resume, retry, rework, inferred result, new attempt, provider, sour
 memory, scheduling, policy, collection, bypass, connector authority는 열리지 않는다.
 
 `DEC-222`는 Stage 6C의 첫 recovery path를 exact quarantined local-stub QA attempt와 consumed
-`qa-ready` checkpoint로 제한한다. Operator가 source worker stop을 명시적으로 확인한 뒤 미래
-schema-v28 `OpsAttemptResume`과 replacement QA attempt #2를 원자적으로 기록하고 shell-free QA
-한 번만 실행하는 계획이다. `DEC-223`은 complete fielded handoff를 기록하지만 implementation은
-exact `DEC-224` 전까지 blocked다. Builder, Reviewer, specialist, cancel, termination, retry,
-inferred result, automatic recovery는 포함하지 않는다.
+`qa-ready` checkpoint로 제한하고 `DEC-223`은 complete fielded handoff를 기록한다. `DEC-224`는
+operator의 explicit source-worker-stop confirmation 뒤 schema-v28 `OpsAttemptResume`과 replacement
+QA attempt #2를 원자적으로 기록하고, exact replacement id에만 settlement를 허용하며,
+shell-free QA를 한 번 실행해 delivery-ready 또는 terminal failure에서 멈추는 경계를 구현한다.
+Builder, Reviewer, specialist, cancel, termination, retry, inferred result, repeated or automatic
+recovery는 포함하지 않는다.
 
 `DEC-186`은 Stage 5 Reviewer rework의 첫 단계를 schema-v21-preserving response-only
 ReviewerReworkPlanPreview로 고정하고, `DEC-187`은 complete fielded implementation handoff를

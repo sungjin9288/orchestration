@@ -121,6 +121,7 @@ const {
   assertMemoryRecall,
   assertMissionCloseOut,
   assertOpsAttemptDisposition,
+  assertOpsAttemptResume,
   assertReworkDeliveryPackage,
   assertReworkDeliveryPackageAcceptance,
   assertReworkPlan,
@@ -247,6 +248,13 @@ const {
   isExactOpsAttemptDispositionReplay,
   normalizeOpsAttemptDispositionRequest,
 } = require('./ops-attempt-dispositions');
+const {
+  OPS_ATTEMPT_RESUME_REPLACEMENT_ATTEMPT_NUMBER,
+  assertOpsAttemptResumeRecord,
+  createOpsAttemptResume,
+  isExactOpsAttemptResumeReplay,
+  normalizeOpsAttemptResumeRequest,
+} = require('./ops-attempt-resumes');
 const {
   MAX_REVIEW_ARTIFACT_BYTES,
   buildReviewerReworkPlanPreview,
@@ -513,13 +521,44 @@ function createRuntimeService(options = {}) {
     ).padStart(4, '0')}`;
   }
 
-  function assertOpsAttemptSettlementAllowed(state, targetType, attempt) {
-    const disposition = Object.values(state.opsAttemptDispositions || {}).find(
-      (candidate) =>
-        candidate.targetType === targetType &&
-        candidate.targetId === attempt.id &&
-        candidate.targetRecordDigest === attempt.recordDigest,
+  function nextOpsAttemptResumeId(state) {
+    state.sequences.opsAttemptResume += 1;
+    return `ops-attempt-resume-${String(
+      state.sequences.opsAttemptResume,
+    ).padStart(4, '0')}`;
+  }
+
+  function getExactWorkOrderAttemptQuarantine(state, attempt) {
+    return (
+      Object.values(state.opsAttemptDispositions || {}).find(
+        (candidate) =>
+          candidate.targetType ===
+            OPS_SUPERVISION_TARGET_TYPE.WORK_ORDER_ATTEMPT &&
+          candidate.targetId === attempt.id &&
+          candidate.targetRecordDigest === attempt.recordDigest,
+      ) || null
     );
+  }
+
+  function isRunnableWorkOrderAttempt(state, attempt) {
+    return (
+      attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
+      attempt.action !==
+        WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT &&
+      !getExactWorkOrderAttemptQuarantine(state, attempt)
+    );
+  }
+
+  function assertOpsAttemptSettlementAllowed(state, targetType, attempt) {
+    const disposition =
+      targetType === OPS_SUPERVISION_TARGET_TYPE.WORK_ORDER_ATTEMPT
+        ? getExactWorkOrderAttemptQuarantine(state, attempt)
+        : Object.values(state.opsAttemptDispositions || {}).find(
+            (candidate) =>
+              candidate.targetType === targetType &&
+              candidate.targetId === attempt.id &&
+              candidate.targetRecordDigest === attempt.recordDigest,
+          );
     if (!disposition) return;
     assertOpsAttemptDispositionRecord(disposition);
     throw conflict(
@@ -8468,6 +8507,234 @@ function createRuntimeService(options = {}) {
     }
   }
 
+  function getOpsAttemptResumeEnvelopeFromState(state, resume, idempotent) {
+    assertOpsAttemptResumeRecord(resume);
+    const sourceAttempt = assertWorkOrderAttempt(resume.sourceAttemptId, state);
+    const replacementAttempt = assertWorkOrderAttempt(
+      resume.replacementAttemptId,
+      state,
+    );
+    return {
+      idempotent,
+      opsAttemptResume: resume,
+      sourceAttempt,
+      replacementAttempt,
+      executionPlanBundle: getExecutionPlanBundleFromState(
+        state,
+        resume.executionPlanId,
+      ),
+      status: replacementAttempt.status,
+    };
+  }
+
+  function resumeOpsAttemptFromSafeCheckpoint(
+    opsAttemptDispositionId,
+    input,
+  ) {
+    let request;
+    try {
+      request = normalizeOpsAttemptResumeRequest(input);
+    } catch (error) {
+      error.statusCode = error.statusCode || 400;
+      throw error;
+    }
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(`OpsAttemptResume requires supported state: ${error.message}`);
+    }
+
+    const disposition = assertOpsAttemptDisposition(
+      opsAttemptDispositionId,
+      state,
+    );
+    assertOpsAttemptDispositionRecord(disposition);
+    const existing =
+      Object.values(state.opsAttemptResumes || {}).find(
+        (resume) => resume.sourceDispositionId === disposition.id,
+      ) || null;
+    if (existing) {
+      if (
+        !isExactOpsAttemptResumeReplay(existing, request) ||
+        request.expectedExecutionPlanDigest !== disposition.parentDigest ||
+        existing.sourceDispositionRecordDigest !== disposition.recordDigest
+      ) {
+        throw conflict(
+          'Ops attempt disposition already has a different safe-checkpoint resume',
+        );
+      }
+      return getOpsAttemptResumeEnvelopeFromState(state, existing, true);
+    }
+
+    const sourceAttempt = assertWorkOrderAttempt(request.sourceAttemptId, state);
+    const executionPlan = assertExecutionPlan(request.executionPlanId, state);
+    const bundle = getReviewedDeliveryRoleBundle(state, executionPlan.id);
+    const { byRole, councilSession } = bundle;
+    const workOrder = assertWorkOrder(request.expectedWorkOrderId, state);
+    const checkpoint = assertWorkflowCheckpoint(request.checkpointId, state);
+    const project = assertReviewedDeliverySourceCurrent(bundle, state);
+    const source = assertBoundStaffingSchedulerSourceCurrent(
+      state,
+      councilSession,
+      { executionPlan },
+    );
+    const executionPlanDigest = computeExecutionPlanRecordDigest(executionPlan);
+    const dependencies = workOrder.dependencyIds.map((dependencyId) => {
+      const dependency = assertWorkOrder(dependencyId, state);
+      return { id: dependency.id, status: dependency.status };
+    });
+    const expectedDependencyDigest = computeWorkOrderAttemptDependencyDigest({
+      executionPlanId: executionPlan.id,
+      workOrderId: workOrder.id,
+      dependencies,
+    });
+    const expectedAttemptAuthorityDigest = computeWorkOrderAttemptAuthorityDigest({
+      executionPlanId: executionPlan.id,
+      expectedWorkOrderId: workOrder.id,
+      command: WORK_ORDER_ATTEMPT_COMMAND.STEP,
+      action: WORK_ORDER_ATTEMPT_ACTION.RUN_QA,
+      sourceDigest: executionPlan.sourceDigest,
+      checkpointRef: checkpoint.id,
+      checkpointDigest: checkpoint.checkpointDigest,
+      approvalRefs: sourceAttempt.approvalRefs,
+    });
+    const resumedAt = opsSupervisionNowIso();
+    const now = Date.parse(resumedAt);
+    const evaluatedAt = Date.parse(request.evaluatedAt);
+    const workerStoppedAt = Date.parse(request.sourceWorkerStopConfirmedAt);
+    const runnableAttempts = getPlanWorkOrderAttempts(
+      state,
+      executionPlan.id,
+    ).filter((attempt) => isRunnableWorkOrderAttempt(state, attempt));
+
+    if (
+      disposition.targetType !==
+        OPS_SUPERVISION_TARGET_TYPE.WORK_ORDER_ATTEMPT ||
+      disposition.decision !== 'quarantine' ||
+      disposition.recordDigest !== request.dispositionRecordDigest ||
+      disposition.targetId !== sourceAttempt.id ||
+      disposition.targetRecordDigest !== sourceAttempt.recordDigest ||
+      disposition.parentId !== executionPlan.id ||
+      disposition.parentDigest !== request.expectedExecutionPlanDigest ||
+      executionPlanDigest !== request.expectedExecutionPlanDigest ||
+      disposition.projectId !== executionPlan.projectId ||
+      sourceAttempt.recordDigest !== request.sourceAttemptRecordDigest ||
+      sourceAttempt.status !== WORK_ORDER_ATTEMPT_STATUS.ACTIVE ||
+      sourceAttempt.role !== 'qa' ||
+      sourceAttempt.action !== WORK_ORDER_ATTEMPT_ACTION.RUN_QA ||
+      sourceAttempt.command !== WORK_ORDER_ATTEMPT_COMMAND.STEP ||
+      sourceAttempt.attemptNumber !== 1 ||
+      sourceAttempt.executionPlanId !== executionPlan.id ||
+      sourceAttempt.workOrderId !== workOrder.id ||
+      sourceAttempt.checkpointRef !== checkpoint.id ||
+      sourceAttempt.staffingPlanId !== source.staffingPlan.id ||
+      sourceAttempt.staffingEntryId !== source.staffingEntry.id ||
+      sourceAttempt.councilSessionId !== councilSession.id ||
+      sourceAttempt.sourceDigest !== executionPlan.sourceDigest ||
+      sourceAttempt.dependencyDigest !== expectedDependencyDigest ||
+      sourceAttempt.authorityDigest !== expectedAttemptAuthorityDigest ||
+      checkpoint.executionPlanId !== executionPlan.id ||
+      checkpoint.stage !== WORKFLOW_CHECKPOINT_STAGE.QA_READY ||
+      checkpoint.status !== WORKFLOW_CHECKPOINT_STATUS.CONSUMED ||
+      checkpoint.checkpointDigest !== request.checkpointDigest ||
+      checkpoint.inputDigest !== request.inputDigest ||
+      checkpoint.authorityDigest !== request.authorityDigest ||
+      executionPlan.latestCheckpointId !== checkpoint.id ||
+      executionPlan.status !== EXECUTION_PLAN_STATUS.REVIEWING ||
+      executionPlan.activeWorkOrderId !== workOrder.id ||
+      byRole.builder.status !== WORK_ORDER_STATUS.COMPLETED ||
+      byRole.reviewer.status !== WORK_ORDER_STATUS.COMPLETED ||
+      byRole.qa.id !== workOrder.id ||
+      byRole.qa.status !== WORK_ORDER_STATUS.ACTIVE ||
+      workOrder.role !== 'qa' ||
+      workOrder.executionPlanId !== executionPlan.id ||
+      project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+      project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB ||
+      runnableAttempts.length !== 0 ||
+      workerStoppedAt < Date.parse(disposition.createdAt) ||
+      evaluatedAt < workerStoppedAt ||
+      evaluatedAt > now
+    ) {
+      throw conflict('OpsAttemptResume source tuple is stale or ineligible');
+    }
+
+    const replacementAttempt = createWorkOrderAttempt({
+      id: nextWorkOrderAttemptId(state),
+      executionPlanId: sourceAttempt.executionPlanId,
+      workOrderId: sourceAttempt.workOrderId,
+      missionId: sourceAttempt.missionId,
+      projectId: sourceAttempt.projectId,
+      staffingPlanId: sourceAttempt.staffingPlanId,
+      staffingEntryId: sourceAttempt.staffingEntryId,
+      councilSessionId: sourceAttempt.councilSessionId,
+      role: sourceAttempt.role,
+      position: sourceAttempt.position,
+      attemptNumber: OPS_ATTEMPT_RESUME_REPLACEMENT_ATTEMPT_NUMBER,
+      command: sourceAttempt.command,
+      action: sourceAttempt.action,
+      sourceDigest: sourceAttempt.sourceDigest,
+      workOrderDigest: sourceAttempt.workOrderDigest,
+      dependencyDigest: sourceAttempt.dependencyDigest,
+      authorityDigest: sourceAttempt.authorityDigest,
+      checkpointRef: checkpoint.id,
+      approvalRefs: sourceAttempt.approvalRefs,
+      startedAt: resumedAt,
+    });
+    if (Date.parse(replacementAttempt.startedAt) < evaluatedAt) {
+      throw conflict('OpsAttemptResume evaluatedAt must not follow replacement start');
+    }
+    const prospectiveResumeId = `ops-attempt-resume-${String(
+      state.sequences.opsAttemptResume + 1,
+    ).padStart(4, '0')}`;
+    const resume = createOpsAttemptResume({
+      id: prospectiveResumeId,
+      projectId: executionPlan.projectId,
+      executionPlanId: executionPlan.id,
+      workOrderId: workOrder.id,
+      sourceDispositionId: disposition.id,
+      sourceDispositionRecordDigest: disposition.recordDigest,
+      sourceAttemptId: sourceAttempt.id,
+      sourceAttemptRecordDigest: sourceAttempt.recordDigest,
+      sourceCheckpointId: checkpoint.id,
+      sourceCheckpointDigest: checkpoint.checkpointDigest,
+      sourceInputDigest: checkpoint.inputDigest,
+      sourceAuthorityDigest: checkpoint.authorityDigest,
+      replacementAttemptId: replacementAttempt.id,
+      replacementAttemptStartDigest: replacementAttempt.recordDigest,
+      sourceWorkerStopConfirmedAt: request.sourceWorkerStopConfirmedAt,
+      evaluatedAt: request.evaluatedAt,
+      createdAt: resumedAt,
+    });
+    const resumeId = nextOpsAttemptResumeId(state);
+    if (resumeId !== resume.id) {
+      throw new Error('OpsAttemptResume sequence is not deterministic');
+    }
+    state.workOrderAttempts[replacementAttempt.id] = replacementAttempt;
+    state.opsAttemptResumes[resume.id] = resume;
+    store.saveState(state);
+    return getOpsAttemptResumeEnvelopeFromState(state, resume, false);
+  }
+
+  function getOpsAttemptResume(opsAttemptResumeId) {
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `OpsAttemptResume inspection requires supported state: ${error.message}`,
+      );
+    }
+    try {
+      const resume = assertOpsAttemptResume(opsAttemptResumeId, state);
+      return getOpsAttemptResumeEnvelopeFromState(state, resume, true);
+    } catch (error) {
+      if (/not found/i.test(error.message)) error.statusCode = 404;
+      throw error;
+    }
+  }
+
   function getExactResearchReadiness() {
     return exactResearchAdapter.getReadiness();
   }
@@ -9724,6 +9991,7 @@ function createRuntimeService(options = {}) {
         artifactRefs: byRole.builder.artifactRefs,
         decisionInboxItemRefs: byRole.builder.inboxItemRefs,
         stopReason: null,
+        workOrderAttemptId: input.workOrderAttemptId || null,
       });
     }
     store.saveState(state);
@@ -9868,6 +10136,7 @@ function createRuntimeService(options = {}) {
         artifactRefs: byRole.reviewer.artifactRefs,
         decisionInboxItemRefs: byRole.reviewer.inboxItemRefs,
         stopReason: checkpoint ? null : 'reviewer-changes-requested',
+        workOrderAttemptId: input.workOrderAttemptId || null,
       });
     }
 
@@ -9936,6 +10205,10 @@ function createRuntimeService(options = {}) {
     } catch (_error) {
       throw conflict(`QA evidence artifact ${artifact.id} is not valid JSON`);
     }
+    const opsAttemptResume =
+      Object.values(state.opsAttemptResumes || {}).find(
+        (resume) => resume.executionPlanId === executionPlan.id,
+      ) || null;
     if (
       run.taskId !== executionPlan.controlTaskId ||
       run.role !== 'qa' ||
@@ -9949,7 +10222,16 @@ function createRuntimeService(options = {}) {
       evidence.builderRunId !== byRole.builder.completionRunId ||
       evidence.reviewerRunId !== byRole.reviewer.completionRunId ||
       evidence.sourceDigest !== executionPlan.sourceDigest ||
-      !sameExactStringArrays(evidence.changedFiles || [], byRole.builder.changedFiles || [])
+      !sameExactStringArrays(evidence.changedFiles || [], byRole.builder.changedFiles || []) ||
+      (opsAttemptResume &&
+        (input.opsAttemptResumeId !== opsAttemptResume.id ||
+          input.workOrderAttemptId !== opsAttemptResume.replacementAttemptId ||
+          run.metadata?.opsAttemptResumeId !== opsAttemptResume.id ||
+          run.metadata?.workOrderAttemptId !==
+            opsAttemptResume.replacementAttemptId ||
+          evidence.opsAttemptResumeId !== opsAttemptResume.id ||
+          evidence.workOrderAttemptId !==
+            opsAttemptResume.replacementAttemptId))
     ) {
       throw conflict('QA completion does not match the reviewed Builder evidence chain');
     }
@@ -10004,6 +10286,7 @@ function createRuntimeService(options = {}) {
         artifactRefs: byRole.qa.artifactRefs,
         decisionInboxItemRefs: byRole.qa.inboxItemRefs,
         stopReason: passed ? null : 'qa-failed',
+        workOrderAttemptId: input.workOrderAttemptId || null,
       });
     }
 
@@ -10038,7 +10321,8 @@ function createRuntimeService(options = {}) {
       getPlanWorkOrderAttempts(state, executionPlan.id).some(
         (attempt) =>
           attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
-          attempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
+          attempt.action !==
+            WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
       )
     ) {
       transitionActiveSchedulerAttempt(state, executionPlan, {
@@ -10048,6 +10332,7 @@ function createRuntimeService(options = {}) {
         artifactRefs: active?.artifactRefs || [],
         decisionInboxItemRefs: active?.inboxItemRefs || [],
         stopReason: executionPlan.stopReason,
+        workOrderAttemptId: input.workOrderAttemptId || null,
       });
     }
     store.saveState(state);
@@ -11816,9 +12101,7 @@ function createRuntimeService(options = {}) {
 
   function assertNoActiveSchedulerAttempt(state, executionPlan) {
     const active = getPlanWorkOrderAttempts(state, executionPlan.id).find(
-      (attempt) =>
-        attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
-        attempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
+      (attempt) => isRunnableWorkOrderAttempt(state, attempt),
     );
     if (active) {
       throw conflict(
@@ -11957,13 +12240,39 @@ function createRuntimeService(options = {}) {
   }
 
   function transitionActiveSchedulerAttempt(state, executionPlan, input) {
-    const attempt = getPlanWorkOrderAttempts(state, executionPlan.id).find(
+    const planAttempts = getPlanWorkOrderAttempts(state, executionPlan.id);
+    const activeAttempts = planAttempts.filter(
+      (candidate) => isRunnableWorkOrderAttempt(state, candidate),
+    );
+    const rawActiveAttempts = planAttempts.filter(
       (candidate) =>
         candidate.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
-        candidate.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
+        candidate.action !==
+          WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
     );
+    const hasResume = Object.values(state.opsAttemptResumes || {}).some(
+      (resume) => resume.executionPlanId === executionPlan.id,
+    );
+    if (hasResume && !input.workOrderAttemptId) {
+      throw conflict(
+        `ExecutionPlan ${executionPlan.id} requires an exact replacement WorkOrderAttempt id`,
+      );
+    }
+    let attempt = null;
+    if (input.workOrderAttemptId) {
+      attempt =
+        rawActiveAttempts.find(
+          (candidate) => candidate.id === input.workOrderAttemptId,
+        ) || null;
+    } else if (activeAttempts.length === 1) {
+      attempt = activeAttempts[0];
+    } else if (!hasResume && rawActiveAttempts.length === 1) {
+      attempt = rawActiveAttempts[0];
+    }
     if (!attempt) {
-      throw conflict(`ExecutionPlan ${executionPlan.id} has no active WorkOrderAttempt`);
+      throw conflict(
+        `ExecutionPlan ${executionPlan.id} has no matching active WorkOrderAttempt`,
+      );
     }
     const next = transitionWorkOrderAttemptWithOpsGuard(state, attempt, {
       status: input.status,
@@ -12187,7 +12496,8 @@ function createRuntimeService(options = {}) {
     if (getPlanWorkOrderAttempts(state, executionPlan.id).some(
       (attempt) =>
         attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
-        attempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
+        attempt.action !==
+          WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
     )) {
       transitionActiveSchedulerAttempt(state, executionPlan, {
         status: checkpoint
@@ -12205,6 +12515,7 @@ function createRuntimeService(options = {}) {
         stopReason: checkpoint
           ? 'builder-waiting-for-live-mutation-approval'
           : executionPlan.stopReason || 'builder-preflight-failed',
+        workOrderAttemptId: input.workOrderAttemptId || null,
       });
     }
 
@@ -12229,7 +12540,8 @@ function createRuntimeService(options = {}) {
     if (getPlanWorkOrderAttempts(state, executionPlan.id).some(
       (attempt) =>
         attempt.status === WORK_ORDER_ATTEMPT_STATUS.ACTIVE &&
-        attempt.action !== WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
+        attempt.action !==
+          WORK_ORDER_ATTEMPT_ACTION.START_BUILDER_REWORK_PREFLIGHT,
     )) {
       transitionActiveSchedulerAttempt(state, executionPlan, {
         status: WORK_ORDER_ATTEMPT_STATUS.FAILED,
@@ -12238,6 +12550,7 @@ function createRuntimeService(options = {}) {
         artifactRefs: workOrder?.artifactRefs || [],
         decisionInboxItemRefs: workOrder?.inboxItemRefs || [],
         stopReason: executionPlan.stopReason,
+        workOrderAttemptId: input.workOrderAttemptId || null,
       });
     }
     store.saveState(state);
@@ -13815,6 +14128,7 @@ function createRuntimeService(options = {}) {
     delete snapshotForPublicProjection.reworkDeliveryPackages;
     delete snapshotForPublicProjection.reworkDeliveryPackageAcceptances;
     delete snapshotForPublicProjection.opsAttemptDispositions;
+    delete snapshotForPublicProjection.opsAttemptResumes;
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -13929,6 +14243,7 @@ function createRuntimeService(options = {}) {
     getTaskExecutionProvenance,
     getOpsSupervisionPreview,
     getOpsAttemptDisposition,
+    getOpsAttemptResume,
     getReviewerReworkPlanPreview,
     getReviewerReexecution,
     getReviewerReexecutionWorkerInput,
@@ -13956,6 +14271,7 @@ function createRuntimeService(options = {}) {
     getRun,
     getSnapshot,
     quarantineOpsAttempt,
+    resumeOpsAttemptFromSafeCheckpoint,
     getSpecialistBatch,
     getSpecialistBatchCellRetry,
     getSpecialistCellRetry,

@@ -172,7 +172,7 @@ for (const profileId of ['agent-researcher', 'agent-qa']) {
   assert.equal(profile.authority.canCommit, false);
   assert.equal(profile.authority.canPush, false);
 }
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 27/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 28/);
 assert.match(scheduler, /WORK_ORDER_ATTEMPT_STATUS\.ACTIVE/);
 
 assert.match(completionPlan, /### Stage 4A: SpecialistBatchPreview/);
@@ -196,8 +196,8 @@ assert.match(
 );
 assert.match(readme, /planning-only `DEC-175` fixes the exact request/);
 assert.match(readme, /`DEC-176` implements only/);
-assert.match(readme, /1006 smoke files/);
-assert.match(readme, /714 UI smoke files/);
+assert.match(readme, /1008 smoke files/);
+assert.match(readme, /715 UI smoke files/);
 assert.match(taskLedger, /ai-company-bounded-parallel-read-only-specialists-planning-post-m7-2013/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-readiness-clarification-post-m7-2014/);
 assert.match(taskLedger, /ai-company-specialist-batch-preview-implementation-post-m7-2015/);

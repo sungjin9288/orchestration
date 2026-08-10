@@ -183,8 +183,12 @@ assert.match(
 assert.match(renderSource, /Active attempt evidence/);
 assert.match(renderSource, /source-current preview/);
 assert.match(renderSource, /preview\.blockedActions/);
+const inspectOnlySurface = renderSource.replace(
+  'data-action="resume-ops-attempt-safe-checkpoint"',
+  '',
+);
 assert.doesNotMatch(
-  renderSource,
+  inspectOnlySurface,
   /data-action="(?:retry|resume|cancel|settle|mark|execute|apply|commit|push|release)[^"]*"/,
 );
 assert.doesNotMatch(

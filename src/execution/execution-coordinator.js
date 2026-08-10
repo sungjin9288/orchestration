@@ -4471,6 +4471,12 @@ function createExecutionCoordinator(options = {}) {
         executionMode: 'shell-free-node-check',
         executionPlanId: input.executionPlanId,
         workOrderId: input.workOrderId,
+        ...(input.workOrderAttemptId
+          ? { workOrderAttemptId: input.workOrderAttemptId }
+          : {}),
+        ...(input.opsAttemptResumeId
+          ? { opsAttemptResumeId: input.opsAttemptResumeId }
+          : {}),
         builderRunId: input.builderRunId,
         reviewerRunId: input.reviewerRunId,
         sourceDigest: input.sourceDigest,
@@ -4493,6 +4499,12 @@ function createExecutionCoordinator(options = {}) {
         schemaVersion: 1,
         executionPlanId: input.executionPlanId,
         workOrderId: input.workOrderId,
+        ...(input.workOrderAttemptId
+          ? { workOrderAttemptId: input.workOrderAttemptId }
+          : {}),
+        ...(input.opsAttemptResumeId
+          ? { opsAttemptResumeId: input.opsAttemptResumeId }
+          : {}),
         builderRunId: input.builderRunId,
         reviewerRunId: input.reviewerRunId,
         sourceDigest: input.sourceDigest,
@@ -4516,6 +4528,12 @@ function createExecutionCoordinator(options = {}) {
           executionMode: 'shell-free-node-check',
           executionPlanId: input.executionPlanId,
           workOrderId: input.workOrderId,
+          ...(input.workOrderAttemptId
+            ? { workOrderAttemptId: input.workOrderAttemptId }
+            : {}),
+          ...(input.opsAttemptResumeId
+            ? { opsAttemptResumeId: input.opsAttemptResumeId }
+            : {}),
           builderRunId: input.builderRunId,
           reviewerRunId: input.reviewerRunId,
           qaEvidenceArtifactId: artifact.id,

@@ -149,7 +149,7 @@ async function runSuccessAndReplaySmoke() {
     new RegExp(`builder-rework-live-mutation ${fixture.approved.approval.id}`),
   );
   const stateAfter = readState();
-  assert.equal(stateAfter.schemaVersion, 27);
+  assert.equal(stateAfter.schemaVersion, 28);
   assert.deepEqual(
     stateAfter.approvals[fixture.approved.approval.id],
     approvalBefore,

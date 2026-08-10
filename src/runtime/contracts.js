@@ -205,7 +205,8 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
-const STATE_SCHEMA_VERSION = 27;
+const STATE_SCHEMA_VERSION = 28;
+const OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION = 28;
 const OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION = 27;
 const REWORK_DELIVERY_PACKAGE_ACCEPTANCE_STATE_SCHEMA_VERSION = 26;
 const REWORK_DELIVERY_PACKAGE_STATE_SCHEMA_VERSION = 25;
@@ -417,6 +418,7 @@ function createEmptyState() {
       reworkDeliveryPackage: 0,
       reworkDeliveryPackageAcceptance: 0,
       opsAttemptDisposition: 0,
+      opsAttemptResume: 0,
     },
     missions: {},
     councilSessions: {},
@@ -454,6 +456,7 @@ function createEmptyState() {
     reworkDeliveryPackages: {},
     reworkDeliveryPackageAcceptances: {},
     opsAttemptDispositions: {},
+    opsAttemptResumes: {},
   };
 }
 
@@ -508,6 +511,7 @@ module.exports = {
   MISSION_CLOSE_OUT_DECISION,
   MISSION_CLOSE_OUT_STATE_SCHEMA_VERSION,
   OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION,
+  OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION,
   SPECIALIST_BATCH_STATE_SCHEMA_VERSION,
   SPECIALIST_CELL_RETRY_STATE_SCHEMA_VERSION,
   STAFFING_PLAN_STATE_SCHEMA_VERSION,

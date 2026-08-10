@@ -504,10 +504,11 @@ Planning-only `DEC-219`, handoff-only `DEC-220`, and implementation `DEC-221` pl
 DEC-185 inspection. Quarantine may eventually append one immutable disposition and reject late
 settlement for that exact record digest, but it may not edit an agent attempt, infer an outcome,
 cancel or terminate work, resume, retry, create another attempt, or alter Council evidence.
-Exact `DEC-221` implements only quarantine and settlement denial. Planning-only `DEC-222` and
-handoff-only `DEC-223` define the next QA-only safe-checkpoint resume boundary, but implementation
-remains blocked until exact `DEC-224`. Council roles cannot infer worker termination, choose a
-resume target, or authorize Builder, Reviewer, specialist, cancellation, retry, or recovery.
+Exact `DEC-221` implements only quarantine and settlement denial. Planning-only `DEC-222`,
+handoff-only `DEC-223`, and implementation `DEC-224` define and implement one operator-selected
+QA-only safe-checkpoint resume into exact attempt #2. Council roles cannot infer worker termination,
+choose a resume target, or authorize Builder, Reviewer, specialist, cancellation, retry, repeated
+resume, or broader recovery.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

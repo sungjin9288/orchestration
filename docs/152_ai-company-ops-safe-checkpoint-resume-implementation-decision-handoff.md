@@ -3,16 +3,16 @@
 ## Purpose
 
 This handoff turns the planning boundary in
-`docs/151_ai-company-ops-safe-checkpoint-resume-plan.md` into one complete operator decision. It
-does not authorize runtime changes by itself.
+`docs/151_ai-company-ops-safe-checkpoint-resume-plan.md` into one complete operator decision. The
+exact value-matching packet was later accepted as `DEC-224`.
 
 ## Current Gate
 
 - Planning-only decision: accepted as `DEC-222`
 - Implementation handoff: recorded as `DEC-223`
-- Current runtime: schema v27 with exact quarantine evidence and settlement denial
-- Implementation decision: missing and reserved for `DEC-224`
-- Schema/runtime/API/UI/replacement execution: blocked
+- Current runtime: schema v28 with exact quarantine and QA-only resume evidence
+- Implementation decision: accepted as `DEC-224`
+- Schema/runtime/API/UI/replacement execution: implemented only for the exact approved boundary
 
 ## Required Fields
 
@@ -86,6 +86,7 @@ runtime authority closed.
 
 ## Stop Condition
 
-Until one complete value-matching approval is accepted as `DEC-224`, no schema-v28 field, resume
-record, replacement attempt, execution route, settlement contract change, or UI command may be
-implemented.
+The stop condition was satisfied by the exact value-matching `DEC-224` approval. Close-out requires
+the bounded schema-v28 record, exact replacement attempt #2, one shell-free QA execution, focused
+runtime/API/UI and compatibility evidence, UI QA, README, inventory, and aggregate verification to
+agree. No authority outside the approval statement is implied.
