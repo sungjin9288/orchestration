@@ -872,6 +872,11 @@ const informationalChecks = [
     purpose: 'AI Company Stage 7A UI proves browser-preview-gated reviewed attachment creation, mandatory acknowledgement rationale and exact reviewedAt, exact Mission hydration, immutable blocked-authority rendering, safe source invalidation, responsive fit, and absent consume inject apply provider source Git release scheduling or next-Mission controls',
   },
   {
+    id: 'ai-company-strategist-mission-context-consumption-planning',
+    script: 'scripts/smoke-ai-company-strategist-mission-context-consumption-planning.mjs',
+    purpose: 'AI Company Stage 7B planning fixes one future schema-v30 first-attempt local-stub StaffingPlan Council entry, exact v29 attachment selection, Strategist-only request-scoped normalized context, v29 legacy compatibility, no top-level consumption map, exact no-write replay, rollback retention, and blocked Architect/Decomposer/Conductor/planner/prompt/policy/WorkOrder/provider/scheduler/source/Git/release authority',
+  },
+  {
     id: 'ai-company-workorder-verification-plan-preview',
     script: 'scripts/smoke-ai-company-workorder-verification-plan-preview.mjs',
     purpose: 'AI Company WorkOrder verification plan runtime proves exact current ExecutionPlan and WorkOrder record digest binding, complete acceptance stop command and artifact source coverage, deterministic deep-frozen response-only replay, zero state mutation, safe stale malformed crossed and future input refusal, and blocked approval completion command execution persistence provider source Git scheduling and connector authority',

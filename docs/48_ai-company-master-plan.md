@@ -124,6 +124,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   `DEC-225` plans Stage 7A as one schema-v29 immutable MissionContextAttachment from an exact
   recomputed DEC-130 preview and separate operator review, `DEC-226` records the complete handoff,
   and `DEC-227` implements record-and-inspect only.
+  `DEC-228` accepts planning only for Stage 7B Strategist-only consumption of one exact reviewed
+  attachment through the accepted StaffingPlan -> StaffingEntry -> CouncilSession path, and
+  `DEC-229` records the complete schema-v30 implementation handoff. The current runtime remains
+  schema v29 and no context-bound route or role consumption is implemented; the matching runtime
+  decision is reserved for `DEC-230`.
   Solo binding, bound Council
   revision/resume/auto-chain, dynamic specialists, QA execution, interrupted-attempt recovery,
   provider/background WorkOrders, Ops recovery beyond exact quarantine, and Mission context
@@ -167,7 +172,7 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Source-of-truth reconciliation: `DEC-162`
 - Planning decision: `operator-decision-ai-company-multi-agent-completion-planning-001`
 - Decision status: `approve-ai-company-multi-agent-completion-planning-only`
-- Recorded decisions: `DEC-163` through `DEC-227`
+- Recorded decisions: `DEC-163` through `DEC-229`
 - Plan: `docs/113_ai-company-multi-agent-completion-plan.md`
 - First implementation handoff:
   `docs/114_ai-company-durable-staffing-plan-implementation-decision-handoff.md`
@@ -222,6 +227,13 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Stage 7A implementation: `DEC-227` adds the sequence/map-only schema-v29 migration, exact ten-key
   reviewed attachment command, immutable exact Mission-bound evidence, replay without save, generic
   snapshot exclusion, and no role or policy consumption
+- Stage 7B planning: `DEC-228` fixes one exact schema-v30 first-attempt local-stub Council entry
+  that consumes one source-current reviewed attachment only in Strategist, and `DEC-229` records
+  the complete implementation handoff. Existing v29 records remain legacy variants, no top-level
+  consumption map is planned, exact replay resolves before mutable validation, and Architect,
+  Decomposer, Conductor raw context, planner, prompt, policy, ExecutionPlan, WorkOrder, provider,
+  scheduler, source, Git, release, and connector authority remain blocked. Implementation is
+  reserved for `DEC-230`.
 - Stage 5 planning: `DEC-186` fixes one exact schema-v21-preserving response-only
   ReviewerReworkPlanPreview, and `DEC-187` records its complete fielded implementation handoff
 - Stage 5 implementation: `DEC-188` adds the exact seven-key GET and browser-memory preview with a
@@ -659,6 +671,12 @@ prompt injection, automatic retrieval, recommendation, and memory application re
 Collection/list exposure, cancellation, active-attempt recovery mutation,
 automatic or repeated retry, retries beyond attempt #2, provider calls, result application, and
 CompanyBlueprint policy change remain blocked.
+Planning-only `DEC-228` and handoff-only `DEC-229` define Stage 7B as one future schema-v30
+first-attempt real-local-stub Council entry from an accepted StaffingPlan. The selected v29
+attachment is normalized into a request-scoped Strategist-only context, Architect and Decomposer
+receive no context key, and Conductor receives normalized positions only. The first valid write is
+the only v29-to-v30 migration boundary; exact replay is no-write and context-bound sessions remain
+blocked from every downstream scheduler or WorkOrder path until `DEC-230` or a later decision.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와

@@ -1,0 +1,196 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const mode = 'ai-company-strategist-mission-context-consumption-planning-smoke';
+
+requireNoCliArgs(process.argv.slice(2), { mode });
+
+function read(relativePath) {
+  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+}
+
+function countScripts(pattern) {
+  return fs.readdirSync(path.join(repoRoot, 'scripts')).filter((name) => pattern.test(name)).length;
+}
+
+const plan = read('docs/155_ai-company-strategist-mission-context-consumption-plan.md');
+const handoff = read(
+  'docs/156_ai-company-strategist-mission-context-consumption-implementation-decision-handoff.md',
+);
+const decisionLog = read('docs/01_decision-log.md');
+const masterPlan = read('docs/48_ai-company-master-plan.md');
+const runtimeContract = read('docs/49_agent-runtime-contract.md');
+const councilProtocol = read('docs/50_council-operating-protocol.md');
+const deliveryRoadmap = read('docs/51_ai-company-delivery-roadmap.md');
+const completionPlan = read('docs/113_ai-company-multi-agent-completion-plan.md');
+const inventory = read('docs/22_completion-gate-inventory.md');
+const readme = read('README.md');
+const todo = read('tasks/todo.md');
+const verification = read('scripts/verification_status.mjs');
+const completionSmoke = read('scripts/smoke-completion-gate-inventory-current-evidence.mjs');
+const contracts = read('src/runtime/contracts.js');
+const runtimeService = read('src/runtime/runtime-service.js');
+const server = read('scripts/serve-ui-slice-01.mjs');
+const fileStore = read('src/runtime/file-store.js');
+
+const packetLines = [
+  'decisionId=operator-decision-ai-company-strategist-mission-context-consumption-implementation-001',
+  'decisionStatus=approve-ai-company-strategist-mission-context-consumption-implementation-slice',
+  'targetAuthority=one explicit operator-selected exact-id source-current schema-v29 MissionContextAttachment consumed by Strategist only during the first attempt of one new schema-v30 real-local-stub StaffingPlan Council start path and stopped at human alignment',
+  'targetSurface=src/runtime/contracts.js, src/runtime/mission-context-attachments.js, src/runtime/strategist-context-consumption.js, src/runtime/staffing-entries.js, src/runtime/council-sessions.js, src/execution/council-coordinator.js, src/execution/providers/council-local-stub-adapter.js, src/runtime/runtime-service.js, src/runtime/file-store.js, scripts/serve-ui-slice-01.mjs, ui/council-signals.js, ui/app.js, ui/styles.css, scripts/smoke-ai-company-strategist-mission-context-consumption.mjs, scripts/smoke-ui-slice-717.mjs, scripts/verification_status.mjs, scripts/ui_qa_status.mjs',
+  'implementationPlanRefs=docs/155_ai-company-strategist-mission-context-consumption-plan.md',
+  'runtimePath=require one exact accepted current local-stub StaffingPlan and one exact current unexpired schema-v29 MissionContextAttachment plus separate contextConsumption decision, validate the complete source tuple from supported read-only state, pass only normalized attachment context to Strategist, run one real-local-stub Council first attempt in memory, then atomically migrate valid schema-v29 state to schema v30 and persist one context-bound StaffingEntry CouncilSession Strategist position and normal Mission alignment transition, return exact schema-v30 replay without save or adapter rerun, and stop at human alignment',
+  'compatibilityPlanRefs=preserve every schema-v29 MissionContextAttachment StaffingEntry CouncilSession CouncilPosition and source record in its original exact shape and digest, validate existing records as legacy variants without backfill, preserve the contextless StaffingEntry and Council path, Architect and Decomposer raw-context blindness, Conductor normalized-position-only input, generic snapshot exclusion, provider Council, Mission lifecycle and all unrelated runtime behavior, and permit schema-v29 read-only inspection without migration writes',
+  'migrationPlanRefs=add STATE_SCHEMA_VERSION 30 and STRATEGIST_CONTEXT_CONSUMPTION_STATE_SCHEMA_VERSION 30 only, add no top-level sequence map reverse reference or placeholder, preserve every valid schema-v29 value byte-equivalent, create no context field during migration boot read GET preview or invalid input, accept migration only with the first valid atomic context-bound Council write, require legacy-v29 or exact context-bound-v30 record variants, reject partial mixed stale future or digest-invalid state, and retain valid schema-v30 evidence during rollback without downgrade deletion rewrite or implicit reuse',
+  'sourceEvidenceRefs=DEC-130, DEC-169, DEC-225, DEC-226, DEC-227, DEC-228, DEC-229, docs/54_ai-company-real-council-implementation-plan.md, docs/113_ai-company-multi-agent-completion-plan.md, docs/115_ai-company-staffing-entry-binding-plan.md, docs/153_ai-company-reviewed-mission-context-attachment-plan.md, docs/154_ai-company-reviewed-mission-context-attachment-implementation-decision-handoff.md, docs/155_ai-company-strategist-mission-context-consumption-plan.md, src/runtime/mission-context-attachments.js, src/runtime/staffing-entries.js, src/runtime/council-sessions.js, src/execution/council-coordinator.js, src/execution/providers/council-local-stub-adapter.js, src/runtime/runtime-service.js',
+  'negativeEvidenceRefs=current schema-v29 runtime records and inspects MissionContextAttachment only, roleConsumptionStatus remains blocked, the existing local Council start requires StaffingEntry but accepts no attachment id or digest, coordinator sends no role-specific context, local-stub Strategist consumes agenda only, immutable StaffingEntry CouncilSession and CouncilPosition records have no context selection receipt or consumption ref, and no context-bound downstream scheduler guard exists',
+  'rollbackRefs=disable the new POST route and UI opt-in, reject new context-bound starts and direct context calls, preserve existing schema-v30 context-bound StaffingEntry CouncilSession Strategist position and schema-v29 attachment evidence as exact inspect-only records, keep the existing contextless Council entry available, block every downstream use of retained context-bound sessions, perform no downgrade deletion source rewrite or implicit retry, and rerun focused compatibility UI and aggregate verification',
+  'focusedSmokeRefs=scripts/smoke-ai-company-strategist-mission-context-consumption-planning.mjs; scripts/smoke-ai-company-strategist-mission-context-consumption.mjs; scripts/smoke-ui-slice-717.mjs; scripts/smoke-ai-company-reviewed-mission-context-attachment.mjs; scripts/smoke-ai-company-staffing-entry-binding.mjs; scripts/smoke-ai-company-real-council.mjs',
+  'aggregateVerificationRef=node scripts/verification_status.mjs',
+  'stillBlockedAuthorities=Architect or Decomposer context consumption, Conductor raw context, planner consumption, prompt or policy injection, ExecutionPlan or WorkOrder injection, provider context or provider generation, automatic attachment MemoryRecall MemoryItem or Mission retrieval enumeration list search ranking scoring recommendation or selection, source mutation, runtime-agent commit push or release, retry rework revision resume parallel dynamic autonomous background or scheduled execution, profile or policy mutation, approval bypass, collections, and external connectors',
+  'approvalStatement=I approve implementation only for one exact schema-v29 MissionContextAttachment consumed by Strategist through the schema-v30 first-attempt real-local-stub StaffingPlan Council entry described in docs/155_ai-company-strategist-mission-context-consumption-plan.md. This does not approve Architect or Decomposer consumption, Conductor raw context, planner prompt policy ExecutionPlan or WorkOrder injection, provider use, automatic retrieval search ranking recommendation, source Git release scheduling bypass collections or connectors.',
+];
+
+const handoffLines = handoff.split('\n');
+const fields = packetLines.map((line) => line.slice(0, line.indexOf('=')));
+const requiredFieldLines = [
+  'decisionId',
+  'decisionStatus',
+  'targetAuthority',
+  'targetSurface',
+  'implementationPlanRefs',
+  'runtimePath',
+  'compatibilityPlanRefs',
+  'migrationPlanRefs',
+  'sourceEvidenceRefs',
+  'negativeEvidenceRefs',
+  'rollbackRefs',
+  'focusedSmokeRefs',
+  'aggregateVerificationRef',
+  'stillBlockedAuthorities',
+  'approvalStatement',
+];
+for (const field of fields) {
+  assert.equal(handoffLines.filter((line) => line === field).length, 1);
+  assert.equal(handoffLines.filter((line) => line.startsWith(`${field}=`)).length, 1);
+}
+assert.deepEqual(requiredFieldLines, fields);
+for (const line of packetLines) {
+  assert.equal(handoffLines.filter((candidate) => candidate === line).length, 1);
+}
+
+for (const pattern of [
+  /^# AI Company Strategist Mission Context Consumption Plan$/m,
+  /DEC-228/,
+  /DEC-229/,
+  /DEC-230/,
+  /implementationAllowed=false/,
+  /schema-v30/,
+  /accepted StaffingPlan -> StaffingEntry -> CouncilSession/,
+  /POST \/api\/staffing-plans\/:staffingPlanId\/council-entry-with-strategist-context/,
+  /staffingPlanRecordDigest[\s\S]*contextConsumption/,
+  /decision=consume/,
+  /targetRole=strategist/,
+  /requestedAt/,
+  /attachedAt <= requestedAt < expiresAt/,
+  /exact replay[\s\S]*zero adapter[\s\S]*calls[\s\S]*zero state saves/i,
+  /Only the Strategist request receives the normalized context object/,
+  /Architect and[\s\S]*Decomposer requests have no context key/,
+  /Conductor receives normalized position records/,
+  /no top-level sequence, map, reverse reference, or placeholder/i,
+  /roleConsumptionStatus=blocked/,
+  /human alignment/,
+  /rollback/i,
+  /Context-bound sessions must fail closed/,
+]) {
+  assert.match(plan, pattern);
+}
+
+assert.match(handoff, /^# AI Company Strategist Mission Context Consumption Implementation Decision Handoff$/m);
+assert.match(handoff, /DEC-229/);
+assert.match(handoff, /DEC-230/);
+assert.match(handoff, /schema-v30/);
+assert.match(handoff, /no top-level sequence map reverse reference or placeholder/);
+assert.match(handoff, /Architect or Decomposer context consumption/);
+
+assert.match(decisionLog, /^### DEC-228$/m);
+assert.match(decisionLog, /^### DEC-229$/m);
+for (const [source, label] of [
+  [masterPlan, 'master plan'],
+  [runtimeContract, 'runtime contract'],
+  [councilProtocol, 'council protocol'],
+  [deliveryRoadmap, 'delivery roadmap'],
+  [completionPlan, 'completion plan'],
+  [inventory, 'completion inventory'],
+  [readme, 'README'],
+  [todo, 'task ledger'],
+]) {
+  assert.match(source, /DEC-228/, `${label} must record DEC-228`);
+  assert.match(source, /DEC-229/, `${label} must record DEC-229`);
+}
+
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
+assert.doesNotMatch(contracts, /STATE_SCHEMA_VERSION = 30/);
+assert.doesNotMatch(fileStore, /STATE_SCHEMA_VERSION = 30/);
+assert.doesNotMatch(runtimeService, /council-entry-with-strategist-context/);
+assert.doesNotMatch(server, /council-entry-with-strategist-context/);
+assert.equal(
+  fs.existsSync(path.join(repoRoot, 'src/runtime/strategist-context-consumption.js')),
+  false,
+);
+assert.equal(
+  fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-strategist-mission-context-consumption.mjs')),
+  false,
+);
+assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-717.mjs')), false);
+
+assert.match(verification, /id: 'ai-company-strategist-mission-context-consumption-planning'/);
+assert.match(
+  verification,
+  /script: 'scripts\/smoke-ai-company-strategist-mission-context-consumption-planning\.mjs'/,
+);
+assert.match(readme, /1012 smoke files/);
+assert.match(readme, /716 UI smoke files/);
+assert.match(inventory, /informational `313\/313`/);
+assert.match(inventory, /total `314\/314`/);
+assert.match(completionSmoke, /informational: '313\/313'/);
+assert.match(completionSmoke, /total: '314\/314'/);
+
+const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
+const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
+assert.equal(smokeFileCount, 1012);
+assert.equal(uiSmokeFileCount, 716);
+
+process.stdout.write(
+  `${JSON.stringify(
+    {
+      ok: true,
+      mode,
+      planningDecision: 'accepted-dec-228',
+      handoffDecision: 'accepted-dec-229',
+      implementationDecision: 'reserved-dec-230',
+      currentSchemaVersion: 29,
+      plannedSchemaVersion: 30,
+      route: '/api/staffing-plans/:staffingPlanId/council-entry-with-strategist-context',
+      entryPath: 'accepted StaffingPlan -> StaffingEntry -> CouncilSession',
+      contextTargetRole: 'strategist-only-first-attempt',
+      stopAt: 'human-alignment',
+      implementationAllowed: false,
+      topLevelConsumptionMapAllowed: false,
+      architectContextAllowed: false,
+      decomposerContextAllowed: false,
+      conductorRawContextAllowed: false,
+      providerAllowed: false,
+      downstreamSchedulerAllowed: false,
+      smokeFileCount,
+      uiSmokeFileCount,
+    },
+    null,
+    2,
+  )}\n`,
+);

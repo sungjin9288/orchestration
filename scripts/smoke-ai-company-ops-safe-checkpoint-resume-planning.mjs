@@ -105,12 +105,12 @@ assert.equal(
 assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-715.mjs')), true);
 assert.match(verification, /ai-company-ops-safe-checkpoint-resume-planning/);
 assert.match(verification, /ai-company-ops-safe-checkpoint-resume/);
-assert.match(readme, /1011 smoke files/);
+assert.match(readme, /1012 smoke files/);
 assert.match(readme, /716 UI smoke files/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1011);
+assert.equal(smokeFileCount, 1012);
 assert.equal(uiSmokeFileCount, 716);
 
 process.stdout.write(`${JSON.stringify({

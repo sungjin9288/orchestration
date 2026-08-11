@@ -195,12 +195,14 @@ for (const decisionId of [
   'DEC-225',
   'DEC-226',
   'DEC-227',
+  'DEC-228',
+  'DEC-229',
 ]) {
   assert.match(decisionLog, new RegExp(`^### ${decisionId}$`, 'm'));
 }
 
 assert.match(masterPlan, /## Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-227`/);
+assert.match(masterPlan, /Recorded decisions: `DEC-163` through `DEC-229`/);
 assert.match(runtimeContract, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContract, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocol, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -380,6 +382,9 @@ process.stdout.write(
         opsSafeCheckpointResumeImplementation: 'accepted-dec-224',
         reviewedMissionContextAttachmentPlanning: 'accepted-dec-225',
         reviewedMissionContextAttachmentHandoff: 'documented-dec-226',
+        reviewedMissionContextAttachmentImplementation: 'accepted-dec-227',
+        strategistMissionContextConsumptionPlanning: 'accepted-dec-228',
+        strategistMissionContextConsumptionHandoff: 'documented-dec-229',
       },
       currentRuntime: {
         schemaVersion: 29,
@@ -405,16 +410,16 @@ process.stdout.write(
         continuationMaxSteps: 1,
       },
       latestImplementation: {
-        stage: '6C',
-        object: 'qa-safe-checkpoint-resume',
-        decision: 'accepted-dec-224',
+        stage: '7A',
+        object: 'reviewed-mission-context-attachment',
+        decision: 'accepted-dec-227',
         implementationAllowed: true,
         broaderAuthorityAllowed: false,
       },
       nextImplementationTarget: {
-        stage: '7A',
-        object: 'reviewed-mission-context-attachment',
-        decision: 'reserved-dec-227',
+        stage: '7B',
+        object: 'strategist-mission-context-consumption',
+        decision: 'reserved-dec-230',
         implementationAllowed: false,
         roleConsumptionAllowed: false,
       },
@@ -461,7 +466,9 @@ process.stdout.write(
         opsSafeCheckpointResumePlanningAllowed: true,
         opsSafeCheckpointResumeImplementationAllowed: true,
         reviewedMissionContextAttachmentPlanningAllowed: true,
-        reviewedMissionContextAttachmentImplementationAllowed: false,
+        reviewedMissionContextAttachmentImplementationAllowed: true,
+        strategistMissionContextConsumptionPlanningAllowed: true,
+        strategistMissionContextConsumptionImplementationAllowed: false,
         missionContextRoleConsumptionAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,

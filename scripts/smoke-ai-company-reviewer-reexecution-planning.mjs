@@ -140,14 +140,14 @@ assert.match(inventory, /DEC-204/);
 assert.match(inventory, /DEC-205/);
 assert.match(
   inventory,
-  /required `1\/1` and informational `312\/312` pass; total passed is `313\/313`/,
+  /required `1\/1` and informational `313\/313` pass; total passed is `314\/314`/,
 );
 assert.match(readme, /docs\/139_ai-company-reviewer-reexecution-plan\.md/);
 assert.match(
   readme,
   /docs\/140_ai-company-reviewer-reexecution-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /1011 smoke files/);
+assert.match(readme, /1012 smoke files/);
 assert.match(readme, /716 UI smoke files/);
 assert.match(todo, /ai-company-reviewer-reexecution-implementation-post-m7-2037/);
 assert.match(
@@ -189,7 +189,7 @@ assert.match(coordinator, /async function runReviewerReexecution\(input\)/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1011);
+assert.equal(smokeFileCount, 1012);
 assert.equal(uiSmokeFileCount, 716);
 
 process.stdout.write(`${JSON.stringify({

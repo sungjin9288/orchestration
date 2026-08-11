@@ -391,6 +391,14 @@ Mission, and exposes exact Mission-bound inspection only. `DEC-227` implements t
 schema/runtime/API/UI record-and-inspect path; Stage 7B Strategist/planner consumption, automatic retrieval,
 search, ranking, recommendation, injection/application, providers, source/Git/release, scheduling,
 policy, collections, bypass, and connectors remain closed.
+Planning-only `DEC-228` and handoff-only `DEC-229` define Stage 7B as one future schema-v30
+first-attempt accepted-StaffingPlan -> StaffingEntry -> CouncilSession local-stub path. One exact
+current attachment may reach Strategist only through a frozen request-scoped normalized context;
+Architect and Decomposer receive no context key, and Conductor receives normalized positions only.
+Existing v29 records remain legacy variants, the first valid context-bound write is the only
+migration boundary, and exact replay is no-write. Runtime/API/UI implementation is reserved for
+`DEC-230`; scheduler, WorkOrder, provider, prompt, policy, source, Git, release, retry, rework,
+automatic retrieval, and connector authority remain closed.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default
@@ -903,7 +911,8 @@ DEC-216 through DEC-218 Stage 5K acceptance planning, fielded handoff, and imple
 plus DEC-219 through DEC-221 Stage 6B quarantine planning, fielded handoff, and implementation, and
 DEC-222 through DEC-224 Stage 6C QA-only safe-resume planning, fielded handoff, and implementation,
 plus DEC-225 through DEC-227 Stage 7A reviewed Mission context attachment planning, fielded
-handoff, and bounded implementation,
+handoff, and bounded implementation, plus DEC-228 through DEC-229 Stage 7B Strategist context
+consumption planning and fielded handoff,
 pass the focused,
 aggregate, and UI QA
 gates. Focused browser checks at 1280x720 and
@@ -1080,6 +1089,13 @@ Current source-backed evidence:
   Mission and source records stay unchanged, exact Mission-bound inspection is the only durable read,
   exact replay saves nothing, and every context consumption/injection authority remains blocked
   pending later separately scoped decisions.
+- Strategist Mission context consumption planning: `DEC-228`, `DEC-229`,
+  `docs/155_ai-company-strategist-mission-context-consumption-plan.md`,
+  `docs/156_ai-company-strategist-mission-context-consumption-implementation-decision-handoff.md`,
+  and `scripts/smoke-ai-company-strategist-mission-context-consumption-planning.mjs` fix the
+  future schema-v30 first-attempt accepted-StaffingPlan Council path, Strategist-only context
+  isolation, exact replay-before-recompute behavior, and rollback/blocked-authority boundary.
+  No runtime/API/UI implementation exists until the reserved `DEC-230` decision is accepted.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
   draft planning target, the full operator decision fields, rollback and focused smoke requirements,
@@ -2587,7 +2603,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from the current checkout, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1011 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 1012 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 716 UI smoke files
 ```
@@ -3094,8 +3110,8 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required `94/94` pass. Snapshot reachability remains informational
   and was skipped because the optional port-4315 UI server was not running.
-- `node scripts/verification_status.mjs`: required `1/1` and informational `312/312` pass; total
-  `313/313` pass. The aggregate includes the
+- `node scripts/verification_status.mjs`: required `1/1` and informational `313/313` pass; total
+  `314/314` pass. The aggregate includes the
   README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -3170,8 +3186,9 @@ Playwright CLI:
   resume plan and fielded handoff; DEC-224 implements schema v28, one immutable resume sidecar,
   replacement QA attempt #2, exact settlement, one shell-free QA run, and exact inspection. DEC-225
   and DEC-226 define one schema-v29 reviewed MissionContextAttachment record and fielded
-  implementation gate; DEC-227 implements immutable record-and-inspect only, while role consumption
-  remains a later separate decision. DEC-173
+  implementation gate; DEC-227 implements immutable record-and-inspect only. DEC-228 and DEC-229
+  define the schema-v30 Strategist-only consumption plan and complete handoff; implementation is
+  reserved for DEC-230, while role consumption remains blocked. DEC-173
   through DEC-175 establish the Stage 4A contract, DEC-176 implements only its response/browser-
   memory preview, DEC-177 through DEC-178 define Stage 4B, and DEC-179 implements only its fixed
   request-scoped local first attempt. DEC-180 and DEC-181 define one immutable-source failed-cell

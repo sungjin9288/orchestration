@@ -515,6 +515,13 @@ exact reviewed DEC-130 preview may become one immutable MissionContextAttachment
 separate operator review, but Council roles cannot select it, recommend it, consume it, inject it
 into positions or synthesis, or mutate Mission policy. Any Strategist or planner use requires
 another complete fielded decision after this record-and-inspect implementation.
+Planning-only `DEC-228` and handoff-only `DEC-229` define the next Stage 7B boundary without
+implementing it. One exact current v29 attachment may be consumed only by Strategist during the
+first attempt of a new accepted-StaffingPlan -> StaffingEntry -> CouncilSession local-stub start;
+Architect and Decomposer requests contain no context key, and Conductor receives normalized
+positions only. The future first valid context-bound write migrates v29 to v30 without a top-level
+consumption map. The implementation decision is reserved for `DEC-230`, and downstream scheduler,
+WorkOrder, prompt, policy, provider, and Mission-injection use remains blocked.
 
 Multi-agent completion source reconciliation은 `DEC-162`, planning-only sequence는 `DEC-163`,
 complete durable StaffingPlan implementation handoff는 `DEC-164`, implementation-readiness

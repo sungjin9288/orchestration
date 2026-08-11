@@ -532,6 +532,15 @@ attachment review에서 one schema-v29 immutable MissionContextAttachment를 기
 injection, automatic retrieval/search/ranking/recommendation, and memory application은 Stage 7B의
 별도 authority다.
 
+Stage 7B planning is recorded as `DEC-228`, with the complete schema-v30 implementation handoff in
+`DEC-229`. The future path starts only from an accepted StaffingPlan through StaffingEntry into a
+new local-stub Council session. One exact source-current attachment is normalized into a frozen
+Strategist-only request for the first attempt and the session stops at human alignment. Existing
+v29 records remain byte-equivalent legacy variants; the first valid context-bound write alone may
+migrate to v30, with no top-level consumption map. Architect, Decomposer, Conductor raw context,
+planner, prompt, policy, ExecutionPlan, WorkOrder, provider, scheduler, source, Git, release, and
+connector use remain blocked. Runtime/API/UI implementation is reserved for `DEC-230`.
+
 `DEC-186`은 Stage 5 Reviewer rework의 첫 단계를 schema-v21-preserving response-only
 ReviewerReworkPlanPreview로 고정하고, `DEC-187`은 complete fielded implementation handoff를
 기록한다. 이 preview는 one exact bound `changes-requested` stop, bounded review Artifact,

@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-227`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-229`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -535,6 +535,9 @@ const report = {
         'DEC-224',
         'DEC-225',
         'DEC-226',
+        'DEC-227',
+        'DEC-228',
+        'DEC-229',
       ],
       currentRuntime: {
         schemaVersion: 29,
@@ -580,6 +583,8 @@ const report = {
           'schema-v24-response-browser-memory-only',
         durableReworkDeliveryPackage:
           'schema-v25-exact-review-required-record-and-inspection',
+        reviewedMissionContextAttachment:
+          'schema-v29-exact-immutable-record-and-inspection',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -664,7 +669,9 @@ const report = {
         opsSafeCheckpointResumePlanningAllowed: true,
         opsSafeCheckpointResumeImplementationAllowed: true,
         reviewedMissionContextAttachmentPlanningAllowed: true,
-        reviewedMissionContextAttachmentImplementationAllowed: false,
+        reviewedMissionContextAttachmentImplementationAllowed: true,
+        strategistMissionContextConsumptionPlanningAllowed: true,
+        strategistMissionContextConsumptionImplementationAllowed: false,
         missionContextRoleConsumptionAllowed: false,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
@@ -678,7 +685,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'DEC-225 and DEC-226 select reviewed Mission context attachment planning; exact DEC-227 is required for schema-v29 implementation',
+      'DEC-228 and DEC-229 select Strategist-only Mission context consumption planning; exact DEC-230 is required for schema-v30 implementation',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -712,14 +719,16 @@ assert.equal(report.authority.opsAttemptQuarantineImplementationAllowed, true);
 assert.equal(report.authority.opsSafeCheckpointResumePlanningAllowed, true);
 assert.equal(report.authority.opsSafeCheckpointResumeImplementationAllowed, true);
 assert.equal(report.authority.reviewedMissionContextAttachmentPlanningAllowed, true);
-assert.equal(report.authority.reviewedMissionContextAttachmentImplementationAllowed, false);
+assert.equal(report.authority.reviewedMissionContextAttachmentImplementationAllowed, true);
+assert.equal(report.authority.strategistMissionContextConsumptionPlanningAllowed, true);
+assert.equal(report.authority.strategistMissionContextConsumptionImplementationAllowed, false);
 assert.equal(report.authority.missionContextRoleConsumptionAllowed, false);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /exact DEC-227 is required for schema-v29 implementation/,
+  /exact DEC-230 is required for schema-v30 implementation/,
 );
 
 process.stdout.write(
