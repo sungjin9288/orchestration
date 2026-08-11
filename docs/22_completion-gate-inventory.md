@@ -306,10 +306,13 @@ schema-v29 immutable MissionContextAttachment from exact DEC-130 recomputation a
 review. Record and exact inspection are implemented; role consumption or injection remains a later
 separate decision.
 Planning-only `DEC-228` and handoff-only `DEC-229` define Stage 7B as one future schema-v30
-first-attempt local-stub Council entry from an accepted StaffingPlan. The selected v29 attachment is
-normalized into a request-scoped Strategist-only context, Architect and Decomposer receive no
-context key, and Conductor receives normalized positions only. The first valid context-bound write
-is the only migration boundary; exact replay is no-write. Implementation remains reserved for
+first-attempt local-stub Council entry from an accepted StaffingPlan. The selected attachment was
+created under schema-v29 state and is normalized into a request-scoped Strategist-only context;
+Architect and Decomposer receive no context key, and Conductor receives an allowlisted projection
+without context receipts. Read-only activity and exact replay do not save, while the next successful
+authorized write may persist normalized v30 without context placeholders. Historical digest
+anchoring, exact-inspection receipt hydration, and coupled current-schema smoke maintenance are
+fixed before implementation. Implementation remains reserved for
 `DEC-230`, and downstream scheduler, WorkOrder, provider, prompt, policy, source, Git, release,
 retry, rework, collection, bypass, and connector authority remains blocked.
 Broad parallel StaffingPlan mode, dynamic cells, automatic or repeated retry, retries beyond attempt

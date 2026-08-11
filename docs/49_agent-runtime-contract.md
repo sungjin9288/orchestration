@@ -589,8 +589,11 @@ consumption or injection remain separately blocked.
 Stage 7B planning-only `DEC-228` and handoff-only `DEC-229` define one future schema-v30
 first-attempt accepted-StaffingPlan Council entry with an exact operator-selected attachment. Only
 Strategist receives the frozen normalized context; Architect and Decomposer receive no context key,
-and Conductor receives normalized positions only. Existing v29 records remain legacy variants and
-the first context-bound write is the only migration boundary. Runtime implementation is reserved
+and Conductor receives an allowlisted position projection without context identifiers, digests, or
+receipts. Existing v29 records remain legacy variants; read-only activity and replay do not save,
+while the next successful authorized write may persist normalized v30 without fabricating context
+fields. Historical post-transition validation binds the attachment target Mission digest to the
+StaffingPlan and StaffingEntry Mission digests. Runtime implementation is reserved
 for `DEC-230`; all downstream scheduler, WorkOrder, provider, prompt, policy, and Mission-injection
 paths remain blocked.
 

@@ -536,8 +536,10 @@ Stage 7B planning is recorded as `DEC-228`, with the complete schema-v30 impleme
 `DEC-229`. The future path starts only from an accepted StaffingPlan through StaffingEntry into a
 new local-stub Council session. One exact source-current attachment is normalized into a frozen
 Strategist-only request for the first attempt and the session stops at human alignment. Existing
-v29 records remain byte-equivalent legacy variants; the first valid context-bound write alone may
-migrate to v30, with no top-level consumption map. Architect, Decomposer, Conductor raw context,
+v29 records remain byte-equivalent legacy variants; read-only activity and exact replay do not save,
+while the next successful authorized write may persist normalized v30 with no context placeholder
+or top-level consumption map. Post-transition reload uses the retained attachment, StaffingPlan, and
+StaffingEntry Mission digest anchor. Architect, Decomposer, Conductor raw context or receipt,
 planner, prompt, policy, ExecutionPlan, WorkOrder, provider, scheduler, source, Git, release, and
 connector use remain blocked. Runtime/API/UI implementation is reserved for `DEC-230`.
 

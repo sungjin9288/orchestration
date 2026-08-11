@@ -674,8 +674,9 @@ CompanyBlueprint policy change remain blocked.
 Planning-only `DEC-228` and handoff-only `DEC-229` define Stage 7B as one future schema-v30
 first-attempt real-local-stub Council entry from an accepted StaffingPlan. The selected v29
 attachment is normalized into a request-scoped Strategist-only context, Architect and Decomposer
-receive no context key, and Conductor receives normalized positions only. The first valid write is
-the only v29-to-v30 migration boundary; exact replay is no-write and context-bound sessions remain
+receive no context key, and Conductor receives an allowlisted position projection without context
+receipts. Read-only activity and exact replay are no-write; the next successful authorized write may
+persist normalized v30 under the existing additive migration contract, and context-bound sessions remain
 blocked from every downstream scheduler or WorkOrder path until `DEC-230` or a later decision.
 
 Foundation 계획과 consumed implementation decision input은

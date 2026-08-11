@@ -394,11 +394,15 @@ policy, collections, bypass, and connectors remain closed.
 Planning-only `DEC-228` and handoff-only `DEC-229` define Stage 7B as one future schema-v30
 first-attempt accepted-StaffingPlan -> StaffingEntry -> CouncilSession local-stub path. One exact
 current attachment may reach Strategist only through a frozen request-scoped normalized context;
-Architect and Decomposer receive no context key, and Conductor receives normalized positions only.
-Existing v29 records remain legacy variants, the first valid context-bound write is the only
-migration boundary, and exact replay is no-write. Runtime/API/UI implementation is reserved for
-`DEC-230`; scheduler, WorkOrder, provider, prompt, policy, source, Git, release, retry, rework,
-automatic retrieval, and connector authority remain closed.
+Architect and Decomposer receive no context key, and Conductor receives an allowlisted position
+projection without attachment identifiers, context digests, or consumption receipts.
+Existing v29 records remain legacy variants. Read-only activity and exact replay do not save state;
+the next successful authorized write may persist normalized v30 through the existing additive
+migration without fabricating context evidence. Historical attachment validation binds the retained
+target digest to StaffingPlan and StaffingEntry evidence after Mission alignment, and Conductor sees
+an allowlisted position projection without context receipts. Runtime/API/UI implementation is
+reserved for `DEC-230`; scheduler, WorkOrder, provider, prompt, policy, source, Git, release, retry,
+rework, automatic retrieval, and connector authority remain closed.
 
 Mission evidence graph Phase 2 is accepted by `DEC-138` and implemented from
 `docs/89_mission-evidence-graph-phase-2-plan.md`. The selected Mission keeps `Thread` as its default

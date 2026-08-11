@@ -9,6 +9,8 @@
   `docs/156_ai-company-strategist-mission-context-consumption-implementation-decision-handoff.md`
 - Reserved implementation decision: `DEC-230`
 - Current implementation status: planning-only; `implementationAllowed=false`
+- Implementation-readiness correction: the 2026-08-11 live-code audit narrows migration,
+  historical validation, projection, and coupled-smoke semantics without opening authority.
 
 This plan defines the next narrow AI Company authority after Stage 7A. It is a real local-stub
 consumption path, not a response-only preview. The operator may select one exact current
@@ -36,6 +38,15 @@ The schema-v30 choice is deliberate. The context selection on a new `StaffingEnt
 the new `CouncilSession`, and the Strategist-only reference on its Council position change the exact
 immutable record shapes and replay identity. Existing v29 records stay byte-equivalent legacy
 variants. No top-level sequence, map, reverse reference, or placeholder is added for consumption.
+
+The live file store normalizes supported state to the current schema in memory and persists that
+schema on the next successful write. Stage 7B keeps this established migration behavior instead of
+introducing a second migration-intent mechanism: boot, supported read-only load, GET, invalid input,
+and exact replay do not write the v29 file, while the first later successful authorized write may
+persist v30 with no fabricated context fields. A valid context-bound entry still validates and saves
+its complete v30 evidence atomically. Current-schema assertions coupled to
+`STATE_SCHEMA_VERSION` must move from 29 to 30 as test maintenance; historical v29 fixtures stay
+v29 and must remain accepted.
 
 ## Exact Entry Contract
 
@@ -80,11 +91,11 @@ read-only state before any worker or provider call.
 
 The first valid request follows this order:
 
-1. Resolve the retained v30 replay receipt by the exact StaffingPlan, attachment, source, Mission,
-   blueprint, staffing-spec, approval, and context-consumption identity. An exact replay returns the
-   retained v30 projection before mutable source or expiry recomputation, performs zero adapter
-   calls, and performs zero state saves. A changed selection, rationale, timestamp, or digest is a
-   conflict.
+1. Load supported state through structural and immutable-lineage validation, then resolve the
+   retained v30 replay receipt by the exact StaffingPlan, attachment, source, Mission, blueprint,
+   staffing-spec, approval, and context-consumption identity. An exact replay returns the retained
+   v30 projection before mutable source or expiry recomputation, performs zero adapter calls, and
+   performs zero state saves. A changed selection, rationale, timestamp, or digest is a conflict.
 2. For a new request, validate the accepted local-stub council-mode StaffingPlan against the active
    draft Mission, current CompanyBlueprint and role sources, exact staffing digests, exact v29
    attachment record digest, DEC-130 source evidence, validity window, and project boundary.
@@ -94,17 +105,23 @@ The first valid request follows this order:
    not contain raw artifact bodies, provider payloads, credentials, or secret-bearing environment
    data.
 4. Execute the four source-backed Council roles sequentially through the existing local-stub
-   coordinator. Only the Strategist request receives the normalized context object. Architect and
-   Decomposer requests have no context key. Conductor receives normalized position records and
-   conflict evidence only; it never receives the raw or normalized attachment context.
+   coordinator. Only the Strategist request receives the normalized context object, and its bounded
+   deterministic output must observably acknowledge reviewed-context use without echoing context
+   values. Architect and Decomposer requests have no context key. Conductor receives an explicit
+   allowlisted position projection and conflict evidence only; it never receives the raw or
+   normalized attachment context, attachment identifiers, context digests, or consumption receipt.
 5. Require the local-stub result to reach the existing `awaiting-alignment` state. Build the v30
    StaffingEntry, CouncilSession, Strategist position reference, and normal Mission alignment
-   transition in memory. Persist them with the v29-to-v30 migration in one atomic save.
+   transition in memory. Preserve Mission content identity fields while changing only the existing
+   named `staffingEntryId`, `councilSessionId`, `status`, and `updatedAt` linkage/lifecycle fields.
+   Persist the complete result in one atomic save using the existing additive v29-to-v30 migration
+   semantics.
 
 The raw normalized object is frozen and request-scoped. It is not copied into a top-level state map,
 provider prompt store, plan, WorkOrder, Mission policy, or generic snapshot. The persisted evidence
 stores source references, digests, operator receipt, target role, target agent, consumption digest,
-and bounded lineage only.
+and bounded lineage only. Generic snapshots remove the bounded receipt and Strategist consumption
+reference as well; refresh hydration reads them only through exact StaffingEntry inspection.
 
 ## Schema-v30 Record Boundary
 
@@ -118,14 +135,21 @@ The implementation decision must add only:
 
 There is no `strategistContextConsumptions` sequence or map. Valid v29 StaffingEntry,
 CouncilSession, CouncilPosition, MissionContextAttachment, Mission, MemoryItem, and MemoryRecall
-records remain unchanged and validate as legacy variants. Read, boot, GET inspection, invalid input,
-and migration without a first valid context-bound write must not add a context field or save state.
+records remain unchanged and validate as legacy variants. `MissionContextAttachment` has no
+record-level schema field; “v29 attachment” means its immutable shape was created under a v29 state.
+Read, boot, supported GET inspection, exact replay, preview, and invalid input must not save state or
+add a context field. The next successful authorized write may persist the normalized v30 state under
+the existing file-store migration contract, but it must not fabricate a context receipt.
 
-The first valid request is the only migration boundary. The atomic save must reject partial mixed
-records, future schemas, stale or expired source evidence, cross-project selection, malformed
-normalized evidence, and digest mismatches. A valid v30 context-bound record must retain its source
-attachment digest, target Mission digest, source preview and memory evidence references, operator
-request digest, consumption digest, and blocked downstream actions.
+The context-bound atomic save must reject partial mixed records, future schemas, stale or expired
+source evidence, cross-project selection, malformed normalized evidence, and digest mismatches. A
+valid v30 context-bound record must retain its source attachment digest, target Mission digest,
+source preview and memory evidence references, operator request digest, consumption digest, and
+blocked downstream actions. Before the Mission transition, source-current validation recomputes the
+draft target. After the transition and on reload, historical validation uses
+`attachment.targetMissionDigest === staffingPlan.missionDigest === staffingEntry.missionDigest`
+plus Mission -> StaffingEntry -> CouncilSession and project lineage instead of trying to recompute a
+draft-only digest from the now-aligning Mission.
 
 ## Replay, Failure, And Compatibility
 
@@ -141,8 +165,13 @@ The focused runtime smoke must prove the following no-write or stop cases:
 - Mission, StaffingPlan, CompanyBlueprint, role-source, and DEC-130 evidence drift
 - role isolation, raw-body/credential redaction, and no provider call
 - exact replay with zero adapter calls and zero saves
-- atomic v29-to-v30 migration with no top-level consumption map
+- standard additive v29-to-v30 migration with no context placeholder or top-level consumption map
+- v29 on-disk read-only inspection with zero saves and v30 persistence on the next valid write
+- current-schema assertion updates while historical v29 fixtures remain unchanged
+- post-transition reload through the historical attachment/StaffingPlan/StaffingEntry digest anchor
 - normal alignment transition with no Reviewer, Planner, ExecutionPlan, or WorkOrder dispatch
+- no context-derived key or value in Architect, Decomposer, or Conductor requests
+- generic snapshot redaction and exact-inspection-only receipt hydration
 - reload, contextless legacy compatibility, and retained v30 evidence after rollback
 
 Context-bound sessions must fail closed in every downstream scheduler, WorkOrder, planner, prompt,
@@ -161,7 +190,8 @@ retry, resume, scheduling, source mutation, Git, release, or approval bypass. De
 smoke must prove safe errors, no context leakage to other roles, browser refresh behavior, and fit.
 
 The future implementation gate must run the focused runtime/API smoke, UI/API smoke, existing Stage
-7A attachment smoke, StaffingEntry binding smoke, Real Council smoke, and aggregate
+7A attachment smoke, StaffingEntry binding smoke, Real Council smoke, state transaction guard, all
+current-schema assertions coupled to `STATE_SCHEMA_VERSION`, and aggregate
 `node scripts/verification_status.mjs`. Optional live provider checks remain non-blocking and are
 not part of this planning authority.
 

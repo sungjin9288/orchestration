@@ -331,12 +331,13 @@ handoff and `DEC-227` implements only immutable record-and-inspect authority. St
 automatic selection, application, and injection remain separate authorities.
 
 Stage 7B planning-only `DEC-228` and handoff-only `DEC-229` now define the next bounded authority:
-one exact operator-selected current unexpired schema-v29 MissionContextAttachment may be consumed
-only by Strategist during the first attempt of a new accepted StaffingPlan -> StaffingEntry ->
-CouncilSession local-stub entry. The future implementation migrates v29 to v30 only on that first
-valid context-bound write, preserves all v29 records as legacy variants, and adds no top-level
-consumption map. The normalized context is frozen and request-scoped; Architect and Decomposer get
-no context key, and Conductor receives normalized positions only. Exact replay is no-write and
+one exact operator-selected current unexpired MissionContextAttachment created under schema-v29
+state may be consumed only by Strategist during the first attempt of a new accepted StaffingPlan ->
+StaffingEntry -> CouncilSession local-stub entry. The future implementation preserves all v29
+records as legacy variants and adds no top-level consumption map. Read-only activity and replay do
+not save; the next successful authorized write may persist normalized v30 without fabricated
+context fields. The normalized context is frozen and request-scoped; Architect and Decomposer get
+no context key, and Conductor receives an allowlisted projection without context receipts. Exact replay is no-write and
 context-bound sessions remain blocked from downstream scheduler, WorkOrder, provider, prompt,
 policy, Mission-injection, source, Git, release, and connector paths. Runtime implementation is
 reserved for `DEC-230`.
