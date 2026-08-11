@@ -1,6 +1,10 @@
 'use strict';
 
 const crypto = require('crypto');
+const {
+  assertContextConsumptionReceipt,
+  assertContextRef,
+} = require('./strategist-context-consumption');
 
 const REAL_COUNCIL_MODE = 'real-local-stub';
 const PROVIDER_COUNCIL_MODE = 'real-openai-responses';
@@ -195,6 +199,7 @@ function createRealCouncilSession({
   companyRuntime,
   mode = REAL_COUNCIL_MODE,
   staffingEntryRef = null,
+  strategistContextConsumption = null,
   now,
 }) {
   if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
@@ -273,6 +278,14 @@ function createRealCouncilSession({
     session.staffingEntryRef = cloneJson(staffingEntryRef);
   }
 
+  if (strategistContextConsumption !== null) {
+    assertContextConsumptionReceipt(
+      strategistContextConsumption,
+      'Council strategistContextConsumption',
+    );
+    session.strategistContextConsumption = cloneJson(strategistContextConsumption);
+  }
+
   return session;
 }
 
@@ -337,10 +350,17 @@ function normalizeProviderEvidence(value) {
   };
 }
 
-function createPositionRecord({ output, session, attemptId, profile, providerEvidence = null, now }) {
+function createPositionRecord({
+  output,
+  session,
+  attemptId,
+  profile,
+  providerEvidence = null,
+  contextRef = null,
+  now,
+}) {
   const normalized = validatePositionOutput(output);
-
-  return {
+  const record = {
     id: buildPositionId(attemptId, profile.id),
     attemptId,
     agentId: profile.id,
@@ -350,6 +370,14 @@ function createPositionRecord({ output, session, attemptId, profile, providerEvi
     providerEvidence: normalizeProviderEvidence(providerEvidence),
     createdAt: now,
   };
+  if (contextRef !== null) {
+    if (profile.role !== 'strategist') {
+      throw new Error('Council contextRef is allowed only on the Strategist position');
+    }
+    assertContextRef(contextRef, 'Council Strategist contextRef');
+    record.contextRef = cloneJson(contextRef);
+  }
+  return record;
 }
 
 function buildConflictSummary(positions, requiredRoleFailures = []) {

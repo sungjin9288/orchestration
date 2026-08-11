@@ -7,21 +7,22 @@
 - Recorded decision: `DEC-228`
 - Implementation handoff: `DEC-229`, documented in
   `docs/156_ai-company-strategist-mission-context-consumption-implementation-decision-handoff.md`
-- Reserved implementation decision: `DEC-230`
-- Current implementation status: planning-only; `implementationAllowed=false`
+- Accepted implementation decision: `DEC-230`
+- Current implementation status: implemented and verified; `implementationAllowed=true`
 - Implementation-readiness correction: the 2026-08-11 live-code audit narrows migration,
   historical validation, projection, and coupled-smoke semantics without opening authority.
 
-This plan defines the next narrow AI Company authority after Stage 7A. It is a real local-stub
+This plan defined the next narrow AI Company authority after Stage 7A and is now consumed by
+`DEC-230`. It is a real local-stub
 consumption path, not a response-only preview. The operator may select one exact current
 `MissionContextAttachment`, pass a normalized copy only to Strategist during the first attempt of
-one new accepted StaffingPlan Council entry, and stop the session at human alignment. This document
-does not authorize runtime, schema, API, UI, provider, prompt, policy, source, Git, scheduling, or
-downstream WorkOrder changes.
+one new accepted StaffingPlan Council entry, and stop the session at human alignment. The
+implementation remains bounded to the approved runtime, schema, API, and UI surface and does not
+authorize provider, prompt, policy, source, Git, scheduling, or downstream WorkOrder changes.
 
 ## Current Evidence
 
-The current runtime is schema v29. Stage 7A (`DEC-225` through `DEC-227`) stores one immutable,
+The current runtime is schema v30. Stage 7A (`DEC-225` through `DEC-227`) stores one immutable,
 source-current `MissionContextAttachment` per Mission and exposes exact Mission-bound inspection.
 The attachment retains `roleConsumptionStatus=blocked`; the existing Council entry already requires
 an accepted StaffingPlan and a separate entry approval, but it has no attachment selection or
@@ -197,13 +198,14 @@ not part of this planning authority.
 
 ## Acceptance And Next Gate
 
-This planning slice is complete when the exact plan, handoff, decision log, source-of-truth docs,
-task ledger, completion inventory, README, verification registry, and planning smoke agree. The
-planning smoke must prove `implementationAllowed=false`, current schema v29, future schema-v30
-planning, exact route/request semantics, StaffingEntry binding, role isolation, no top-level map,
+This consumed plan remains complete when the exact plan, handoff, decision log, source-of-truth
+docs, task ledger, completion inventory, README, verification registry, and planning smoke agree.
+The planning smoke now proves `implementationAllowed=true`, current schema v30, exact packet
+retention, route/request semantics, StaffingEntry binding, role isolation, no top-level map,
 rollback, blocked downstream authorities, and measured source counts.
 
-Implementation is not part of this slice. The next implementation action requires the exact
-schema-v30 packet in `docs/156_ai-company-strategist-mission-context-consumption-implementation-decision-handoff.md`
-to be accepted as reserved `DEC-230`. A broad “continue” message, the accepted planning decision,
-or this handoff alone does not open runtime or UI changes.
+Implementation was accepted as `DEC-230` using the exact schema-v30 packet in
+`docs/156_ai-company-strategist-mission-context-consumption-implementation-decision-handoff.md`.
+Focused runtime/API/UI evidence proves one v29-to-v30 atomic context-bound entry, exact no-write
+replay, Strategist-only context, Conductor projection, exact-inspection hydration, snapshot
+redaction, and downstream blocking. Every authority outside that packet remains separately gated.

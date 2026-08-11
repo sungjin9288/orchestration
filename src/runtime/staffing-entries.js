@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const { assertContextRef } = require('./strategist-context-consumption');
 
 const STAFFING_ENTRY_STATUS = 'bound';
 const STAFFING_ENTRY_KIND = 'real-council';
@@ -67,6 +68,7 @@ const RECORD_KEYS = [
   'updatedAt',
   'workspaceScope',
 ];
+const CONTEXT_BOUND_RECORD_KEYS = [...RECORD_KEYS, 'missionContextAttachmentRef'];
 const MAX_TEXT_LENGTH = 1024;
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
 const DIGEST_PATTERN = /^[a-f0-9]{64}$/;
@@ -264,10 +266,18 @@ function assertAcceptedCouncilStaffingPlan(staffingPlan) {
   }
 }
 
-function createStaffingEntry(input, { now } = {}) {
+function buildStaffingEntry(input, { now, missionContextAttachmentRef = null } = {}) {
   assertExactKeys(
     input,
-    ['councilSessionId', 'entryApproval', 'id', 'staffingPlan'],
+    missionContextAttachmentRef === null
+      ? ['councilSessionId', 'entryApproval', 'id', 'staffingPlan']
+      : [
+          'councilSessionId',
+          'entryApproval',
+          'id',
+          'missionContextAttachmentRef',
+          'staffingPlan',
+        ],
     'StaffingEntry input',
   );
   const id = normalizeIdentifier(input.id, 'StaffingEntry id');
@@ -316,14 +326,39 @@ function createStaffingEntry(input, { now } = {}) {
     createdAt: boundAt,
     updatedAt: boundAt,
   };
+  if (missionContextAttachmentRef !== null) {
+    assertContextRef(missionContextAttachmentRef, 'StaffingEntry missionContextAttachmentRef');
+    record.missionContextAttachmentRef = structuredClone(missionContextAttachmentRef);
+  }
   return deepFreeze({
     ...record,
     recordDigest: computeStaffingEntryRecordDigest(record),
   });
 }
 
+function createStaffingEntry(input, { now } = {}) {
+  return buildStaffingEntry(input, { now });
+}
+
+function createContextBoundStaffingEntry(input, { now } = {}) {
+  assertExactKeys(
+    input,
+    ['councilSessionId', 'entryApproval', 'id', 'missionContextAttachmentRef', 'staffingPlan'],
+    'Context-bound StaffingEntry input',
+  );
+  return buildStaffingEntry(input, {
+    now,
+    missionContextAttachmentRef: input.missionContextAttachmentRef,
+  });
+}
+
 function assertStaffingEntryRecord(record) {
-  assertExactKeys(record, RECORD_KEYS, 'StaffingEntry record');
+  const contextBound = Object.prototype.hasOwnProperty.call(record, 'missionContextAttachmentRef');
+  assertExactKeys(
+    record,
+    contextBound ? CONTEXT_BOUND_RECORD_KEYS : RECORD_KEYS,
+    'StaffingEntry record',
+  );
   for (const field of [
     'id',
     'status',
@@ -379,6 +414,9 @@ function assertStaffingEntryRecord(record) {
   if (record.workspaceScope.projectId !== record.projectId) {
     throw new Error('StaffingEntry workspaceScope must match its project');
   }
+  if (contextBound) {
+    assertContextRef(record.missionContextAttachmentRef, 'StaffingEntry missionContextAttachmentRef');
+  }
   normalizeSortedUniqueList(record.selectedAgentIds, 'StaffingEntry selectedAgentIds');
   normalizeSortedUniqueList(record.selectedRoles, 'StaffingEntry selectedRoles');
   if (
@@ -427,5 +465,6 @@ module.exports = {
   computeStaffingEntryRecordDigest,
   computeStaffingEntrySourceDigest,
   createStaffingEntry,
+  createContextBoundStaffingEntry,
   normalizeStaffingEntryApproval,
 };

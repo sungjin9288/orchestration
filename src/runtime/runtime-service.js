@@ -34,6 +34,7 @@ const {
   RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
   RUN_STATUS,
+  STAFFING_PLAN_STATE_SCHEMA_VERSION,
   TASK_LIFECYCLE,
   WORK_ORDER_ACTION,
   WORK_ORDER_STATUS,
@@ -214,6 +215,7 @@ const {
   computeStaffingEntryApprovalDigest,
   computeStaffingEntryRecordDigest,
   computeStaffingEntrySourceDigest,
+  createContextBoundStaffingEntry,
   createStaffingEntry,
   normalizeStaffingEntryApproval,
 } = require('./staffing-entries');
@@ -237,6 +239,10 @@ const {
   createMissionContextAttachment,
   isExactMissionContextAttachmentReplay,
 } = require('./mission-context-attachments');
+const {
+  createStrategistContextConsumption,
+  normalizeContextConsumption,
+} = require('./strategist-context-consumption');
 const {
   computeExecutionPlanRecordDigest,
   computeWorkOrderRecordDigest,
@@ -2489,6 +2495,18 @@ function createRuntimeService(options = {}) {
       return null;
     }
 
+    const retainedStaffingEntry = state.staffingEntries?.[
+      councilSession.staffingEntryRef.staffingEntryId
+    ];
+    if (
+      councilSession.strategistContextConsumption ||
+      retainedStaffingEntry?.missionContextAttachmentRef
+    ) {
+      throw conflict(
+        'Context-bound Council sessions are blocked from downstream scheduler and WorkOrder use',
+      );
+    }
+
     const mission = assertMission(councilSession.missionId, state);
     const project = assertProject(mission.projectId, state);
     const staffingEntry = assertStaffingEntry(
@@ -3808,9 +3826,11 @@ function createRuntimeService(options = {}) {
   function getStaffingPlan(staffingPlanId) {
     let state;
     try {
-      state = store.loadStateReadonly();
+      state = store.loadStateSupportedReadonly({
+        minimumSchemaVersion: STAFFING_PLAN_STATE_SCHEMA_VERSION,
+      });
     } catch (error) {
-      throw conflict(`StaffingPlan inspection requires current state: ${error.message}`);
+      throw conflict(`StaffingPlan inspection requires supported state: ${error.message}`);
     }
 
     return {
@@ -4037,6 +4057,300 @@ function createRuntimeService(options = {}) {
       nextId(state, 'councilSession') !== councilSession.id
     ) {
       throw new Error('StaffingEntry or CouncilSession sequence is not deterministic');
+    }
+    state.staffingEntries[staffingEntry.id] = staffingEntry;
+    state.councilSessions[councilSession.id] = councilSession;
+    mission.staffingEntryId = staffingEntry.id;
+    mission.councilSessionId = councilSession.id;
+    mission.status = 'aligning';
+    mission.updatedAt = now;
+    state.activeProjectId = mission.projectId;
+    state.selectedMissionId = mission.id;
+    store.saveState(state);
+
+    return {
+      staffingEntry: state.staffingEntries[staffingEntry.id],
+      councilSession: state.councilSessions[councilSession.id],
+      mission: state.missions[mission.id],
+      idempotent: false,
+    };
+  }
+
+  function enterStaffingPlanCouncilWithStrategistContext(input) {
+    assertExactStaffingPlanRequest(
+      input,
+      [
+        'blueprintDigest',
+        'contextConsumption',
+        'entryApproval',
+        'missionContextAttachmentId',
+        'missionContextAttachmentRecordDigest',
+        'missionDigest',
+        'sourceDigest',
+        'staffingPlanId',
+        'staffingPlanRecordDigest',
+        'staffingSpecDigest',
+      ],
+      'Context-bound StaffingEntry Council entry request',
+    );
+
+    let state;
+    try {
+      state = store.loadStateSupportedReadonly();
+    } catch (error) {
+      throw conflict(
+        `Context-bound StaffingEntry Council entry requires supported state: ${error.message}`,
+      );
+    }
+
+    const staffingPlan = assertStaffingPlan(input.staffingPlanId, state);
+    const existing = findStaffingEntryByPlan(state, staffingPlan.id);
+    const now = new Date().toISOString();
+
+    if (existing) {
+      if (!existing.missionContextAttachmentRef) {
+        throw conflict('Context-bound replay cannot reuse a legacy StaffingEntry');
+      }
+      const existingAttachment = assertMissionContextAttachment(
+        existing.missionContextAttachmentRef.attachmentId,
+        state,
+      );
+      let entryApproval;
+      let contextConsumption;
+      try {
+        entryApproval = normalizeStaffingEntryApproval(
+          input.entryApproval,
+          staffingPlan,
+          now,
+        );
+        contextConsumption = normalizeContextConsumption(input.contextConsumption, { now });
+      } catch (error) {
+        throw conflict(error.message);
+      }
+      const expectedReceipt = createStrategistContextConsumption({
+        attachment: existingAttachment,
+        contextConsumption,
+        targetAgentId: state.councilSessions[existing.councilSessionId]
+          ?.strategistContextConsumption?.targetAgentId,
+        now,
+      });
+      const existingSession = assertCouncilSession(existing.councilSessionId, state);
+      for (const [field, expected] of [
+        ['staffingPlanRecordDigest', existing.staffingPlanRecordDigest],
+        ['sourceDigest', existing.sourceDigest],
+        ['missionDigest', existing.missionDigest],
+        ['blueprintDigest', existing.blueprintDigest],
+        ['staffingSpecDigest', existing.staffingSpecDigest],
+      ]) {
+        if (String(input[field] || '').trim() !== expected) {
+          throw conflict(`Context-bound StaffingEntry replay ${field} does not match evidence`);
+        }
+      }
+      if (
+        String(input.missionContextAttachmentId || '').trim() !==
+          existingAttachment.id ||
+        String(input.missionContextAttachmentRecordDigest || '').trim() !==
+          existingAttachment.recordDigest ||
+        computeStaffingEntryApprovalDigest(entryApproval) !== existing.entryApprovalDigest ||
+        computeStaffingEntrySourceDigest(staffingPlan, existing.entryApprovalDigest) !==
+          existing.entrySourceDigest ||
+        !existingSession.strategistContextConsumption ||
+        JSON.stringify(expectedReceipt.receipt) !==
+          JSON.stringify(existingSession.strategistContextConsumption) ||
+        JSON.stringify(expectedReceipt.contextRef) !==
+          JSON.stringify(existing.missionContextAttachmentRef)
+      ) {
+        throw conflict('Context-bound StaffingEntry replay does not match retained evidence');
+      }
+      return {
+        staffingEntry: assertStaffingEntry(existing.id, state),
+        councilSession: existingSession,
+        mission: assertMission(existing.missionId, state),
+        idempotent: true,
+      };
+    }
+
+    const mission = assertMission(staffingPlan.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    if (
+      state.activeProjectId !== project.id ||
+      staffingPlan.projectId !== project.id ||
+      staffingPlan.workspaceScope?.projectId !== project.id ||
+      mission.status !== 'draft' ||
+      mission.linkedTaskId !== null ||
+      mission.councilSessionId !== null ||
+      mission.staffingEntryId !== null
+    ) {
+      throw conflict('Context-bound StaffingEntry requires one active, current, unbound draft Mission');
+    }
+    if (
+      staffingPlan.persisted !== true ||
+      staffingPlan.status !== 'accepted' ||
+      staffingPlan.mode !== 'council' ||
+      staffingPlan.providerMode !== 'local-stub' ||
+      staffingPlan.parallelGroups.length !== 0 ||
+      staffingPlan.terminationPolicy.maxProviderCalls !== 0
+    ) {
+      throw conflict('Context-bound StaffingEntry requires one accepted local council StaffingPlan');
+    }
+    for (const [field, expected] of [
+      ['staffingPlanRecordDigest', staffingPlan.recordDigest],
+      ['sourceDigest', staffingPlan.sourceDigest],
+      ['missionDigest', staffingPlan.missionDigest],
+      ['blueprintDigest', staffingPlan.blueprintDigest],
+      ['staffingSpecDigest', staffingPlan.staffingSpecDigest],
+    ]) {
+      if (String(input[field] || '').trim() !== expected) {
+        throw conflict(`Context-bound StaffingEntry ${field} does not match the accepted StaffingPlan`);
+      }
+    }
+
+    let entryApproval;
+    let contextConsumption;
+    try {
+      entryApproval = normalizeStaffingEntryApproval(
+        input.entryApproval,
+        staffingPlan,
+        now,
+      );
+      contextConsumption = normalizeContextConsumption(input.contextConsumption, { now });
+    } catch (error) {
+      throw conflict(error.message);
+    }
+    if (entryApproval.requestedAt !== contextConsumption.requestedAt) {
+      throw conflict('entryApproval.requestedAt and contextConsumption.requestedAt must match');
+    }
+
+    const attachment = assertMissionContextAttachment(
+      input.missionContextAttachmentId,
+      state,
+    );
+    if (
+      String(input.missionContextAttachmentRecordDigest || '').trim() !== attachment.recordDigest ||
+      attachment.status !== 'attached' ||
+      attachment.targetMissionId !== mission.id ||
+      attachment.projectId !== project.id ||
+      attachment.targetMissionDigest !== staffingPlan.missionDigest ||
+      attachment.targetMissionDigest !== computeMissionMemoryContextTargetDigest(mission) ||
+      Date.parse(attachment.attachedAt) > Date.parse(contextConsumption.requestedAt) ||
+      Date.parse(contextConsumption.requestedAt) >= Date.parse(attachment.expiresAt) ||
+      Date.parse(now) >= Date.parse(attachment.expiresAt)
+    ) {
+      throw conflict('MissionContextAttachment is stale, expired, or outside the StaffingPlan lineage');
+    }
+
+    const staffingSpec = buildStaffingSpecFromPlan(staffingPlan);
+    const blueprintEvidence = loadCurrentStaffingBlueprintEvidence();
+    if (councilAdapter.mode !== 'local-stub') {
+      throw conflict('Context-bound StaffingEntry requires the local-stub adapter');
+    }
+    let preview;
+    try {
+      preview = compileMissionStaffingPlanPreview(
+        {
+          activeProjectId: state.activeProjectId,
+          blueprintEvidence,
+          evaluatedAt: staffingPlan.evaluatedAt,
+          mission,
+          project,
+          staffingSpec,
+        },
+        { now },
+      );
+    } catch (error) {
+      throw conflict(`Context-bound StaffingEntry source-current recomputation failed: ${error.message}`);
+    }
+    for (const [field, expected] of [
+      ['id', staffingPlan.sourcePreviewId],
+      ['previewDigest', staffingPlan.sourcePreviewDigest],
+      ['sourceDigest', staffingPlan.sourceDigest],
+      ['missionDigest', staffingPlan.missionDigest],
+      ['blueprintDigest', staffingPlan.blueprintDigest],
+      ['staffingSpecDigest', staffingPlan.staffingSpecDigest],
+    ]) {
+      if (preview[field] !== expected) {
+        throw conflict(`Context-bound StaffingEntry current StaffingPlan ${field} is stale`);
+      }
+    }
+
+    const strategistProfile = blueprintEvidence.blueprint.agentProfiles.find(
+      (profile) => profile.role === 'strategist',
+    );
+    if (!strategistProfile) {
+      throw conflict('Context-bound StaffingEntry requires a source-backed Strategist profile');
+    }
+    const consumption = createStrategistContextConsumption({
+      attachment,
+      contextConsumption,
+      targetAgentId: strategistProfile.id,
+      now,
+    });
+    const staffingEntryId = `staffing-entry-${String(
+      state.sequences.staffingEntry + 1,
+    ).padStart(4, '0')}`;
+    const councilSessionId = `councilSession-${String(
+      state.sequences.councilSession + 1,
+    ).padStart(4, '0')}`;
+    let staffingEntry;
+    let councilSession;
+    try {
+      staffingEntry = createContextBoundStaffingEntry(
+        {
+          id: staffingEntryId,
+          councilSessionId,
+          missionContextAttachmentRef: consumption.contextRef,
+          staffingPlan,
+          entryApproval,
+        },
+        { now },
+      );
+      const freshCompanyRuntime = {
+        status: 'ready',
+        blueprint: blueprintEvidence.blueprint,
+        sourceRefs: blueprintEvidence.sourceRefs,
+        errors: [],
+      };
+      councilSession = createRealCouncilSession({
+        id: councilSessionId,
+        mission,
+        project,
+        companyRuntime: freshCompanyRuntime,
+        staffingEntryRef: {
+          staffingEntryId: staffingEntry.id,
+          entrySourceDigest: staffingEntry.entrySourceDigest,
+          staffingPlanId: staffingPlan.id,
+          staffingPlanRecordDigest: staffingPlan.recordDigest,
+        },
+        strategistContextConsumption: consumption.receipt,
+        now,
+      });
+      councilCoordinator.runAttempt({
+        session: councilSession,
+        blueprint: blueprintEvidence.blueprint,
+        projectPack: project.pack,
+        strategistContext: consumption.context,
+        strategistContextRef: consumption.contextRef,
+        now,
+      });
+    } catch (error) {
+      throw conflict(`Context-bound local Council attempt failed: ${error.message}`);
+    }
+
+    const currentAttempt = councilSession.attempts.find(
+      (attempt) => attempt.id === councilSession.currentAttemptId,
+    );
+    if (
+      councilSession.phase !== 'awaiting-alignment' ||
+      councilSession.status !== 'pending-alignment' ||
+      currentAttempt?.status !== 'awaiting-alignment'
+    ) {
+      throw conflict('Context-bound local Council attempt did not reach human alignment');
+    }
+    if (
+      nextStaffingEntryId(state) !== staffingEntry.id ||
+      nextId(state, 'councilSession') !== councilSession.id
+    ) {
+      throw new Error('Context-bound StaffingEntry or CouncilSession sequence is not deterministic');
     }
     state.staffingEntries[staffingEntry.id] = staffingEntry;
     state.councilSessions[councilSession.id] = councilSession;
@@ -14259,7 +14573,7 @@ function createRuntimeService(options = {}) {
     const state = store.loadStateSupportedReadonly();
     normalizeProjectsInState(state);
     const snapshot = normalizeMissionsInState(state);
-    const snapshotForPublicProjection = { ...snapshot };
+    const snapshotForPublicProjection = structuredClone(snapshot);
     delete snapshotForPublicProjection.specialistBatches;
     delete snapshotForPublicProjection.specialistCellAttempts;
     delete snapshotForPublicProjection.specialistCellRetries;
@@ -14271,6 +14585,21 @@ function createRuntimeService(options = {}) {
     delete snapshotForPublicProjection.opsAttemptDispositions;
     delete snapshotForPublicProjection.opsAttemptResumes;
     delete snapshotForPublicProjection.missionContextAttachments;
+    for (const staffingEntry of Object.values(
+      snapshotForPublicProjection.staffingEntries || {},
+    )) {
+      delete staffingEntry.missionContextAttachmentRef;
+    }
+    for (const councilSession of Object.values(
+      snapshotForPublicProjection.councilSessions || {},
+    )) {
+      delete councilSession.strategistContextConsumption;
+      for (const attempt of councilSession.attempts || []) {
+        for (const position of attempt.positions || []) {
+          delete position.contextRef;
+        }
+      }
+    }
     let currentCompanyRuntime = null;
 
     if (companyBlueprintOptions) {
@@ -14454,6 +14783,7 @@ function createRuntimeService(options = {}) {
     persistMemoryItemRecall,
     reviewLearningCandidate,
     enterStaffingPlanCouncil,
+    enterStaffingPlanCouncilWithStrategistContext,
     persistMissionWorkOrderPlan,
     listApprovals,
     listCouncilProviderReadinessSummaries,

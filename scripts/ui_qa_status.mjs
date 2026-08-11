@@ -449,6 +449,12 @@ const smokeChecks = [
       'Deliverables exposes one exact reviewed MissionContextAttachment record action from browser-only DEC-130 evidence, hydrates immutable evidence through one exact Mission locator, and keeps context consumption injection apply provider source Git release scheduling and next-Mission controls absent across desktop and mobile',
   },
   {
+    id: 'ai-company-strategist-mission-context-consumption-ui-api',
+    script: 'scripts/smoke-ui-slice-717.mjs',
+    purpose:
+      'Council exposes one explicit Strategist-only reviewed-context opt-in from an accepted local StaffingPlan, hydrates bounded receipt evidence only through exact StaffingEntry inspection, preserves contextless entry, and keeps Architect Decomposer Conductor provider scheduler WorkOrder source Git release retry and automatic retrieval controls absent across desktop and mobile',
+  },
+  {
     id: 'llm-native-active-mission-focus',
     script: 'scripts/smoke-ui-slice-674.mjs',
     purpose:

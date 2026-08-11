@@ -137,7 +137,7 @@ async function main() {
     );
 
     const schemaV26State = readState();
-    assert.equal(schemaV26State.schemaVersion, 29);
+    assert.equal(schemaV26State.schemaVersion, 30);
     assert.equal(schemaV26State.sequences.reworkDeliveryPackageAcceptance, 1);
     assert.equal(
       Object.keys(schemaV26State.reworkDeliveryPackageAcceptances).length,
@@ -239,11 +239,11 @@ async function main() {
     );
     fs.writeFileSync(statePath, validBytes);
     const future = readState();
-    future.schemaVersion = 30;
+    future.schemaVersion = 31;
     writeState(future);
     assert.throws(
       () => createFileStore({ runtimeRoot }).loadStateSupportedReadonly(),
-      /Unsupported runtime state schemaVersion: 30/,
+      /Unsupported runtime state schemaVersion: 31/,
     );
     fs.writeFileSync(statePath, validBytes);
     assert.equal(

@@ -36,6 +36,15 @@ function createPositionOutput(request) {
     throw new Error(`Unsupported local-stub Council role: ${role}`);
   }
 
+  if (role === 'strategist' && request.context) {
+    return {
+      ...outputs[role],
+      recommendation: 'Reviewed mission context acknowledged; keep the first outcome bounded.',
+      proposedNextStep:
+        'Use the reviewed context only as a bounded Strategist input before human alignment.',
+    };
+  }
+
   return outputs[role];
 }
 

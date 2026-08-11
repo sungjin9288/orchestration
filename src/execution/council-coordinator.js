@@ -17,6 +17,40 @@ const {
 function createCouncilCoordinator(options = {}) {
   const adapter = options.adapter;
 
+  const strategistContextPositionOutput = Object.freeze({
+    recommendation: 'Reviewed mission context acknowledged; keep the first outcome bounded.',
+    assumptions: Object.freeze([
+      'The reviewed context is available only to this Strategist attempt.',
+    ]),
+    evidenceRefs: Object.freeze(['mission.goal']),
+    objections: Object.freeze([
+      'Raw context must not be copied into Council position or synthesis evidence.',
+    ]),
+    risks: Object.freeze([
+      'Broader role or downstream consumption requires a separate authority decision.',
+    ]),
+    confidence: 'high',
+    proposedNextStep:
+      'Use the reviewed context only as a bounded Strategist input before human alignment.',
+  });
+
+  function projectPositionForSynthesis(position) {
+    return {
+      id: position.id,
+      attemptId: position.attemptId,
+      agentId: position.agentId,
+      role: position.role,
+      sourceDigest: position.sourceDigest,
+      recommendation: position.recommendation,
+      assumptions: [...position.assumptions],
+      evidenceRefs: [...position.evidenceRefs],
+      objections: [...position.objections],
+      risks: [...position.risks],
+      confidence: position.confidence,
+      proposedNextStep: position.proposedNextStep,
+    };
+  }
+
   if (!adapter || typeof adapter.executePosition !== 'function' || typeof adapter.executeSynthesis !== 'function') {
     throw new Error('Council coordinator requires a position and synthesis adapter');
   }
@@ -28,6 +62,8 @@ function createCouncilCoordinator(options = {}) {
     targetAgentIds = null,
     revisionRequest = null,
     synthesisOnly = false,
+    strategistContext = null,
+    strategistContextRef = null,
     now,
   }) {
     const profilesByRole = resolveCouncilProfiles(blueprint, projectPack);
@@ -67,7 +103,7 @@ function createCouncilCoordinator(options = {}) {
     session.currentAttemptId = attempt.id;
 
     for (const profile of requiredProfiles.filter((entry) => requestedAgentIds.includes(entry.id))) {
-      const request = freezeJson({
+      const requestPayload = {
         sessionId: session.id,
         attemptId,
         sourceDigest: session.sourceDigest,
@@ -78,12 +114,33 @@ function createCouncilCoordinator(options = {}) {
           objective: profile.objective,
         },
         revisionRequest: revisionRequest ? cloneJson(revisionRequest) : null,
-      });
+      };
+      if (profile.role === 'strategist' && strategistContext !== null) {
+        requestPayload.context = strategistContext;
+      }
+      const request = freezeJson(requestPayload);
 
       try {
-        const output = adapter.executePosition(request);
+        let output = adapter.executePosition(request);
+        if (profile.role === 'strategist' && strategistContext !== null) {
+          createPositionRecord({
+            output,
+            session,
+            attemptId,
+            profile,
+            now,
+          });
+          output = strategistContextPositionOutput;
+        }
         attempt.positions.push(
-          createPositionRecord({ output, session, attemptId, profile, now }),
+          createPositionRecord({
+            output,
+            session,
+            attemptId,
+            profile,
+            contextRef: profile.role === 'strategist' ? strategistContextRef : null,
+            now,
+          }),
         );
       } catch (error) {
         failures.push({
@@ -148,7 +205,10 @@ function createCouncilCoordinator(options = {}) {
           role: conductorProfile.role,
           objective: conductorProfile.objective,
         },
-        positions: cloneJson(effectivePositions),
+        positions:
+          strategistContext === null
+            ? cloneJson(effectivePositions)
+            : effectivePositions.map(projectPositionForSynthesis),
         conflictSummary: cloneJson(attempt.conflictSummary),
         revisionRequest: revisionRequest ? cloneJson(revisionRequest) : null,
       }));

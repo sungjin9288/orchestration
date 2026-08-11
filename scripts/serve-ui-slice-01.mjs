@@ -1872,6 +1872,68 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const staffingPlanCouncilEntryWithStrategistContextMatch = url.pathname.match(
+    /^\/api\/staffing-plans\/([^/]+)\/council-entry-with-strategist-context$/,
+  );
+  if (method === 'POST' && staffingPlanCouncilEntryWithStrategistContextMatch) {
+    try {
+      const staffingPlanId = decodeURIComponent(
+        staffingPlanCouncilEntryWithStrategistContextMatch[1],
+      );
+      const input = await readBoundedJsonBody(request, 64 * 1024);
+      const expectedFields = [
+        'blueprintDigest',
+        'contextConsumption',
+        'entryApproval',
+        'missionContextAttachmentId',
+        'missionContextAttachmentRecordDigest',
+        'missionDigest',
+        'sourceDigest',
+        'staffingPlanRecordDigest',
+        'staffingSpecDigest',
+      ];
+      const actualFields = Object.keys(input || {}).sort();
+      if (
+        actualFields.length !== expectedFields.length ||
+        actualFields.some((field, index) => field !== [...expectedFields].sort()[index])
+      ) {
+        json(response, 400, {
+          error: 'Context-bound StaffingEntry request has unexpected or missing fields.',
+        });
+        return;
+      }
+      const result = runtime.enterStaffingPlanCouncilWithStrategistContext({
+        ...input,
+        staffingPlanId,
+      });
+      json(
+        response,
+        result.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          persisted: true,
+          downstreamAllowed: false,
+          mutation: {
+            councilSessionId: result.councilSession.id,
+            idempotent: result.idempotent,
+            kind: 'enter-staffing-plan-council-with-strategist-context',
+            missionId: result.mission.id,
+            staffingEntryId: result.staffingEntry.id,
+            staffingPlanId,
+            stoppedAt: 'human-alignment',
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        code: error.code || undefined,
+        error: error.message || 'Context-bound StaffingEntry Council entry에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const staffingEntryInspectMatch = url.pathname.match(/^\/api\/staffing-entries\/([^/]+)$/);
   if (staffingEntryInspectMatch) {
     if (method !== 'GET') {

@@ -1330,6 +1330,57 @@ export function getMissionStaffingPlanSummary(
   };
 }
 
+export function getStrategistContextConsumptionSummary(
+  mission,
+  staffingPlan,
+  staffingEntry,
+  missionContextAttachment,
+  exactEvidence = null,
+) {
+  const attachmentCurrent = Boolean(
+    missionContextAttachment &&
+      missionContextAttachment.persisted === true &&
+      missionContextAttachment.status === 'attached' &&
+      missionContextAttachment.targetMissionId === mission?.id &&
+      missionContextAttachment.projectId === mission?.projectId &&
+      missionContextAttachment.targetMissionDigest === staffingPlan?.missionDigest,
+  );
+  const canEnter = Boolean(
+    mission?.status === 'draft' &&
+      !mission.linkedTaskId &&
+      !mission.councilSessionId &&
+      !mission.staffingEntryId &&
+      staffingPlan?.persisted === true &&
+      staffingPlan.status === 'accepted' &&
+      staffingPlan.mode === 'council' &&
+      staffingPlan.providerMode === 'local-stub' &&
+      !staffingEntry &&
+      attachmentCurrent,
+  );
+  const contextRef = exactEvidence?.staffingEntry?.missionContextAttachmentRef || null;
+  const receipt = exactEvidence?.councilSession?.strategistContextConsumption || null;
+  const exactReceipt = Boolean(
+    contextRef &&
+      receipt &&
+      contextRef.attachmentId === missionContextAttachment?.id &&
+      contextRef.attachmentRecordDigest === missionContextAttachment?.recordDigest &&
+      receipt.attachmentId === contextRef.attachmentId &&
+      receipt.attachmentRecordDigest === contextRef.attachmentRecordDigest &&
+      receipt.consumptionDigest === contextRef.consumptionDigest &&
+      receipt.contextDigest === contextRef.contextDigest &&
+      receipt.targetMissionId === mission?.id &&
+      receipt.targetRole === 'strategist',
+  );
+
+  return {
+    attachmentCurrent,
+    canEnter,
+    downstreamAllowed: false,
+    exactReceipt,
+    receipt: exactReceipt ? receipt : null,
+  };
+}
+
 export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
   const executionPlan = Object.values(snapshot?.executionPlans || {}).find(
     (entry) => entry.councilSessionId === councilSessionId,

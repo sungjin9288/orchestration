@@ -59,7 +59,7 @@ function seedStoredMemoryItem() {
     const items = Object.values(state.memoryItems || {});
     const item = items.find(
       (candidate) =>
-        state.schemaVersion === 29 &&
+        state.schemaVersion === 30 &&
         candidate.status === 'stored' &&
         candidate.applicationStatus === 'blocked' &&
         computeMemoryItemRecordDigest(candidate) === candidate.recordDigest,
@@ -164,7 +164,7 @@ async function main() {
     const sourcePath = path.join(repoRoot, 'src', 'runtime', 'runtime-service.js');
     const sourceBytesBefore = fs.readFileSync(sourcePath, 'utf8');
     const snapshotBefore = runtime.getSnapshot();
-    assert.equal(snapshotBefore.schemaVersion, 29);
+    assert.equal(snapshotBefore.schemaVersion, 30);
     assert.equal(
       Object.prototype.hasOwnProperty.call(snapshotBefore, 'memoryRecalls'),
       true,

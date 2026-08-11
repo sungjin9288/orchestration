@@ -89,7 +89,7 @@ for (const pattern of [
   /DEC-228/,
   /DEC-229/,
   /DEC-230/,
-  /implementationAllowed=false/,
+  /implementationAllowed=true/,
   /schema-v30/,
   /accepted StaffingPlan -> StaffingEntry -> CouncilSession/,
   /POST \/api\/staffing-plans\/:staffingPlanId\/council-entry-with-strategist-context/,
@@ -127,6 +127,7 @@ assert.match(handoff, /exact-inspection-only receipt hydration/);
 
 assert.match(decisionLog, /^### DEC-228$/m);
 assert.match(decisionLog, /^### DEC-229$/m);
+assert.match(decisionLog, /^### DEC-230$/m);
 for (const [source, label] of [
   [masterPlan, 'master plan'],
   [runtimeContract, 'runtime contract'],
@@ -139,39 +140,42 @@ for (const [source, label] of [
 ]) {
   assert.match(source, /DEC-228/, `${label} must record DEC-228`);
   assert.match(source, /DEC-229/, `${label} must record DEC-229`);
+  assert.match(source, /DEC-230/, `${label} must record DEC-230`);
 }
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
-assert.doesNotMatch(contracts, /STATE_SCHEMA_VERSION = 30/);
-assert.doesNotMatch(fileStore, /STATE_SCHEMA_VERSION = 30/);
-assert.doesNotMatch(runtimeService, /council-entry-with-strategist-context/);
-assert.doesNotMatch(server, /council-entry-with-strategist-context/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 30/);
+assert.match(contracts, /const STRATEGIST_CONTEXT_CONSUMPTION_STATE_SCHEMA_VERSION = 30/);
+assert.match(fileStore, /MISSION_CONTEXT_ATTACHMENT_STATE_SCHEMA_VERSION/);
+assert.match(runtimeService, /enterStaffingPlanCouncilWithStrategistContext/);
+assert.match(server, /council-entry-with-strategist-context/);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'src/runtime/strategist-context-consumption.js')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-strategist-mission-context-consumption.mjs')),
-  false,
+  true,
 );
-assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-717.mjs')), false);
+assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-717.mjs')), true);
 
 assert.match(verification, /id: 'ai-company-strategist-mission-context-consumption-planning'/);
 assert.match(
   verification,
   /script: 'scripts\/smoke-ai-company-strategist-mission-context-consumption-planning\.mjs'/,
 );
-assert.match(readme, /1012 smoke files/);
-assert.match(readme, /716 UI smoke files/);
-assert.match(inventory, /informational `313\/313`/);
-assert.match(inventory, /total `314\/314`/);
-assert.match(completionSmoke, /informational: '313\/313'/);
-assert.match(completionSmoke, /total: '314\/314'/);
+assert.match(verification, /id: 'ai-company-strategist-mission-context-consumption-implementation'/);
+assert.match(verification, /id: 'ai-company-strategist-mission-context-consumption-ui-api'/);
+assert.match(readme, /1014 smoke files/);
+assert.match(readme, /717 UI smoke files/);
+assert.match(inventory, /informational `315\/315`/);
+assert.match(inventory, /total `316\/316`/);
+assert.match(completionSmoke, /informational: '315\/315'/);
+assert.match(completionSmoke, /total: '316\/316'/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1012);
-assert.equal(uiSmokeFileCount, 716);
+assert.equal(smokeFileCount, 1014);
+assert.equal(uiSmokeFileCount, 717);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -180,14 +184,14 @@ process.stdout.write(
       mode,
       planningDecision: 'accepted-dec-228',
       handoffDecision: 'accepted-dec-229',
-      implementationDecision: 'reserved-dec-230',
-      currentSchemaVersion: 29,
+      implementationDecision: 'accepted-dec-230',
+      currentSchemaVersion: 30,
       plannedSchemaVersion: 30,
       route: '/api/staffing-plans/:staffingPlanId/council-entry-with-strategist-context',
       entryPath: 'accepted StaffingPlan -> StaffingEntry -> CouncilSession',
       contextTargetRole: 'strategist-only-first-attempt',
       stopAt: 'human-alignment',
-      implementationAllowed: false,
+      implementationAllowed: true,
       topLevelConsumptionMapAllowed: false,
       architectContextAllowed: false,
       decomposerContextAllowed: false,

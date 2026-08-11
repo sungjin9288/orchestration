@@ -3,9 +3,9 @@
 ## Handoff Status
 
 This document records the complete implementation handoff accepted as `DEC-229` after the
-planning-only boundary in `DEC-228`. It is a copy-ready input for the reserved `DEC-230` decision;
-it does not authorize runtime, schema, API, UI, provider, prompt, policy, source, Git, scheduling,
-or downstream WorkOrder changes by itself.
+planning-only boundary in `DEC-228`. The operator supplied this packet exactly and it was consumed
+as `DEC-230`; the packet remains the immutable audit input and grants no authority beyond the
+implemented runtime, schema, API, and UI slice.
 
 The packet below is the sole fielded implementation shape. Every line is intentionally kept exact so
 an operator can accept or reject the future implementation without broadening the authority.
@@ -70,5 +70,5 @@ approvalStatement=I approve implementation only for one exact MissionContextAtta
 
 ## Reserved Next Action
 
-`DEC-230` is reserved for the operator's exact implementation decision. Until that decision is
-accepted, the only allowed follow-up is planning verification and source-of-truth maintenance.
+`DEC-230` accepted this exact packet. Any follow-up beyond the implemented Strategist-only first
+attempt requires a new complete fielded decision and must preserve every still-blocked authority.

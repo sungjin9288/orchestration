@@ -490,7 +490,7 @@ async function main() {
     downgradeToV27(passContext.statePath);
     const v27Bytes = fs.readFileSync(passContext.statePath, 'utf8');
     const passiveSnapshot = passContext.runtime.getSnapshot();
-    assert.equal(passiveSnapshot.schemaVersion, 29);
+    assert.equal(passiveSnapshot.schemaVersion, 30);
     assert.equal('opsAttemptResumes' in passiveSnapshot, false);
     assert.equal(fs.readFileSync(passContext.statePath, 'utf8'), v27Bytes);
 
@@ -518,7 +518,7 @@ async function main() {
       passQuarantine.disposition,
     );
     const startedState = JSON.parse(fs.readFileSync(passContext.statePath, 'utf8'));
-    assert.equal(startedState.schemaVersion, 29);
+    assert.equal(startedState.schemaVersion, 30);
     assert.equal(startedState.sequences.opsAttemptResume, 1);
     assert.equal(Object.keys(startedState.opsAttemptResumes).length, 1);
     assert.equal(

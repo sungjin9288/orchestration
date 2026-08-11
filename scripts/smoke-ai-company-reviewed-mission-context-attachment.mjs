@@ -230,7 +230,7 @@ async function main() {
     assert.equal(Object.isFrozen(attachment.attachmentReview), true);
 
     const persisted = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 29);
+    assert.equal(persisted.schemaVersion, 30);
     assert.equal(persisted.sequences.missionContextAttachment, 1);
     assert.equal(Object.keys(persisted.missionContextAttachments).length, 1);
     assert.equal(JSON.stringify(persisted.missions[mission.id]), sourceRecordsBefore.mission);
@@ -306,8 +306,8 @@ async function main() {
       () => createFileStore({ runtimeRoot: partialRoot }).loadStateReadonly(),
       /missing MissionContextAttachment fields/,
     );
-    const futureRoot = path.join(tempRoot, 'future-v30');
-    writeState(futureRoot, { ...persisted, schemaVersion: 30 });
+    const futureRoot = path.join(tempRoot, 'future-v31');
+    writeState(futureRoot, { ...persisted, schemaVersion: 31 });
     assert.throws(
       () => createFileStore({ runtimeRoot: futureRoot }).loadStateSupportedReadonly(),
       /Unsupported runtime state schemaVersion/,

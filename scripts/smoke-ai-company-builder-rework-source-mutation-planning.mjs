@@ -119,15 +119,15 @@ assert.match(inventory, /AI Company Builder rework source mutation planning/);
 assert.match(inventory, /AI Company Builder rework source mutation implementation/);
 assert.match(
   inventory,
-  /required `1\/1` and informational `313\/313` pass; total passed is `314\/314`/,
+  /required `1\/1` and informational `315\/315` pass; total passed is `316\/316`/,
 );
 assert.match(readme, /docs\/137_ai-company-builder-rework-source-mutation-plan\.md/);
 assert.match(
   readme,
   /docs\/138_ai-company-builder-rework-source-mutation-implementation-decision-handoff\.md/,
 );
-assert.match(readme, /1012 smoke files/);
-assert.match(readme, /716 UI smoke files/);
+assert.match(readme, /1014 smoke files/);
+assert.match(readme, /717 UI smoke files/);
 assert.match(todo, /ai-company-builder-rework-source-mutation-implementation-post-m7-2035/);
 assert.match(
   lessons,
@@ -135,7 +135,7 @@ assert.match(
 );
 assert.match(verification, /ai-company-builder-rework-source-mutation-planning/);
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 30/);
 assert.match(contracts, /REWORK_LIVE_MUTATION: 'builder-rework-live-mutation'/);
 assert.match(attempts, /START_BUILDER_REWORK_PREFLIGHT: 'start-builder-rework-preflight'/);
 assert.match(approvalRuntime, /const ACTION = 'builder-rework-live-mutation'/);
@@ -156,8 +156,8 @@ assert.equal(
 );
 assert.match(app, /run-builder-rework-source-mutation/);
 
-assert.equal(countFiles(/^smoke-.*\.mjs$/), 1012);
-assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 716);
+assert.equal(countFiles(/^smoke-.*\.mjs$/), 1014);
+assert.equal(countFiles(/^smoke-ui-slice-.*\.mjs$/), 717);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
@@ -168,6 +168,6 @@ process.stdout.write(`${JSON.stringify({
   schemaVersion: 24,
   sourceMutationAllowed: true,
   reviewerQaExecutionAllowed: false,
-  smokeFileCount: 1012,
-  uiSmokeFileCount: 716,
+  smokeFileCount: 1014,
+  uiSmokeFileCount: 717,
 }, null, 2)}\n`);

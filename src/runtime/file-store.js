@@ -59,6 +59,7 @@ const {
   SPECIALIST_CELL_RETRY_STATE_SCHEMA_VERSION,
   STAFFING_ENTRY_STATE_SCHEMA_VERSION,
   STAFFING_PLAN_STATE_SCHEMA_VERSION,
+  STRATEGIST_CONTEXT_CONSUMPTION_STATE_SCHEMA_VERSION,
   STATE_SCHEMA_VERSION,
   WORK_ORDER_ATTEMPT_STATE_SCHEMA_VERSION,
   WORK_ORDER_STATUS,
@@ -133,6 +134,14 @@ const {
 const {
   assertMissionContextAttachmentRecord,
 } = require('./mission-context-attachments');
+const {
+  CONTEXT_CONSUMPTION_ACKNOWLEDGEMENT,
+  CONTEXT_CONSUMPTION_DECISION,
+  CONTEXT_CONSUMPTION_TARGET_ROLE,
+  assertContextConsumptionReceipt,
+  assertContextRef,
+  createStrategistContextConsumption,
+} = require('./strategist-context-consumption');
 const {
   CONTEXT_ACKNOWLEDGEMENT,
   NON_INJECTION_STATEMENT,
@@ -1689,12 +1698,15 @@ function validateMissionContextAttachmentRecords(state) {
     const mission = state.missions[attachment.targetMissionId];
     const recall = state.memoryRecalls[attachment.sourceMemoryRecallId];
     const item = state.memoryItems[attachment.sourceMemoryItemId];
+    const contextBoundStaffingEntry = Object.values(state.staffingEntries || {}).find(
+      (entry) =>
+        entry?.missionContextAttachmentRef?.attachmentId === attachment.id &&
+        entry.missionId === attachment.targetMissionId,
+    );
     if (!mission || !recall || !item) {
       throw new Error(`${label} has missing Mission or memory source lineage`);
     }
     if (
-      attachment.targetMissionDigest !==
-        computeMissionMemoryContextTargetDigest(mission) ||
       attachment.sourceMemoryRecallRecordDigest !== recall.recordDigest ||
       attachment.sourceMemoryItemRecordDigest !== item.recordDigest ||
       recall.sourceMemoryItemId !== item.id ||
@@ -1705,34 +1717,57 @@ function validateMissionContextAttachmentRecords(state) {
       throw new Error(`${label} has stale or cross-project source bindings`);
     }
 
-    const preview = previewMissionMemoryContext(
-      {
-        recall,
-        item,
-        mission,
-        evaluatedAt: attachment.evaluatedAt,
-        contextSpec: {
-          purpose: attachment.purpose,
-          workspaceScope: structuredClone(attachment.workspaceScope),
-          applicability: structuredClone(attachment.applicability),
-          evidenceRefs: [...attachment.evidenceRefs],
-          negativeEvidenceRefs: [...attachment.negativeEvidenceRefs],
-          redactionRefs: [...attachment.redactionRefs],
-          reviewRefs: [...attachment.reviewRefs],
-          acknowledgement: CONTEXT_ACKNOWLEDGEMENT,
-          nonInjectionStatement: NON_INJECTION_STATEMENT,
+    if (contextBoundStaffingEntry) {
+      const staffingPlan = state.staffingPlans[contextBoundStaffingEntry.staffingPlanId];
+      const contextRef = contextBoundStaffingEntry.missionContextAttachmentRef;
+      assertContextRef(contextRef, `${label} StaffingEntry context ref`);
+      if (
+        !staffingPlan ||
+        contextBoundStaffingEntry.projectId !== attachment.projectId ||
+        contextBoundStaffingEntry.missionId !== mission.id ||
+        mission.staffingEntryId !== contextBoundStaffingEntry.id ||
+        mission.councilSessionId !== contextBoundStaffingEntry.councilSessionId ||
+        attachment.targetMissionDigest !== staffingPlan.missionDigest ||
+        attachment.targetMissionDigest !== contextBoundStaffingEntry.missionDigest ||
+        contextRef.attachmentId !== attachment.id ||
+        contextRef.attachmentRecordDigest !== attachment.recordDigest ||
+        contextRef.targetMissionDigest !== attachment.targetMissionDigest
+      ) {
+        throw new Error(`${label} has invalid historical StaffingPlan and StaffingEntry anchor`);
+      }
+    } else {
+      if (attachment.targetMissionDigest !== computeMissionMemoryContextTargetDigest(mission)) {
+        throw new Error(`${label} has stale or cross-project source bindings`);
+      }
+      const preview = previewMissionMemoryContext(
+        {
+          recall,
+          item,
+          mission,
+          evaluatedAt: attachment.evaluatedAt,
+          contextSpec: {
+            purpose: attachment.purpose,
+            workspaceScope: structuredClone(attachment.workspaceScope),
+            applicability: structuredClone(attachment.applicability),
+            evidenceRefs: [...attachment.evidenceRefs],
+            negativeEvidenceRefs: [...attachment.negativeEvidenceRefs],
+            redactionRefs: [...attachment.redactionRefs],
+            reviewRefs: [...attachment.reviewRefs],
+            acknowledgement: CONTEXT_ACKNOWLEDGEMENT,
+            nonInjectionStatement: NON_INJECTION_STATEMENT,
+          },
         },
-      },
-      { now: attachment.attachedAt },
-    );
-    if (
-      attachment.sourcePreviewId !== preview.id ||
-      attachment.sourcePreviewDigest !== preview.previewDigest ||
-      attachment.sourceMemoryRecallPreviewId !==
-        preview.sourceMemoryRecallPreviewId ||
-      attachment.expiresAt !== preview.expiresAt
-    ) {
-      throw new Error(`${label} does not reproduce its exact source preview`);
+        { now: attachment.attachedAt },
+      );
+      if (
+        attachment.sourcePreviewId !== preview.id ||
+        attachment.sourcePreviewDigest !== preview.previewDigest ||
+        attachment.sourceMemoryRecallPreviewId !==
+          preview.sourceMemoryRecallPreviewId ||
+        attachment.expiresAt !== preview.expiresAt
+      ) {
+        throw new Error(`${label} does not reproduce its exact source preview`);
+      }
     }
   }
 
@@ -2069,6 +2104,62 @@ function validateStaffingEntryRecords(state) {
         staffingEntry.staffingPlanRecordDigest
     ) {
       throw new Error(`${label} CouncilSession staffingEntryRef is stale`);
+    }
+    const contextBound = Object.prototype.hasOwnProperty.call(
+      staffingEntry,
+      'missionContextAttachmentRef',
+    );
+    if (contextBound) {
+      const attachment = state.missionContextAttachments[staffingEntry.missionContextAttachmentRef.attachmentId];
+      const currentAttempt = councilSession.attempts[0];
+      const strategistPosition = currentAttempt?.positions?.find(
+        (position) => position.role === 'strategist',
+      );
+      assertContextRef(
+        staffingEntry.missionContextAttachmentRef,
+        `${label} missionContextAttachmentRef`,
+      );
+      assertContextConsumptionReceipt(
+        councilSession.strategistContextConsumption,
+        `${label} CouncilSession strategistContextConsumption`,
+      );
+      if (!attachment) {
+        throw new Error(`${label} has a missing MissionContextAttachment`);
+      }
+      const expectedConsumption = createStrategistContextConsumption({
+        attachment,
+        contextConsumption: {
+          decision: CONTEXT_CONSUMPTION_DECISION,
+          targetRole: CONTEXT_CONSUMPTION_TARGET_ROLE,
+          acknowledgement: CONTEXT_CONSUMPTION_ACKNOWLEDGEMENT,
+          rationale: councilSession.strategistContextConsumption.rationale,
+          requestedAt: councilSession.strategistContextConsumption.requestedAt,
+        },
+        targetAgentId: councilSession.strategistContextConsumption.targetAgentId,
+        now: councilSession.strategistContextConsumption.requestedAt,
+      });
+      if (
+        attachment.targetMissionId !== staffingEntry.missionId ||
+        attachment.projectId !== staffingEntry.projectId ||
+        attachment.targetMissionDigest !== staffingPlan.missionDigest ||
+        attachment.targetMissionDigest !== staffingEntry.missionDigest ||
+        JSON.stringify(staffingEntry.missionContextAttachmentRef) !==
+          JSON.stringify(expectedConsumption.contextRef) ||
+        JSON.stringify(councilSession.strategistContextConsumption) !==
+          JSON.stringify(expectedConsumption.receipt) ||
+        !strategistPosition?.contextRef ||
+        JSON.stringify(strategistPosition.contextRef) !==
+          JSON.stringify(expectedConsumption.contextRef)
+      ) {
+        throw new Error(`${label} has invalid Strategist context consumption lineage`);
+      }
+      for (const position of currentAttempt.positions || []) {
+        if (position.role !== 'strategist' && Object.prototype.hasOwnProperty.call(position, 'contextRef')) {
+          throw new Error(`${label} non-Strategist position contains a context reference`);
+        }
+      }
+    } else if (Object.prototype.hasOwnProperty.call(councilSession, 'strategistContextConsumption')) {
+      throw new Error(`${label} legacy StaffingEntry cannot retain a context receipt`);
     }
     const boundAgentIds = [
       councilSession.staffingSnapshot?.conductorAgentId,
@@ -5128,6 +5219,7 @@ function createFileStore(options = {}) {
       sourceSchemaVersion !== OPS_ATTEMPT_DISPOSITION_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== OPS_ATTEMPT_RESUME_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== MISSION_CONTEXT_ATTACHMENT_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== STRATEGIST_CONTEXT_CONSUMPTION_STATE_SCHEMA_VERSION &&
       sourceSchemaVersion !== STATE_SCHEMA_VERSION
     ) {
       throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
@@ -5840,7 +5932,10 @@ function createFileStore(options = {}) {
     const sourceBytes = readStateBytes();
     const sourceState = JSON.parse(sourceBytes);
     const normalizedState = normalizeState(sourceState);
-    if (sourceState.schemaVersion === REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION) {
+    if (
+      sourceState.schemaVersion === REWORK_PLAN_ACCEPTANCE_STATE_SCHEMA_VERSION ||
+      sourceState.schemaVersion === MISSION_CONTEXT_ATTACHMENT_STATE_SCHEMA_VERSION
+    ) {
       return attachStateRevision(normalizedState, digestStateBytes(sourceBytes));
     }
     if (sourceState.schemaVersion !== STATE_SCHEMA_VERSION) {
@@ -5865,13 +5960,22 @@ function createFileStore(options = {}) {
     return attachStateRevision(normalizeState(sourceState), digestStateBytes(sourceBytes));
   }
 
-  function loadStateSupportedReadonly() {
+  function loadStateSupportedReadonly({
+    minimumSchemaVersion = LEGACY_STATE_SCHEMA_VERSION,
+  } = {}) {
+    if (!Number.isInteger(minimumSchemaVersion)) {
+      throw new Error('minimumSchemaVersion must be an integer');
+    }
     if (!fs.existsSync(statePath)) {
       ensureStateFile();
     }
     const sourceBytes = readStateBytes();
+    const sourceState = JSON.parse(sourceBytes);
+    if (sourceState.schemaVersion < minimumSchemaVersion) {
+      throw new Error(`state must use schema v${minimumSchemaVersion} or later`);
+    }
     return attachStateRevision(
-      normalizeState(JSON.parse(sourceBytes)),
+      normalizeState(sourceState),
       digestStateBytes(sourceBytes),
     );
   }

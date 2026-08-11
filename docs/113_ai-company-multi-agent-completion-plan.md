@@ -330,17 +330,16 @@ plan, WorkOrder, prompt, and policy bytes remain unchanged. `DEC-226` records th
 handoff and `DEC-227` implements only immutable record-and-inspect authority. Stage 7B Strategist or planner consumption,
 automatic selection, application, and injection remain separate authorities.
 
-Stage 7B planning-only `DEC-228` and handoff-only `DEC-229` now define the next bounded authority:
+Stage 7B planning-only `DEC-228`, handoff-only `DEC-229`, and implementation `DEC-230` define the bounded authority:
 one exact operator-selected current unexpired MissionContextAttachment created under schema-v29
 state may be consumed only by Strategist during the first attempt of a new accepted StaffingPlan ->
-StaffingEntry -> CouncilSession local-stub entry. The future implementation preserves all v29
+StaffingEntry -> CouncilSession local-stub entry. The implementation preserves all v29
 records as legacy variants and adds no top-level consumption map. Read-only activity and replay do
 not save; the next successful authorized write may persist normalized v30 without fabricated
 context fields. The normalized context is frozen and request-scoped; Architect and Decomposer get
 no context key, and Conductor receives an allowlisted projection without context receipts. Exact replay is no-write and
 context-bound sessions remain blocked from downstream scheduler, WorkOrder, provider, prompt,
-policy, Mission-injection, source, Git, release, and connector paths. Runtime implementation is
-reserved for `DEC-230`.
+policy, Mission-injection, source, Git, release, and connector paths.
 
 ### Stage 8: Provider Expansion And Dogfood
 
@@ -594,8 +593,7 @@ fit.
 - Reviewed Mission context attachment planning is recorded as `DEC-225`; its complete fielded
   implementation handoff is `DEC-226`, and schema-v29 record-and-inspect implementation is `DEC-227`.
 - Stage 7B Strategist context-consumption planning is recorded as `DEC-228`; its complete schema-v30
-  implementation handoff is `DEC-229`, and the matching implementation decision is reserved for
-  `DEC-230`.
+  implementation handoff is `DEC-229`, and exact bounded implementation is accepted as `DEC-230`.
 - Solo entry/execution, bound revision/resume/auto-chain, broader parallelism, cancel/resume,
   Architect/Decomposer/Conductor context use, planner or WorkOrder injection, provider WorkOrders,
   and dogfood closure remain blocked pending their own complete fielded decisions.

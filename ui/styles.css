@@ -13282,6 +13282,34 @@ body .llm-app-shell .llm-mission-composer .form-help {
   gap: 16px;
 }
 
+.strategist-context-entry-form,
+.strategist-context-receipt {
+  display: grid;
+  gap: 14px;
+  padding: 16px 0 0;
+  border-top: 1px solid #d8ddd9;
+}
+
+.strategist-context-entry-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.strategist-context-entry-head strong {
+  display: block;
+  color: #202423;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.strategist-context-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .staffing-plan-control-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -14512,7 +14540,8 @@ body .llm-app-shell .project-bootstrap-defaults {
   }
 
   .staffing-plan-header,
-  .staffing-plan-record-lead {
+  .staffing-plan-record-lead,
+  .strategist-context-entry-head {
     align-items: stretch;
     flex-direction: column;
   }
@@ -14524,6 +14553,10 @@ body .llm-app-shell .project-bootstrap-defaults {
 
   .staffing-plan-role-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .strategist-context-entry-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .staffing-plan-role-strip span:nth-child(2) {

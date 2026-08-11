@@ -115,12 +115,12 @@ for (const text of [masterPlan, runtimeContract, councilProtocol, deliveryRoadma
 assert.match(inventory, /AI Company Builder rework mutation Approval planning/);
 assert.match(
   inventory,
-  /required `1\/1` and informational `313\/313` pass; total passed is `314\/314`/,
+  /required `1\/1` and informational `315\/315` pass; total passed is `316\/316`/,
 );
 assert.match(readme, /docs\/135_ai-company-builder-rework-mutation-approval-plan\.md/);
 assert.match(readme, /docs\/136_ai-company-builder-rework-mutation-approval-implementation-decision-handoff\.md/);
-assert.match(readme, /1012 smoke files/);
-assert.match(readme, /716 UI smoke files/);
+assert.match(readme, /1014 smoke files/);
+assert.match(readme, /717 UI smoke files/);
 assert.match(todo, /ai-company-builder-rework-mutation-approval-planning-post-m7-2030/);
 assert.match(lessons, /Builder rework mutation Approval must bind the exact waiting-gate lineage/);
 assert.match(verification, /ai-company-builder-rework-mutation-approval-planning/);

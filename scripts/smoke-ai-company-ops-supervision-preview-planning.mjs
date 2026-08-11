@@ -197,7 +197,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-ops-supervision-preview\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 30/);
 assert.doesNotMatch(contracts, /opsSupervisionPreview/);
 assert.match(runtimeService, /\bgetOpsSupervisionPreview\b/);
 for (const implementationPath of [

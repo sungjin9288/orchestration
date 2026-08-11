@@ -286,7 +286,7 @@ async function main() {
     );
 
     const persisted = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 29);
+    assert.equal(persisted.schemaVersion, 30);
     assert.equal(persisted.sequences.memoryRecall, 1);
     assert.equal(Object.keys(persisted.memoryRecalls).length, 1);
     assert.deepEqual(withoutMemoryRecallState(persisted), schemaV14);
@@ -318,7 +318,7 @@ async function main() {
     const migrationOnlyRoot = path.join(tempRoot, 'migration-only');
     writeState(migrationOnlyRoot, schemaV14);
     const migratedOnly = createFileStore({ runtimeRoot: migrationOnlyRoot }).loadState();
-    assert.equal(migratedOnly.schemaVersion, 29);
+    assert.equal(migratedOnly.schemaVersion, 30);
     assert.equal(migratedOnly.sequences.memoryRecall, 0);
     assert.deepEqual(migratedOnly.memoryRecalls, {});
 
@@ -343,7 +343,7 @@ async function main() {
     );
 
     const futureRoot = path.join(tempRoot, 'future-schema');
-    writeState(futureRoot, { ...persisted, schemaVersion: 30 });
+    writeState(futureRoot, { ...persisted, schemaVersion: 31 });
     assertNoWrite(
       futureRoot,
       () => createFileStore({ runtimeRoot: futureRoot }).loadStateSupportedReadonly(),

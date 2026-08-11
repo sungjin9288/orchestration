@@ -586,16 +586,15 @@ attachment review. The Mission and every source record remain byte-equivalent, g
 exclude the sidecar, and exact Mission-bound inspection exposes zero or one record. The exact
 record-and-inspect path is implemented; role, prompt, policy, Council, ExecutionPlan, and WorkOrder
 consumption or injection remain separately blocked.
-Stage 7B planning-only `DEC-228` and handoff-only `DEC-229` define one future schema-v30
+Stage 7B planning-only `DEC-228`, handoff-only `DEC-229`, and implementation `DEC-230` define one schema-v30
 first-attempt accepted-StaffingPlan Council entry with an exact operator-selected attachment. Only
 Strategist receives the frozen normalized context; Architect and Decomposer receive no context key,
 and Conductor receives an allowlisted position projection without context identifiers, digests, or
 receipts. Existing v29 records remain legacy variants; read-only activity and replay do not save,
 while the next successful authorized write may persist normalized v30 without fabricating context
 fields. Historical post-transition validation binds the attachment target Mission digest to the
-StaffingPlan and StaffingEntry Mission digests. Runtime implementation is reserved
-for `DEC-230`; all downstream scheduler, WorkOrder, provider, prompt, policy, and Mission-injection
-paths remain blocked.
+StaffingPlan and StaffingEntry Mission digests. The bounded runtime, API, and UI path is implemented;
+all downstream scheduler, WorkOrder, provider, prompt, policy, and Mission-injection paths remain blocked.
 
 `DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
 legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,

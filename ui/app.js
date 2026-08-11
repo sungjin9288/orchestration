@@ -138,6 +138,7 @@ import {
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
   getMissionStaffingPlanSummary,
+  getStrategistContextConsumptionSummary,
   getOpsAttemptDispositionRequest,
   getOpsAttemptResumeRequest,
   getOpsAttemptResumeSource,
@@ -570,6 +571,11 @@ const state = {
       'reviewed-exact-memory-context-for-immutable-mission-attachment',
   },
   missionContextAttachment: null,
+  missionStrategistContextDraft: {
+    entryRationale: '',
+    contextRationale: '',
+  },
+  missionStrategistContextEvidence: null,
   workOrderVerificationPlanPreview: null,
   workOrderVerificationStatus: null,
   workOrderAcceptanceCriteriaRationale: '',
@@ -5316,6 +5322,9 @@ function applySnapshotPayload(payload) {
   } else if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
     state.missionContextAttachment = null;
   }
+  if (Object.prototype.hasOwnProperty.call(payload, 'snapshot')) {
+    state.missionStrategistContextEvidence = null;
+  }
   if (Object.prototype.hasOwnProperty.call(payload, 'executionPlanRecovery')) {
     state.missionExecutionPlanRecovery = payload.executionPlanRecovery || null;
   }
@@ -5457,6 +5466,7 @@ async function hydrateSelectedDetails() {
   state.missionMemoryRecall = null;
   state.missionMemoryContextPreview = null;
   state.missionContextAttachment = null;
+  state.missionStrategistContextEvidence = null;
   state.workOrderVerificationPlanPreview = null;
   state.workOrderVerificationStatus = null;
   state.reviewerReworkPlan = null;
@@ -5564,6 +5574,18 @@ async function hydrateSelectedDetails() {
     );
     state.missionContextAttachment =
       attachmentPayload.missionContextAttachment || null;
+  }
+
+  if (selectedMission?.staffingEntryId) {
+    const staffingEntryPayload = await fetchJson(
+      `/api/staffing-entries/${encodeURIComponent(selectedMission.staffingEntryId)}`,
+    );
+    if (
+      staffingEntryPayload.staffingEntry?.missionContextAttachmentRef &&
+      staffingEntryPayload.councilSession?.strategistContextConsumption
+    ) {
+      state.missionStrategistContextEvidence = staffingEntryPayload;
+    }
   }
 
   if (latestBreakdownArtifact) {
@@ -6929,6 +6951,113 @@ async function enterStaffingPlanCouncil(actionButton) {
     render();
     elements.refreshStatus.textContent =
       `${payload.staffingEntry.id}을 기록하고 ${payload.councilSession.id}에서 human alignment를 기다립니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function enterStaffingPlanCouncilWithStrategistContext(actionButton) {
+  const staffingPlanId = String(actionButton?.dataset.id || '').trim();
+  const form = actionButton?.closest?.(
+    '[data-form="staffing-plan-strategist-context-entry"]',
+  );
+  const data = getDerived();
+  const staffingPlan =
+    data.staffingPlans.find((entry) => entry.id === staffingPlanId) || null;
+  const mission = staffingPlan
+    ? data.missionMap.get(staffingPlan.missionId) || null
+    : null;
+  const staffingEntry =
+    data.staffingEntries.find((entry) => entry.staffingPlanId === staffingPlanId) || null;
+  const attachment = state.missionContextAttachment;
+  const summary = getStrategistContextConsumptionSummary(
+    mission,
+    staffingPlan,
+    staffingEntry,
+    attachment,
+    state.missionStrategistContextEvidence,
+  );
+  if (!form || !summary.canEnter) {
+    throw new Error(
+      '현재 Mission의 exact reviewed context와 accepted local Council StaffingPlan이 필요합니다.',
+    );
+  }
+
+  const formData = new FormData(form);
+  const entryRationale = String(formData.get('entryRationale') || '').trim();
+  const contextRationale = String(formData.get('contextRationale') || '').trim();
+  const requestedAt = new Date().toISOString();
+  state.missionStrategistContextDraft = { entryRationale, contextRationale };
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent =
+    `${attachment.id}를 Strategist-only context로 binding하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/staffing-plans/${encodeURIComponent(staffingPlan.id)}/council-entry-with-strategist-context`,
+      {
+        staffingPlanRecordDigest: staffingPlan.recordDigest,
+        sourceDigest: staffingPlan.sourceDigest,
+        missionDigest: staffingPlan.missionDigest,
+        blueprintDigest: staffingPlan.blueprintDigest,
+        staffingSpecDigest: staffingPlan.staffingSpecDigest,
+        missionContextAttachmentId: attachment.id,
+        missionContextAttachmentRecordDigest: attachment.recordDigest,
+        entryApproval: {
+          decision: 'enter',
+          acknowledgement: 'bind-exact-accepted-staffing-plan-to-local-council',
+          rationale: entryRationale,
+          requestedAt,
+        },
+        contextConsumption: {
+          decision: 'consume',
+          targetRole: 'strategist',
+          acknowledgement:
+            'use-exact-reviewed-mission-context-for-strategist-only',
+          rationale: contextRationale,
+          requestedAt,
+        },
+      },
+    );
+    applySnapshotPayload(payload);
+    const staffingEntryId = String(payload.mutation?.staffingEntryId || '').trim();
+    const councilSessionId = String(payload.mutation?.councilSessionId || '').trim();
+    const missionId = String(payload.mutation?.missionId || '').trim();
+    if (!staffingEntryId || !councilSessionId || !missionId) {
+      throw new Error('Strategist context mutation locator가 누락되었습니다.');
+    }
+    const inspected = await fetchJson(
+      `/api/staffing-entries/${encodeURIComponent(staffingEntryId)}`,
+    );
+    const exact = getStrategistContextConsumptionSummary(
+      inspected.mission,
+      staffingPlan,
+      inspected.staffingEntry,
+      attachment,
+      inspected,
+    );
+    if (
+      inspected.staffingEntry?.id !== staffingEntryId ||
+      inspected.councilSession?.id !== councilSessionId ||
+      inspected.mission?.id !== missionId ||
+      !exact.exactReceipt
+    ) {
+      throw new Error('Strategist context exact inspection receipt가 일치하지 않습니다.');
+    }
+    state.missionContextAttachment = attachment;
+    state.missionStrategistContextEvidence = inspected;
+    state.missionStrategistContextDraft = {
+      entryRationale: '',
+      contextRationale: '',
+    };
+    syncSelectionsFromMission(inspected.mission.id);
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent =
+      `${staffingEntryId}의 Strategist-only context receipt를 exact GET으로 확인했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -18083,6 +18212,15 @@ function renderMissionStaffingPlan(data, mission) {
   const draft = state.missionStaffingPlanDraft;
   const acceptanceDraft = state.missionStaffingPlanAcceptanceDraft;
   const entryDraft = state.missionStaffingEntryDraft;
+  const strategistContextDraft = state.missionStrategistContextDraft;
+  const strategistContextSummary = getStrategistContextConsumptionSummary(
+    mission,
+    staffingPlan,
+    staffingEntry,
+    state.missionContextAttachment,
+    state.missionStrategistContextEvidence,
+  );
+  const strategistContextReceipt = strategistContextSummary.receipt;
   const availableProfiles = (blueprint?.agentProfiles || []).filter(
     (profile) =>
       profile.supportedPacks?.includes(data.activeProject.pack) &&
@@ -18192,6 +18330,28 @@ function renderMissionStaffingPlan(data, mission) {
                     <p class="form-help">
                       Human alignment에서 멈춥니다. WorkOrder, scheduling, provider와 source mutation은 열리지 않습니다.
                     </p>
+                    ${
+                      strategistContextReceipt
+                        ? `
+                          <div class="strategist-context-receipt" aria-label="Exact Strategist context consumption receipt">
+                            <div class="staffing-plan-record-lead">
+                              <div>
+                                <span>Strategist context receipt</span>
+                                <strong>${escapeHtml(strategistContextReceipt.attachmentId)}</strong>
+                              </div>
+                              ${createToken('exact GET evidence', 'success')}
+                            </div>
+                            <dl class="staffing-plan-facts">
+                              <div><dt>Role</dt><dd>${escapeHtml(strategistContextReceipt.targetRole)}</dd></div>
+                              <div><dt>Agent</dt><dd>${escapeHtml(strategistContextReceipt.targetAgentId)}</dd></div>
+                              <div><dt>Context</dt><dd><code>${escapeHtml(strategistContextReceipt.contextDigest.slice(0, 16))}</code></dd></div>
+                              <div><dt>Boundary</dt><dd>Human alignment only</dd></div>
+                            </dl>
+                            <p class="form-help">Architect, Decomposer, Conductor raw context, provider, scheduler와 WorkOrder consumption은 blocked 상태입니다.</p>
+                          </div>
+                        `
+                        : ''
+                    }
                   </div>
                 `
                 : staffingPlan.mode === 'solo'
@@ -18232,6 +18392,49 @@ function renderMissionStaffingPlan(data, mission) {
                         Exact plan과 별도 entry approval을 bind한 뒤 첫 deterministic attempt만 실행합니다.
                       </p>
                     </form>
+                    ${
+                      strategistContextSummary.attachmentCurrent
+                        ? `
+                          <form class="strategist-context-entry-form" data-form="staffing-plan-strategist-context-entry">
+                            <div class="strategist-context-entry-head">
+                              <div>
+                                <span class="staffing-plan-kicker">Optional reviewed context</span>
+                                <strong>Strategist에게만 exact attachment를 전달합니다</strong>
+                              </div>
+                              ${createToken('explicit opt-in', 'accent')}
+                            </div>
+                            <dl class="staffing-plan-facts">
+                              <div><dt>Attachment</dt><dd>${escapeHtml(state.missionContextAttachment.id)}</dd></div>
+                              <div><dt>Target</dt><dd>${escapeHtml(state.missionContextAttachment.targetMissionId)}</dd></div>
+                              <div><dt>Digest</dt><dd><code>${escapeHtml(state.missionContextAttachment.recordDigest.slice(0, 16))}</code></dd></div>
+                              <div><dt>Stop</dt><dd>Human alignment</dd></div>
+                            </dl>
+                            <div class="strategist-context-entry-grid">
+                              <label class="field">
+                                <span>Entry rationale</span>
+                                <textarea name="entryRationale" rows="2" required ${busy ? 'disabled' : ''}>${escapeHtml(strategistContextDraft.entryRationale)}</textarea>
+                              </label>
+                              <label class="field">
+                                <span>Strategist context rationale</span>
+                                <textarea name="contextRationale" rows="2" required ${busy ? 'disabled' : ''}>${escapeHtml(strategistContextDraft.contextRationale)}</textarea>
+                              </label>
+                            </div>
+                            <div class="staffing-plan-actions">
+                              <button
+                                class="secondary-button"
+                                type="button"
+                                data-action="enter-staffing-plan-council-with-strategist-context"
+                                data-id="${escapeHtml(staffingPlan.id)}"
+                                ${busy || !strategistContextSummary.canEnter ? 'disabled' : ''}
+                              >
+                                Enter with Strategist context
+                              </button>
+                            </div>
+                            <p class="form-help">Contextless entry는 위에서 그대로 사용할 수 있습니다. 이 opt-in은 첫 local-stub attempt에만 적용됩니다.</p>
+                          </form>
+                        `
+                        : ''
+                    }
                   `
             }
           `
@@ -24471,6 +24674,14 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (
+        actionButton.dataset.action ===
+        'enter-staffing-plan-council-with-strategist-context'
+      ) {
+        await enterStaffingPlanCouncilWithStrategistContext(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'preview-specialist-batch') {
         await submitSpecialistBatchPreview(actionButton);
         return;
@@ -24861,6 +25072,9 @@ function handleFormInput(event) {
   const staffingEntryForm = event.target.closest(
     '[data-form="staffing-plan-entry"]',
   );
+  const strategistContextEntryForm = event.target.closest(
+    '[data-form="staffing-plan-strategist-context-entry"]',
+  );
   const specialistBatchForm = event.target.closest(
     '[data-form="specialist-batch-preview"]',
   );
@@ -25025,6 +25239,16 @@ function handleFormInput(event) {
   if (staffingEntryForm) {
     if (event.target.name === 'entryRationale') {
       state.missionStaffingEntryDraft.rationale = event.target.value;
+    }
+    return;
+  }
+
+  if (strategistContextEntryForm) {
+    if (event.target.name === 'entryRationale') {
+      state.missionStrategistContextDraft.entryRationale = event.target.value;
+    }
+    if (event.target.name === 'contextRationale') {
+      state.missionStrategistContextDraft.contextRationale = event.target.value;
     }
     return;
   }

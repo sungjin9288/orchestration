@@ -314,7 +314,7 @@ const completionFocusEvidence = [
   /complete fielded\s+implementation handoff is recorded by `DEC-105`/,
   /docs\/70_ai-company-mission-task-close-out-plan\.md/,
   /docs\/71_ai-company-mission-task-close-out-implementation-decision-handoff\.md/,
-  /execution state is schema v29/,
+  /execution state is schema v30/,
   /LearningCandidate preview planning-only authority is accepted by `DEC-107`/,
   /implementation handoff is recorded by `DEC-108`/,
   /exact response-only implementation is accepted\s+by `DEC-109`/,

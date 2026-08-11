@@ -877,6 +877,16 @@ const informationalChecks = [
     purpose: 'AI Company Stage 7B planning fixes one future schema-v30 first-attempt local-stub StaffingPlan Council entry, exact v29 attachment selection, Strategist-only request-scoped normalized context, v29 legacy compatibility, no top-level consumption map, exact no-write replay, rollback retention, and blocked Architect/Decomposer/Conductor/planner/prompt/policy/WorkOrder/provider/scheduler/source/Git/release authority',
   },
   {
+    id: 'ai-company-strategist-mission-context-consumption-implementation',
+    script: 'scripts/smoke-ai-company-strategist-mission-context-consumption.mjs',
+    purpose: 'AI Company Stage 7B runtime and API prove supported schema-v29 no-write inspection, one atomic schema-v30 context-bound StaffingEntry and Council first attempt, Strategist-only frozen normalized context, Conductor allowlisted position projection, exact inspection receipt hydration, no-call replay, generic snapshot redaction, provider refusal, and downstream scheduler and WorkOrder blocking',
+  },
+  {
+    id: 'ai-company-strategist-mission-context-consumption-ui-api',
+    script: 'scripts/smoke-ui-slice-717.mjs',
+    purpose: 'AI Company Stage 7B UI proves one explicit accepted-plan plus exact-attachment opt-in, bounded POST, exact StaffingEntry receipt hydration, preserved contextless entry, responsive fit, and absent provider scheduler WorkOrder source Git release retry or automatic retrieval controls',
+  },
+  {
     id: 'ai-company-workorder-verification-plan-preview',
     script: 'scripts/smoke-ai-company-workorder-verification-plan-preview.mjs',
     purpose: 'AI Company WorkOrder verification plan runtime proves exact current ExecutionPlan and WorkOrder record digest binding, complete acceptance stop command and artifact source coverage, deterministic deep-frozen response-only replay, zero state mutation, safe stale malformed crossed and future input refusal, and blocked approval completion command execution persistence provider source Git scheduling and connector authority',

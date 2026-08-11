@@ -137,7 +137,7 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-staffing-entry-binding-planning\.mjs'/,
 );
 
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 30/);
 assert.match(contracts, /staffingEntries: \{\}/);
 assert.match(staffingEntries, /function createStaffingEntry/);
 assert.match(staffingEntries, /function assertStaffingEntryRecord/);

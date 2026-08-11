@@ -292,7 +292,7 @@ assert.match(runtimeContractText, /Mission memory context preview planning은 `D
 assert.match(councilProtocolText, /Mission memory context preview planning은 `DEC-128`/);
 assert.match(deliveryRoadmapText, /Mission memory context preview planning-only authority는 `DEC-128`/);
 assert.match(masterPlanText, /Accepted Multi-Agent Completion Planning Authority/);
-assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-229`/);
+assert.match(masterPlanText, /Recorded decisions: `DEC-163` through `DEC-230`/);
 assert.match(runtimeContractText, /Multi-agent completion source reconciliation은 `DEC-162`/);
 assert.match(runtimeContractText, /implementation-readiness\s+clarification은 `DEC-165`/);
 assert.match(councilProtocolText, /Multi-agent completion source reconciliation은 `DEC-162`/);
@@ -388,7 +388,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 29/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 30/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -538,9 +538,10 @@ const report = {
         'DEC-227',
         'DEC-228',
         'DEC-229',
+        'DEC-230',
       ],
       currentRuntime: {
-        schemaVersion: 29,
+        schemaVersion: 30,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
@@ -585,6 +586,8 @@ const report = {
           'schema-v25-exact-review-required-record-and-inspection',
         reviewedMissionContextAttachment:
           'schema-v29-exact-immutable-record-and-inspection',
+        strategistMissionContextConsumption:
+          'schema-v30-exact-strategist-only-first-attempt',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -671,8 +674,8 @@ const report = {
         reviewedMissionContextAttachmentPlanningAllowed: true,
         reviewedMissionContextAttachmentImplementationAllowed: true,
         strategistMissionContextConsumptionPlanningAllowed: true,
-        strategistMissionContextConsumptionImplementationAllowed: false,
-        missionContextRoleConsumptionAllowed: false,
+        strategistMissionContextConsumptionImplementationAllowed: true,
+        missionContextRoleConsumptionAllowed: true,
         qaReexecutionAllowed: false,
         activeSpecialistAttemptRecoveryAllowed: false,
         broadParallelStaffingPolicyAllowed: false,
@@ -685,7 +688,7 @@ const report = {
         unattendedPushAllowed: false,
       },
     nextGate:
-      'DEC-228 and DEC-229 select Strategist-only Mission context consumption planning; exact DEC-230 is required for schema-v30 implementation',
+      'DEC-230 stops at Strategist-only local-stub human alignment; broader role, provider, planner, scheduler, and WorkOrder consumption require a separate decision',
 };
 assert.equal(report.authority.durableSpecialistBatchImplementationAllowed, true);
 assert.equal(report.authority.requestScopedConcurrentSpecialistExecutionAllowed, true);
@@ -721,14 +724,14 @@ assert.equal(report.authority.opsSafeCheckpointResumeImplementationAllowed, true
 assert.equal(report.authority.reviewedMissionContextAttachmentPlanningAllowed, true);
 assert.equal(report.authority.reviewedMissionContextAttachmentImplementationAllowed, true);
 assert.equal(report.authority.strategistMissionContextConsumptionPlanningAllowed, true);
-assert.equal(report.authority.strategistMissionContextConsumptionImplementationAllowed, false);
-assert.equal(report.authority.missionContextRoleConsumptionAllowed, false);
+assert.equal(report.authority.strategistMissionContextConsumptionImplementationAllowed, true);
+assert.equal(report.authority.missionContextRoleConsumptionAllowed, true);
 assert.equal(report.authority.qaReexecutionAllowed, false);
 assert.equal(report.authority.activeSpecialistAttemptRecoveryAllowed, false);
 assert.equal(report.authority.broadParallelStaffingPolicyAllowed, false);
 assert.match(
   report.nextGate,
-  /exact DEC-230 is required for schema-v30 implementation/,
+  /broader role, provider, planner, scheduler, and WorkOrder consumption require a separate decision/,
 );
 
 process.stdout.write(

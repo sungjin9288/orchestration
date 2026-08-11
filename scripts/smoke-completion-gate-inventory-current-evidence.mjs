@@ -38,9 +38,9 @@ function assertReadmeHas(pattern) {
 const inventoryGateRows = [
   /Starting head checked before this inventory edit: `965a35b`/,
   /Planning baseline head checked before this document update: `965a35b`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current worktree returns `ok=true`: required `1\/1` and informational `313\/313` pass; total passed is `314\/314`\. \| Keep the required docs\/runtime aggregate gate authoritative and do not report optional live-provider checks as completed\. \|/,
-  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-worktree required `94\/94` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current worktree inventory is pinned to aggregate required `1\/1`, informational `313\/313`, total `314\/314`, UI QA `94\/94`, zero unchecked task lines, AI Company Stage 7A implementation through DEC-227, and Stage 7B planning through DEC-229\. \| Keep this smoke in aggregate so required versus informational results do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| Current worktree returns `ok=true`: required `1\/1` and informational `315\/315` pass; total passed is `316\/316`\. \| Keep the required docs\/runtime aggregate gate authoritative and do not report optional live-provider checks as completed\. \|/,
+  /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| Current-worktree required `95\/95` pass; the optional port-4315 snapshot check is informationally skipped\. \| Keep snapshot reachability optional unless that UI server is intentionally started\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current worktree inventory is pinned to aggregate required `1\/1`, informational `315\/315`, total `316\/316`, UI QA `95\/95`, zero unchecked task lines, and AI Company Stage 7B implementation through DEC-230\. \| Keep this smoke in aggregate so required versus informational results do not drift behind README, UI QA, or growth routing evidence\. \|/,
   /\| AI Company Reviewer re-execution planning \| pass \| `DEC-204`, `DEC-205`, `docs\/139_ai-company-reviewer-reexecution-plan\.md`, `docs\/140_ai-company-reviewer-reexecution-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-reviewer-reexecution-planning\.mjs` \|/,
   /\| AI Company Reviewer re-execution implementation \| pass \| `DEC-206`, `src\/runtime\/reviewer-reexecution\.js`, `node scripts\/smoke-ai-company-reviewer-reexecution\.mjs`, `node scripts\/smoke-ui-slice-709\.mjs` \|/,
   /\| AI Company rework QA execution planning \| pass \| `DEC-207`, `DEC-208`, `docs\/141_ai-company-rework-qa-execution-plan\.md`, `docs\/142_ai-company-rework-qa-execution-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-rework-qa-execution-planning\.mjs` \|/,
@@ -372,6 +372,7 @@ assert.match(uiQaStatus, /smoke-ui-slice-710\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-712\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-713\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-714\.mjs/);
+assert.match(uiQaStatus, /smoke-ui-slice-717\.mjs/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -382,9 +383,9 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '313/313',
+        informational: '315/315',
         informationalFailed: 0,
-        total: '314/314',
+        total: '316/316',
       },
     },
     null,

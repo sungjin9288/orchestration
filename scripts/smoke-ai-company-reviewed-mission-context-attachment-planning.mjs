@@ -94,7 +94,7 @@ for (const [source, label] of [
 assert.match(decisionLog, /^### DEC-225$/m);
 assert.match(decisionLog, /^### DEC-226$/m);
 assert.match(decisionLog, /^### DEC-227$/m);
-assert.match(contracts, /const STATE_SCHEMA_VERSION = 29/);
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 30/);
 assert.match(contracts, /missionContextAttachment/);
 assert.match(runtime, /attachReviewedMissionContext/);
 assert.match(server, /context-attachments/);
@@ -111,13 +111,13 @@ assert.equal(
 assert.equal(fs.existsSync(path.join(repoRoot, 'scripts/smoke-ui-slice-716.mjs')), true);
 assert.match(verification, /ai-company-reviewed-mission-context-attachment-planning/);
 assert.match(verification, /ai-company-reviewed-mission-context-attachment-implementation/);
-assert.match(readme, /1012 smoke files/);
-assert.match(readme, /716 UI smoke files/);
+assert.match(readme, /1014 smoke files/);
+assert.match(readme, /717 UI smoke files/);
 
 const smokeFileCount = countScripts(/^smoke-.*\.mjs$/);
 const uiSmokeFileCount = countScripts(/^smoke-ui-slice-.*\.mjs$/);
-assert.equal(smokeFileCount, 1012);
-assert.equal(uiSmokeFileCount, 716);
+assert.equal(smokeFileCount, 1014);
+assert.equal(uiSmokeFileCount, 717);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
